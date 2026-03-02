@@ -599,16 +599,8 @@ export function parseIntentText(
     const line = lines[i];
     const trimmed = line.trim();
 
-    // Comment lines (// ...) are silently ignored
-    if (trimmed.startsWith("//")) continue;
-
-    // If we have a pending table and current line is not a row (keyword or MD pipe), flush it.
-    const isMdPipeRow = /^\|.+\|$/.test(trimmed);
-    if (pendingTable && !/^row:\s*/i.test(trimmed) && !isMdPipeRow) {
-      flushPendingTable();
-    }
-
     // Handle multi-line code blocks (both keyword and fence modes)
+    // NOTE: This must come BEFORE the comment check so that // lines inside code blocks are preserved
     if (codeCaptureMode) {
       const isEndKeyword =
         codeCaptureType === "keyword" && trimmed.toLowerCase() === "end:";
@@ -634,6 +626,15 @@ export function parseIntentText(
         codeContent.push(line);
       }
       continue;
+    }
+
+    // Comment lines (// ...) are silently ignored
+    if (trimmed.startsWith("//")) continue;
+
+    // If we have a pending table and current line is not a row (keyword or MD pipe), flush it.
+    const isMdPipeRow = /^\|.+\|$/.test(trimmed);
+    if (pendingTable && !/^row:\s*/i.test(trimmed) && !isMdPipeRow) {
+      flushPendingTable();
     }
 
     // ``` fence — start a fenced code block
@@ -793,13 +794,6 @@ export function parseIntentText(
       block.type === "embed" ||
       block.type === "code" ||
       block.type === "table" ||
-      block.type === "template" ||
-      block.type === "use" ||
-      block.type === "include" ||
-      block.type === "ai" ||
-      block.type === "synthesize" ||
-      block.type === "comment" ||
-      block.type === "comment-reply" ||
       block.type === "body-text"
     ) {
       // Top-level blocks reset current section
@@ -855,7 +849,7 @@ export function parseIntentText(
   const hasArabic = blocks.some((b) => detectArabic(b.content));
 
   const document: IntentDocument = {
-    version: "1.1",
+    version: "1.2",
     blocks,
     metadata: {
       title: titleBlock?.content,
