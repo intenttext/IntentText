@@ -4,72 +4,47 @@ const {
   parseIntentText,
   renderHTML,
   convertMarkdownToIntentText,
+  convertHtmlToIntentText,
   queryBlocks,
   formatQueryResult,
   validateDocument,
   formatValidationResult,
   PREDEFINED_SCHEMAS,
-  buildStaticSite,
-  formatExportResult,
-  buildKnowledgeGraph,
-  formatGraphSummary,
-  visualizeGraph,
-  processAIDocument,
-  formatAIResult,
-  processCollaboration,
-  formatCollaborationSummary,
 } = require("./packages/core/dist");
 const fs = require("fs");
 const path = require("path");
 
-// Simple CLI for IntentText
 function main() {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
     console.log(`
-🚀 IntentText CLI Usage:
+🚀 IntentText CLI v1.4
 
-  node cli.js <file.it>                    # Parse and show JSON
-  node cli.js <file.it> --html             # Generate HTML output
-  node cli.js <file.it> --output           # Save HTML to file
-  node cli.js <file.md> --to-it            # Convert Markdown to .it
-  node cli.js <file.md> --to-it --output   # Save .it next to .md
-  node cli.js <file.it> --query "query"    # Query blocks (v1.2)
-  node cli.js <file.it> --validate <schema> # Validate against schema (v1.2)
-  node cli.js --build <dir>                # Build static site (v1.2)
-  node cli.js --graph <dir>                # Build knowledge graph (v1.2)
-  node cli.js <file.it> --ai               # Process AI features (v1.2)
-  node cli.js <file.it> --collab           # Show collaboration data (v1.2)
+Usage:
+  node cli.js <file.it>                     Parse and show JSON
+  node cli.js <file.it> --html              Generate HTML output
+  node cli.js <file.it> --output            Save HTML to file
+  node cli.js <file.md> --to-it             Convert Markdown to .it
+  node cli.js <file.html> --to-it           Convert HTML to .it
+  node cli.js <file> --to-it --output       Save converted .it next to source
+  node cli.js <file.it> --query "..."       Query blocks
+  node cli.js <file.it> --validate <schema> Validate against schema
 
-Query Examples:
+Query examples:
   node cli.js todo.it --query "type=task owner=Ahmed"
   node cli.js project.it --query "type=task due<2026-03-01 sort:due:asc limit:10"
 
-Validation Examples:
+Validation:
   node cli.js project.it --validate project
   node cli.js article.it --validate article
-
-Build Examples:
-  node cli.js --build ./docs --out ./dist
-  node cli.js --build ./docs --theme docs
-
-Graph Examples:
-  node cli.js --graph ./docs              # Show graph summary
-  node cli.js --graph ./docs --mermaid    # Output Mermaid diagram
-
-AI Examples:
-  node cli.js doc.it --ai                 # Show AI processing results
-
-Collaboration Examples:
-  node cli.js doc.it --collab             # Show mentions and comments
 
 Available schemas: ${Object.keys(PREDEFINED_SCHEMAS).join(", ")}
 
 Examples:
-  node cli.js examples/sample.it
-  node cli.js examples/sample.it --html
-  node cli.js examples/sample.it --output
+  node cli.js examples/simple.it
+  node cli.js examples/simple.it --html
+  node cli.js examples/simple.it --output
   node cli.js README.md --to-it
 `);
     return;
@@ -83,48 +58,8 @@ Examples:
   const queryString = queryIndex >= 0 ? args[queryIndex + 1] : null;
   const validateIndex = args.indexOf("--validate");
   const schemaName = validateIndex >= 0 ? args[validateIndex + 1] : null;
-  const buildIndex = args.indexOf("--build");
-  const buildDir = buildIndex >= 0 ? args[buildIndex + 1] : null;
-  const outIndex = args.indexOf("--out");
-  const outDir = outIndex >= 0 ? args[outIndex + 1] : "./dist";
-  const theme = args.includes("--theme")
-    ? args[args.indexOf("--theme") + 1]
-    : "default";
-  const graphIndex = args.indexOf("--graph");
-  const graphDir = graphIndex >= 0 ? args[graphIndex + 1] : null;
-  const mermaidOutput = args.includes("--mermaid");
 
   try {
-    // Graph mode (v1.2)
-    if (graphDir) {
-      if (!fs.existsSync(graphDir)) {
-        console.error(`❌ Directory not found: ${graphDir}`);
-        process.exit(1);
-      }
-      const graph = buildKnowledgeGraph({ dir: graphDir });
-      if (mermaidOutput) {
-        console.log(visualizeGraph(graph));
-      } else {
-        console.log(formatGraphSummary(graph));
-      }
-      return;
-    }
-
-    // Build mode (v1.2)
-    if (buildDir) {
-      if (!fs.existsSync(buildDir)) {
-        console.error(`❌ Directory not found: ${buildDir}`);
-        process.exit(1);
-      }
-      const result = buildStaticSite({
-        inputDir: buildDir,
-        outputDir: outDir,
-        theme,
-      });
-      console.log(formatExportResult(result));
-      process.exit(result.errors.length > 0 ? 1 : 0);
-    }
-
     if (!fs.existsSync(inputFile)) {
       console.error(`❌ File not found: ${inputFile}`);
       process.exit(1);
@@ -132,10 +67,16 @@ Examples:
 
     const content = fs.readFileSync(inputFile, "utf-8");
 
+    // Convert mode: Markdown or HTML → .it
     if (toIt) {
-      const converted = convertMarkdownToIntentText(content);
+      let converted;
+      if (/\.html?$/i.test(inputFile)) {
+        converted = convertHtmlToIntentText(content);
+      } else {
+        converted = convertMarkdownToIntentText(content);
+      }
       if (saveFile) {
-        const outputFile = inputFile.replace(/\.md$/i, ".it");
+        const outputFile = inputFile.replace(/\.(md|markdown|html?)$/i, ".it");
         fs.writeFileSync(outputFile, converted);
         console.log(`✅ IntentText saved to: ${outputFile}`);
       } else {
@@ -146,51 +87,36 @@ Examples:
 
     const document = parseIntentText(content);
 
-    // Query mode (v1.2)
+    // Query mode
     if (queryString) {
       const result = queryBlocks(document, queryString);
       console.log(formatQueryResult(result, "table"));
       return;
     }
 
-    // Validation mode (v1.2)
+    // Validation mode
     if (schemaName) {
       const result = validateDocument(document, schemaName);
       console.log(formatValidationResult(result));
       process.exit(result.valid ? 0 : 1);
     }
 
-    // AI processing mode (v1.2)
-    if (args.includes("--ai")) {
-      const result = processAIDocument(document);
-      console.log(formatAIResult(result));
-      return;
-    }
-
-    // Collaboration mode (v1.2)
-    if (args.includes("--collab")) {
-      const result = processCollaboration(document);
-      console.log(formatCollaborationSummary(result.data));
-      return;
-    }
-
+    // HTML output
     if (outputHtml || saveFile) {
       const html = renderHTML(document);
-
       if (saveFile) {
-        const outputFile = inputFile.replace(".it", ".html");
+        const outputFile = inputFile.replace(/\.it$/i, ".html");
         fs.writeFileSync(outputFile, html);
         console.log(`✅ HTML saved to: ${outputFile}`);
       } else {
-        console.log("🎨 HTML Output:");
         console.log(html);
       }
     } else {
-      console.log("📊 Parsed JSON:");
+      // Default: JSON output
       console.log(JSON.stringify(document, null, 2));
     }
   } catch (error) {
-    console.error("❌ Error:", error.message);
+    console.error(`❌ Error: ${error.message}`);
     process.exit(1);
   }
 }
