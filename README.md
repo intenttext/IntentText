@@ -62,7 +62,7 @@ wait: Billing response | timeout: 30s | fallback: escalate
 
 section: Resolution
 retry: Send confirmation | max: 3 | delay: 1000 | backoff: exponential
-status: Resolved | phase: complete | level: info
+emit: Resolved | phase: complete | level: info
 audit: Ticket closed | by: billing-agent | at: {{timestamp}}
 ```
 
@@ -274,18 +274,21 @@ Every `.it` document parses to typed, deterministic JSON:
 | `context:`            | Scoped variables     | `context: userId = "u_123" \| plan = "pro"`                       |
 | `progress:`           | Progress bar         | `progress: 3/5 tasks completed`                                   |
 | `import:` / `export:` | Document composition | `import: ./auth.it \| as: auth`                                   |
-| `schema:`             | Custom block type    | `schema: custom \| extends: step`                                 |
 
-### Inter-Agent Communication (v2.1)
+### Inter-Agent Communication (v2.1+)
 
-| Keyword     | Purpose          | Example                                                            |
-| ----------- | ---------------- | ------------------------------------------------------------------ |
-| `status:`   | Workflow status  | `status: Running \| phase: deploy \| level: info`                  |
-| `result:`   | Execution output | `result: Success \| code: 200 \| data: {"id":"u_123"}`             |
-| `handoff:`  | Agent transfer   | `handoff: Transfer \| from: agent-a \| to: agent-b`                |
-| `wait:`     | Async pause      | `wait: Approval \| timeout: 30s \| fallback: step-3`               |
-| `parallel:` | Concurrent steps | `parallel: Run checks \| steps: lint,test,build`                   |
-| `retry:`    | Retry policy     | `retry: API call \| max: 3 \| delay: 1000 \| backoff: exponential` |
+| Keyword     | Purpose               | Example                                                            |
+| ----------- | --------------------- | ------------------------------------------------------------------ |
+| `emit:`     | Signal / status event | `emit: Running \| phase: deploy \| level: info`                    |
+| `gate:`     | Human approval        | `gate: Approve deploy \| approver: ops-lead \| timeout: 24h`       |
+| `call:`     | Sub-workflow call     | `call: ./verify.it \| input: {{email}} \| output: verified`        |
+| `result:`   | Execution output      | `result: Success \| code: 200 \| data: {"id":"u_123"}`             |
+| `handoff:`  | Agent transfer        | `handoff: Transfer \| from: agent-a \| to: agent-b`                |
+| `wait:`     | Async pause           | `wait: Approval \| on: human.approved \| timeout: 30s`             |
+| `parallel:` | Concurrent steps      | `parallel: Run checks \| steps: lint,test,build \| join: all`      |
+| `retry:`    | Retry policy          | `retry: API call \| max: 3 \| delay: 1000 \| backoff: exponential` |
+
+> **Note:** `status:` is accepted as an alias for `emit:` for backward compatibility. `schema:` has been removed (it was a runtime concern, not a format concern).
 
 ### Inline Formatting
 
@@ -309,7 +312,7 @@ IntentText/
 │   │   ├── parser.ts       # Core parser
 │   │   ├── renderer.ts     # HTML renderer
 │   │   └── index.ts        # Public API
-│   └── tests/              # 220 tests
+│   └── tests/              # 255 tests
 ├── docs/
 │   ├── SPEC.md             # Full specification
 │   └── USAGE.md            # Usage guide
@@ -323,7 +326,7 @@ IntentText/
 
 ```bash
 npm install && npm run build
-npm test                          # 220 tests passing
+npm test                          # 255 tests passing
 npm run demo                      # Demo output
 npm run preview                   # Live editor in browser
 ```

@@ -1,6 +1,6 @@
-# IntentText v2.1 - Usage Guide
+# IntentText v2.3 - Usage Guide
 
-This guide covers how to use the IntentText parser and renderer in different scenarios — including v2 agentic workflow blocks and v2.1 inter-agent communication primitives.
+This guide covers how to use the IntentText parser and renderer in different scenarios — including v2 agentic workflow blocks, inter-agent communication primitives, and v2.3 additions (gate, call, emit, `{{variable}}` interpolation).
 
 ## 📦 Installation
 
@@ -89,7 +89,7 @@ const decisions = doc.blocks
   .filter((b) => b.type === "decision");
 ```
 
-### 4. Inter-Agent Communication (v2.1)
+### 4. Inter-Agent Communication (v2.1+)
 
 ```javascript
 const { parseIntentText } = require("@intenttext/core");
@@ -103,11 +103,11 @@ result: Classification complete | code: 200 | data: {"category":"billing"}
 
 section: Routing
 handoff: Transfer to billing | from: triage-agent | to: billing-agent
-wait: Billing agent response | timeout: 30s | fallback: escalate
-status: In Progress | phase: billing-review | level: info
+wait: Billing agent response | on: billing.complete | timeout: 30s | fallback: escalate
+emit: In Progress | phase: billing-review | level: info
 
 section: Resolution
-parallel: Run checks | steps: verify-account,check-balance,pull-history
+parallel: Run checks | steps: verify-account,check-balance,pull-history | join: all
 retry: Send confirmation email | max: 3 | delay: 1000 | backoff: exponential`;
 
 const doc = parseIntentText(content);
@@ -294,11 +294,63 @@ const parallels = sectionChildren.filter((b) => b.type === "parallel");
 // v2.1: Get retry policies
 const retryPolicies = sectionChildren.filter((b) => b.type === "retry");
 
-// v2.1: Get status updates
-const statusUpdates = sectionChildren.filter((b) => b.type === "status");
+// v2.1: Get status updates (now emit blocks)
+const emitUpdates = sectionChildren.filter((b) => b.type === "emit");
 
 // v2.1: Get results
 const results = sectionChildren.filter((b) => b.type === "result");
+```
+
+### Working with v2.3 Blocks
+
+```javascript
+const { parseIntentText } = require("@intenttext/core");
+
+const content = `title: Approval Workflow
+agent: deploy-agent | model: claude-sonnet-4
+context: env = "production" | version = "3.0.0"
+
+section: Build
+step: Run tests | tool: ci.test | input: {{version}} | output: testResult
+parallel: Lint & type-check | steps: lint,typecheck | join: all
+
+section: Approval
+gate: Production deploy approval | approver: ops-lead | timeout: 24h | fallback: exit
+call: ./smoke-tests.it | input: {{version}} | output: smokeResult
+
+section: Deploy
+step: Deploy to production | tool: k8s.deploy | input: {{version}}
+emit: deploy.complete | phase: production | level: success
+result: Deployed v3.0.0 | code: 200`;
+
+const doc = parseIntentText(content);
+
+// v2.3: Get gate blocks (approval checkpoints)
+const gates = doc.blocks
+  .flatMap((b) => b.children || [b])
+  .filter((b) => b.type === "gate");
+console.log(gates[0].properties?.approver); // "ops-lead"
+console.log(gates[0].properties?.status); // "blocked" (default)
+
+// v2.3: Get call blocks (sub-workflow composition)
+const calls = doc.blocks
+  .flatMap((b) => b.children || [b])
+  .filter((b) => b.type === "call");
+console.log(calls[0].content); // "./smoke-tests.it"
+console.log(calls[0].properties?.status); // "pending" (default)
+
+// v2.3: Get emit blocks (status events/signals)
+const emits = doc.blocks
+  .flatMap((b) => b.children || [b])
+  .filter((b) => b.type === "emit");
+console.log(emits[0].content); // "deploy.complete"
+console.log(emits[0].properties?.level); // "success"
+
+// v2.3: {{variable}} references are preserved as strings
+const steps = doc.blocks
+  .flatMap((b) => b.children || [b])
+  .filter((b) => b.type === "step");
+console.log(steps[0].properties?.input); // "{{version}}"
 ```
 
 ### Working with Properties

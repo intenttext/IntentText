@@ -6,6 +6,35 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-03-05
+
+### Added
+
+- **`gate:` block** — Human approval checkpoint with `approver:`, `timeout:`, `fallback:` properties. Status defaults to `blocked`.
+- **`call:` block** — Synchronous sub-workflow composition with `input:`, `output:` properties. Status defaults to `pending`.
+- **`emit:` block** — Workflow signal / status event with `phase:`, `level:` properties. Default `level: info`.
+- **`{{variable}}` interpolation** — Variable references in property values (e.g. `input: {{userId}}`). Preserved as strings for runtime substitution.
+- **`join:` property** on `parallel:` — Barrier semantics: `all` (default), `any`, `none`.
+- **`on:` property** on `wait:` — Trigger condition (e.g. `on: smoketest.complete`).
+- **`approver:` property** on `gate:` — Person/role required for approval.
+- New `AgenticStatus` values: `approved`, `rejected`, `waiting`.
+- `VariableRef` interface exported from core.
+- 35 new tests (255 total).
+
+### Changed
+
+- `status:` standalone block is now an alias for `emit:` (backward compatible).
+- `context:` block now supports both `key = "value"` and `| key: value` pipe syntax.
+- `result:` is now terminal-only — ends workflow and declares output. Use `output:` property on `step:` for step-level outputs.
+- Smart defaults: `gate` → `status: blocked`, `parallel` → `join: all`, `call` → `status: pending`, `emit` → `level: info`.
+- SPEC.md updated to v2.3, all keyword tables reflect final design.
+- USAGE.md updated to v2.3 with gate/call/emit examples.
+- README.md keyword tables updated, test count updated to 255.
+
+### Removed
+
+- **`schema:` block** — Runtime concern, not format concern. Removed from parser and keyword set.
+
 ## [1.4.0] - 2026-03-03
 
 ### Changed
