@@ -721,10 +721,7 @@ describe("status: blocks", () => {
   });
 
   it("status with phase property", () => {
-    const { block } = findBlock(
-      "status: Active | phase: onboarding",
-      "status",
-    );
+    const { block } = findBlock("status: Active | phase: onboarding", "status");
     expect(block.content).toBe("Active");
     expect(block.properties?.phase).toBe("onboarding");
   });
@@ -759,7 +756,7 @@ describe("result: blocks", () => {
 
   it("result with explicit status and code", () => {
     const { block } = findBlock(
-      'result: Request failed | status: error | code: 500',
+      "result: Request failed | status: error | code: 500",
       "result",
     );
     expect(block.properties?.status).toBe("error");
@@ -835,10 +832,7 @@ describe("wait: blocks", () => {
   });
 
   it("wait with numeric timeout coercion", () => {
-    const { block } = findBlock(
-      "wait: Signal | timeout: 5000",
-      "wait",
-    );
+    const { block } = findBlock("wait: Signal | timeout: 5000", "wait");
     expect(block.properties?.timeout).toBe(5000);
   });
 
@@ -878,9 +872,7 @@ describe("parallel: blocks", () => {
   });
 
   it("renders parallel block HTML with step badges", () => {
-    const doc = parseIntentText(
-      "parallel: Checks | steps: validate,lint,test",
-    );
+    const doc = parseIntentText("parallel: Checks | steps: validate,lint,test");
     const html = renderHTML(doc);
     expect(html).toContain("intent-parallel");
     expect(html).toContain("⏩");
@@ -932,10 +924,7 @@ describe("retry: blocks", () => {
 
 describe("v2.1 pipe properties", () => {
   it("timeout property on step block", () => {
-    const { block } = findBlock(
-      "step: Fetch data | timeout: 30000",
-      "step",
-    );
+    const { block } = findBlock("step: Fetch data | timeout: 30000", "step");
     expect(block.properties?.timeout).toBe(30000);
   });
 
@@ -945,10 +934,7 @@ describe("v2.1 pipe properties", () => {
   });
 
   it("priority property coerced to number", () => {
-    const { block } = findBlock(
-      "step: Critical task | priority: 1",
-      "step",
-    );
+    const { block } = findBlock("step: Critical task | priority: 1", "step");
     expect(block.properties?.priority).toBe(1);
   });
 
@@ -971,10 +957,7 @@ describe("v2.1 pipe properties", () => {
   });
 
   it("level property stays as string", () => {
-    const { block } = findBlock(
-      "status: Warning | level: critical",
-      "status",
-    );
+    const { block } = findBlock("status: Warning | level: critical", "status");
     expect(block.properties?.level).toBe("critical");
   });
 

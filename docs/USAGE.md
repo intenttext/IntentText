@@ -1,6 +1,6 @@
-# IntentText v2.0 - Usage Guide
+# IntentText v2.1 - Usage Guide
 
-This guide covers how to use the IntentText parser and renderer in different scenarios — including v2 agentic workflow blocks.
+This guide covers how to use the IntentText parser and renderer in different scenarios — including v2 agentic workflow blocks and v2.1 inter-agent communication primitives.
 
 ## 📦 Installation
 
@@ -87,6 +87,55 @@ const pending = doc.blocks
 const decisions = doc.blocks
   .flatMap((b) => b.children || [b])
   .filter((b) => b.type === "decision");
+```
+
+### 4. Inter-Agent Communication (v2.1)
+
+```javascript
+const { parseIntentText } = require("@intenttext/core");
+
+const content = `title: Multi-Agent Support Pipeline
+agent: triage-agent | model: gpt-4o
+
+section: Intake
+step: Classify ticket | tool: classifier.run | input: ticketText
+result: Classification complete | code: 200 | data: {"category":"billing"}
+
+section: Routing
+handoff: Transfer to billing | from: triage-agent | to: billing-agent
+wait: Billing agent response | timeout: 30s | fallback: escalate
+status: In Progress | phase: billing-review | level: info
+
+section: Resolution
+parallel: Run checks | steps: verify-account,check-balance,pull-history
+retry: Send confirmation email | max: 3 | delay: 1000 | backoff: exponential`;
+
+const doc = parseIntentText(content);
+
+// Get handoff blocks for multi-agent routing
+const handoffs = doc.blocks
+  .flatMap((b) => b.children || [b])
+  .filter((b) => b.type === "handoff");
+console.log(handoffs[0].properties?.to); // "billing-agent"
+
+// Get wait blocks with timeouts
+const waits = doc.blocks
+  .flatMap((b) => b.children || [b])
+  .filter((b) => b.type === "wait");
+console.log(waits[0].properties?.timeout); // "30s"
+
+// Get parallel execution groups
+const parallels = doc.blocks
+  .flatMap((b) => b.children || [b])
+  .filter((b) => b.type === "parallel");
+console.log(parallels[0].properties?.steps); // "verify-account,check-balance,pull-history"
+
+// Get retry policies (numeric properties are auto-coerced)
+const retries = doc.blocks
+  .flatMap((b) => b.children || [b])
+  .filter((b) => b.type === "retry");
+console.log(retries[0].properties?.max); // 3 (number)
+console.log(retries[0].properties?.delay); // 1000 (number)
 ```
 
 ## 🛠️ Command Line Tools
@@ -232,6 +281,24 @@ const decisions = sectionChildren.filter((b) => b.type === "decision");
 
 // v2: Get audit trail
 const auditLog = sectionChildren.filter((b) => b.type === "audit");
+
+// v2.1: Get handoff blocks (inter-agent transfers)
+const handoffs = sectionChildren.filter((b) => b.type === "handoff");
+
+// v2.1: Get wait blocks (async pause points)
+const waits = sectionChildren.filter((b) => b.type === "wait");
+
+// v2.1: Get parallel groups
+const parallels = sectionChildren.filter((b) => b.type === "parallel");
+
+// v2.1: Get retry policies
+const retryPolicies = sectionChildren.filter((b) => b.type === "retry");
+
+// v2.1: Get status updates
+const statusUpdates = sectionChildren.filter((b) => b.type === "status");
+
+// v2.1: Get results
+const results = sectionChildren.filter((b) => b.type === "result");
 ```
 
 ### Working with Properties

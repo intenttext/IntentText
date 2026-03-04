@@ -506,12 +506,12 @@ context: userId = "u_123" | plan = "pro"
 | `schema:`     | Define custom block type        | `schema: custom-type \| extends: step`                                   |
 | `progress:`   | Progress bar indicator          | `progress: 3/5 tasks completed`                                          |
 | `context:`    | Scoped variable definitions     | `context: userId = "u_123" \| plan = "pro"`                              |
-| `status:`     | Workflow-level status           | `status: In Progress \| phase: onboarding`                                |
+| `status:`     | Workflow-level status           | `status: In Progress \| phase: onboarding`                               |
 | `result:`     | Execution output                | `result: User created \| code: 200 \| data: {"id":"u_123"}`              |
-| `handoff:`    | Multi-agent transfer            | `handoff: Transfer \| from: agent-a \| to: agent-b`                       |
-| `wait:`       | Async pause point               | `wait: User confirmation \| timeout: 30s \| fallback: step-3`             |
-| `parallel:`   | Concurrent execution group      | `parallel: Run checks \| steps: validate,lint,test`                       |
-| `retry:`      | Retry policy                    | `retry: API call \| max: 3 \| delay: 1000 \| backoff: exponential`        |
+| `handoff:`    | Multi-agent transfer            | `handoff: Transfer \| from: agent-a \| to: agent-b`                      |
+| `wait:`       | Async pause point               | `wait: User confirmation \| timeout: 30s \| fallback: step-3`            |
+| `parallel:`   | Concurrent execution group      | `parallel: Run checks \| steps: validate,lint,test`                      |
+| `retry:`      | Retry policy                    | `retry: API call \| max: 3 \| delay: 1000 \| backoff: exponential`       |
 
 #### Pipe Properties for v2 Blocks
 

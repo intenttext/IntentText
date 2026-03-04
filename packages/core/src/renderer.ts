@@ -406,9 +406,10 @@ function renderBlock(block: IntentBlock): string {
       const toAgent = props.to
         ? `<span class="intent-handoff-agent intent-handoff-to">${escapeHtml(String(props.to))}</span>`
         : "";
-      const arrow = fromAgent || toAgent
-        ? `<span class="intent-handoff-arrow">${fromAgent} → ${toAgent}</span>`
-        : "";
+      const arrow =
+        fromAgent || toAgent
+          ? `<span class="intent-handoff-arrow">${fromAgent} → ${toAgent}</span>`
+          : "";
       return `<div class="intent-handoff">
         <span class="intent-handoff-icon">🤝</span>
         <span class="intent-handoff-content">${content}</span>
@@ -432,11 +433,19 @@ function renderBlock(block: IntentBlock): string {
 
     case "parallel": {
       const stepsVal = props.steps
-        ? String(props.steps).split(",").map(s => s.trim())
+        ? String(props.steps)
+            .split(",")
+            .map((s) => s.trim())
         : [];
-      const stepBadges = stepsVal.length > 0
-        ? stepsVal.map(s => `<span class="intent-badge intent-badge-parallel-step">${escapeHtml(s)}</span>`).join("")
-        : "";
+      const stepBadges =
+        stepsVal.length > 0
+          ? stepsVal
+              .map(
+                (s) =>
+                  `<span class="intent-badge intent-badge-parallel-step">${escapeHtml(s)}</span>`,
+              )
+              .join("")
+          : "";
       return `<div class="intent-parallel">
         <span class="intent-parallel-icon">⏩</span>
         <span class="intent-parallel-content">${content}</span>
