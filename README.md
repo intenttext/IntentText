@@ -280,7 +280,7 @@ Every `.it` document parses to typed, deterministic JSON:
 | `checkpoint:`         | Resume point         | `checkpoint: post-setup`                                          |
 | `audit:`              | Execution log        | `audit: Done \| by: {{agent}} \| at: {{timestamp}}`               |
 | `error:`              | Error handler        | `error: Fail \| fallback: step-2 \| notify: admin`                |
-| `context:`            | Scoped variables     | `context: \| userId: u_123 \| plan: pro`                           |
+| `context:`            | Scoped variables     | `context: \| userId: u_123 \| plan: pro`                          |
 | `progress:`           | Progress bar         | `progress: 3/5 tasks completed`                                   |
 | `import:` / `export:` | Document composition | `import: ./auth.it \| as: auth`                                   |
 

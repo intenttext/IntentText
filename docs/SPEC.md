@@ -513,7 +513,7 @@ context: | userId: u_123 | plan: pro
 | `import:`     | Import another `.it` file       | `import: ./auth-flow.it \| as: auth`                                     |
 | `export:`     | Export data from document       | `export: userRecord \| format: json`                                     |
 | `progress:`   | Progress bar indicator          | `progress: 3/5 tasks completed`                                          |
-| `context:`    | Scoped variable definitions     | `context: \| userId: u_123 \| plan: pro`                             |
+| `context:`    | Scoped variable definitions     | `context: \| userId: u_123 \| plan: pro`                                 |
 | `gate:`       | Human approval checkpoint       | `gate: Approve deploy \| approver: lead-eng \| timeout: 24h`             |
 | `call:`       | Sub-workflow composition        | `call: ./verify-email.it \| input: {{email}} \| output: verified`        |
 | `emit:`       | Workflow signal / status event  | `emit: deploy.running \| phase: deploy \| level: info`                   |
