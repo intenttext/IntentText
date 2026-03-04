@@ -371,7 +371,7 @@ task: Do something | owner: Ahmed`;
     expect(doc.version).toBe("1.4");
   });
 
-  it("documents with agentic blocks get version 2.0", () => {
+  it("documents with v2.0 agentic blocks get version 2.0", () => {
     const input = `title: Flow
 step: Do something`;
     const doc = parseIntentText(input);
@@ -384,6 +384,47 @@ agent: my-agent
 task: Legacy task`;
     const doc = parseIntentText(input);
     expect(doc.version).toBe("2.0");
+  });
+
+  it("documents with v2.1 inter-agent blocks get version 2.1", () => {
+    const input = `title: Inter-Agent Flow
+status: Running | phase: init
+result: Done | code: 200`;
+    const doc = parseIntentText(input);
+    expect(doc.version).toBe("2.1");
+  });
+
+  it("handoff block triggers version 2.1", () => {
+    const input = `title: Handoff Test
+handoff: Transfer | from: agent-a | to: agent-b`;
+    const doc = parseIntentText(input);
+    expect(doc.version).toBe("2.1");
+  });
+
+  it("wait/parallel/retry blocks trigger version 2.1", () => {
+    const input = `title: Advanced
+wait: User input | timeout: 30s
+parallel: Run checks | steps: a,b
+retry: Fetch data | max: 3`;
+    const doc = parseIntentText(input);
+    expect(doc.version).toBe("2.1");
+  });
+
+  it("mixed v2.0 and v2.1 blocks get version 2.1", () => {
+    const input = `title: Mixed
+step: Do something
+handoff: Transfer to billing`;
+    const doc = parseIntentText(input);
+    expect(doc.version).toBe("2.1");
+  });
+
+  it("v2.1 blocks inside sections detected correctly", () => {
+    const input = `title: Nested
+section: Workflow
+status: Active | phase: deploy
+result: Success`;
+    const doc = parseIntentText(input);
+    expect(doc.version).toBe("2.1");
   });
 });
 

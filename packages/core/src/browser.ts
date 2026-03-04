@@ -2,6 +2,13 @@
 export { parseIntentText } from "./parser";
 export { renderHTML } from "./renderer";
 export { convertMarkdownToIntentText } from "./markdown";
+export { queryBlocks, parseQuery, formatQueryResult } from "./query";
+export {
+  validateDocument,
+  createSchema,
+  formatValidationResult,
+  PREDEFINED_SCHEMAS,
+} from "./schema";
 export type {
   IntentDocument,
   IntentBlock,
@@ -9,4 +16,6 @@ export type {
   InlineNode,
   ParseOptions,
   Diagnostic,
+  AgenticStatus,
+  IntentDocumentMetadata,
 } from "./types";

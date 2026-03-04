@@ -140,6 +140,130 @@ export const PREDEFINED_SCHEMAS: Record<string, DocumentSchema> = {
     },
     allowUnknownBlocks: false,
   },
+
+  agentic: {
+    name: "agentic",
+    description: "Agentic workflow document (v2.0+)",
+    requiredBlocks: ["title"],
+    blockSchemas: {
+      step: {
+        type: "step",
+        content: { required: true },
+        properties: {
+          tool: { type: "string" },
+          status: {
+            type: "enum",
+            enumValues: [
+              "pending",
+              "running",
+              "blocked",
+              "failed",
+              "skipped",
+              "cancelled",
+              "done",
+            ],
+          },
+          id: { type: "string" },
+          depends: { type: "string" },
+          timeout: { type: "number" },
+          priority: { type: "number" },
+          retries: { type: "number" },
+        },
+        allowUnknownProperties: true,
+      },
+      decision: {
+        type: "decision",
+        content: { required: true },
+        properties: {
+          if: { type: "string" },
+          then: { type: "string" },
+          else: { type: "string" },
+        },
+        allowUnknownProperties: true,
+      },
+      trigger: {
+        type: "trigger",
+        content: { required: true },
+        properties: {
+          event: { type: "string" },
+        },
+        allowUnknownProperties: true,
+      },
+      loop: {
+        type: "loop",
+        content: { required: true },
+        properties: {
+          over: { type: "string" },
+          do: { type: "string" },
+        },
+        allowUnknownProperties: true,
+      },
+      retry: {
+        type: "retry",
+        content: { required: true },
+        properties: {
+          max: { type: "number" },
+          delay: { type: "number" },
+          backoff: {
+            type: "enum",
+            enumValues: ["linear", "exponential", "fixed"],
+          },
+        },
+        allowUnknownProperties: true,
+      },
+      wait: {
+        type: "wait",
+        content: { required: true },
+        properties: {
+          timeout: { type: "string" },
+          fallback: { type: "string" },
+        },
+        allowUnknownProperties: true,
+      },
+      parallel: {
+        type: "parallel",
+        content: { required: true },
+        properties: {
+          steps: { type: "string" },
+          timeout: { type: "number" },
+        },
+        allowUnknownProperties: true,
+      },
+      handoff: {
+        type: "handoff",
+        content: { required: true },
+        properties: {
+          from: { type: "string" },
+          to: { type: "string" },
+        },
+        allowUnknownProperties: true,
+      },
+      result: {
+        type: "result",
+        content: { required: true },
+        properties: {
+          status: {
+            type: "enum",
+            enumValues: ["success", "error", "failure"],
+          },
+          code: { type: "string" },
+          data: { type: "string" },
+        },
+        allowUnknownProperties: true,
+      },
+      status: {
+        type: "status",
+        content: { required: true },
+        properties: {
+          phase: { type: "string" },
+          level: { type: "string" },
+          updated: { type: "string" },
+        },
+        allowUnknownProperties: true,
+      },
+    },
+    allowUnknownBlocks: true,
+  },
 };
 
 function validateProperty(

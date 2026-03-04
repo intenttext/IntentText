@@ -287,4 +287,83 @@ describe("Schema Validation (v1.2)", () => {
       expect(result.errors[0].message).toContain("Unknown schema");
     });
   });
+
+  describe("Agentic schema (v2.2)", () => {
+    it("should have agentic schema defined", () => {
+      expect(PREDEFINED_SCHEMAS.agentic).toBeDefined();
+      expect(PREDEFINED_SCHEMAS.agentic.requiredBlocks).toContain("title");
+      expect(PREDEFINED_SCHEMAS.agentic.allowUnknownBlocks).toBe(true);
+    });
+
+    it("should validate step blocks with correct properties", () => {
+      const doc: IntentDocument = {
+        version: "2.0",
+        blocks: [
+          { id: "1", type: "title", content: "Workflow" },
+          {
+            id: "2",
+            type: "step",
+            content: "Fetch data",
+            properties: { tool: "http.get", status: "pending" },
+          },
+        ],
+        metadata: { title: "Workflow" },
+      };
+      const result = validateDocument(doc, "agentic");
+      expect(result.valid).toBe(true);
+    });
+
+    it("should validate retry blocks", () => {
+      const doc: IntentDocument = {
+        version: "2.1",
+        blocks: [
+          { id: "1", type: "title", content: "Retry Flow" },
+          {
+            id: "2",
+            type: "retry",
+            content: "API call",
+            properties: { max: 3, delay: 1000, backoff: "exponential" },
+          },
+        ],
+        metadata: { title: "Retry Flow" },
+      };
+      const result = validateDocument(doc, "agentic");
+      expect(result.valid).toBe(true);
+    });
+
+    it("should validate handoff and result blocks", () => {
+      const doc: IntentDocument = {
+        version: "2.1",
+        blocks: [
+          { id: "1", type: "title", content: "Agent Flow" },
+          {
+            id: "2",
+            type: "handoff",
+            content: "Transfer",
+            properties: { from: "agent-a", to: "agent-b" },
+          },
+          {
+            id: "3",
+            type: "result",
+            content: "Done",
+            properties: { status: "success", code: "200" },
+          },
+        ],
+        metadata: { title: "Agent Flow" },
+      };
+      const result = validateDocument(doc, "agentic");
+      expect(result.valid).toBe(true);
+    });
+
+    it("should require title block", () => {
+      const doc: IntentDocument = {
+        version: "2.0",
+        blocks: [{ id: "1", type: "step", content: "Do something" }],
+        metadata: {},
+      };
+      const result = validateDocument(doc, "agentic");
+      expect(result.valid).toBe(false);
+      expect(result.errors[0].message).toContain("title");
+    });
+  });
 });

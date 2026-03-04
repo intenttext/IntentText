@@ -41,6 +41,16 @@ const AGENTIC_BLOCK_TYPES = new Set<string>([
   "retry",
 ]);
 
+// v2.1 inter-agent block types (subset of AGENTIC_BLOCK_TYPES)
+const V21_BLOCK_TYPES = new Set<string>([
+  "status",
+  "result",
+  "handoff",
+  "wait",
+  "parallel",
+  "retry",
+]);
+
 // v2 metadata-only keywords: when these appear before any section block,
 // they populate document metadata instead of emitting a block.
 const METADATA_KEYWORDS = new Set<string>(["agent", "model"]);
@@ -968,9 +978,15 @@ export function parseIntentText(
   const summaryBlock = blocks.find((b) => b.type === "summary");
   const hasArabic = blocks.some((b) => detectArabic(b.content));
 
-  // v2: determine version based on presence of agentic blocks/metadata
+  // Determine version based on presence of agentic blocks/metadata
+  const allBlocks = blocks.flatMap(function collect(
+    b: IntentBlock,
+  ): IntentBlock[] {
+    return [b, ...(b.children ?? []).flatMap(collect)];
+  });
+  const hasV21Content = allBlocks.some((b) => V21_BLOCK_TYPES.has(b.type));
   const hasAgenticContent =
-    blocks.some((b) => AGENTIC_BLOCK_TYPES.has(b.type)) ||
+    allBlocks.some((b) => AGENTIC_BLOCK_TYPES.has(b.type)) ||
     agenticMetadata.agent != null ||
     agenticMetadata.model != null ||
     agenticMetadata.context != null;
@@ -987,7 +1003,7 @@ export function parseIntentText(
   };
 
   const document: IntentDocument = {
-    version: hasAgenticContent ? "2.0" : "1.4",
+    version: hasV21Content ? "2.1" : hasAgenticContent ? "2.0" : "1.4",
     blocks,
     metadata,
     diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
