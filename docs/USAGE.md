@@ -56,10 +56,10 @@ const { parseIntentText } = require("@intenttext/core");
 
 const content = `title: User Onboarding Flow
 agent: onboard-agent | model: claude-sonnet-4
-context: userId = "u_123" | plan = "pro"
+context: | userId: u_123 | plan: pro
 
 section: Verification
-step: Verify email | tool: email.verify | input: userId | output: emailStatus
+step: Verify email | tool: email.verify | input: {{userId}} | output: emailStatus
 step: Create workspace | tool: ws.create | depends: step-1
 decision: Check plan | if: plan == "pro" | then: step-3 | else: step-4
 step: Enable pro features | id: step-3 | tool: features.enable
@@ -308,7 +308,7 @@ const { parseIntentText } = require("@intenttext/core");
 
 const content = `title: Approval Workflow
 agent: deploy-agent | model: claude-sonnet-4
-context: env = "production" | version = "3.0.0"
+context: | env: production | version: 3.0.0
 
 section: Build
 step: Run tests | tool: ci.test | input: {{version}} | output: testResult

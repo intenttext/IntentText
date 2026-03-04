@@ -492,12 +492,12 @@ v2 introduces document-level metadata for agent identification:
 ```
 title: User Onboarding Flow
 agent: onboard-agent | model: claude-sonnet-4
-context: userId = "u_123" | plan = "pro"
+context: | userId: u_123 | plan: pro
 ```
 
 - **`agent:`** — When appearing before any `section:`, populates `metadata.agent` (not emitted as a block). Pipe properties like `model:` also populate metadata.
 - **`model:`** — When appearing before any `section:`, populates `metadata.model`.
-- **`context:`** — Parses `key = "value"` pairs into both block properties and `metadata.context`.
+- **`context:`** — Parses key-value pairs into both block properties and `metadata.context`. Supports both pipe syntax (`| key: value`) and legacy syntax (`key = "value"`).
 
 #### Workflow Block Reference
 
@@ -513,7 +513,7 @@ context: userId = "u_123" | plan = "pro"
 | `import:`     | Import another `.it` file       | `import: ./auth-flow.it \| as: auth`                                     |
 | `export:`     | Export data from document       | `export: userRecord \| format: json`                                     |
 | `progress:`   | Progress bar indicator          | `progress: 3/5 tasks completed`                                          |
-| `context:`    | Scoped variable definitions     | `context: userId = "u_123" \| plan = "pro"`                              |
+| `context:`    | Scoped variable definitions     | `context: \| userId: u_123 \| plan: pro`                             |
 | `gate:`       | Human approval checkpoint       | `gate: Approve deploy \| approver: lead-eng \| timeout: 24h`             |
 | `call:`       | Sub-workflow composition        | `call: ./verify-email.it \| input: {{email}} \| output: verified`        |
 | `emit:`       | Workflow signal / status event  | `emit: deploy.running \| phase: deploy \| level: info`                   |
@@ -642,12 +642,13 @@ audit: Workflow initialized | by: {{agent}} | at: {{timestamp}}
 
 #### `context:` block
 
-Defines scoped variables using `key = "value"` syntax (note: equals sign, not colon). Values populate both block properties and `metadata.context` when appearing before any section.
+Defines scoped variables. Preferred syntax is pipe-style (`| key: value`). Legacy `key = "value"` syntax is also supported for backward compatibility. Values populate both block properties and `metadata.context` when appearing before any section.
 
 **Syntax:**
 
 ```
-context: userId = "u_123" | plan = "pro"
+context: | userId: u_123 | plan: pro
+context: userId = "u_123" | plan = "pro"   // legacy — still valid
 ```
 
 **JSON output:**
@@ -655,7 +656,7 @@ context: userId = "u_123" | plan = "pro"
 ```json
 {
   "type": "context",
-  "content": "userId = \"u_123\" | plan = \"pro\"",
+  "content": "| userId: u_123 | plan: pro",
   "properties": {
     "userId": "u_123",
     "plan": "pro"

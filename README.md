@@ -11,19 +11,24 @@ Write plans that humans can read and agents can execute. No YAML boilerplate, no
 ```
 title: Deploy E-Commerce Platform
 agent: deploy-agent | model: claude-sonnet-4
+context: | env: production | version: 2.1.0
 
 section: Pre-Deploy Checks
-step: Run test suite | tool: ci.test | timeout: 300000
+step: Run test suite | tool: ci.test | input: {{version}} | timeout: 300000
 step: Audit dependencies | tool: npm.audit | depends: step-1
-parallel: Final checks | steps: lint,typecheck,security-scan
+parallel: Final checks | steps: lint,typecheck,security-scan | join: all
 decision: All green? | if: tests == "pass" | then: step-4 | else: step-5
-step: Deploy to staging | id: step-4 | tool: k8s.deploy | status: pending
+step: Deploy to staging | id: step-4 | tool: k8s.deploy | input: {{version}}
 error: Rollback | id: step-5 | fallback: step-1 | notify: ops-team
 
+section: Approval
+gate: Production deploy | approver: ops-lead | timeout: 24h | fallback: exit
+
 section: Post-Deploy
-wait: Smoke test results | timeout: 60s | fallback: rollback
-result: Deployed successfully | code: 200
+wait: Smoke test results | on: smoketest.complete | timeout: 60s | fallback: rollback
+result: Deployed v{{version}} | code: 200
 handoff: Transfer monitoring | from: deploy-agent | to: observability-agent
+emit: deploy.complete | phase: production | level: success
 ```
 
 Every line parses to a typed JSON block. Every block is queryable, renderable, and executable.
@@ -51,16 +56,18 @@ Agents pass `.it` files to coordinate multi-step, multi-agent tasks:
 ```
 title: Customer Support Pipeline
 agent: triage-agent | model: gpt-4o
+context: | ticketId: T-4821 | channel: chat
 
 section: Intake
-step: Classify ticket | tool: classifier.run | input: ticketText
+step: Classify ticket | tool: classifier.run | input: {{ticketId}}
 result: Classification done | code: 200 | data: {"category":"billing"}
 
 section: Routing
 handoff: Transfer to billing | from: triage-agent | to: billing-agent
-wait: Billing response | timeout: 30s | fallback: escalate
+wait: Billing response | on: billing.complete | timeout: 30s | fallback: escalate
 
 section: Resolution
+call: ./resolve-billing.it | input: {{ticketId}} | output: resolution
 retry: Send confirmation | max: 3 | delay: 1000 | backoff: exponential
 emit: Resolved | phase: complete | level: info
 audit: Ticket closed | by: billing-agent | at: {{timestamp}}
@@ -73,18 +80,20 @@ A PM writes a plan. An agent executes it:
 ```
 title: Launch Marketing Campaign
 agent: marketing-agent | model: claude-sonnet-4
+context: | brief: Q2 product launch | audience: developers
 
 section: Content
-step: Generate ad copy | tool: copywriter.generate | input: brief
+step: Generate ad copy | tool: copywriter.generate | input: {{brief}} | output: adCopy
 step: Create social assets | tool: design.social | depends: step-1
 decision: Needs review? | if: confidence < 0.9 | then: step-3 | else: step-4
-step: Send for human review | id: step-3 | status: blocked
+gate: Content review | id: step-3 | approver: content-team | timeout: 4h
 step: Schedule posts | id: step-4 | tool: social.schedule
 
 section: Analytics
 trigger: campaign.launched | event: campaign.live
 loop: Check metrics daily | over: campaignDays | do: step-5
 step: Pull analytics | id: step-5 | tool: analytics.pull
+emit: Campaign live | phase: monitoring | level: info
 checkpoint: campaign-end
 ```
 
@@ -271,9 +280,11 @@ Every `.it` document parses to typed, deterministic JSON:
 | `checkpoint:`         | Resume point         | `checkpoint: post-setup`                                          |
 | `audit:`              | Execution log        | `audit: Done \| by: {{agent}} \| at: {{timestamp}}`               |
 | `error:`              | Error handler        | `error: Fail \| fallback: step-2 \| notify: admin`                |
-| `context:`            | Scoped variables     | `context: userId = "u_123" \| plan = "pro"`                       |
+| `context:`            | Scoped variables     | `context: \| userId: u_123 \| plan: pro`                           |
 | `progress:`           | Progress bar         | `progress: 3/5 tasks completed`                                   |
 | `import:` / `export:` | Document composition | `import: ./auth.it \| as: auth`                                   |
+
+> `import:` / `export:` are document-level reference declarations (static composition). `call:` is runtime execution — it invokes a sub-workflow and waits for its `result:`.
 
 ### Inter-Agent Communication (v2.1+)
 
