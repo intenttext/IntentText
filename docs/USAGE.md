@@ -1,55 +1,79 @@
-# IntentText v2.4 - Usage Guide
+# IntentText — Usage Guide
 
-This guide covers how to use the IntentText parser and renderer in different scenarios — including v2 agentic workflow blocks, inter-agent communication primitives, and writer-first v2.4 additions (single-backtick code, highlights, inline notes, mention/tag tokens, prose paragraphs, optional alignment).
+This guide covers how to use the `@intenttext/core` package — parsing, rendering, querying, validating, template merging, and converting to/from other formats.
 
-## 📦 Installation
-
-### From Source
-
-```bash
-git clone https://github.com/your-username/intenttext.git
-cd intenttext
-npm install
-npm run build
-```
-
-### As npm Package (when published)
+## Installation
 
 ```bash
 npm install @intenttext/core
 ```
 
-## 🚀 Basic Usage
+Or from source:
 
-### 1. Parse IntentText Content
+```bash
+git clone https://github.com/emadjumaah/IntentText.git
+cd IntentText
+npm install && npm run build
+```
+
+## Quick Start
+
+### Parse & Render
 
 ```javascript
-const { parseIntentText } = require("@intenttext/core");
+import { parseIntentText, renderHTML } from "@intenttext/core";
 
-const content = `title: My Document
+const doc = parseIntentText(`
+title: Q2 Product Launch Plan
+summary: Coordinating the June release.
+
 section: Tasks
-task: Write documentation | owner: John | due: Friday`;
+task: Finalize pricing page | owner: Sarah | due: Friday | priority: 1
+task: Record demo video     | owner: Ahmed | due: Monday
+done: Legal review complete  | time: Tuesday
 
-const document = parseIntentText(content);
-console.log(JSON.stringify(document, null, 2));
+section: Notes
+note: Meeting scheduled for Tuesday 3pm.
+warning: Deadline cannot move — client presentation is fixed.
+`);
+
+// Query the document
+const tasks = doc.blocks
+  .flatMap((b) => b.children || [b])
+  .filter((b) => b.type === "task");
+console.log(tasks.length); // 3 (includes done as task with status: "done")
+
+// Render to HTML
+const html = renderHTML(doc);
 ```
 
-### 2. Render to HTML
+### Template + Data Merge
 
 ```javascript
-const { parseIntentText, renderHTML } = require("@intenttext/core");
+import { parseAndMerge, renderPrint } from "@intenttext/core";
 
-const content = `title: My Document
-task: Complete this | owner: Me`;
+const template = `
+title: Invoice {{invoice.number}}
+note: Bill To: {{client.name}}, {{client.address}}
 
-const document = parseIntentText(content);
-const html = renderHTML(document);
+| Description           | Qty           | Total              |
+| {{items.0.description}} | {{items.0.qty}} | {{items.0.total}} |
 
-console.log(html);
-// <div class="intent-document">...</div>
+note: **Total Due: {{totals.due}} {{totals.currency}}** | align: right
+`;
+
+const data = {
+  invoice: { number: "INV-2026-042" },
+  client: { name: "Acme Corp", address: "123 Main St" },
+  items: [{ description: "Consulting", qty: "10", total: "$5,000" }],
+  totals: { due: "$5,000", currency: "USD" },
+};
+
+const doc = parseAndMerge(template, data);
+const printHTML = renderPrint(doc);
 ```
 
-### 3. Parse Agentic Workflows (v2)
+### Agentic Workflows
 
 ```javascript
 const { parseIntentText } = require("@intenttext/core");

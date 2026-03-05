@@ -396,7 +396,13 @@ function validateProperty(
 
     case "string":
       if (schema.pattern) {
-        const regex = new RegExp(schema.pattern);
+        let regex: RegExp;
+        try {
+          regex = new RegExp(schema.pattern);
+        } catch {
+          // Invalid regex in schema — skip pattern validation rather than crash
+          break;
+        }
         if (!regex.test(strValue)) {
           errors.push({
             blockId: "",
@@ -540,6 +546,21 @@ export function validateDocument(
   document: IntentDocument,
   schema: DocumentSchema | string,
 ): ValidationResult {
+  if (!document || !document.blocks) {
+    return {
+      valid: false,
+      errors: [
+        {
+          blockId: "",
+          blockType: "",
+          field: "document",
+          message: "Invalid document",
+          severity: "error",
+        },
+      ],
+      warnings: [],
+    };
+  }
   // If string provided, look up predefined schema
   const docSchema =
     typeof schema === "string" ? PREDEFINED_SCHEMAS[schema] : schema;

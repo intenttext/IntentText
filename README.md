@@ -2,144 +2,181 @@
   <img src="docs/icon.png" alt="IntentText icon" width="96" />
 </p>
 
-# IntentText (.it)
+<h1 align="center">IntentText (.it)</h1>
 
-**A structured interchange format for AI agents and humans.**
+<p align="center"><strong>The first document format that is natively JSON.</strong></p>
 
-Write plans that humans can read and agents can execute. No YAML boilerplate, no JSON noise — just clear keywords and pipe metadata that parse to deterministic, typed JSON.
+<p align="center">
+  Human-writable. Semantically typed. Machine-executable. Open source.
+</p>
 
-```
-title: Deploy E-Commerce Platform
-agent: deploy-agent | model: claude-sonnet-4
-context: | env: production | version: 2.1.0
-
-section: Pre-Deploy Checks
-step: Run test suite | tool: ci.test | input: {{version}} | timeout: 300000
-step: Audit dependencies | tool: npm.audit | depends: step-1
-parallel: Final checks | steps: lint,typecheck,security-scan | join: all
-decision: All green? | if: tests == "pass" | then: step-4 | else: step-5
-step: Deploy to staging | id: step-4 | tool: k8s.deploy | input: {{version}}
-error: Rollback | id: step-5 | fallback: step-1 | notify: ops-team
-
-section: Approval
-gate: Production deploy | approver: ops-lead | timeout: 24h | fallback: exit
-
-section: Post-Deploy
-wait: Smoke test results | on: smoketest.complete | timeout: 60s | fallback: rollback
-result: Deployed v{{version}} | code: 200
-handoff: Transfer monitoring | from: deploy-agent | to: observability-agent
-emit: deploy.complete | phase: production | level: success
-```
-
-Every line parses to a typed JSON block. Every block is queryable, renderable, and executable.
+<p align="center">
+  <a href="https://toit-psi.vercel.app/">Try the Editor</a> ·
+  <a href="docs/SPEC.md">Specification</a> ·
+  <a href="docs/TEMPLATES.md">Templates</a> ·
+  <a href="https://www.npmjs.com/package/@intenttext/core">npm</a>
+</p>
 
 ---
 
-## Why IntentText?
+## The Problem With Every Document Format
 
-| Format                | Humans            | Agents                  | Structure    | Executable            |
-| --------------------- | ----------------- | ----------------------- | ------------ | --------------------- |
-| Plain text / Markdown | ✅                | ❌ guesses at structure | ❌           | ❌                    |
-| JSON / YAML           | ❌ hard to author | ✅                      | ✅           | ✅                    |
-| **IntentText**        | **✅ natural**    | **✅ deterministic**    | **✅ typed** | **✅ workflow-ready** |
+Every document format ever built falls into one of two categories — and neither is good enough.
 
-IntentText is the format you write when you need a document to be both the **human-authored plan** and the **agent-executable specification** at the same time.
+**Presentation formats** — Word, Google Docs, RTF, Pages. These store how things _look_. A heading is just bigger text. A task is just a paragraph with a checkbox. A quote is just indented text. There is no machine-readable difference between any of them. When you export a Word document to JSON, you get a layout tree — padding, font sizes, colours — not a document with meaning. You cannot query "give me all tasks assigned to Ahmed" from a Word file. You cannot run a workflow defined in Google Docs. The document is a picture of content, not content itself.
+
+**Data formats** — JSON, YAML, XML, databases. These store what things _mean_. Every field is typed, queryable, and structured. But nobody writes a book in JSON. Nobody drafts a contract in YAML. These formats are for machines, not for the humans who need to write and read the documents in the first place.
+
+**The gap between these two has never been filled.** Until now.
 
 ---
 
-## Use Cases
+## What IntentText Is
 
-### 1. Agent-to-Agent Workflows
-
-Agents pass `.it` files to coordinate multi-step, multi-agent tasks:
+IntentText is a plain-text document format where every line has a declared semantic type. A `task:` is a task. A `step:` is an executable workflow step. A `quote:` is an attributed quote. A `byline:` is an author attribution. Every block parses to a guaranteed, typed JSON object — making the document simultaneously readable by humans and queryable by machines, with no conversion, no interpretation, no guessing.
 
 ```
-title: Customer Support Pipeline
-agent: triage-agent | model: gpt-4o
-context: | ticketId: T-4821 | channel: chat
+title: Q2 Product Launch Plan
+summary: Coordinating the June release across three teams.
 
-section: Intake
-step: Classify ticket | tool: classifier.run | input: {{ticketId}}
-result: Classification done | code: 200 | data: {"category":"billing"}
+section: Open Actions
+task: Finalize pricing page      | owner: Sarah  | due: Friday   | priority: 1
+task: Record demo video          | owner: Ahmed  | due: Monday
+done: Legal review complete      | time: Tuesday
 
-section: Routing
-handoff: Transfer to billing | from: triage-agent | to: billing-agent
-wait: Billing response | on: billing.complete | timeout: 30s | fallback: escalate
+section: Key Decision
+ask: Do we ship the API publicly in June or wait for v2?
+quote: Ship it. We can iterate. | by: Ahmed
 
-section: Resolution
-call: ./resolve-billing.it | input: {{ticketId}} | output: resolution
-retry: Send confirmation | max: 3 | delay: 1000 | backoff: exponential
-emit: Resolved | phase: complete | level: info
-audit: Ticket closed | by: billing-agent | at: {{timestamp}}
+section: Deployment
+step: Run smoke tests            | tool: ci.test    | output: testResult
+gate: Final go/no-go             | approver: CEO    | timeout: 24h
+step: Deploy to production       | tool: k8s.deploy | depends: step-1
+handoff: Notify customer success | from: eng-team   | to: cs-agent
 ```
 
-### 2. Human-to-Agent Task Delegation
+A journalist can write this. A developer can parse it. An AI agent can execute it. The same file. The same format.
 
-A PM writes a plan. An agent executes it:
+---
 
-```
-title: Launch Marketing Campaign
-agent: marketing-agent | model: claude-sonnet-4
-context: | brief: Q2 product launch | audience: developers
+## Why a New Format
 
-section: Content
-step: Generate ad copy | tool: copywriter.generate | input: {{brief}} | output: adCopy
-step: Create social assets | tool: design.social | depends: step-1
-decision: Needs review? | if: confidence < 0.9 | then: step-3 | else: step-4
-gate: Content review | id: step-3 | approver: content-team | timeout: 4h
-step: Schedule posts | id: step-4 | tool: social.schedule
+Three things are true simultaneously in 2026 that were never all true before:
 
-section: Analytics
-trigger: campaign.launched | event: campaign.live
-loop: Check metrics daily | over: campaignDays | do: step-5
-step: Pull analytics | id: step-5 | tool: analytics.pull
-emit: Campaign live | phase: monitoring | level: info
-checkpoint: campaign-end
-```
+**AI agents need structured documents.** Agents that generate plans, workflows, and reports need their output to be machine-processable by the next agent in the chain. Plain text forces the next agent to re-interpret. JSON is unwritable by humans. There is no good format for agent-generated documents that humans can also review and edit.
 
-### 3. Project Documentation
+**Documents need to be queryable.** Businesses store thousands of contracts, invoices, reports, and meeting notes — all in binary Word files or proprietary cloud formats. None of it is queryable. You cannot ask "what tasks are overdue across all project documents this week." IntentText makes every document a database row.
 
-Structure that stays useful — queryable tasks, real metadata:
+**Templates need to escape binary formats.** Invoice templates live in Word. Contract templates live in Google Docs. ERP document templates live in proprietary software. All of them are fragile, hard to version, impossible to query, and require expensive tooling to generate programmatically. A template stored as IntentText JSON plus a data JSON produces any document on demand — no Word, no Google, no proprietary anything.
+
+No existing format solves all three. IntentText does.
+
+---
+
+## How It Works
+
+Every `.it` file is a sequence of typed blocks. Each block is one line: a keyword, content, and optional pipe metadata.
 
 ```
-title: *Project Dalil* Launch Plan
-summary: Finalizing deployment in _Doha_.
-
-section: Team Tasks
-task: Database migration | owner: Ahmed | due: Sunday | priority: 1
-task: API endpoint testing | owner: Sarah | due: Monday
-done: Setup repository | time: last Tuesday
-
-section: Resources
-link: *Documentation* | to: https://dalil.ai/docs
-image: Architecture Diagram | at: arch.png | caption: System overview
-
-| Component | Status  | Owner |
-| Backend   | Ready   | Ahmed |
-| Frontend  | Testing | Sarah |
-| Deploy    | Pending | Ops   |
+keyword: content | property: value | property: value
 ```
 
-### 4. Meeting Notes & Decisions
+The parser produces deterministic JSON — the same input always produces the same output, with no ambiguity:
+
+```json
+{
+  "version": "2.0",
+  "metadata": { "title": "Q2 Product Launch Plan" },
+  "blocks": [
+    {
+      "id": "block-1",
+      "type": "task",
+      "content": "Finalize pricing page",
+      "properties": { "owner": "Sarah", "due": "Friday", "priority": "1" }
+    },
+    {
+      "id": "block-2",
+      "type": "gate",
+      "content": "Final go/no-go",
+      "properties": { "approver": "CEO", "timeout": "24h" }
+    }
+  ]
+}
+```
+
+Every block. Every time. No interpretation required.
+
+---
+
+## Three Audiences, One Format
+
+### For Writers
+
+A clean, distraction-free writing surface with semantic structure underneath. Write a book, a news article, a legal contract, or a report in IntentText. The `byline:`, `epigraph:`, `footnote:`, `caption:`, and `toc:` blocks give writers first-class tools. Export to beautifully typeset PDF, HTML, or Markdown. Your documents are plain text files you own forever — no subscription, no lock-in.
 
 ```
-title: Sprint Planning — Week 12
-summary: Reviewed priorities and assigned tasks.
+font: | family: Georgia | size: 12pt | leading: 1.8
+page: | size: A5 | margins: 22mm | footer: {{page}}
 
-section: Decisions
-ask: Should we migrate to Postgres?
-quote: Yes, the performance benchmarks justify it. | by: Ahmed
+epigraph: We build in stone what we fear to say in words. | by: Anonymous
+byline: Emad Jumaah | date: March 2026 | publication: Dalil Review
 
-section: Action Items
-task: Write migration script | owner: Sarah | due: Wednesday
-task: Update CI pipeline | owner: Dev Team | due: Friday
-done: Security audit complete
-
-section: Notes
-note: Next sprint starts Monday. Demo on Friday 3pm.
-info: New staging environment available at staging.dalil.ai
-warning: Production deploy freeze starts Thursday 6pm.
+note: The city had no memory of rain. Not in the way cities forget things... | align: justify
 ```
+
+### For Businesses
+
+Store document templates as JSON. Store data as JSON. Render any document — invoice, purchase order, contract, report — on demand. No Word. No Google Docs. No binary files. Everything in your database, everything queryable, everything versionable.
+
+```
+// Template stored in DB as JSON + data stored in DB as JSON → rendered on demand
+
+title: Invoice {{invoice.number}}
+note: Bill To: {{client.name}}, {{client.address}}
+
+| Description           | Qty           | Total              |
+| {{items.0.description}} | {{items.0.qty}} | {{items.0.total}} |
+
+note: **Total Due: {{totals.due}} {{totals.currency}}** | align: right
+result: Invoice generated | code: 200
+```
+
+### For Developers and AI Agents
+
+An agentic workflow written in IntentText is human-reviewable and machine-executable. Agents generate `.it` files as their execution plans. Humans review and edit them. Runtimes execute them. The format is the contract between the human and the machine.
+
+```
+title: User Onboarding Pipeline
+agent: onboard-agent | model: claude-sonnet-4
+context: | userId: {{userId}} | plan: pro
+
+step: Verify email     | tool: email.verify  | input: {{userId}}  | output: emailStatus
+step: Create workspace | tool: ws.create     | depends: step-1    | output: workspace
+gate: Confirm account  | approver: {{emailStatus.email}} | timeout: 24h
+call: ./notify-team.it | input: {{workspace}}
+result: Onboarded      | code: 200 | data: {{workspace}}
+```
+
+---
+
+## What IntentText Is Not
+
+**It is not a programming language.** There are no loops over data structures, no function definitions, no type system. It is a document format with executable semantics — the runtime handles the mechanics.
+
+**It is not trying to replace Markdown for simple notes.** If you need a quick README, use Markdown. IntentText earns its place when your document needs to be queried, executed, templated, or processed by a machine.
+
+**It is not another YAML workflow format.** YAML configs are for machines. IntentText documents are for humans first, machines second. A non-technical writer can read and author an IntentText document. Nobody writes YAML for fun.
+
+---
+
+## The Ecosystem
+
+| Project                | What it is                                                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **`@intenttext/core`** | The parser, renderer, and template engine. Install and use in any Node.js or browser project.                    |
+| **IntentText Editor**  | A WYSIWYG editor where the `.it` format is the data layer, invisible during normal writing. _(coming)_           |
+| **VS Code Extension**  | Syntax highlighting, live preview, and snippets for `.it` files.                                                 |
+| **Web Converter**      | Paste any web content or Markdown and convert to IntentText. [toit-psi.vercel.app](https://toit-psi.vercel.app/) |
 
 ---
 
@@ -151,201 +188,159 @@ warning: Production deploy freeze starts Thursday 6pm.
 npm install @intenttext/core
 ```
 
-### Parse & Render
+### Parse a document
 
 ```javascript
 import { parseIntentText, renderHTML } from "@intenttext/core";
 
 const doc = parseIntentText(`
-title: My First Workflow
-agent: my-agent | model: gpt-4o
+title: My Document
 
-section: Steps
-step: Fetch user data | tool: api.getUser | input: userId
-step: Send welcome email | tool: email.send | depends: step-1
-result: Onboarding complete | code: 200
+section: Tasks
+task: Write the introduction | owner: Ahmed | due: Friday
+task: Review and edit        | owner: Sarah | due: Monday
+
+section: Notes
+note: Meeting scheduled for Tuesday 3pm.
+warning: Deadline cannot move — client presentation is fixed.
 `);
 
-console.log(doc.version); // "2.0"
-console.log(doc.metadata?.agent); // "my-agent"
+// Query the document
+const tasks = doc.blocks.filter((b) => b.type === "task");
+const overdue = tasks.filter((b) => b.properties?.status === "overdue");
 
-const html = renderHTML(doc); // Beautiful styled HTML
+// Render to HTML
+const html = renderHTML(doc);
+```
+
+### Template + Data → Document
+
+```javascript
+import { parseAndMerge, renderPrint } from "@intenttext/core";
+import invoiceTemplate from "./templates/invoice.it";
+import invoiceData from "./data/invoice-2026-042.json";
+
+// Merge template with data
+const doc = parseAndMerge(invoiceTemplate, invoiceData);
+
+// Render print-ready HTML
+const printHTML = renderPrint(doc);
 ```
 
 ### CLI
 
 ```bash
-node cli.js document.it           # Parse to JSON
-node cli.js document.it --html    # Render to HTML
-```
-
-### Web Converter
-
-[![Web to IntentText Converter](https://res.cloudinary.com/drceui2nh/image/upload/v1772678289/dotit_no1zlt.png)](https://toit-psi.vercel.app/)
-
-Try it live at [toit-psi.vercel.app](https://toit-psi.vercel.app/)
-
----
-
-## JSON Output
-
-Every `.it` document parses to typed, deterministic JSON:
-
-```json
-{
-  "version": "2.0",
-  "metadata": {
-    "title": "Customer Support Pipeline",
-    "agent": "triage-agent",
-    "model": "gpt-4o",
-    "context": { "userId": "u_123" }
-  },
-  "blocks": [
-    {
-      "id": "step-1",
-      "type": "step",
-      "content": "Classify ticket",
-      "properties": {
-        "id": "step-1",
-        "tool": "classifier.run",
-        "input": "ticketText",
-        "status": "pending"
-      }
-    },
-    {
-      "type": "handoff",
-      "content": "Transfer to billing",
-      "properties": {
-        "from": "triage-agent",
-        "to": "billing-agent"
-      }
-    },
-    {
-      "type": "retry",
-      "content": "Send confirmation",
-      "properties": {
-        "max": 3,
-        "delay": 1000,
-        "backoff": "exponential"
-      }
-    }
-  ]
-}
+node cli.js document.it                                    # Parse to JSON
+node cli.js document.it --html                             # Render to HTML
+node cli.js template.it --data data.json --print           # Template + data → print HTML
+node cli.js template.it --data data.json --pdf             # Template + data → PDF
 ```
 
 ---
 
 ## Syntax Reference
 
+### Document Header
+
+| Keyword    | Example                                                  |
+| ---------- | -------------------------------------------------------- |
+| `title:`   | `title: *My Document*`                                   |
+| `summary:` | `summary: A brief description`                           |
+| `agent:`   | `agent: my-agent \| model: claude-sonnet-4`              |
+| `context:` | `context: \| userId: u_123 \| plan: pro`                 |
+| `font:`    | `font: \| family: Georgia \| size: 12pt \| leading: 1.6` |
+| `page:`    | `page: \| size: A4 \| margins: 20mm \| footer: {{page}}` |
+
 ### Document Structure
 
-| Keyword    | Example                     |
-| ---------- | --------------------------- |
-| `title:`   | `title: *My Document*`      |
-| `summary:` | `summary: Project overview` |
-| `section:` | `section: Action Items`     |
-| `sub:`     | `sub: Details`              |
-| `---`      | Horizontal divider          |
-| `//`       | Comment (ignored)           |
+| Keyword    | Example                               |
+| ---------- | ------------------------------------- |
+| `section:` | `section: Action Items`               |
+| `sub:`     | `sub: Sub-section title`              |
+| `toc:`     | `toc: \| depth: 2 \| title: Contents` |
+| `---`      | Horizontal divider                    |
+| `//`       | Comment — ignored by parser           |
+| `break:`   | Explicit page break                   |
 
-### Content Blocks
+### Writer Blocks
 
-| Keyword                                    | Example                                          |
-| ------------------------------------------ | ------------------------------------------------ |
-| `note:`                                    | `note: Remember to backup`                       |
-| `task:`                                    | `task: Write docs \| owner: John \| due: Friday` |
-| `done:`                                    | `done: Setup repo \| time: Monday`               |
-| `ask:`                                     | `ask: Who has the access key?`                   |
-| `quote:`                                   | `quote: Be concise. \| by: Strunk`               |
-| `info:` / `warning:` / `tip:` / `success:` | Callout blocks                                   |
+| Keyword                                    | Example                                                           |
+| ------------------------------------------ | ----------------------------------------------------------------- |
+| `note:`                                    | `note: Body paragraph text \| align: justify`                     |
+| `byline:`                                  | `byline: Author Name \| date: March 2026 \| publication: Journal` |
+| `epigraph:`                                | `epigraph: Opening quote text. \| by: Author`                     |
+| `quote:`                                   | `quote: Be concise. \| by: Strunk`                                |
+| `caption:`                                 | `caption: Figure 1 — System architecture overview`                |
+| `footnote:`                                | `footnote: 1 \| text: Source: QCB Annual Report 2025, p. 47`      |
+| `dedication:`                              | `dedication: For my father, who taught me to read slowly.`        |
+| `ask:`                                     | `ask: Should we ship in June or wait for v2?`                     |
+| `info:` / `warning:` / `tip:` / `success:` | Callout blocks                                                    |
+
+### Task Blocks
+
+| Keyword | Example                                                         |
+| ------- | --------------------------------------------------------------- |
+| `task:` | `task: Write docs \| owner: John \| due: Friday \| priority: 1` |
+| `done:` | `done: Setup repository \| time: Monday`                        |
 
 ### Data & Media
 
-| Keyword             | Example                                         |
-| ------------------- | ----------------------------------------------- |
-| `\| Col \| Col \|`  | Pipe tables                                     |
-| `headers:` + `row:` | Keyword tables                                  |
-| `image:`            | `image: Logo \| at: logo.png \| caption: Brand` |
-| `link:`             | `link: Docs \| to: https://docs.com`            |
-| `code:`             | Fenced code blocks                              |
+| Keyword            | Example                                              |
+| ------------------ | ---------------------------------------------------- |
+| `\| Col \| Col \|` | Pipe table                                           |
+| `image:`           | `image: Logo \| at: logo.png \| caption: Brand mark` |
+| `link:`            | `link: Documentation \| to: https://docs.com`        |
+| `code:`            | Fenced code blocks                                   |
 
-### Agentic Workflow Blocks (v2)
+### Agentic Workflow Blocks
 
-| Keyword               | Purpose              | Example                                                           |
-| --------------------- | -------------------- | ----------------------------------------------------------------- |
-| `step:`               | Workflow step        | `step: Send email \| tool: email.send \| status: pending`         |
-| `decision:`           | Conditional branch   | `decision: Check \| if: x == "y" \| then: step-2 \| else: step-3` |
-| `trigger:`            | Workflow start       | `trigger: webhook \| event: user.signup`                          |
-| `loop:`               | Iteration            | `loop: Process \| over: items \| do: step-3`                      |
-| `checkpoint:`         | Resume point         | `checkpoint: post-setup`                                          |
-| `audit:`              | Execution log        | `audit: Done \| by: {{agent}} \| at: {{timestamp}}`               |
-| `error:`              | Error handler        | `error: Fail \| fallback: step-2 \| notify: admin`                |
-| `context:`            | Scoped variables     | `context: \| userId: u_123 \| plan: pro`                          |
-| `progress:`           | Progress bar         | `progress: 3/5 tasks completed`                                   |
-| `import:` / `export:` | Document composition | `import: ./auth.it \| as: auth`                                   |
-
-> `import:` / `export:` are document-level reference declarations (static composition). `call:` is runtime execution — it invokes a sub-workflow and waits for its `result:`.
-
-### Inter-Agent Communication (v2.1+)
-
-| Keyword     | Purpose               | Example                                                            |
-| ----------- | --------------------- | ------------------------------------------------------------------ |
-| `emit:`     | Signal / status event | `emit: Running \| phase: deploy \| level: info`                    |
-| `gate:`     | Human approval        | `gate: Approve deploy \| approver: ops-lead \| timeout: 24h`       |
-| `call:`     | Sub-workflow call     | `call: ./verify.it \| input: {{email}} \| output: verified`        |
-| `result:`   | Execution output      | `result: Success \| code: 200 \| data: {"id":"u_123"}`             |
-| `handoff:`  | Agent transfer        | `handoff: Transfer \| from: agent-a \| to: agent-b`                |
-| `wait:`     | Async pause           | `wait: Approval \| on: human.approved \| timeout: 30s`             |
-| `parallel:` | Concurrent steps      | `parallel: Run checks \| steps: lint,test,build \| join: all`      |
-| `retry:`    | Retry policy          | `retry: API call \| max: 3 \| delay: 1000 \| backoff: exponential` |
-
-> **Note:** `status:` is accepted as an alias for `emit:` for backward compatibility. `schema:` has been removed (it was a runtime concern, not a format concern).
+| Keyword       | Purpose                    | Example                                                                  |
+| ------------- | -------------------------- | ------------------------------------------------------------------------ |
+| `step:`       | Execute a tool or action   | `step: Send email \| tool: email.send \| output: sent`                   |
+| `decision:`   | Conditional branch         | `decision: Check \| if: {{score}} > 0.9 \| then: step-3 \| else: step-4` |
+| `parallel:`   | Concurrent execution       | `parallel: Run checks \| steps: lint,test,build \| join: all`            |
+| `loop:`       | Iterate over collection    | `loop: Process items \| over: {{items}} \| do: step-3`                   |
+| `call:`       | Invoke sub-workflow        | `call: ./verify.it \| input: {{userId}} \| output: verified`             |
+| `gate:`       | Pause for human approval   | `gate: Approve deploy \| approver: ops-lead \| timeout: 24h`             |
+| `wait:`       | Async pause                | `wait: Tests complete \| on: tests.done \| timeout: 60s`                 |
+| `retry:`      | Retry on failure           | `retry: API call \| max: 3 \| delay: 1s \| backoff: exponential`         |
+| `error:`      | Error handler              | `error: On failure \| fallback: step-1 \| notify: ops-team`              |
+| `trigger:`    | Workflow entry point       | `trigger: webhook \| event: user.signup`                                 |
+| `checkpoint:` | Safe resume point          | `checkpoint: post-deploy`                                                |
+| `handoff:`    | Transfer to another agent  | `handoff: Pass to billing \| from: triage \| to: billing-agent`          |
+| `audit:`      | Immutable execution record | `audit: Complete \| by: {{agent}} \| at: {{timestamp}}`                  |
+| `emit:`       | Broadcast state externally | `emit: deploy.complete \| phase: production`                             |
+| `result:`     | Terminal workflow output   | `result: Success \| code: 200 \| data: {{workspace}}`                    |
 
 ### Inline Formatting
 
 | Style          | Syntax                               |
-| -------------- | ------------------------------------ | ------ |
+| -------------- | ------------------------------------ |
 | Bold           | `*text*`                             |
 | Italic         | `_text_`                             |
 | Strikethrough  | `~text~`                             |
+| Highlight      | `^text^`                             |
 | Inline code    | `` `code` ``                         |
 | Link           | `[label](url)`                       |
-| Highlight      | `^text^`                             |
-| Inline quote   | `==text==`                           |
-| Inline note    | `[[text]]`                           |
-| Quick link     | `[[label                             | url]]` |
-| Date shorthand | `@today`, `@tomorrow`, `@2026-03-10` |
+| Footnote ref   | `[^1]`                               |
 | Mention        | `@person`                            |
 | Tag            | `#topic`                             |
+| Date shorthand | `@today`, `@tomorrow`, `@2026-03-10` |
 
-### Writer-First Prose Mode
+---
 
-IntentText now supports paragraph-first writing for regular users.
+## Comparison
 
-- Lines with no keyword are parsed as prose (`body-text`).
-- Consecutive plain lines are merged into one paragraph.
-- A blank line starts a new paragraph.
-- In HTML rendering, prose uses `.intent-prose` with long-form reading rhythm (larger line-height and comfortable measure).
-
-### Optional Text Alignment
-
-Centering is opt-in, not forced. You can control alignment per block:
-
-```
-note: Centered opening quote | align: center
-note: Editorial aside | align: right
-note: Body text should flow naturally | align: justify
-```
-
-Supported values: `center`, `right`, `justify`.
-
-### Writer Roadmap (Planned)
-
-The following items are planned and documented for upcoming releases, but are not implemented in core yet:
-
-- Smart typing replacements (`--`, `...`, typographic quotes)
-- Writer UI modes in apps: `Book`, `News`, `Journal`, `Plain`
-- Focus mode, typewriter scroll, and slash-command insert menu in app shells
+|                       | Word / Google Docs | Markdown | YAML / JSON | Notion           | **IntentText** |
+| --------------------- | ------------------ | -------- | ----------- | ---------------- | -------------- |
+| Human writable        | ✅                 | ✅       | ❌          | ✅               | ✅             |
+| Semantically typed    | ❌                 | ❌       | ✅          | ✅ (proprietary) | ✅             |
+| Natively JSON         | ❌                 | ❌       | ✅          | API only         | ✅             |
+| Open / portable       | ❌                 | ✅       | ✅          | ❌               | ✅             |
+| Template + data merge | ❌                 | ❌       | ❌          | ❌               | ✅             |
+| Agent executable      | ❌                 | ❌       | ❌          | ❌               | ✅             |
+| Print / PDF output    | ✅                 | partial  | ❌          | partial          | ✅             |
+| Queryable             | ❌                 | ❌       | ✅          | ✅ (proprietary) | ✅             |
 
 ---
 
@@ -355,15 +350,23 @@ The following items are planned and documented for upcoming releases, but are no
 IntentText/
 ├── packages/core/           # @intenttext/core (npm)
 │   ├── src/
-│   │   ├── types.ts        # Block types, interfaces
+│   │   ├── types.ts        # Block types and interfaces
 │   │   ├── parser.ts       # Core parser
-│   │   ├── renderer.ts     # HTML renderer
+│   │   ├── renderer.ts     # HTML and print renderer
+│   │   ├── merge.ts        # Template + data merge engine
+│   │   ├── query.ts        # Query engine
+│   │   ├── schema.ts       # Document validation
+│   │   ├── markdown.ts     # Markdown → IntentText converter
+│   │   ├── html-to-it.ts   # HTML → IntentText converter
+│   │   ├── utils.ts        # Shared utilities
+│   │   ├── browser.ts      # Browser entry point
 │   │   └── index.ts        # Public API
-│   └── tests/              # 255 tests
+│   └── tests/              # 308 tests
 ├── docs/
-│   ├── SPEC.md             # Full specification
+│   ├── SPEC.md             # Full language specification
 │   └── USAGE.md            # Usage guide
-├── examples/               # Sample .it files
+├── examples/
+│   └── templates/          # Invoice, contract, book, report, and more
 ├── cli.js                  # CLI tool
 ├── preview.html            # Live editor
 └── intenttext.browser.js   # Browser bundle
@@ -373,15 +376,28 @@ IntentText/
 
 ```bash
 npm install && npm run build
-npm test                          # 255 tests passing
-npm run demo                      # Demo output
-npm run preview                   # Live editor in browser
+npm test                     # 308 tests passing
+npm run demo                 # Demo output
+npm run preview              # Live editor in browser
 ```
+
+---
+
+## Design Principles
+
+**Keep the format dumb. Make the runtime smart.** IntentText expresses intent — what a document contains and means. How that intent is executed, stored, or rendered is the runtime's job. The format stays simple so a developer can understand the entire specification in an hour.
+
+**Every keyword earns its place.** A keyword is only added if it expresses something that genuinely cannot be expressed as a property on an existing block, and cannot be handled by the runtime without appearing in the document itself. The current set is final at 36 keywords.
+
+**The human is always the primary author.** Even in agentic workflows, the document must be readable and editable by a human without special tools. A `.it` file opened in any text editor must be immediately understandable.
+
+---
 
 ## Specification
 
-See [docs/SPEC.md](docs/SPEC.md) for the full language specification.
+See [docs/SPEC.md](docs/SPEC.md) for the complete language specification.
+See [docs/TEMPLATES.md](docs/TEMPLATES.md) for the template system and document generation guide.
 
 ## License
 
-MIT
+MIT — use it, build on it, ship it.

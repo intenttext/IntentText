@@ -40,7 +40,12 @@ export interface QueryResult {
  */
 export function parseQuery(queryString: string): QueryOptions {
   const options: QueryOptions = { where: [], sort: [] };
-  const parts = queryString.trim().split(/\s+/);
+  if (typeof queryString !== "string" || queryString.length === 0)
+    return options;
+  // Cap query length to prevent abuse
+  const capped =
+    queryString.length > 10_000 ? queryString.slice(0, 10_000) : queryString;
+  const parts = capped.trim().split(/\s+/);
 
   for (const part of parts) {
     // Sort: sort:field:direction
@@ -229,6 +234,9 @@ export function queryBlocks(
   document: IntentDocument,
   options: QueryOptions | string,
 ): QueryResult {
+  if (!document || !document.blocks) {
+    return { blocks: [], total: 0, matched: 0 };
+  }
   const opts = typeof options === "string" ? parseQuery(options) : options;
 
   // Start with all blocks (flatten children)

@@ -1,4 +1,6 @@
 export function convertMarkdownToIntentText(markdown: string): string {
+  if (typeof markdown !== "string" || markdown.length === 0) return "";
+
   const lines = markdown.split(/\r?\n/);
 
   const out: string[] = [];

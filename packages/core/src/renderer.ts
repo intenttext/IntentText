@@ -24,6 +24,16 @@ function sanitizeUrl(url: string): string {
   }
 
   const lower = trimmed.toLowerCase();
+
+  // Block dangerous schemes explicitly
+  if (
+    lower.startsWith("javascript:") ||
+    lower.startsWith("vbscript:") ||
+    lower.startsWith("data:")
+  ) {
+    return "#";
+  }
+
   // Allow bare relative paths like "logo.png" or "assets/banner.png".
   // Block any value that looks like it declares a scheme (e.g. "javascript:").
   if (!lower.includes(":") && !lower.startsWith("//")) {
@@ -699,6 +709,8 @@ function renderBlocks(
 
 // Main HTML renderer function
 export function renderHTML(document: IntentDocument): string {
+  if (!document || !document.blocks) return "";
+
   const bodyHtml = renderBlocks(document.blocks);
 
   // Collect and render footnotes at bottom
@@ -951,6 +963,8 @@ function buildDynamicCSS(doc: IntentDocument): string {
 
 // Print-optimized HTML renderer
 export function renderPrint(doc: IntentDocument): string {
+  if (!doc || !doc.blocks) return "";
+
   const bodyHtml = renderBlocks(doc.blocks);
 
   // Collect and render footnotes at bottom

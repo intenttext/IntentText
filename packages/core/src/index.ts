@@ -1,4 +1,4 @@
-export { parseIntentText } from "./parser";
+export { parseIntentText, _resetIdCounter } from "./parser";
 export { renderHTML, renderPrint } from "./renderer";
 export { mergeData, parseAndMerge } from "./merge";
 export { convertMarkdownToIntentText } from "./markdown";

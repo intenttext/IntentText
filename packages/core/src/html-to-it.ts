@@ -54,6 +54,8 @@ function parseHtml(html: string): SimpleNode {
  * Convert HTML string to IntentText format.
  */
 export function convertHtmlToIntentText(html: string): string {
+  if (typeof html !== "string" || html.length === 0) return "";
+
   const root = parseHtml(html);
   const lines: string[] = [];
   processChildren(root, lines);

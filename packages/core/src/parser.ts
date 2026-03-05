@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import {
   IntentBlock,
   BlockType,
@@ -10,6 +9,24 @@ import {
   IntentExtension,
   KEYWORDS,
 } from "./types";
+
+// Fast sequential ID generator — deterministic and allocation-free vs uuid
+let _idCounter = 0;
+function nextId(): string {
+  return `b-${++_idCounter}`;
+}
+/** Reset the ID counter (useful for deterministic tests). */
+export function _resetIdCounter(): void {
+  _idCounter = 0;
+}
+
+// Safety limits
+const MAX_INPUT_LENGTH = 10_000_000; // 10 MB
+const MAX_LINE_COUNT = 500_000;
+const MAX_INLINE_LENGTH = 100_000;
+
+// Property keys that must never be set from user input (prototype pollution guard)
+const DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
 // Keyword aliases: maps a written keyword to its canonical block type
 const KEYWORD_ALIASES: Record<string, string> = {
@@ -81,7 +98,7 @@ const METADATA_KEYWORDS = new Set<string>(["agent", "model"]);
  * Output: { userId: 'u_123', plan: 'pro' }
  */
 function parseContextKeyValuePairs(rawContent: string): Record<string, string> {
-  const result: Record<string, string> = {};
+  const result: Record<string, string> = Object.create(null);
   // Strip leading pipe if present (for pipe-first syntax: | key: value | key2: value2)
   let content = rawContent.trim();
   if (content.startsWith("|")) {
@@ -100,13 +117,15 @@ function parseContextKeyValuePairs(rawContent: string): Record<string, string> {
       cleaned.match(/^([\w]+)\s*=\s*"([^"]*)"/) ||
       cleaned.match(/^([\w]+)\s*=\s*(\S+)/);
     if (kvMatch) {
-      result[kvMatch[1]] = kvMatch[2];
+      const key = kvMatch[1];
+      if (!DANGEROUS_KEYS.has(key)) result[key] = kvMatch[2];
       continue;
     }
     // Try pipe property syntax: key: value
     const pipeMatch = cleaned.match(/^([\w][\w-]*):\s*(.*)$/);
     if (pipeMatch) {
-      result[pipeMatch[1].trim()] = pipeMatch[2].trim();
+      const key = pipeMatch[1].trim();
+      if (!DANGEROUS_KEYS.has(key)) result[key] = pipeMatch[2].trim();
     }
   }
   return result;
@@ -201,6 +220,14 @@ function parseInlineNodes(text: string): {
   content: string;
   inline: InlineNode[];
 } {
+  // Fast path: skip inline parsing for very long or empty content
+  if (!text || text.length > MAX_INLINE_LENGTH) {
+    return {
+      content: text || "",
+      inline: [{ type: "text", value: text || "" }],
+    };
+  }
+
   const inline: InlineNode[] = [];
   let content = "";
   let currentText = "";
@@ -490,7 +517,7 @@ function parseLine(
 
         const { content: cleanContent, inline } = ctx.parseInline(trimmed);
         return {
-          id: uuidv4(),
+          id: nextId(),
           type: "extension",
           content: cleanContent,
           originalContent: trimmed,
@@ -501,7 +528,7 @@ function parseLine(
 
       const { content: cleanContent, inline } = ctx.parseInline(trimmed);
       return {
-        id: uuidv4(),
+        id: nextId(),
         type: "body-text",
         content: cleanContent,
         originalContent: trimmed,
@@ -513,7 +540,7 @@ function parseLine(
     // after the first are treated as content continuation.
     // But NOT for headers and rows which use | as data separator.
     let content: string;
-    const properties: Record<string, string | number> = {};
+    const properties: Record<string, string | number> = Object.create(null);
 
     if (keyword === "headers" || keyword === "row") {
       content = rest;
@@ -531,7 +558,11 @@ function parseLine(
         if (propMatch) {
           const key = propMatch[1].trim();
           const rawValue = propMatch[2].trim();
-          if (!key.includes("\\") && !key.includes("|")) {
+          if (
+            !key.includes("\\") &&
+            !key.includes("|") &&
+            !DANGEROUS_KEYS.has(key)
+          ) {
             properties[key] = unescapeIntentText(rawValue);
             content = "";
           }
@@ -546,7 +577,11 @@ function parseLine(
           const rawValue = propMatch[2].trim();
 
           // v1 policy: property keys are not escapable (keep simple + deterministic).
-          if (key.includes("\\") || key.includes("|")) {
+          if (
+            key.includes("\\") ||
+            key.includes("|") ||
+            DANGEROUS_KEYS.has(key)
+          ) {
             ctx.diagnostics.push({
               severity: "warning",
               code: "INVALID_PROPERTY_SEGMENT",
@@ -600,7 +635,7 @@ function parseLine(
     // extension, emit a generic extension block.
     if (!isCoreKeyword && (handledByExtension || looksLikeExtension)) {
       return {
-        id: uuidv4(),
+        id: nextId(),
         type: "extension",
         content: cleanContent,
         originalContent: content,
@@ -717,14 +752,14 @@ function parseLine(
     // v2.5: break blocks have no content
     if (keyword === "break") {
       return {
-        id: uuidv4(),
+        id: nextId(),
         type: "break" as BlockType,
         content: "",
       };
     }
 
     return {
-      id: uuidv4(),
+      id: nextId(),
       type: resolvedType,
       content: cleanContent,
       originalContent: content,
@@ -749,7 +784,7 @@ function parseLine(
     if (isDone) shortcuts.status = "done";
 
     return {
-      id: uuidv4(),
+      id: nextId(),
       type: "task",
       content: finalContent,
       originalContent: content,
@@ -774,7 +809,7 @@ function parseLine(
       embedded.type !== "step-item"
     ) {
       return {
-        id: uuidv4(),
+        id: nextId(),
         type: "list-item",
         content: embedded.content,
         originalContent: embedded.originalContent,
@@ -787,7 +822,7 @@ function parseLine(
     const unescaped = unescapeIntentText(payload);
     const { content: cleanContent, inline } = ctx.parseInline(unescaped);
     return {
-      id: uuidv4(),
+      id: nextId(),
       type: "list-item",
       content: cleanContent,
       originalContent: unescaped,
@@ -802,7 +837,7 @@ function parseLine(
     const { content: cleanContent, inline } = ctx.parseInline(content);
 
     return {
-      id: uuidv4(),
+      id: nextId(),
       type: "step-item",
       content: cleanContent,
       originalContent: content,
@@ -815,7 +850,7 @@ function parseLine(
   const { content: cleanContent, inline } = ctx.parseInline(unescaped);
 
   return {
-    id: uuidv4(),
+    id: nextId(),
     type: "body-text",
     content: cleanContent,
     originalContent: unescaped,
@@ -828,7 +863,51 @@ export function parseIntentText(
   fileContent: string,
   options?: ParseOptions,
 ): IntentDocument {
+  // Input validation
+  if (typeof fileContent !== "string") {
+    return { version: "1.4", blocks: [], metadata: {}, diagnostics: [] };
+  }
+  if (fileContent.length === 0) {
+    return { version: "1.4", blocks: [], metadata: {}, diagnostics: [] };
+  }
+  if (fileContent.length > MAX_INPUT_LENGTH) {
+    return {
+      version: "1.4",
+      blocks: [],
+      metadata: {},
+      diagnostics: [
+        {
+          severity: "error",
+          code: "UNTERMINATED_CODE_BLOCK",
+          message: `Input exceeds maximum allowed length of ${MAX_INPUT_LENGTH} characters.`,
+          line: 1,
+          column: 1,
+        },
+      ],
+    };
+  }
+
+  // Reset ID counter for deterministic output per parse call
+  _resetIdCounter();
+
   const lines = fileContent.split(/\r?\n/);
+  if (lines.length > MAX_LINE_COUNT) {
+    return {
+      version: "1.4",
+      blocks: [],
+      metadata: {},
+      diagnostics: [
+        {
+          severity: "error",
+          code: "UNTERMINATED_CODE_BLOCK",
+          message: `Input exceeds maximum allowed line count of ${MAX_LINE_COUNT}.`,
+          line: 1,
+          column: 1,
+        },
+      ],
+    };
+  }
+
   const blocks: IntentBlock[] = [];
   const diagnostics: Diagnostic[] = [];
   let currentSection: IntentBlock | null = null;
@@ -915,7 +994,7 @@ export function parseIntentText(
     }
 
     const block: IntentBlock = {
-      id: uuidv4(),
+      id: nextId(),
       type: "table",
       content: pendingTable.originalHeaders || "",
       table: {
@@ -947,7 +1026,7 @@ export function parseIntentText(
 
       if (isEndKeyword || isEndFence) {
         const codeBlock: IntentBlock = {
-          id: uuidv4(),
+          id: nextId(),
           type: "code",
           content: codeContent.join("\n"),
         };
@@ -993,7 +1072,7 @@ export function parseIntentText(
     // --- horizontal rule / divider
     if (trimmed === "---") {
       const dividerBlock: IntentBlock = {
-        id: uuidv4(),
+        id: nextId(),
         type: "divider",
         content: "",
       };
@@ -1030,7 +1109,7 @@ export function parseIntentText(
         codeStartLine = i + 1;
       } else {
         const codeBlock: IntentBlock = {
-          id: uuidv4(),
+          id: nextId(),
           type: "code",
           content: inlineCode,
         };
@@ -1232,7 +1311,7 @@ export function parseIntentText(
 
     // Best-effort: still emit the code block we captured.
     const codeBlock: IntentBlock = {
-      id: uuidv4(),
+      id: nextId(),
       type: "code",
       content: codeContent.join("\n"),
     };

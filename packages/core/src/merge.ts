@@ -7,15 +7,30 @@ const RUNTIME_VARIABLES = new Set(["page", "pages"]);
 // System variables resolved automatically
 const SYSTEM_VARIABLES = new Set(["timestamp", "date", "year"]);
 
+// Property keys that must never be traversed (prototype pollution guard)
+const DANGEROUS_PATH_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
+// Maximum path traversal depth to prevent abuse
+const MAX_PATH_DEPTH = 20;
+
 function getByPath(obj: unknown, path: string): unknown {
-  return path.split(".").reduce((current: unknown, key: string) => {
+  const keys = path.split(".");
+  if (keys.length > MAX_PATH_DEPTH) return undefined;
+
+  return keys.reduce((current: unknown, key: string) => {
     if (current === null || current === undefined) return undefined;
+    if (DANGEROUS_PATH_KEYS.has(key)) return undefined;
     if (Array.isArray(current)) {
       const idx = Number(key);
-      if (!isNaN(idx)) return (current as unknown[])[idx];
+      if (!isNaN(idx) && idx >= 0 && idx < current.length) return current[idx];
       return undefined;
     }
-    return (current as Record<string, unknown>)[key];
+    if (typeof current === "object") {
+      return Object.prototype.hasOwnProperty.call(current, key)
+        ? (current as Record<string, unknown>)[key]
+        : undefined;
+    }
+    return undefined;
   }, obj);
 }
 
@@ -37,9 +52,17 @@ function resolveString(
   data: Record<string, unknown>,
   agentName?: string,
 ): { resolved: string; hasUnresolved: boolean } {
+  // Fast path: no template markers
+  if (!str.includes("{{")) return { resolved: str, hasUnresolved: false };
+
   let hasUnresolved = false;
   const resolved = str.replace(/\{\{([^}]+)\}\}/g, (match, rawPath) => {
     const path = rawPath.trim();
+    // Reject suspiciously long paths
+    if (path.length > 200) {
+      hasUnresolved = true;
+      return match;
+    }
 
     // Runtime variables — leave as-is
     if (RUNTIME_VARIABLES.has(path)) return match;
@@ -171,6 +194,8 @@ export function mergeData(
   template: IntentDocument,
   data: Record<string, unknown>,
 ): IntentDocument {
+  if (!template || !template.blocks) return template;
+  if (!data || typeof data !== "object") return template;
   const agentName = template.metadata?.agent;
 
   const newBlocks = template.blocks.map((block) =>
