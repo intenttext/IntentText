@@ -1,4 +1,4 @@
-# IntentText (`.it`) v2.5 — Official Specification
+# IntentText (`.it`) v2.6 — Official Specification
 
 > **Status:** Stable · **Version:** 2.5 · **Source of Truth**
 
@@ -429,15 +429,16 @@ Parsers should preserve unknown extension blocks as `body-text` (or optionally e
 
 ## 12. Versioning
 
-| Version  | Status    | Notes                                                                            |
-| -------- | --------- | -------------------------------------------------------------------------------- |
-| **v1.0** | ✅ Stable | Core format                                                                      |
-| **v1.3** | ✅ Stable | Query, Schema, Converters, Accessibility                                         |
-| **v1.4** | ✅ Stable | Cleanup, fixture accuracy, spec overhaul                                         |
-| **v2.0** | ✅ Stable | Agentic workflow blocks, document metadata, interchange format                   |
-| **v2.3** | ✅ Stable | gate/call/emit, `{{variable}}` interpolation, join/on properties, removed schema |
-| **v2.4** | ✅ Stable | Writer-first inline syntax, prose paragraphs, alignment                          |
-| **v2.5** | ✅ Stable | Document Generation Engine: layout blocks, writer blocks, template merge, print  |
+| Version  | Status    | Notes                                                                                                         |
+| -------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| **v1.0** | ✅ Stable | Core format                                                                                                   |
+| **v1.3** | ✅ Stable | Query, Schema, Converters, Accessibility                                                                      |
+| **v1.4** | ✅ Stable | Cleanup, fixture accuracy, spec overhaul                                                                      |
+| **v2.0** | ✅ Stable | Agentic workflow blocks, document metadata, interchange format                                                |
+| **v2.3** | ✅ Stable | gate/call/emit, `{{variable}}` interpolation, join/on properties, removed schema                              |
+| **v2.4** | ✅ Stable | Writer-first inline syntax, prose paragraphs, alignment                                                       |
+| **v2.5** | ✅ Stable | Document Generation Engine: layout blocks, writer blocks, template merge, print                               |
+| **v2.6** | ✅ Stable | Production API: parseIntentTextSafe, documentToSource, validateDocumentSemantic, queryDocument, diffDocuments |
 
 ### 12.1 Implemented Features (v1.0 – v1.3)
 
@@ -1127,7 +1128,82 @@ node cli.js template.it --data data.json --print
 node cli.js template.it --data data.json --pdf output.pdf
 ```
 
-### 12.4 Roadmap (Not Yet Implemented)
+### 12.4 Production API (v2.6)
+
+> **Added in v2.6** — Five new APIs that complete the public surface and make the library production-safe.
+
+All v2.5 and earlier syntax is fully backward compatible. No new keywords — these are programmatic APIs.
+
+#### `parseIntentTextSafe(source, options?)` — Safe parser wrapper
+
+Production-grade parser that **never throws**. Wraps `parseIntentText` with configurable limits and unknown-keyword handling.
+
+| Option           | Type                              | Default  | Description                              |
+| ---------------- | --------------------------------- | -------- | ---------------------------------------- |
+| `unknownKeyword` | `'note'` \| `'skip'` \| `'throw'` | `'note'` | How to handle unrecognised keywords      |
+| `maxBlocks`      | `number`                          | `10000`  | Maximum number of blocks before stopping |
+| `maxLineLength`  | `number`                          | `50000`  | Lines longer than this are truncated     |
+| `strict`         | `boolean`                         | `false`  | Unknown keywords become errors           |
+
+**Returns:** `SafeParseResult` — `{ document, warnings[], errors[] }`
+
+**Warning codes:** `LINE_TRUNCATED`, `UNKNOWN_KEYWORD`, `MAX_BLOCKS_REACHED`
+
+#### `documentToSource(doc)` — JSON → .it source
+
+Reverse of the parser. Takes a parsed `IntentDocument` and produces valid `.it` source text.
+
+- Round-trip guarantee: `parseIntentText(documentToSource(doc))` produces identical block types, content, and properties
+- Properties serialise in canonical order per block type (e.g. `step:` → tool, input, output, depends, id, status, timeout)
+- Preserves inline formatting via `originalContent`
+- Pure function — no mutation
+
+#### `validateDocumentSemantic(doc)` — Semantic validation
+
+Cross-block validation beyond syntax. Returns `{ valid: boolean, issues[] }`.
+
+**Errors** (valid: false):
+
+- `STEP_REF_MISSING` — decision then/else references nonexistent step
+- `DEPENDS_REF_MISSING` — step depends on nonexistent step
+- `PARALLEL_REF_MISSING` — parallel references nonexistent step
+- `CALL_LOOP` — call references the document's own title
+- `RESULT_NOT_TERMINAL` — result block is not last in its section
+- `DUPLICATE_STEP_ID` — two blocks share the same explicit id
+
+**Warnings** (valid: true):
+
+- `GATE_NO_APPROVER`, `STEP_NO_TOOL`, `HANDOFF_NO_TO`, `RETRY_NO_MAX`
+- `UNRESOLVED_VARIABLE` — `{{variable}}` not declared in context or step output
+- `EMPTY_SECTION` — section with no content blocks
+
+**Info:** `DOCUMENT_NO_TITLE`, `TEMPLATE_HAS_UNRESOLVED`
+
+#### `queryDocument(doc, options)` — Simple block query
+
+Filter blocks with an intuitive, composable API. All conditions are ANDed; type arrays are ORed.
+
+| Option       | Type                               | Description                      |
+| ------------ | ---------------------------------- | -------------------------------- |
+| `type`       | `string \| string[]`               | Filter by block type(s)          |
+| `content`    | `string \| RegExp`                 | Substring or regex match         |
+| `properties` | `Record<string, string \| RegExp>` | All key/value pairs must match   |
+| `section`    | `string \| RegExp`                 | Only blocks in matching sections |
+| `limit`      | `number`                           | Max results                      |
+
+**Returns:** `IntentBlock[]`
+
+#### `diffDocuments(before, after)` — Semantic diff
+
+Computes a content-similarity diff between two document versions. Blocks matched by Levenshtein similarity, not by ID.
+
+**Returns:** `DocumentDiff` — `{ added[], removed[], modified[], unchanged[], summary }`
+
+Each `modified` entry tracks `contentChanged`, `propertiesChanged[]`, and `typeChanged`.
+
+---
+
+### 12.5 Roadmap (Not Yet Implemented)
 
 The following features are under consideration for future versions. They are **not implemented** in the current release.
 

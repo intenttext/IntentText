@@ -6,6 +6,17 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-03-05
+
+### Added
+
+- **`parseIntentTextSafe()`** — production-grade parser wrapper that never throws. Adds configurable unknown-keyword handling (`'note'` / `'skip'` / `'throw'`), `maxBlocks` cap, `maxLineLength` truncation, and strict mode. Returns a `SafeParseResult` with `document`, `warnings`, and `errors` arrays.
+- **`documentToSource()`** — reverse of the parser. Converts a parsed `IntentDocument` (JSON) back to valid `.it` source text with round-trip guarantee. Serialises properties in canonical order per block type.
+- **`validateDocumentSemantic()`** — semantic validation beyond syntax. Checks cross-block references (`STEP_REF_MISSING`, `DEPENDS_REF_MISSING`, `PARALLEL_REF_MISSING`), self-referencing calls (`CALL_LOOP`), structural rules (`RESULT_NOT_TERMINAL`, `DUPLICATE_STEP_ID`, `EMPTY_SECTION`), missing required properties (`GATE_NO_APPROVER`, `STEP_NO_TOOL`, `HANDOFF_NO_TO`, `RETRY_NO_MAX`), unresolved `{{variables}}`, and template detection.
+- **`queryDocument()`** — simple, intuitive block query API. Filter by `type` (single or array), `content` (string or RegExp), `properties` (exact or RegExp), `section`, and `limit`. All conditions are ANDed; type arrays are ORed.
+- **`diffDocuments()`** — semantic diff between two document versions. Matches blocks by content similarity (Levenshtein-based), detects added/removed/modified/unchanged blocks, tracks content and property changes, and produces a human-readable summary string.
+- 68 new tests (426 total passing across 12 test files).
+
 ## [2.5.0] - 2026-03-06
 
 ### Added

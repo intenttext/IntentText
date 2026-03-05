@@ -1383,3 +1383,155 @@ export function parseIntentText(
 
   return document;
 }
+
+// --- parseIntentTextSafe: production-grade parser wrapper ---
+
+export interface SafeParseOptions {
+  /** How to handle unrecognised keywords. Default: 'note' */
+  unknownKeyword: "note" | "skip" | "throw";
+  /** Maximum number of blocks to parse. Default: 10000 */
+  maxBlocks: number;
+  /** Maximum line length in characters. Default: 50000 */
+  maxLineLength: number;
+  /** If true, unknown keywords become errors instead of warnings. Default: false */
+  strict: boolean;
+}
+
+export const DEFAULT_SAFE_PARSE_OPTIONS: SafeParseOptions = {
+  unknownKeyword: "note",
+  maxBlocks: 10000,
+  maxLineLength: 50000,
+  strict: false,
+};
+
+export interface ParseWarning {
+  line: number;
+  message: string;
+  code: string;
+  original: string;
+}
+
+export interface ParseError {
+  line: number;
+  message: string;
+  code: string;
+  original: string;
+}
+
+export interface SafeParseResult {
+  document: IntentDocument;
+  warnings: ParseWarning[];
+  errors: ParseError[];
+}
+
+/**
+ * Production-grade parser that never throws.
+ * Wraps parseIntentText with line-length limits, block count caps,
+ * and configurable unknown-keyword handling.
+ */
+export function parseIntentTextSafe(
+  source: string,
+  options?: Partial<SafeParseOptions>,
+): SafeParseResult {
+  const opts: SafeParseOptions = { ...DEFAULT_SAFE_PARSE_OPTIONS, ...options };
+  const warnings: ParseWarning[] = [];
+  const errors: ParseError[] = [];
+
+  // Never throw — handle any input
+  if (typeof source !== "string" || source.length === 0) {
+    return {
+      document: { version: "1.4", blocks: [], metadata: {}, diagnostics: [] },
+      warnings: [],
+      errors: [],
+    };
+  }
+
+  try {
+    // Pre-process: truncate long lines
+    const rawLines = source.split(/\r?\n/);
+    const processedLines: string[] = [];
+    const knownKeywords = new Set(KEYWORDS);
+
+    for (let i = 0; i < rawLines.length; i++) {
+      let line = rawLines[i];
+
+      // Truncate long lines
+      if (line.length > opts.maxLineLength) {
+        warnings.push({
+          line: i + 1,
+          message: `Line truncated from ${line.length} to ${opts.maxLineLength} characters`,
+          code: "LINE_TRUNCATED",
+          original: line.slice(0, 200) + "...",
+        });
+        line = line.slice(0, opts.maxLineLength);
+      }
+
+      // Check for unknown keywords
+      const kwMatch = line.match(/^(\s*)([a-zA-Z_-]+)\s*:/);
+      if (kwMatch) {
+        const kw = kwMatch[2].toLowerCase();
+        if (
+          kw !== "end" &&
+          !knownKeywords.has(kw) &&
+          !line.trim().startsWith("//")
+        ) {
+          const entry = {
+            line: i + 1,
+            message: `Unknown keyword: "${kw}"`,
+            code: "UNKNOWN_KEYWORD",
+            original: line,
+          };
+
+          if (opts.strict || opts.unknownKeyword === "throw") {
+            errors.push(entry);
+          } else {
+            warnings.push(entry);
+          }
+
+          if (opts.unknownKeyword === "skip") {
+            continue; // skip this line entirely
+          }
+          // 'note' mode: rewrite as note: so the parser handles it
+          if (opts.unknownKeyword === "note") {
+            const content = line.slice(line.indexOf(":") + 1).trim();
+            line = `note: ${content}`;
+          }
+        }
+      }
+
+      processedLines.push(line);
+    }
+
+    // Enforce maxBlocks by truncating input if needed
+    // We parse the full preprocessed source first, then trim
+    const processedSource = processedLines.join("\n");
+    const document = parseIntentText(processedSource);
+
+    // Check block count
+    if (document.blocks.length > opts.maxBlocks) {
+      warnings.push({
+        line: 0,
+        message: `Document has ${document.blocks.length} blocks, truncated to ${opts.maxBlocks}`,
+        code: "MAX_BLOCKS_REACHED",
+        original: "",
+      });
+      document.blocks = document.blocks.slice(0, opts.maxBlocks);
+    }
+
+    return { document, warnings, errors };
+  } catch (e: unknown) {
+    // Never throw — wrap any unexpected error
+    const message = e instanceof Error ? e.message : "Unknown parser error";
+    errors.push({
+      line: 0,
+      message,
+      code: "PARSE_EXCEPTION",
+      original: "",
+    });
+    return {
+      document: { version: "1.4", blocks: [], metadata: {}, diagnostics: [] },
+      warnings,
+      errors,
+    };
+  }
+}

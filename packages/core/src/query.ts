@@ -344,3 +344,95 @@ function formatAsTable(blocks: IntentBlock[]): string {
 
   return [separator, headerRow, separator, ...dataRows, separator].join("\n");
 }
+
+// --- queryDocument: simple, intuitive query API ---
+
+export interface SimpleQueryOptions {
+  /** Filter by block type or array of types (OR within type list) */
+  type?: string | string[];
+  /** Filter by content (string = case-insensitive substring, RegExp = regex match) */
+  content?: string | RegExp;
+  /** Filter by properties — all specified key/value pairs must match */
+  properties?: Record<string, string | RegExp>;
+  /** Only return blocks within a specific section (match section content) */
+  section?: string | RegExp;
+  /** Maximum number of results to return */
+  limit?: number;
+}
+
+/**
+ * Query a document with a simple, intuitive filter API.
+ * All conditions are ANDed. Type arrays are ORed.
+ * Pure function — returns a new array, never mutates doc.
+ */
+export function queryDocument(
+  doc: IntentDocument,
+  query: SimpleQueryOptions = {},
+): IntentBlock[] {
+  if (!doc || !Array.isArray(doc.blocks)) return [];
+
+  const allBlocks = flattenBlocks(doc.blocks);
+  if (Object.keys(query).length === 0) return [...allBlocks];
+
+  // Build section ranges if section filter is specified
+  let sectionBlocks: Set<string> | null = null;
+  if (query.section !== undefined) {
+    sectionBlocks = new Set<string>();
+    let inMatchingSection = false;
+
+    for (const block of allBlocks) {
+      if (block.type === "section") {
+        inMatchingSection = matchValue(block.content, query.section);
+      } else if (inMatchingSection) {
+        sectionBlocks.add(block.id);
+      }
+    }
+  }
+
+  let results: IntentBlock[] = [];
+
+  for (const block of allBlocks) {
+    // Section filter
+    if (sectionBlocks !== null && !sectionBlocks.has(block.id)) continue;
+
+    // Type filter
+    if (query.type !== undefined) {
+      const types = Array.isArray(query.type) ? query.type : [query.type];
+      if (!types.includes(block.type)) continue;
+    }
+
+    // Content filter
+    if (query.content !== undefined) {
+      if (!matchValue(block.content || "", query.content)) continue;
+    }
+
+    // Properties filter (all must match)
+    if (query.properties !== undefined) {
+      let allMatch = true;
+      for (const [key, expected] of Object.entries(query.properties)) {
+        const actual = block.properties?.[key];
+        if (actual === undefined || !matchValue(String(actual), expected)) {
+          allMatch = false;
+          break;
+        }
+      }
+      if (!allMatch) continue;
+    }
+
+    results.push(block);
+  }
+
+  // Apply limit
+  if (query.limit !== undefined && query.limit >= 0) {
+    results = results.slice(0, query.limit);
+  }
+
+  return results;
+}
+
+function matchValue(text: string, pattern: string | RegExp): boolean {
+  if (typeof pattern === "string") {
+    return text.toLowerCase().includes(pattern.toLowerCase());
+  }
+  return pattern.test(text);
+}

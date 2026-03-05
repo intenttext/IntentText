@@ -168,7 +168,7 @@ node cli.js template.it --data data.json --pdf out.pdf  # PDF via Puppeteer
 
 ## Test Suite
 
-308 tests across 10 test files covering parser, renderer, query engine, converters, agentic blocks, and document generation.
+426 tests across 12 test files covering parser, renderer, query engine, converters, agentic blocks, document generation, and production APIs.
 
 ```bash
 npm test

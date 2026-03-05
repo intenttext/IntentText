@@ -271,6 +271,130 @@ const html = renderHTML(document);
 document.body.innerHTML = html;
 ```
 
+### parseIntentTextSafe(source, options?): SafeParseResult
+
+Production-grade parser that **never throws** under any input. Wraps `parseIntentText` with configurable limits.
+
+**Options:**
+
+- `unknownKeyword` — `'note'` (default) | `'skip'` | `'throw'` — how to handle unrecognised keywords
+- `maxBlocks` — `number` (default: 10000) — stop after N blocks
+- `maxLineLength` — `number` (default: 50000) — truncate long lines
+- `strict` — `boolean` (default: false) — unknown keywords become errors
+
+**Returns:** `{ document: IntentDocument, warnings: ParseWarning[], errors: ParseError[] }`
+
+**Example:**
+
+```javascript
+import { parseIntentTextSafe } from "@intenttext/core";
+
+const result = parseIntentTextSafe(userInput, {
+  unknownKeyword: "note",
+  maxBlocks: 5000,
+});
+
+if (result.warnings.length > 0) {
+  console.warn("Parse warnings:", result.warnings);
+}
+
+const doc = result.document; // always valid, never throws
+```
+
+### documentToSource(doc: IntentDocument): string
+
+Converts a parsed document back to `.it` source text. Round-trip guarantee: parsing the output produces identical block types, content, and properties.
+
+**Example:**
+
+```javascript
+import { parseIntentText, documentToSource } from "@intenttext/core";
+
+const doc = parseIntentText(source);
+const itSource = documentToSource(doc);
+// parseIntentText(itSource) ≡ doc (same types, content, properties)
+```
+
+### validateDocumentSemantic(doc: IntentDocument): SemanticValidationResult
+
+Semantic validation — checks cross-block references, missing properties, duplicate IDs, unresolved variables, and structural rules.
+
+**Returns:** `{ valid: boolean, issues: SemanticIssue[] }`
+
+**Example:**
+
+```javascript
+import { parseIntentText, validateDocumentSemantic } from "@intenttext/core";
+
+const doc = parseIntentText(source);
+const result = validateDocumentSemantic(doc);
+
+if (!result.valid) {
+  const errors = result.issues.filter((i) => i.type === "error");
+  console.error("Validation errors:", errors);
+}
+
+// Issue codes: STEP_REF_MISSING, DEPENDS_REF_MISSING, DUPLICATE_STEP_ID,
+// GATE_NO_APPROVER, STEP_NO_TOOL, UNRESOLVED_VARIABLE, EMPTY_SECTION, etc.
+```
+
+### queryDocument(doc: IntentDocument, options: SimpleQueryOptions): IntentBlock[]
+
+Simple, intuitive block query API. All conditions are ANDed; type arrays are ORed.
+
+**Options:**
+
+- `type` — `string | string[]` — filter by block type(s)
+- `content` — `string | RegExp` — substring or regex content match
+- `properties` — `Record<string, string | RegExp>` — all key/value pairs must match
+- `section` — `string | RegExp` — only blocks within matching sections
+- `limit` — `number` — max results
+
+**Example:**
+
+```javascript
+import { parseIntentText, queryDocument } from "@intenttext/core";
+
+const doc = parseIntentText(source);
+
+// All tasks owned by Ahmed
+queryDocument(doc, { type: "task", properties: { owner: "Ahmed" } });
+
+// All steps using email tools
+queryDocument(doc, { type: "step", properties: { tool: /email/ } });
+
+// Everything in the Deployment section
+queryDocument(doc, { section: "Deployment" });
+
+// Combined: priority-1 tasks in Action Items section, limit 5
+queryDocument(doc, {
+  type: "task",
+  section: "Action Items",
+  properties: { priority: "1" },
+  limit: 5,
+});
+```
+
+### diffDocuments(before: IntentDocument, after: IntentDocument): DocumentDiff
+
+Semantic diff between two document versions. Blocks matched by content similarity (Levenshtein), not ephemeral IDs.
+
+**Returns:** `{ added[], removed[], modified[], unchanged[], summary }`
+
+**Example:**
+
+```javascript
+import { parseIntentText, diffDocuments } from "@intenttext/core";
+
+const before = parseIntentText(oldSource);
+const after = parseIntentText(newSource);
+const diff = diffDocuments(before, after);
+
+console.log(diff.summary); // "2 added, 1 removed, 3 modified"
+console.log(diff.added); // IntentBlock[]
+console.log(diff.modified); // [{ contentChanged, propertiesChanged, typeChanged, ... }]
+```
+
 ## 🎯 Working with Blocks
 
 ### Accessing Specific Block Types

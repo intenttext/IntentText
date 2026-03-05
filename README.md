@@ -227,6 +227,60 @@ const doc = parseAndMerge(invoiceTemplate, invoiceData);
 const printHTML = renderPrint(doc);
 ```
 
+### Production-Safe Parsing
+
+```javascript
+import { parseIntentTextSafe } from "@intenttext/core";
+
+// Never throws — returns warnings/errors as data
+const result = parseIntentTextSafe(userInput, {
+  unknownKeyword: "note", // treat unknown keywords as notes
+  maxBlocks: 10000, // cap block count
+  maxLineLength: 50000, // truncate long lines
+});
+
+console.log(result.document); // IntentDocument (always valid)
+console.log(result.warnings); // [{ code: 'UNKNOWN_KEYWORD', line: 5, ... }]
+console.log(result.errors); // [] (empty unless strict mode)
+```
+
+### Query a Document
+
+```javascript
+import { parseIntentText, queryDocument } from "@intenttext/core";
+
+const doc = parseIntentText(source);
+
+queryDocument(doc, { type: "task" }); // All tasks
+queryDocument(doc, { type: "task", properties: { owner: "Ahmed" } }); // Ahmed's tasks
+queryDocument(doc, { type: "step", properties: { tool: /email/ } }); // Steps using email tools
+queryDocument(doc, { section: "Deployment" }); // Everything in Deployment
+queryDocument(doc, { type: ["step", "gate"], limit: 5 }); // First 5 steps or gates
+```
+
+### Validate, Diff, and Round-Trip
+
+```javascript
+import {
+  parseIntentText,
+  validateDocumentSemantic,
+  diffDocuments,
+  documentToSource,
+} from "@intenttext/core";
+
+// Semantic validation — checks cross-references, missing properties, duplicates
+const result = validateDocumentSemantic(doc);
+console.log(result.valid); // true/false
+console.log(result.issues); // [{ code: 'STEP_REF_MISSING', type: 'error', ... }]
+
+// Diff two versions of a document
+const diff = diffDocuments(oldDoc, newDoc);
+console.log(diff.summary); // "2 added, 1 removed, 3 modified, 8 unchanged"
+
+// Convert back to .it source (round-trip)
+const source = documentToSource(doc);
+```
+
 ### CLI
 
 ```bash
@@ -351,17 +405,20 @@ IntentText/
 ├── packages/core/           # @intenttext/core (npm)
 │   ├── src/
 │   │   ├── types.ts        # Block types and interfaces
-│   │   ├── parser.ts       # Core parser
+│   │   ├── parser.ts       # Core parser + parseIntentTextSafe
 │   │   ├── renderer.ts     # HTML and print renderer
 │   │   ├── merge.ts        # Template + data merge engine
-│   │   ├── query.ts        # Query engine
-│   │   ├── schema.ts       # Document validation
+│   │   ├── query.ts        # Query engine + queryDocument
+│   │   ├── schema.ts       # Schema-based validation
+│   │   ├── validate.ts     # Semantic validation
+│   │   ├── source.ts       # documentToSource (JSON → .it)
+│   │   ├── diff.ts         # diffDocuments (semantic diff)
 │   │   ├── markdown.ts     # Markdown → IntentText converter
 │   │   ├── html-to-it.ts   # HTML → IntentText converter
 │   │   ├── utils.ts        # Shared utilities
 │   │   ├── browser.ts      # Browser entry point
 │   │   └── index.ts        # Public API
-│   └── tests/              # 308 tests
+│   └── tests/              # 426 tests
 ├── docs/
 │   ├── SPEC.md             # Full language specification
 │   └── USAGE.md            # Usage guide
@@ -376,7 +433,7 @@ IntentText/
 
 ```bash
 npm install && npm run build
-npm test                     # 308 tests passing
+npm test                     # 426 tests passing
 npm run demo                 # Demo output
 npm run preview              # Live editor in browser
 ```
