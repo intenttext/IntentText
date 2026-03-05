@@ -1,0 +1,31 @@
+{
+  "article": {
+    "headline": "The Quiet Revolution in Document Standards",
+    "deck": "A new open format is challenging how businesses store and print structured documents.",
+    "author": "Sara Al-Mansouri",
+    "date": "5 March 2026",
+    "publication": "The Gulf Technology Review",
+    "lede": "For decades, the invoice looked the same: a Word document, emailed as a PDF, filed in a folder no one could find. That may be changing.",
+    "body1": "A small open-source project from Qatar is attracting attention from ERP developers and technical writers who say existing document formats are failing them in the age of AI.",
+    "quote1": "We needed something a human could write in a text editor and a machine could execute without guessing.",
+    "quote1Source": "Emad Jumaah, creator of IntentText",
+    "body2": "The format, called IntentText, uses plain-language keywords and pipe metadata to produce structured JSON — making documents simultaneously readable by people and parseable by software.",
+    "subheading1": "The Template Problem",
+    "body3": "Most businesses rely on Word or Google Docs templates for their printed documents. Both formats store content as binary or proprietary XML, making them difficult to query, version, or generate programmatically.",
+    "body4": "Database-native document generation has existed for years in enterprise software, but always required developer effort to maintain.",
+    "body5": "IntentText's approach stores both the template and the data as plain JSON in a standard database. The document is rendered on demand.",
+    "quote2": "No binary files. No Google. Everything queryable and portable.",
+    "quote2Source": "Jumaah",
+    "subheading2": "Who Is Using It",
+    "body6": "Early adopters include a legal services firm in Doha using it for contract generation, and a regional logistics company replacing their invoice system.",
+    "body7": "The project remains open source under the MIT licence.",
+    "closing": "IntentText v2.1 is available at github.com/emadjumaah/IntentText.",
+    "footnote1": "IntentText source code reviewed by this publication. No independent security audit has been conducted.",
+    "correction": "",
+    "image1": {
+      "alt": "IntentText syntax example",
+      "path": "images/syntax-example.png",
+      "caption": "An IntentText template for an invoice. The {{placeholders}} are replaced with data at render time."
+    }
+  }
+}

@@ -1,0 +1,48 @@
+// IntentText Journalism Article Template
+// Use case: News article, feature, investigation, op-ed
+
+font: | family: Georgia, serif | size: 11pt | leading: 1.7
+page: | size: A4 | margins: 20mm | footer: {{article.publication}} · {{article.date}} · Page {{page}}
+
+title: {{article.headline}}
+
+note: _{{article.deck}}_ | align: left
+
+byline: {{article.author}} | date: {{article.date}} | publication: {{article.publication}}
+
+---
+
+note: {{article.lede}} | align: justify
+
+note: {{article.body1}} | align: justify
+
+quote: {{article.quote1}} | by: {{article.quote1Source}}
+
+note: {{article.body2}} | align: justify
+
+sub: {{article.subheading1}}
+
+note: {{article.body3}} | align: justify
+
+note: {{article.body4}}[^1] | align: justify
+
+image: {{article.image1.alt}} | at: {{article.image1.path}}
+caption: {{article.image1.caption}}
+
+note: {{article.body5}} | align: justify
+
+quote: {{article.quote2}} | by: {{article.quote2Source}}
+
+note: {{article.body6}} | align: justify
+
+sub: {{article.subheading2}}
+
+note: {{article.body7}} | align: justify
+
+note: {{article.closing}} | align: justify
+
+---
+
+footnote: 1 | text: {{article.footnote1}}
+
+note: _{{article.correction}}_ | align: left

@@ -66,6 +66,16 @@ export const KEYWORDS = [
   "call",
   "emit",
   "status", // alias → emit (deprecated)
+  // v2.5 document generation keywords
+  "font",
+  "page",
+  "break",
+  "byline",
+  "epigraph",
+  "caption",
+  "footnote",
+  "toc",
+  "dedication",
 ];
 
 /** All valid block types for IntentText (v1 + v2 agentic). */
@@ -119,7 +129,17 @@ export type BlockType =
   // v2.2 agentic workflow block types
   | "gate"
   | "call"
-  | "emit";
+  | "emit"
+  // v2.5 document generation block types
+  | "font"
+  | "page"
+  | "break"
+  | "byline"
+  | "epigraph"
+  | "caption"
+  | "footnote"
+  | "toc"
+  | "dedication";
 
 export type InlineNode =
   | { type: "text"; value: string }
@@ -133,7 +153,8 @@ export type InlineNode =
   | { type: "date"; value: string; iso: string }
   | { type: "mention"; value: string }
   | { type: "tag"; value: string }
-  | { type: "link"; value: string; href: string };
+  | { type: "link"; value: string; href: string }
+  | { type: "footnote-ref"; value: string };
 
 export interface IntentExtension {
   keywords?: string[];

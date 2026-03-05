@@ -77,6 +77,8 @@ function applyInlineFormatting(
             return `<span class="intent-inline-tag">#${escapeHtml(node.value)}</span>`;
           case "link":
             return `<a href="${escapeHtml(sanitizeUrl(node.href))}" class="intent-inline-link">${escapeHtml(node.value)}</a>`;
+          case "footnote-ref":
+            return `<sup class="it-fn-ref"><a href="#fn-${escapeHtml(node.value)}">${escapeHtml(node.value)}</a></sup>`;
           default:
             return escapeHtml((node as { value: string }).value);
         }
@@ -115,10 +117,10 @@ function renderBlock(block: IntentBlock): string {
       return `<div class="intent-summary${alignClass}">${content}</div>`;
 
     case "section":
-      return `<h2 class="intent-section${alignClass}">${content}</h2>`;
+      return `<h2 id="${slugify(block.content)}" class="intent-section${alignClass}">${content}</h2>`;
 
     case "sub":
-      return `<h3 class="intent-sub${alignClass}">${content}</h3>`;
+      return `<h3 id="${slugify(block.content)}" class="intent-sub${alignClass}">${content}</h3>`;
 
     case "divider":
       const label = content
@@ -525,6 +527,51 @@ function renderBlock(block: IntentBlock): string {
       </div>`;
     }
 
+    // ─── v2.5 Document Generation Blocks ─────────────────────────────
+
+    case "font":
+      // Layout declaration — not rendered visually
+      return "";
+
+    case "page":
+      // Layout declaration — not rendered visually
+      return "";
+
+    case "break":
+      return `<div class="it-page-break"></div>`;
+
+    case "byline": {
+      const author = content;
+      const date = props.date ? escapeHtml(String(props.date)) : "";
+      const publication = props.publication
+        ? escapeHtml(String(props.publication))
+        : "";
+      const role = props.role ? escapeHtml(String(props.role)) : "";
+      const metaParts = [role, date, publication].filter(Boolean);
+      return `<div class="it-byline"><span class="it-byline-author">${author}</span>${metaParts.length > 0 ? `<span class="it-byline-meta">${metaParts.join(" · ")}</span>` : ""}</div>`;
+    }
+
+    case "epigraph": {
+      const by = props.by
+        ? `<span class="it-epigraph-by">— ${escapeHtml(String(props.by))}</span>`
+        : "";
+      return `<blockquote class="it-epigraph"><p>${content}</p>${by}</blockquote>`;
+    }
+
+    case "caption":
+      return `<figcaption class="it-caption">${content}</figcaption>`;
+
+    case "footnote":
+      // Collected by renderBlocks — rendered at end in footnotes section
+      return "";
+
+    case "toc":
+      // Placeholder — actual TOC is built by renderBlocks scanning sections
+      return "";
+
+    case "dedication":
+      return `<div class="it-dedication">${content}</div>`;
+
     default:
       return `<div class="intent-unknown">
         <small class="intent-unknown-type">[${block.type}]</small> ${content}
@@ -532,14 +579,81 @@ function renderBlock(block: IntentBlock): string {
   }
 }
 
+// Helper to slug-ify a section title for anchor links
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+// Collect all section/sub blocks from a document for TOC
+function collectSections(
+  blocks: IntentBlock[],
+  depth: number,
+): Array<{ level: number; content: string; slug: string }> {
+  const entries: Array<{ level: number; content: string; slug: string }> = [];
+  for (const block of blocks) {
+    if (block.type === "section") {
+      entries.push({
+        level: 1,
+        content: block.content,
+        slug: slugify(block.content),
+      });
+      if (depth >= 2 && block.children) {
+        for (const child of block.children) {
+          if (child.type === "sub") {
+            entries.push({
+              level: 2,
+              content: child.content,
+              slug: slugify(child.content),
+            });
+          }
+        }
+      }
+    }
+  }
+  return entries;
+}
+
+// Collect all footnote blocks from a flat list + nested children
+function collectFootnotes(blocks: IntentBlock[]): IntentBlock[] {
+  const footnotes: IntentBlock[] = [];
+  for (const block of blocks) {
+    if (block.type === "footnote") footnotes.push(block);
+    if (block.children) footnotes.push(...collectFootnotes(block.children));
+  }
+  return footnotes;
+}
+
 // Render a list of blocks, properly grouping consecutive list/step items
 // and recursing into section/sub children.
-function renderBlocks(blocks: IntentBlock[]): string {
+function renderBlocks(
+  blocks: IntentBlock[],
+  allBlocks?: IntentBlock[],
+): string {
+  const topBlocks = allBlocks || blocks;
   let html = "";
   let i = 0;
 
   while (i < blocks.length) {
     const block = blocks[i];
+
+    // TOC block — generate from all sections in the document
+    if (block.type === "toc") {
+      const depth = Number(block.properties?.depth || 2);
+      const title = String(block.properties?.title || "Contents");
+      const entries = collectSections(topBlocks, depth);
+      let tocHtml = `<nav class="it-toc"><h2 class="it-toc-title">${escapeHtml(title)}</h2><ol>`;
+      for (const entry of entries) {
+        const indent = entry.level === 2 ? ' class="it-toc-sub"' : "";
+        tocHtml += `<li${indent}><a href="#${entry.slug}">${escapeHtml(entry.content)}</a></li>`;
+      }
+      tocHtml += `</ol></nav>`;
+      html += tocHtml;
+      i++;
+      continue;
+    }
 
     // Collect consecutive list-item blocks into a single <ul>
     if (block.type === "list-item") {
@@ -574,7 +688,7 @@ function renderBlocks(blocks: IntentBlock[]): string {
       block.children &&
       block.children.length > 0
     ) {
-      html += renderBlocks(block.children);
+      html += renderBlocks(block.children, topBlocks);
     }
 
     i++;
@@ -585,7 +699,25 @@ function renderBlocks(blocks: IntentBlock[]): string {
 
 // Main HTML renderer function
 export function renderHTML(document: IntentDocument): string {
-  const html = renderBlocks(document.blocks);
+  const bodyHtml = renderBlocks(document.blocks);
+
+  // Collect and render footnotes at bottom
+  const footnotes = collectFootnotes(document.blocks);
+  let footnotesHtml = "";
+  if (footnotes.length > 0) {
+    const items = footnotes
+      .map((fn) => {
+        const num = escapeHtml(fn.content);
+        const text = fn.properties?.text
+          ? escapeHtml(String(fn.properties.text))
+          : escapeHtml(fn.content);
+        return `<li id="fn-${num}" value="${num}">${text}</li>`;
+      })
+      .join("");
+    footnotesHtml = `<div class="it-footnotes"><ol>${items}</ol></div>`;
+  }
+
+  const html = bodyHtml + footnotesHtml;
 
   // Wrap in a container
   const direction =
@@ -593,179 +725,287 @@ export function renderHTML(document: IntentDocument): string {
 
   return `<div class="intent-document" ${direction}>
 <style>
-.intent-document{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;line-height:1.65;color:#1e293b;max-width:760px;margin:0 auto;padding:32px 24px;}
-.intent-title{font-size:1.9rem;line-height:1.2;margin:0 0 14px;letter-spacing:-0.02em;font-weight:700;}
-.intent-summary{margin:12px 0 24px;padding:10px 0 10px 14px;border-left:3px solid #e2e8f0;color:#475569;font-style:italic;}
-.intent-section{margin:28px 0 8px;font-size:1.15rem;line-height:1.3;font-weight:600;padding-bottom:5px;border-bottom:1px solid #e2e8f0;}
-.intent-sub{margin:18px 0 6px;font-size:1rem;line-height:1.3;color:#374151;font-weight:600;}
-.intent-note{margin:8px 0;color:#374151;}
-.intent-prose{margin:0 0 1.1em;color:#273244;font-size:1.04rem;line-height:1.86;max-width:68ch;letter-spacing:0.001em;text-wrap:pretty;}
+/* ── Base ──────────────────────────────────────────────── */
+.intent-document{font-family:Georgia,'Times New Roman',serif;line-height:1.7;color:#111;max-width:680px;margin:0 auto;padding:32px 24px;}
+/* ── Typography ────────────────────────────────────────── */
+.intent-title{font-size:1.75rem;line-height:1.2;margin:0 0 12px;font-weight:700;letter-spacing:-0.01em;}
+.intent-summary{margin:8px 0 20px;padding:8px 0 8px 14px;border-left:2px solid #999;color:#333;font-style:italic;font-size:0.95rem;}
+.intent-section{margin:24px 0 8px;font-size:1.1rem;line-height:1.3;font-weight:600;padding-bottom:4px;border-bottom:1px solid #ccc;}
+.intent-sub{margin:16px 0 6px;font-size:1rem;line-height:1.3;font-weight:600;}
+.intent-note{margin:6px 0;color:#222;}
+.intent-prose{margin:0 0 1em;color:#222;font-size:1rem;line-height:1.8;max-width:65ch;text-wrap:pretty;}
 .intent-align-center{text-align:center;}
 .intent-align-right{text-align:right;}
 .intent-align-justify{text-align:justify;}
-.intent-divider{margin:22px 0;text-align:center;}
-.intent-divider-line{border:none;border-top:1px solid #e2e8f0;margin:0;}
-.intent-divider-label{display:inline-block;padding:0 12px;background:white;color:#94a3b8;font-size:0.8rem;position:relative;top:-10px;}
-.intent-task{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border:1px solid #e2e8f0;border-radius:6px;margin:6px 0;}
+/* ── Divider ───────────────────────────────────────────── */
+.intent-divider{margin:18px 0;text-align:center;}
+.intent-divider-line{border:none;border-top:1px solid #ccc;margin:0;}
+.intent-divider-label{display:inline-block;padding:0 10px;background:#fff;color:#888;font-size:0.78rem;position:relative;top:-9px;}
+/* ── Tasks ─────────────────────────────────────────────── */
+.intent-task{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border:1px solid #ddd;margin:5px 0;}
 .intent-task-checkbox{margin-top:3px;flex-shrink:0;}
 .intent-task-text{flex:1;}
-.intent-task-meta{display:flex;gap:8px;color:#94a3b8;font-size:0.8rem;white-space:nowrap;}
+.intent-task-meta{display:flex;gap:6px;color:#888;font-size:0.78rem;white-space:nowrap;}
 .intent-task-owner::before{content:'@ ';opacity:0.6;}
 .intent-task-due::before{content:'due ';}
 .intent-task-time::before{content:'at ';}
-.intent-task-text-done{text-decoration:line-through;color:#94a3b8;}
-.intent-ask{display:flex;gap:12px;margin:12px 0;padding:8px 0 8px 14px;border-left:2px solid #94a3b8;align-items:baseline;}
-.intent-ask-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#64748b;flex-shrink:0;line-height:1.65;}
-.intent-ask-content{flex:1;color:#374151;font-style:italic;}
-.intent-quote{margin:16px 0;padding:2px 0 2px 18px;border-left:3px solid #cbd5e1;font-style:italic;color:#475569;}
+.intent-task-text-done{text-decoration:line-through;color:#999;}
+/* ── Ask ───────────────────────────────────────────────── */
+.intent-ask{display:flex;gap:10px;margin:10px 0;padding:6px 0 6px 12px;border-left:2px solid #999;align-items:baseline;}
+.intent-ask-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#555;flex-shrink:0;line-height:1.65;}
+.intent-ask-content{flex:1;color:#333;font-style:italic;}
+/* ── Quote ─────────────────────────────────────────────── */
+.intent-quote{margin:14px 0;padding:2px 0 2px 16px;border-left:2px solid #999;font-style:italic;color:#333;}
 .intent-quote p{margin:0;line-height:1.7;}
-.intent-quote-cite{display:block;margin-top:6px;font-style:normal;color:#94a3b8;font-size:0.82rem;}
-.intent-code{margin:12px 0;padding:12px 14px;border-radius:6px;background:#0d1117;color:#e2e8f0;overflow-x:auto;}
-.intent-code code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono',monospace;font-size:0.875rem;}
-.intent-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:0.9em;}
-.intent-table th,.intent-table-th{padding:7px 12px;text-align:left;font-weight:600;color:#475569;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid #e2e8f0;}
-.intent-table td,.intent-table-td{padding:8px 12px;text-align:left;border-bottom:1px solid #f1f5f9;color:#374151;vertical-align:top;}
+.intent-quote-cite{display:block;margin-top:5px;font-style:normal;color:#888;font-size:0.82rem;}
+/* ── Code ──────────────────────────────────────────────── */
+.intent-code{margin:10px 0;padding:10px 12px;background:#f5f5f5;border:1px solid #ddd;overflow-x:auto;}
+.intent-code code{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:0.85rem;color:#111;}
+/* ── Table ─────────────────────────────────────────────── */
+.intent-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9em;}
+.intent-table th,.intent-table-th{padding:6px 10px;text-align:left;font-weight:600;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;border-bottom:2px solid #333;}
+.intent-table td,.intent-table-td{padding:6px 10px;text-align:left;border-bottom:1px solid #ddd;vertical-align:top;}
 .intent-row:last-child .intent-table-td,.intent-row:last-child td{border-bottom:none;}
-.intent-image{margin:14px 0;}
-.intent-image-img{max-width:100%;height:auto;border-radius:6px;border:1px solid #e2e8f0;}
-.intent-image-caption{margin-top:6px;color:#64748b;font-size:0.82rem;text-align:center;}
-.intent-link{margin:6px 0;}
-.intent-link a{color:#2563eb;text-decoration:none;}
-.intent-link a:hover{text-decoration:underline;}
-.intent-ref{margin:6px 0;}
-.intent-ref a{color:#2563eb;text-decoration:none;font-style:italic;}
-.intent-ref a:hover{text-decoration:underline;}
-.intent-unknown{margin:8px 0;padding:8px 12px;border:1px dashed #e2e8f0;border-radius:6px;color:#94a3b8;}
-.intent-embed{margin:16px 0;}
-.intent-embed iframe,.intent-embed video,.intent-embed audio{display:block;width:100%;border-radius:6px;border:1px solid #e2e8f0;}
-.intent-callout{display:flex;gap:12px;margin:12px 0;padding:8px 0 8px 14px;border-left:2px solid;align-items:baseline;}
-.intent-callout-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;white-space:nowrap;line-height:1.65;}
-.intent-callout-content{flex:1;color:#374151;}
-.intent-info{border-color:#93c5fd;}
-.intent-info .intent-callout-label{color:#2563eb;}
-.intent-warning{border-color:#fcd34d;}
-.intent-warning .intent-callout-label{color:#b45309;}
-.intent-tip{border-color:#6ee7b7;}
-.intent-tip .intent-callout-label{color:#047857;}
-.intent-success{border-color:#6ee7b7;}
-.intent-success .intent-callout-label{color:#047857;}
-.intent-inline-link{color:#2563eb;text-decoration:none;}
-.intent-inline-link:hover{text-decoration:underline;}
-.intent-inline-highlight{background:#fef08a;color:#854d0e;padding:0 .15em;border-radius:3px;}
-.intent-inline-note{display:inline-block;padding:0 .35em;border-radius:4px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;font-size:.92em;}
-.intent-inline-quote{color:#475569;font-style:italic;}
-.intent-inline-date{color:#b45309;font-weight:600;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;}
-.intent-inline-mention{color:#0f766e;font-weight:600;}
-.intent-inline-tag{color:#1d4ed8;font-weight:600;}
-ul,ol{margin:8px 0 8px 20px;padding:0;}
-li{margin:4px 0;color:#374151;}
-/* v2 Agentic Workflow Blocks */
-.intent-step{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #e2e8f0;border-radius:6px;margin:6px 0;background:#fafbfc;}
-.intent-step-icon{font-size:0.85rem;color:#3b82f6;flex-shrink:0;}
+/* ── Image ─────────────────────────────────────────────── */
+.intent-image{margin:12px 0;}
+.intent-image-img{max-width:100%;height:auto;border:1px solid #ddd;}
+.intent-image-caption{margin-top:4px;color:#555;font-size:0.82rem;text-align:center;font-style:italic;}
+/* ── Links / Refs ──────────────────────────────────────── */
+.intent-link{margin:4px 0;}
+.intent-link a{color:#111;text-decoration:underline;}
+.intent-ref{margin:4px 0;}
+.intent-ref a{color:#111;text-decoration:underline;font-style:italic;}
+.intent-unknown{margin:6px 0;padding:6px 10px;border:1px dashed #ccc;color:#888;}
+/* ── Embed ─────────────────────────────────────────────── */
+.intent-embed{margin:14px 0;}
+.intent-embed iframe,.intent-embed video,.intent-embed audio{display:block;width:100%;border:1px solid #ddd;}
+/* ── Callouts ──────────────────────────────────────────── */
+.intent-callout{display:flex;gap:10px;margin:10px 0;padding:6px 0 6px 12px;border-left:2px solid #888;align-items:baseline;}
+.intent-callout-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;white-space:nowrap;line-height:1.65;color:#444;}
+.intent-callout-content{flex:1;color:#222;}
+.intent-info{border-color:#888;}
+.intent-info .intent-callout-label{color:#444;}
+.intent-warning{border-color:#888;}
+.intent-warning .intent-callout-label{color:#444;}
+.intent-tip{border-color:#888;}
+.intent-tip .intent-callout-label{color:#444;}
+.intent-success{border-color:#888;}
+.intent-success .intent-callout-label{color:#444;}
+/* ── Inline formatting ─────────────────────────────────── */
+.intent-inline-link{color:#111;text-decoration:underline;}
+.intent-inline-highlight{background:#eee;padding:0 .15em;}
+.intent-inline-note{display:inline-block;padding:0 .3em;border:1px solid #ddd;color:#333;font-size:.92em;}
+.intent-inline-quote{color:#333;font-style:italic;}
+.intent-inline-date{font-weight:600;font-family:'SFMono-Regular',Consolas,monospace;}
+.intent-inline-mention{font-weight:600;}
+.intent-inline-tag{font-weight:600;}
+/* ── Lists ─────────────────────────────────────────────── */
+ul,ol{margin:6px 0 6px 20px;padding:0;}
+li{margin:3px 0;color:#222;}
+/* ── v2 Agentic Workflow Blocks ────────────────────────── */
+.intent-step{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #ddd;margin:5px 0;}
+.intent-step-icon{font-size:0.85rem;flex-shrink:0;}
 .intent-step-content{flex:1;font-weight:500;}
-.intent-step-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-.intent-step-id{font-size:0.72rem;color:#94a3b8;font-family:monospace;}
-.intent-step-depends{font-size:0.75rem;color:#6366f1;font-style:italic;}
-.intent-badge{font-size:0.7rem;padding:2px 7px;border-radius:999px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;}
-.intent-badge-tool{background:#ede9fe;color:#7c3aed;}
-.intent-status-pending{background:#f1f5f9;color:#64748b;}
-.intent-status-running{background:#dbeafe;color:#2563eb;animation:intent-pulse 1.5s ease-in-out infinite;}
-.intent-status-blocked{background:#fff7ed;color:#c2410c;}
-.intent-status-failed{background:#fef2f2;color:#dc2626;}
-.intent-status-done{background:#ecfdf5;color:#059669;}
-.intent-status-skipped,.intent-status-cancelled{background:#f1f5f9;color:#94a3b8;text-decoration:line-through;}
-@keyframes intent-pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
-.intent-decision{display:flex;gap:12px;margin:10px 0;padding:10px 14px;border:1px solid #fbbf24;border-radius:8px;background:#fffbeb;}
-.intent-decision-diamond{width:24px;height:24px;background:#fbbf24;transform:rotate(45deg);border-radius:3px;flex-shrink:0;margin-top:4px;}
+.intent-step-meta{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.intent-step-id{font-size:0.72rem;color:#888;font-family:monospace;}
+.intent-step-depends{font-size:0.75rem;color:#555;font-style:italic;}
+.intent-badge{font-size:0.7rem;padding:1px 6px;border:1px solid #bbb;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;}
+.intent-badge-tool{border-color:#999;}
+.intent-status-pending{color:#666;}
+.intent-status-running{color:#333;animation:intent-pulse 1.5s ease-in-out infinite;}
+.intent-status-blocked{color:#666;}
+.intent-status-failed{color:#333;text-decoration:line-through;}
+.intent-status-done{color:#333;}
+.intent-status-skipped,.intent-status-cancelled{color:#999;text-decoration:line-through;}
+@keyframes intent-pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.intent-decision{display:flex;gap:10px;margin:8px 0;padding:8px 12px;border:1px solid #bbb;}
+.intent-decision-diamond{width:16px;height:16px;border:2px solid #333;transform:rotate(45deg);flex-shrink:0;margin-top:4px;}
 .intent-decision-body{flex:1;}
-.intent-decision-label{font-weight:600;margin-bottom:4px;}
-.intent-decision-condition{font-size:0.85rem;color:#92400e;font-family:monospace;margin-bottom:4px;}
-.intent-decision-branches{display:flex;gap:16px;font-size:0.82rem;}
-.intent-decision-then{color:#059669;}
-.intent-decision-else{color:#dc2626;}
-.intent-trigger{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #e2e8f0;border-radius:6px;margin:6px 0;background:#fefce8;}
+.intent-decision-label{font-weight:600;margin-bottom:3px;}
+.intent-decision-condition{font-size:0.85rem;color:#444;font-family:monospace;margin-bottom:3px;}
+.intent-decision-branches{display:flex;gap:14px;font-size:0.82rem;}
+.intent-decision-then{color:#333;}
+.intent-decision-else{color:#333;}
+.intent-trigger{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #ddd;margin:5px 0;}
 .intent-trigger-icon{font-size:1rem;}
 .intent-trigger-content{flex:1;font-weight:500;}
-.intent-badge-event{background:#fef3c7;color:#b45309;}
-.intent-loop{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #e2e8f0;border-radius:6px;margin:6px 0;background:#f0fdf4;}
+.intent-badge-event{border-color:#999;}
+.intent-loop{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #ddd;margin:5px 0;}
 .intent-loop-icon{font-size:1rem;}
 .intent-loop-content{flex:1;font-weight:500;}
-.intent-loop-over,.intent-loop-do{font-size:0.8rem;color:#047857;font-family:monospace;}
-.intent-checkpoint{display:flex;align-items:center;gap:8px;margin:18px 0;color:#64748b;font-size:0.85rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
+.intent-loop-over,.intent-loop-do{font-size:0.8rem;color:#555;font-family:monospace;}
+.intent-checkpoint{display:flex;align-items:center;gap:8px;margin:16px 0;color:#555;font-size:0.85rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
 .intent-checkpoint-flag{font-size:1rem;}
 .intent-checkpoint-label{flex-shrink:0;}
-.intent-checkpoint-line{flex:1;border:none;border-top:2px dashed #cbd5e1;margin:0;}
-.intent-audit{margin:4px 0;padding:5px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:0.8rem;color:#64748b;background:#f8fafc;border-radius:4px;border-left:3px solid #cbd5e1;}
-.intent-audit-prefix{color:#94a3b8;font-weight:600;}
-.intent-error-block{border-color:#f87171;}
-.intent-error-block .intent-callout-label{color:#dc2626;}
-.intent-error-fallback{font-size:0.8rem;color:#c2410c;font-style:italic;margin-left:6px;}
-.intent-error-notify{font-size:0.8rem;color:#c2410c;margin-left:6px;}
-.intent-context-table{width:auto;border-collapse:collapse;margin:8px 0;font-size:0.85rem;background:#f8fafc;border-radius:6px;overflow:hidden;}
-.intent-context-key{padding:4px 12px 4px 10px;font-weight:600;color:#475569;font-family:monospace;border-bottom:1px solid #e2e8f0;}
-.intent-context-val{padding:4px 14px 4px 8px;color:#374151;font-family:monospace;border-bottom:1px solid #e2e8f0;}
-.intent-context{margin:6px 0;font-size:0.85rem;color:#475569;}
-.intent-progress{display:flex;align-items:center;gap:10px;margin:8px 0;}
-.intent-progress-label{font-size:0.85rem;color:#374151;flex-shrink:0;}
-.intent-progress-bar{flex:1;height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;}
-.intent-progress-fill{height:100%;background:#3b82f6;border-radius:999px;transition:width 0.3s;}
-.intent-progress-pct{font-size:0.78rem;color:#64748b;font-weight:600;min-width:36px;text-align:right;}
-.intent-file-ref{display:flex;align-items:center;gap:8px;margin:4px 0;padding:6px 10px;border:1px dashed #e2e8f0;border-radius:6px;font-size:0.82rem;color:#64748b;font-family:monospace;}
+.intent-checkpoint-line{flex:1;border:none;border-top:1px dashed #bbb;margin:0;}
+.intent-audit{margin:4px 0;padding:4px 8px;font-family:'SFMono-Regular',Consolas,monospace;font-size:0.8rem;color:#555;border-left:2px solid #bbb;}
+.intent-audit-prefix{color:#888;font-weight:600;}
+.intent-error-block{border-color:#999;}
+.intent-error-block .intent-callout-label{color:#333;}
+.intent-error-fallback{font-size:0.8rem;color:#555;font-style:italic;margin-left:6px;}
+.intent-error-notify{font-size:0.8rem;color:#555;margin-left:6px;}
+.intent-context-table{width:auto;border-collapse:collapse;margin:6px 0;font-size:0.85rem;}
+.intent-context-key{padding:3px 10px 3px 8px;font-weight:600;color:#333;font-family:monospace;border-bottom:1px solid #ddd;}
+.intent-context-val{padding:3px 12px 3px 6px;color:#333;font-family:monospace;border-bottom:1px solid #ddd;}
+.intent-context{margin:4px 0;font-size:0.85rem;color:#333;}
+.intent-progress{display:flex;align-items:center;gap:8px;margin:6px 0;}
+.intent-progress-label{font-size:0.85rem;color:#222;flex-shrink:0;}
+.intent-progress-bar{flex:1;height:6px;background:#ddd;overflow:hidden;}
+.intent-progress-fill{height:100%;background:#555;}
+.intent-progress-pct{font-size:0.78rem;color:#555;font-weight:600;min-width:36px;text-align:right;}
+.intent-file-ref{display:flex;align-items:center;gap:6px;margin:4px 0;padding:4px 8px;border:1px dashed #ccc;font-size:0.82rem;color:#555;font-family:monospace;}
 .intent-file-ref-icon{font-size:0.9rem;}
-/* v2.1 Agentic Workflow Blocks */
-.intent-emit-block{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #c4b5fd;border-radius:6px;margin:6px 0;background:#f5f3ff;}
+/* ── v2.1 Agentic Workflow Blocks ──────────────────────── */
+.intent-emit-block{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #bbb;margin:5px 0;}
 .intent-emit-icon{font-size:1rem;}
-.intent-emit-content{flex:1;font-weight:500;color:#5b21b6;}
-.intent-emit-meta{display:flex;gap:6px;align-items:center;}
-.intent-emit-phase{font-size:0.78rem;color:#7c3aed;font-weight:600;}
-.intent-badge-level{background:#ede9fe;color:#6d28d9;}
-.intent-result{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:6px;margin:6px 0;flex-wrap:wrap;}
-.intent-result-success{border:1px solid #86efac;background:#f0fdf4;}
-.intent-result-error,.intent-result-failure{border:1px solid #fca5a5;background:#fef2f2;}
+.intent-emit-content{flex:1;font-weight:500;}
+.intent-emit-meta{display:flex;gap:5px;align-items:center;}
+.intent-emit-phase{font-size:0.78rem;color:#555;font-weight:600;}
+.intent-badge-level{border-color:#999;}
+.intent-result{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border:1px solid #bbb;margin:5px 0;flex-wrap:wrap;}
+.intent-result-success{border-color:#999;}
+.intent-result-error,.intent-result-failure{border-color:#999;}
 .intent-result-icon{font-size:1rem;flex-shrink:0;}
 .intent-result-content{flex:1;font-weight:500;}
-.intent-badge-code{background:#dbeafe;color:#1e40af;font-family:monospace;}
-.intent-result-data{width:100%;margin-top:4px;padding:6px 10px;background:#f8fafc;border-radius:4px;font-size:0.82rem;overflow-x:auto;}
-.intent-result-data code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:0.82rem;color:#475569;}
-.intent-handoff{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #fbbf24;border-radius:6px;margin:6px 0;background:#fffbeb;}
+.intent-badge-code{border-color:#999;font-family:monospace;}
+.intent-result-data{width:100%;margin-top:3px;padding:4px 8px;font-size:0.82rem;overflow-x:auto;border-top:1px solid #ddd;}
+.intent-result-data code{font-family:'SFMono-Regular',Consolas,monospace;font-size:0.82rem;color:#333;}
+.intent-handoff{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #bbb;margin:5px 0;}
 .intent-handoff-icon{font-size:1rem;}
 .intent-handoff-content{flex:1;font-weight:500;}
-.intent-handoff-arrow{display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#92400e;font-weight:600;}
-.intent-handoff-agent{padding:2px 6px;border-radius:4px;background:#fef3c7;font-family:monospace;font-size:0.78rem;}
-.intent-wait{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #e2e8f0;border-radius:6px;margin:6px 0;background:#f8fafc;border-left:3px solid #94a3b8;}
+.intent-handoff-arrow{display:flex;align-items:center;gap:5px;font-size:0.82rem;color:#444;font-weight:600;}
+.intent-handoff-agent{padding:1px 5px;border:1px solid #bbb;font-family:monospace;font-size:0.78rem;}
+.intent-wait{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #ddd;margin:5px 0;border-left:2px solid #999;}
 .intent-wait-icon{font-size:1rem;animation:intent-pulse 2s ease-in-out infinite;}
-.intent-wait-content{flex:1;font-weight:500;color:#475569;}
-.intent-wait-meta{display:flex;gap:6px;align-items:center;}
-.intent-badge-timeout{background:#fef3c7;color:#b45309;font-family:monospace;}
-.intent-wait-fallback{font-size:0.8rem;color:#c2410c;font-style:italic;}
-.intent-parallel{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #93c5fd;border-radius:6px;margin:6px 0;background:#eff6ff;}
+.intent-wait-content{flex:1;font-weight:500;color:#333;}
+.intent-wait-meta{display:flex;gap:5px;align-items:center;}
+.intent-badge-timeout{border-color:#999;font-family:monospace;}
+.intent-wait-fallback{font-size:0.8rem;color:#555;font-style:italic;}
+.intent-parallel{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #bbb;margin:5px 0;}
 .intent-parallel-icon{font-size:1rem;}
-.intent-parallel-content{flex:1;font-weight:500;color:#1e40af;}
+.intent-parallel-content{flex:1;font-weight:500;}
 .intent-parallel-steps{display:flex;gap:4px;flex-wrap:wrap;}
-.intent-badge-parallel-step{background:#dbeafe;color:#1e40af;font-family:monospace;font-size:0.72rem;padding:2px 6px;border-radius:999px;}
-.intent-badge-join{background:#bfdbfe;color:#1e3a8a;font-size:0.72rem;padding:2px 6px;border-radius:999px;}
-.intent-retry{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #fdba74;border-radius:6px;margin:6px 0;background:#fff7ed;}
+.intent-badge-parallel-step{border-color:#999;font-family:monospace;font-size:0.72rem;padding:1px 5px;}
+.intent-badge-join{border-color:#999;font-size:0.72rem;padding:1px 5px;}
+.intent-retry{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #bbb;margin:5px 0;}
 .intent-retry-icon{font-size:1rem;}
-.intent-retry-content{flex:1;font-weight:500;color:#c2410c;}
-.intent-retry-meta{display:flex;gap:6px;align-items:center;}
-.intent-badge-retry-max{background:#fed7aa;color:#9a3412;font-size:0.72rem;}
-.intent-badge-retry-delay{background:#fed7aa;color:#9a3412;font-size:0.72rem;font-family:monospace;}
-.intent-badge-retry-backoff{background:#ffedd5;color:#c2410c;font-size:0.72rem;font-style:italic;}
-/* v2.2 Agentic Workflow Blocks */
-.intent-gate{display:flex;gap:12px;margin:10px 0;padding:12px 14px;border:2px solid #f87171;border-radius:8px;background:#fef2f2;}
-.intent-gate-icon{font-size:1.4rem;flex-shrink:0;margin-top:2px;}
+.intent-retry-content{flex:1;font-weight:500;}
+.intent-retry-meta{display:flex;gap:5px;align-items:center;}
+.intent-badge-retry-max{border-color:#999;font-size:0.72rem;}
+.intent-badge-retry-delay{border-color:#999;font-size:0.72rem;font-family:monospace;}
+.intent-badge-retry-backoff{border-color:#999;font-size:0.72rem;font-style:italic;}
+/* ── v2.2 Agentic Workflow Blocks ──────────────────────── */
+.intent-gate{display:flex;gap:10px;margin:8px 0;padding:10px 12px;border:2px solid #888;}
+.intent-gate-icon{font-size:1.2rem;flex-shrink:0;margin-top:2px;}
 .intent-gate-body{flex:1;}
-.intent-gate-label{font-weight:600;color:#991b1b;margin-bottom:4px;}
-.intent-gate-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-.intent-badge-approver{background:#fecaca;color:#991b1b;font-family:monospace;}
-.intent-gate-fallback{font-size:0.8rem;color:#c2410c;font-style:italic;}
-.intent-call{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px dashed #a78bfa;border-radius:6px;margin:6px 0;background:#faf5ff;}
+.intent-gate-label{font-weight:600;margin-bottom:3px;}
+.intent-gate-meta{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.intent-badge-approver{border-color:#999;font-family:monospace;}
+.intent-gate-fallback{font-size:0.8rem;color:#555;font-style:italic;}
+.intent-call{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px dashed #999;margin:5px 0;}
 .intent-call-icon{font-size:1rem;}
-.intent-call-content{flex:1;font-weight:500;color:#6d28d9;font-family:monospace;font-size:0.9rem;}
-.intent-call-meta{display:flex;gap:8px;align-items:center;}
-.intent-call-input{font-size:0.78rem;color:#7c3aed;font-family:monospace;}
-.intent-call-output{font-size:0.78rem;color:#059669;font-family:monospace;}
+.intent-call-content{flex:1;font-weight:500;font-family:monospace;font-size:0.9rem;}
+.intent-call-meta{display:flex;gap:6px;align-items:center;}
+.intent-call-input{font-size:0.78rem;color:#555;font-family:monospace;}
+.intent-call-output{font-size:0.78rem;color:#555;font-family:monospace;}
+/* ── v2.5 Document Generation Blocks ───────────────────── */
+.it-page-break{page-break-after:always;break-after:page;height:0;}
+.it-byline{margin:0 0 16px;font-size:0.9em;color:#333;}
+.it-byline-author{display:block;font-weight:bold;}
+.it-byline-meta{display:block;font-size:0.85em;color:#666;margin-top:2px;}
+.it-epigraph{font-style:italic;text-align:center;margin:20px 3em;border:none;padding:0;}
+.it-epigraph p{margin:0;}
+.it-epigraph .it-epigraph-by{display:block;text-align:right;font-size:0.9em;margin-top:4px;font-style:normal;color:#666;}
+.it-caption{font-size:0.85em;font-style:italic;text-align:center;color:#444;margin-top:3px;margin-bottom:10px;}
+.it-dedication{font-style:italic;text-align:center;margin:3em auto;}
+.it-toc{margin:20px 0;}
+.it-toc-title{font-size:1.1rem;font-weight:600;margin-bottom:8px;border:none;}
+.it-toc ol{list-style:none;padding:0;margin:0;}
+.it-toc li{margin:3px 0;}
+.it-toc li a{color:#111;text-decoration:none;border-bottom:1px dotted #bbb;}
+.it-toc li a:hover{border-bottom-style:solid;}
+.it-toc .it-toc-sub{padding-left:20px;font-size:0.92em;}
+.it-footnotes{border-top:1px solid #ccc;margin-top:24px;padding-top:8px;font-size:0.85em;color:#444;}
+.it-footnotes ol{padding-left:1.5em;margin:0;}
+.it-footnotes li{margin:3px 0;}
+sup.it-fn-ref{font-size:0.7em;vertical-align:super;}
+sup.it-fn-ref a{color:#111;text-decoration:none;border-bottom:1px solid #999;}
 </style>
 ${html}
 </div>`;
+}
+
+// Build dynamic CSS from font: and page: blocks
+function buildDynamicCSS(doc: IntentDocument): string {
+  const fontBlock = doc.blocks.find((b) => b.type === "font");
+  const pageBlock = doc.blocks.find((b) => b.type === "page");
+
+  const fontFamily = String(fontBlock?.properties?.family || "Georgia, serif");
+  const fontSize = String(fontBlock?.properties?.size || "12pt");
+  const leading = String(fontBlock?.properties?.leading || "1.6");
+  const pageSize = String(pageBlock?.properties?.size || "A4");
+  const margins = String(pageBlock?.properties?.margins || "20mm");
+
+  return `@page{size:${escapeHtml(pageSize)};margin:${escapeHtml(margins)};}body.it-print{font-family:${escapeHtml(fontFamily)};font-size:${escapeHtml(fontSize)};line-height:${escapeHtml(leading)};}`;
+}
+
+// Print-optimized HTML renderer
+export function renderPrint(doc: IntentDocument): string {
+  const bodyHtml = renderBlocks(doc.blocks);
+
+  // Collect and render footnotes at bottom
+  const footnotes = collectFootnotes(doc.blocks);
+  let footnotesHtml = "";
+  if (footnotes.length > 0) {
+    const items = footnotes
+      .map((fn) => {
+        const num = escapeHtml(fn.content);
+        const text = fn.properties?.text
+          ? escapeHtml(String(fn.properties.text))
+          : escapeHtml(fn.content);
+        return `<li id="fn-${num}" value="${num}">${text}</li>`;
+      })
+      .join("");
+    footnotesHtml = `<div class="it-footnotes"><ol>${items}</ol></div>`;
+  }
+
+  const html = bodyHtml + footnotesHtml;
+  const dynamicCSS = buildDynamicCSS(doc);
+  const direction =
+    doc.metadata?.language === "rtl" ? 'dir="rtl"' : 'dir="ltr"';
+
+  return `<!DOCTYPE html><html ${direction}><head><meta charset="utf-8"><style>
+${dynamicCSS}
+@page{counter-increment:page;}
+@media print{body{margin:0;}.it-page-break{page-break-after:always;}.it-no-print{display:none;}a{text-decoration:none;color:inherit;}}
+body.it-print{color:#000;background:#fff;}
+body.it-print h1{font-size:1.8em;margin-bottom:0.3em;}
+body.it-print h2{font-size:1.3em;margin-top:1.5em;}
+body.it-print h3{font-size:1.1em;}
+body.it-print p{margin:0 0 0.8em 0;orphans:3;widows:3;}
+body.it-print table{width:100%;border-collapse:collapse;margin:1em 0;}
+body.it-print th{border-bottom:2px solid #000;padding:4pt 8pt;text-align:left;}
+body.it-print td{border-bottom:1px solid #ccc;padding:4pt 8pt;}
+body.it-print section{page-break-inside:avoid;}
+body.it-print .intent-callout{border-left:3pt solid #000;padding-left:10pt;margin:1em 0;}
+body.it-print .intent-quote{font-style:italic;margin:1em 2em;}
+body.it-print .it-byline{font-size:0.9em;color:#333;margin-bottom:1.5em;}
+body.it-print .it-byline .it-byline-author{font-weight:bold;display:block;}
+body.it-print .it-byline .it-byline-meta{font-size:0.85em;color:#666;}
+body.it-print .it-epigraph{font-style:italic;text-align:center;margin:2em 3em;border:none;padding:0;}
+body.it-print .it-epigraph .it-epigraph-by{display:block;text-align:right;font-size:0.9em;margin-top:0.5em;}
+body.it-print .it-caption{font-size:0.85em;font-style:italic;text-align:center;color:#444;margin-top:0.3em;margin-bottom:1em;}
+body.it-print .it-dedication{font-style:italic;text-align:center;margin:4em auto;page-break-after:always;}
+body.it-print .it-toc{margin:2em 0;}
+body.it-print .it-toc ol{list-style:none;padding:0;}
+body.it-print .it-toc li{margin:0.3em 0;}
+body.it-print .it-footnotes{border-top:1pt solid #ccc;margin-top:2em;padding-top:0.5em;font-size:0.85em;}
+body.it-print .it-footnotes ol{padding-left:1.5em;margin:0;}
+body.it-print .it-footnotes li{margin:0.3em 0;}
+body.it-print sup.it-fn-ref{font-size:0.7em;vertical-align:super;}
+body.it-print .it-page-break{page-break-after:always;break-after:page;height:0;}
+body.it-print .intent-task-checkbox{display:none;}
+body.it-print .intent-task::before{content:"\\2610 ";margin-right:4pt;}
+body.it-print .intent-task-done::before{content:"\\2611 ";}
+</style></head><body class="it-print"><div class="intent-document">${html}</div></body></html>`;
 }

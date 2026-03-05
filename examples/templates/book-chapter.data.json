@@ -1,0 +1,28 @@
+{
+  "book": {
+    "title": "The Architecture of Silence",
+    "author": "Emad Jumaah",
+    "publisher": "Dalil Press",
+    "year": "2026",
+    "dedication": "For my father, who taught me to read slowly."
+  },
+  "chapter": {
+    "number": "Chapter One",
+    "title": "The City Without Rain",
+    "epigraph": "We build in stone what we fear to say in words.",
+    "epigraphAuthor": "Anonymous",
+    "openingParagraph": "The city had no memory of rain. Not in the way that cities forget things — gradually, gracefully — but in the abrupt manner of a mind that has decided forgetting is cleaner than remembering.",
+    "body1": "She walked the corridors at dawn, when the marble floors still held the cool of the night and the air had not yet thickened with the day's ambition.",
+    "body2": "The archive was older than the building that housed it. That was the first thing they told you, and the last thing you remembered.",
+    "subheading1": "What the Records Said",
+    "body3": "The earliest entry was dated not by year but by season. Autumn, it said. The ink had faded to the colour of old tea.",
+    "body4": "She photographed each page. Not because she doubted her memory, but because she had learned to distrust her interpretations of it.",
+    "pullquote": "The past is not a place you visit. It is a place that visits you.",
+    "pullquoteSource": "Chapter One",
+    "body5": "Three months later, the building was closed for renovation.",
+    "body6": "She never returned. Some doors, once shut, resist the key not because they are locked but because they have decided to remain closed.",
+    "closingParagraph": "The city continued without rain. And she continued without the archive. Both managed.",
+    "footnote1": "The archive on Al-Rayyan Road was established in 1947. Its catalogue was last updated in 2019.",
+    "footnote2": "Interview conducted March 2026. Name withheld by request."
+  }
+}

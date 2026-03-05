@@ -1,6 +1,6 @@
-# IntentText (`.it`) v2.3 — Official Specification
+# IntentText (`.it`) v2.5 — Official Specification
 
-> **Status:** Stable · **Version:** 2.3 · **Source of Truth**
+> **Status:** Stable · **Version:** 2.5 · **Source of Truth**
 
 IntentText is a human-friendly, AI-semantic document language — and the structured interchange format between AI agents and humans. It combines plain-language keywords, WhatsApp-style inline formatting, and agentic metadata — so that any writer can produce machine-readable documents without learning technical markup. Agents can execute `.it` documents deterministically.
 
@@ -406,6 +406,8 @@ image: *Launch Banner* | at: assets/banner.png | caption: Project Dalil launch a
 
 **Layer 3 — Agentic Workflow (18):** `step` · `decision` · `parallel` · `loop` · `call` · `gate` · `wait` · `retry` · `error` · `trigger` · `checkpoint` · `handoff` · `audit` · `emit` · `result` · `progress` · `import` · `export` · `context`
 
+**Layer 4 — Document Generation (9):** `font` · `page` · `break` · `byline` · `epigraph` · `caption` · `footnote` · `toc` · `dedication`
+
 **Alias:** `status` → `emit` (backward compatibility)
 
 All keywords are **case-insensitive** (`Title:` = `title:`). User content is always preserved as written.
@@ -434,6 +436,8 @@ Parsers should preserve unknown extension blocks as `body-text` (or optionally e
 | **v1.4** | ✅ Stable | Cleanup, fixture accuracy, spec overhaul                                         |
 | **v2.0** | ✅ Stable | Agentic workflow blocks, document metadata, interchange format                   |
 | **v2.3** | ✅ Stable | gate/call/emit, `{{variable}}` interpolation, join/on properties, removed schema |
+| **v2.4** | ✅ Stable | Writer-first inline syntax, prose paragraphs, alignment                          |
+| **v2.5** | ✅ Stable | Document Generation Engine: layout blocks, writer blocks, template merge, print  |
 
 ### 12.1 Implemented Features (v1.0 – v1.3)
 
@@ -965,13 +969,170 @@ retry: Send email | retries: 5
 }
 ```
 
-### 12.3 Roadmap (Not Yet Implemented)
+### 12.3 Document Generation Engine (v2.5)
+
+> **Added in v2.5** — Layout blocks, writer blocks, template merge engine, and print rendering.
+
+IntentText v2.5 adds a complete document generation layer. An `.it` file can serve as a **template** with `{{placeholders}}`; a separate JSON object provides the **data**. The engine merges them and renders print-ready output.
+
+All v2.4 and earlier syntax is fully backward compatible.
+
+#### Layout Blocks
+
+Layout blocks declare document-level typography and page settings. They should appear near the top of the document, before content.
+
+##### `font:` — Typography declaration
+
+```
+font: | family: Georgia | size: 12pt | leading: 1.6
+```
+
+| Property  | Description                        | Default     |
+| --------- | ---------------------------------- | ----------- |
+| `family`  | Body font family                   | `Georgia`   |
+| `size`    | Base font size (`pt`, `px`, `rem`) | `12pt`      |
+| `leading` | Line height multiplier             | `1.6`       |
+| `weight`  | `normal` or `bold`                 | `normal`    |
+| `heading` | Heading font family (if different) | _(same)_    |
+| `mono`    | Monospace font for code            | `monospace` |
+
+##### `page:` — Page layout declaration
+
+```
+page: | size: A4 | margins: 20mm | header: {{title}} | footer: Page {{page}} of {{pages}}
+```
+
+| Property      | Description                               | Default    |
+| ------------- | ----------------------------------------- | ---------- |
+| `size`        | `A4`, `A5`, `Letter`, `Legal`, `custom`   | `A4`       |
+| `margins`     | Single value or `top:20mm right:15mm ...` | `20mm`     |
+| `header`      | Header text (supports `{{variables}}`)    | _(none)_   |
+| `footer`      | Footer text (supports `{{variables}}`)    | _(none)_   |
+| `columns`     | `1`, `2`, or `3`                          | `1`        |
+| `orientation` | `portrait` or `landscape`                 | `portrait` |
+| `numbering`   | `true` or `false`                         | `false`    |
+
+##### `break:` — Explicit page break
+
+```
+break:
+```
+
+Inserts a page break in print output. No content or properties required.
+
+#### Writer Blocks
+
+Writer blocks are semantic elements for book-style and professional document authoring.
+
+##### `byline:` — Author attribution
+
+```
+byline: Ahmed Al-Rashid | role: Senior Reporter | date: 2026-03-15
+```
+
+##### `epigraph:` — Opening quotation
+
+```
+epigraph: The only way to do great work is to love what you do. | source: Steve Jobs
+```
+
+##### `caption:` — Figure or table caption
+
+```
+caption: Figure 1 — Revenue growth by quarter
+```
+
+##### `footnote:` — Footnote definition
+
+```
+footnote: 1 | Sources: World Bank Open Data 2025, IMF Fiscal Monitor.
+```
+
+Referenced inline with `{1}` syntax, which renders as a superscript link to the footnote.
+
+##### `toc:` — Table of contents
+
+```
+toc: | depth: 2 | title: Contents
+```
+
+| Property | Description                                    | Default    |
+| -------- | ---------------------------------------------- | ---------- |
+| `depth`  | Heading depth to include (`1` = sections only) | `2`        |
+| `title`  | Heading text for the TOC                       | `Contents` |
+
+##### `dedication:` — Book dedication
+
+```
+dedication: To my family, who believed in this project from day one.
+```
+
+#### Template Merge Engine
+
+The merge engine resolves `{{variable}}` placeholders in an `.it` document using a JSON data object.
+
+**API:**
+
+```typescript
+import { mergeData, parseAndMerge } from "@intenttext/core";
+
+// Merge placeholders in a parsed document
+const merged = mergeData(document, data);
+
+// Parse + merge in one step
+const doc = parseAndMerge(itString, data);
+```
+
+**Variable resolution:**
+
+- Dot notation: `{{company.name}}` → `data.company.name`
+- Array indices: `{{items.0.description}}` → `data.items[0].description`
+- System variables: `{{date}}` → current date, `{{year}}` → current year
+- Runtime variables: `{{page}}`, `{{pages}}` — left as-is for the print renderer
+- Missing variables: block is marked `unresolved: 1`
+
+**Example data file** (`invoice.data.json`):
+
+```json
+{
+  "company": { "name": "Acme Corp" },
+  "invoice_number": "INV-2026-001",
+  "items": [{ "description": "Consulting", "amount": "12,000" }]
+}
+```
+
+#### Print Rendering
+
+The `renderPrint()` function produces a print-optimized full HTML document with embedded CSS. It reads `font:` and `page:` blocks to generate dynamic styles.
+
+**API:**
+
+```typescript
+import { renderPrint } from "@intenttext/core";
+
+const printHTML = renderPrint(document);
+// Full <!DOCTYPE html> document ready for printing or PDF conversion
+```
+
+**CLI usage:**
+
+```bash
+# Merge data and render HTML
+node cli.js template.it --data data.json --html
+
+# Render print-optimized HTML
+node cli.js template.it --data data.json --print
+
+# Generate PDF (requires puppeteer)
+node cli.js template.it --data data.json --pdf output.pdf
+```
+
+### 12.4 Roadmap (Not Yet Implemented)
 
 The following features are under consideration for future versions. They are **not implemented** in the current release.
 
 - **`sub2:`** — Deeper hierarchy (H4+ level nesting)
 - **Nested lists** — Indentation-based list nesting
-- **Templates** — `template:` / `use:` / `include:` for reusable content
 - **Static site builder** — Build HTML sites from `.it` files
 - **Knowledge graph** — Parse folders of `.it` files and build document relationships
 - **AI-native features** — `ai:` and `synthesize:` blocks for LLM workflows

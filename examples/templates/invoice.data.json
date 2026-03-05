@@ -1,0 +1,53 @@
+{
+  "invoice": {
+    "number": "INV-2026-0042",
+    "date": "2026-03-05",
+    "dueDate": "2026-03-20",
+    "status": "Unpaid",
+    "lateRate": "1.5"
+  },
+  "seller": {
+    "name": "Dalil Technology LLC",
+    "address": "West Bay, Doha, Qatar",
+    "email": "billing@dalil.ai",
+    "phone": "+974 4000 0000",
+    "vat": "VAT-300123456700003"
+  },
+  "client": {
+    "name": "Acme Corporation",
+    "address": "Pearl Boulevard, Doha, Qatar",
+    "email": "ap@acme.com"
+  },
+  "items": [
+    {
+      "description": "Platform Development — March",
+      "qty": "1",
+      "unitPrice": "12,000 QAR",
+      "total": "12,000 QAR"
+    },
+    {
+      "description": "UX Design Services",
+      "qty": "8 hrs",
+      "unitPrice": "450 QAR",
+      "total": "3,600 QAR"
+    },
+    {
+      "description": "Hosting & Infrastructure",
+      "qty": "1 month",
+      "unitPrice": "900 QAR",
+      "total": "900 QAR"
+    }
+  ],
+  "totals": {
+    "subtotal": "16,500 QAR",
+    "taxRate": "5",
+    "tax": "825 QAR",
+    "due": "17,325 QAR",
+    "currency": "QAR"
+  },
+  "payment": {
+    "bank": "Qatar National Bank",
+    "account": "0123-456789-001",
+    "iban": "QA57QNBA000000000123456789001"
+  }
+}

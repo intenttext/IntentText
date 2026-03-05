@@ -1,0 +1,55 @@
+// IntentText Invoice Template
+// Use case: Freelancer, agency, or business invoice
+// Data fields: invoice, client, seller, items[], totals, payment
+
+font: | family: Inter, Helvetica, sans-serif | size: 11pt | leading: 1.5
+page: | size: A4 | margins: 20mm 25mm 25mm 25mm | footer: Invoice {{invoice.number}} · Page {{page}}
+
+title: Invoice
+
+---
+
+note: **{{seller.name}}** | align: left
+note: {{seller.address}}
+note: {{seller.email}} · {{seller.phone}}
+note: VAT: {{seller.vat}}
+
+---
+
+note: **Bill To**
+note: {{client.name}}
+note: {{client.address}}
+note: {{client.email}}
+
+---
+
+| Invoice No    | Date               | Due Date             | Status             |
+| {{invoice.number}} | {{invoice.date}} | {{invoice.dueDate}} | {{invoice.status}} |
+
+---
+
+section: Items
+
+| Description              | Qty         | Unit Price              | Total              |
+| {{items.0.description}}  | {{items.0.qty}} | {{items.0.unitPrice}} | {{items.0.total}} |
+| {{items.1.description}}  | {{items.1.qty}} | {{items.1.unitPrice}} | {{items.1.total}} |
+| {{items.2.description}}  | {{items.2.qty}} | {{items.2.unitPrice}} | {{items.2.total}} |
+
+---
+
+note: Subtotal: {{totals.subtotal}} | align: right
+note: Tax ({{totals.taxRate}}%): {{totals.tax}} | align: right
+note: **Total Due: {{totals.due}} {{totals.currency}}** | align: right
+
+---
+
+section: Payment Details
+
+note: Bank: {{payment.bank}}
+note: Account: {{payment.account}}
+note: IBAN: {{payment.iban}}
+note: Reference: {{invoice.number}}
+
+info: Payment due by {{invoice.dueDate}}. Late payments subject to {{invoice.lateRate}}% monthly interest.
+
+note: Thank you for your business. | align: center

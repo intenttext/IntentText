@@ -1,0 +1,67 @@
+// IntentText Meeting Minutes Template
+// Use case: Board meetings, project meetings, official records
+
+font: | family: Arial, Helvetica, sans-serif | size: 11pt | leading: 1.5
+page: | size: A4 | margins: 25mm | header: {{meeting.organisation}} — MEETING MINUTES | footer: Page {{page}}
+
+title: Minutes of {{meeting.type}}
+
+| Date            | Time            | Location            | Chaired By       |
+| {{meeting.date}} | {{meeting.time}} | {{meeting.location}} | {{meeting.chair}} |
+
+section: Attendees
+
+note: **Present:** {{meeting.attendees}}
+note: **Apologies:** {{meeting.apologies}}
+note: **In Attendance:** {{meeting.inAttendance}}
+
+section: 1. Opening
+
+note: The {{meeting.chair}} called the meeting to order at {{meeting.startTime}} and confirmed quorum.
+
+section: 2. Approval of Previous Minutes
+
+note: The minutes of the previous meeting held on {{meeting.previousMeetingDate}} were reviewed.
+task: Approve previous minutes | owner: {{meeting.chair}} | status: {{meeting.previousMinutesStatus}}
+
+section: 3. Matters Arising
+
+note: {{meeting.mattersArising}}
+
+section: 4. Agenda Items
+
+sub: 4.1 {{agenda.item1.title}}
+note: {{agenda.item1.discussion}}
+task: {{agenda.item1.action}} | owner: {{agenda.item1.owner}} | due: {{agenda.item1.due}}
+
+sub: 4.2 {{agenda.item2.title}}
+note: {{agenda.item2.discussion}}
+task: {{agenda.item2.action}} | owner: {{agenda.item2.owner}} | due: {{agenda.item2.due}}
+
+sub: 4.3 {{agenda.item3.title}}
+note: {{agenda.item3.discussion}}
+task: {{agenda.item3.action}} | owner: {{agenda.item3.owner}} | due: {{agenda.item3.due}}
+
+section: 5. Action Items Summary
+
+| Action                        | Owner                   | Due Date              | Status           |
+| {{agenda.item1.action}}       | {{agenda.item1.owner}}  | {{agenda.item1.due}}  | Pending          |
+| {{agenda.item2.action}}       | {{agenda.item2.owner}}  | {{agenda.item2.due}}  | Pending          |
+| {{agenda.item3.action}}       | {{agenda.item3.owner}}  | {{agenda.item3.due}}  | Pending          |
+
+section: 6. Next Meeting
+
+note: The next meeting is scheduled for **{{meeting.nextMeetingDate}}** at {{meeting.nextMeetingTime}}, {{meeting.nextMeetingLocation}}.
+
+section: 7. Closure
+
+note: There being no further business, the {{meeting.chair}} closed the meeting at {{meeting.endTime}}.
+
+---
+
+note: Minutes prepared by: {{meeting.secretary}}
+note: Date prepared: {{date}}
+note: These minutes are subject to confirmation at the next meeting.
+
+| Signed (Chair)                    | Date            |
+| _________________________________ | {{meeting.date}} |

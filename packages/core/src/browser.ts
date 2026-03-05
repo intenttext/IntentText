@@ -1,6 +1,7 @@
 // Browser entry point — exports what runs in the browser.
 export { parseIntentText } from "./parser";
-export { renderHTML } from "./renderer";
+export { renderHTML, renderPrint } from "./renderer";
+export { mergeData, parseAndMerge } from "./merge";
 export { convertMarkdownToIntentText } from "./markdown";
 export { queryBlocks, parseQuery, formatQueryResult } from "./query";
 export {

@@ -1,0 +1,56 @@
+// IntentText General Report Template
+// Use case: Business reports, research summaries, project status
+
+font: | family: Georgia, serif | size: 12pt | leading: 1.6 | heading: Arial, sans-serif
+page: | size: A4 | margins: 25mm | header: {{report.organisation}} | footer: {{report.title}} · Page {{page}}
+
+title: {{report.title}}
+
+note: **Prepared by:** {{report.author}} · **Date:** {{report.date}} · **Version:** {{report.version}}
+
+summary: {{report.executiveSummary}}
+
+---
+
+section: 1. Introduction
+
+note: {{report.introduction}}
+
+section: 2. Background
+
+note: {{report.background}}
+
+section: 3. Findings
+
+sub: 3.1 {{report.finding1.title}}
+note: {{report.finding1.body}}
+
+sub: 3.2 {{report.finding2.title}}
+note: {{report.finding2.body}}
+
+sub: 3.3 {{report.finding3.title}}
+note: {{report.finding3.body}}
+
+section: 4. Analysis
+
+note: {{report.analysis}}
+
+quote: {{report.keyQuote}} | by: {{report.keyQuoteSource}}
+
+section: 5. Recommendations
+
+task: {{report.rec1}} | priority: high
+task: {{report.rec2}} | priority: medium
+task: {{report.rec3}} | priority: medium
+task: {{report.rec4}} | priority: low
+
+section: 6. Conclusion
+
+note: {{report.conclusion}}
+
+---
+
+section: Appendix
+
+note: {{report.appendixTitle}}
+note: {{report.appendixContent}}

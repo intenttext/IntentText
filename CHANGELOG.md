@@ -6,6 +6,29 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-03-06
+
+### Added
+
+- **Document Generation Engine** — full template-to-print pipeline.
+- **Layout blocks**: `font:`, `page:`, `break:` — declare typography, page size, margins, and explicit page breaks.
+- **Writer blocks**: `byline:`, `epigraph:`, `caption:`, `footnote:`, `toc:`, `dedication:` — semantic elements for book-style and professional documents.
+- **`footnote-ref` inline** — `{1}` syntax renders superscript footnote references linked to `footnote:` definitions.
+- **`mergeData(doc, data)`** — template merge engine resolving `{{variable}}` placeholders from JSON data. Supports dot notation, array indices, system variables (`{{date}}`, `{{year}}`), and runtime variables (`{{page}}`, `{{pages}}`).
+- **`parseAndMerge(itString, data)`** — parse and merge in one step.
+- **`renderPrint(doc)`** — print-optimized HTML renderer with dynamic CSS from `font:`/`page:` blocks, `@media print` rules, and `@page` sizing.
+- **CLI flags**: `--data <file.json>` for template merge, `--print` for print-optimized HTML, `--pdf <output.pdf>` for PDF generation via Puppeteer.
+- Seven example templates: invoice, purchase-order, contract, book-chapter, article, meeting-minutes, report — with matching `.data.json` files.
+- 44 new tests (308 total passing across 10 test files).
+
+### Changed
+
+- **HTML renderer CSS overhauled** — minimal, professional, serif-based book-like styling. No colors, neutral grays, Georgia font stack. Designed for book writers, journalists, court writers, and general readers.
+- Footnotes are collected and rendered as a numbered list at the bottom of the document.
+- Section and sub-section headings now include `id` attributes for TOC anchor linking.
+- Parser detects document generation blocks and sets `version: "2.5"` on the document.
+- Parser handles pipe-first property syntax (e.g., `font: | family: Georgia`) correctly.
+
 ## [2.4.0] - 2026-03-05
 
 ### Added

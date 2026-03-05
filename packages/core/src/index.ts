@@ -1,5 +1,6 @@
 export { parseIntentText } from "./parser";
-export { renderHTML } from "./renderer";
+export { renderHTML, renderPrint } from "./renderer";
+export { mergeData, parseAndMerge } from "./merge";
 export { convertMarkdownToIntentText } from "./markdown";
 export { convertHtmlToIntentText } from "./html-to-it";
 export { queryBlocks, parseQuery, formatQueryResult } from "./query";

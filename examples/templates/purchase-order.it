@@ -1,0 +1,57 @@
+// IntentText Purchase Order Template
+// Use case: ERP procurement, supplier orders
+
+font: | family: Arial, sans-serif | size: 11pt | leading: 1.5
+page: | size: A4 | margins: 20mm | header: PURCHASE ORDER — {{po.number}} | footer: Page {{page}}
+
+title: Purchase Order
+
+| PO Number      | Date        | Delivery By       | Priority        |
+| {{po.number}}  | {{po.date}} | {{po.deliveryDate}} | {{po.priority}} |
+
+---
+
+note: **From (Buyer)**
+note: {{buyer.company}}
+note: {{buyer.department}}
+note: {{buyer.address}}
+note: Contact: {{buyer.contact}} · {{buyer.email}}
+
+note: **To (Supplier)**
+note: {{supplier.name}}
+note: {{supplier.address}}
+note: Contact: {{supplier.contact}} · {{supplier.email}}
+
+---
+
+section: Ordered Items
+
+| # | Item Description              | Part No          | Qty           | Unit          | Unit Price              | Total              |
+| 1 | {{items.0.description}}       | {{items.0.partNo}} | {{items.0.qty}} | {{items.0.unit}} | {{items.0.unitPrice}} | {{items.0.total}} |
+| 2 | {{items.1.description}}       | {{items.1.partNo}} | {{items.1.qty}} | {{items.1.unit}} | {{items.1.unitPrice}} | {{items.1.total}} |
+| 3 | {{items.2.description}}       | {{items.2.partNo}} | {{items.2.qty}} | {{items.2.unit}} | {{items.2.unitPrice}} | {{items.2.total}} |
+
+---
+
+note: Subtotal: {{totals.subtotal}} | align: right
+note: Shipping: {{totals.shipping}} | align: right
+note: **Order Total: {{totals.grand}} {{totals.currency}}** | align: right
+
+---
+
+section: Terms & Conditions
+
+note: Delivery Terms: {{po.deliveryTerms}}
+note: Payment Terms: {{po.paymentTerms}}
+note: Ship To: {{po.shipTo}}
+
+warning: This PO is subject to the terms agreed in Contract {{po.contractRef}}. All deliveries must include this PO number.
+
+---
+
+section: Authorisation
+
+| Prepared By        | Approved By          | Date            |
+| {{auth.preparedBy}} | {{auth.approvedBy}} | {{auth.date}}   |
+
+note: Authorised Signature: _________________________ | align: right

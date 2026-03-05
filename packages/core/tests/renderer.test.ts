@@ -173,7 +173,7 @@ note: Remember to test`;
     const parsed = parseIntentText(input);
     const html = renderHTML(parsed);
 
-    expect(html).toContain('<h2 class="intent-section"');
+    expect(html).toContain('class="intent-section"');
     expect(html).toContain("Fix bug");
     expect(html).toContain("Ali");
     expect(html).toContain("Remember to test");
@@ -187,7 +187,7 @@ task: Sub task | owner: Bob`;
     const parsed = parseIntentText(input);
     const html = renderHTML(parsed);
 
-    expect(html).toContain('<h3 class="intent-sub"');
+    expect(html).toContain('class="intent-sub"');
     expect(html).toContain("Sub task");
     expect(html).toContain("Bob");
   });

@@ -1,0 +1,50 @@
+// IntentText Book Chapter Template
+// Use case: Non-fiction book, memoir, journalism long-form
+
+font: | family: Palatino Linotype, Palatino, serif | size: 12pt | leading: 1.8 | heading: Helvetica Neue, Arial, sans-serif
+page: | size: A5 | margins: 20mm 18mm 25mm 22mm | header: {{book.title}} | footer: {{page}}
+
+dedication: {{book.dedication}}
+
+break:
+
+toc: | depth: 2 | title: Contents
+
+break:
+
+note: {{chapter.number}} | align: center
+
+title: {{chapter.title}}
+
+epigraph: {{chapter.epigraph}} | by: {{chapter.epigraphAuthor}}
+
+byline: {{book.author}} | date: {{book.year}} | publication: {{book.publisher}}
+
+---
+
+note: {{chapter.openingParagraph}} | align: justify
+
+note: {{chapter.body1}} | align: justify
+
+note: {{chapter.body2}} | align: justify
+
+sub: {{chapter.subheading1}}
+
+note: {{chapter.body3}} | align: justify
+
+note: {{chapter.body4}} | align: justify
+
+quote: {{chapter.pullquote}} | by: {{chapter.pullquoteSource}}
+
+note: {{chapter.body5}}[^1] | align: justify
+
+note: {{chapter.body6}} | align: justify
+
+note: {{chapter.closingParagraph}} | align: justify
+
+---
+
+note: ✦ ✦ ✦ | align: center
+
+footnote: 1 | text: {{chapter.footnote1}}
+footnote: 2 | text: {{chapter.footnote2}}

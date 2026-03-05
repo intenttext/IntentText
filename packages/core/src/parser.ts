@@ -56,6 +56,19 @@ const V21_BLOCK_TYPES = new Set<string>([
 // v2.2 block types
 const V22_BLOCK_TYPES = new Set<string>(["gate", "call", "emit"]);
 
+// v2.5 document generation layout block types
+const DOCGEN_LAYOUT_TYPES = new Set<string>(["font", "page", "break"]);
+
+// v2.5 document generation writer block types
+const DOCGEN_WRITER_TYPES = new Set<string>([
+  "byline",
+  "epigraph",
+  "caption",
+  "footnote",
+  "toc",
+  "dedication",
+]);
+
 // v2 metadata-only keywords: when these appear before any section block,
 // they populate document metadata instead of emitting a block.
 const METADATA_KEYWORDS = new Set<string>(["agent", "model"]);
@@ -226,6 +239,14 @@ function parseInlineNodes(text: string): {
   while (i < text.length) {
     // Check for link pattern [text](url)
     if (text[i] === "[") {
+      // Footnote reference: [^N]
+      const fnRefMatch = text.slice(i).match(/^\[\^(\d+)\]/);
+      if (fnRefMatch) {
+        addNode({ type: "footnote-ref", value: fnRefMatch[1] });
+        i += fnRefMatch[0].length;
+        continue;
+      }
+
       const linkEnd = text.indexOf("](", i);
       const urlEnd = linkEnd >= 0 ? text.indexOf(")", linkEnd + 2) : -1;
       if (linkEnd > i && urlEnd > linkEnd) {
@@ -500,6 +521,23 @@ function parseLine(
       const parts = splitPipeMetadata(rest);
       content = unescapeIntentText(parts[0] || "");
 
+      // Handle pipe-first syntax: "font: | family: Georgia" → content is empty,
+      // first part starts with "|" and contains a property.
+      let propStart = 1;
+      const trimmedContent = content.trim();
+      if (trimmedContent.startsWith("|")) {
+        const firstProp = trimmedContent.substring(1).trim();
+        const propMatch = firstProp.match(/^([^:]+):\s*(.*)$/);
+        if (propMatch) {
+          const key = propMatch[1].trim();
+          const rawValue = propMatch[2].trim();
+          if (!key.includes("\\") && !key.includes("|")) {
+            properties[key] = unescapeIntentText(rawValue);
+            content = "";
+          }
+        }
+      }
+
       for (let i = 1; i < parts.length; i++) {
         const segment = parts[i];
         const propMatch = segment.match(/^([^:]+):\s*(.*)$/);
@@ -649,6 +687,40 @@ function parseLine(
     }
     if (properties.delay && !isNaN(Number(properties.delay))) {
       properties.delay = Number(properties.delay);
+    }
+
+    // v2.5: font blocks coerce numeric leading
+    if (keyword === "font") {
+      if (properties.leading) properties.leading = Number(properties.leading);
+    }
+
+    // v2.5: page blocks coerce numeric columns, handle boolean numbering
+    if (keyword === "page") {
+      if (properties.columns) properties.columns = Number(properties.columns);
+      if (properties.numbering !== undefined) {
+        properties.numbering = properties.numbering === "true" ? 1 : 0;
+      }
+    }
+
+    // v2.5: toc blocks default depth to 2
+    if (keyword === "toc") {
+      if (properties.depth) {
+        properties.depth = Number(properties.depth);
+      } else {
+        properties.depth = 2;
+      }
+      if (!properties.title) {
+        properties.title = "Contents";
+      }
+    }
+
+    // v2.5: break blocks have no content
+    if (keyword === "break") {
+      return {
+        id: uuidv4(),
+        type: "break" as BlockType,
+        content: "",
+      };
     }
 
     return {
@@ -1116,7 +1188,12 @@ export function parseIntentText(
       block.type === "embed" ||
       block.type === "code" ||
       block.type === "table" ||
-      block.type === "body-text"
+      block.type === "body-text" ||
+      block.type === "font" ||
+      block.type === "page" ||
+      block.type === "break" ||
+      block.type === "dedication" ||
+      block.type === "toc"
     ) {
       // Top-level blocks reset current section
       appendBlockWithProseMerge(blocks, block);
@@ -1178,6 +1255,9 @@ export function parseIntentText(
   ): IntentBlock[] {
     return [b, ...(b.children ?? []).flatMap(collect)];
   });
+  const hasDocgenContent = allBlocks.some(
+    (b) => DOCGEN_LAYOUT_TYPES.has(b.type) || DOCGEN_WRITER_TYPES.has(b.type),
+  );
   const hasV22Content = allBlocks.some((b) => V22_BLOCK_TYPES.has(b.type));
   const hasV21Content = allBlocks.some((b) => V21_BLOCK_TYPES.has(b.type));
   const hasAgenticContent =
@@ -1198,13 +1278,15 @@ export function parseIntentText(
   };
 
   const document: IntentDocument = {
-    version: hasV22Content
-      ? "2.2"
-      : hasV21Content
-        ? "2.1"
-        : hasAgenticContent
-          ? "2.0"
-          : "1.4",
+    version: hasDocgenContent
+      ? "2.5"
+      : hasV22Content
+        ? "2.2"
+        : hasV21Content
+          ? "2.1"
+          : hasAgenticContent
+            ? "2.0"
+            : "1.4",
     blocks,
     metadata,
     diagnostics: diagnostics.length > 0 ? diagnostics : undefined,

@@ -3,6 +3,8 @@
 const {
   parseIntentText,
   renderHTML,
+  renderPrint,
+  mergeData,
   convertMarkdownToIntentText,
   convertHtmlToIntentText,
   queryBlocks,
@@ -19,7 +21,7 @@ function main() {
 
   if (args.length === 0) {
     console.log(`
-🚀 IntentText CLI v1.4
+🚀 IntentText CLI v2.1
 
 Usage:
   node cli.js <file.it>                     Parse and show JSON
@@ -30,6 +32,12 @@ Usage:
   node cli.js <file> --to-it --output       Save converted .it next to source
   node cli.js <file.it> --query "..."       Query blocks
   node cli.js <file.it> --validate <schema> Validate against schema
+
+Template / Document Generation:
+  node cli.js <file.it> --data data.json              Merge and show JSON
+  node cli.js <file.it> --data data.json --html        Merge and render HTML
+  node cli.js <file.it> --data data.json --print       Merge and render print HTML
+  node cli.js <file.it> --data data.json --pdf         Merge and save as PDF (requires puppeteer)
 
 Query examples:
   node cli.js todo.it --query "type=task owner=Ahmed"
@@ -54,10 +62,14 @@ Examples:
   const outputHtml = args.includes("--html");
   const saveFile = args.includes("--output");
   const toIt = args.includes("--to-it");
+  const printMode = args.includes("--print");
+  const pdfMode = args.includes("--pdf");
   const queryIndex = args.indexOf("--query");
   const queryString = queryIndex >= 0 ? args[queryIndex + 1] : null;
   const validateIndex = args.indexOf("--validate");
   const schemaName = validateIndex >= 0 ? args[validateIndex + 1] : null;
+  const dataIndex = args.indexOf("--data");
+  const dataFile = dataIndex >= 0 ? args[dataIndex + 1] : null;
 
   try {
     if (!fs.existsSync(inputFile)) {
@@ -85,7 +97,19 @@ Examples:
       return;
     }
 
-    const document = parseIntentText(content);
+    // Parse the document, optionally merging template data
+    let document;
+    if (dataFile) {
+      if (!fs.existsSync(dataFile)) {
+        console.error(`❌ Data file not found: ${dataFile}`);
+        process.exit(1);
+      }
+      const dataContent = JSON.parse(fs.readFileSync(dataFile, "utf-8"));
+      const parsed = parseIntentText(content);
+      document = mergeData(parsed, dataContent);
+    } else {
+      document = parseIntentText(content);
+    }
 
     // Query mode
     if (queryString) {
@@ -99,6 +123,43 @@ Examples:
       const result = validateDocument(document, schemaName);
       console.log(formatValidationResult(result));
       process.exit(result.valid ? 0 : 1);
+    }
+
+    // PDF mode
+    if (pdfMode) {
+      let puppeteer;
+      try {
+        puppeteer = require("puppeteer");
+      } catch {
+        console.error(
+          `PDF output requires puppeteer. Run: npm install puppeteer\nThen retry: node cli.js ${inputFile} --data ${dataFile || "data.json"} --pdf`,
+        );
+        process.exit(1);
+      }
+      const printHtml = renderPrint(document);
+      (async () => {
+        const browser = await puppeteer.launch({ headless: true });
+        const page = await browser.newPage();
+        await page.setContent(printHtml, { waitUntil: "networkidle0" });
+        const pdfPath = inputFile.replace(/\.it$/i, ".pdf");
+        await page.pdf({ path: pdfPath, format: "A4", printBackground: true });
+        await browser.close();
+        console.log(`✅ PDF saved to: ${pdfPath}`);
+      })();
+      return;
+    }
+
+    // Print mode
+    if (printMode) {
+      const printHtml = renderPrint(document);
+      if (saveFile) {
+        const outputFile = inputFile.replace(/\.it$/i, "-print.html");
+        fs.writeFileSync(outputFile, printHtml);
+        console.log(`✅ Print HTML saved to: ${outputFile}`);
+      } else {
+        console.log(printHtml);
+      }
+      return;
     }
 
     // HTML output

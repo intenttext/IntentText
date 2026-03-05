@@ -14,11 +14,12 @@ A separate JSON object is the **data**. The engine merges them and renders print
 
 This is the same parser, same format, same JSON output — extended with:
 
-1. Three new blocks: `font:`, `page:`, `break:`
-2. A template merge function: `mergeData(template, data)`
-3. A print CSS layer in the renderer
-4. A `renderPDF()` function in the public API
-5. A set of built-in example templates
+1. Three new layout blocks: `font:`, `page:`, `break:`
+2. Six new writer blocks: `byline:`, `epigraph:`, `caption:`, `footnote:`, `toc:`, `dedication:`
+3. A template merge function: `mergeData(template, data)`
+4. A print CSS layer in the renderer
+5. A `renderPDF()` function in the public API
+6. A set of built-in example templates
 
 Everything must be backward compatible. Existing `.it` files must parse identically.
 
@@ -26,8 +27,12 @@ Everything must be backward compatible. Existing `.it` files must parse identica
 
 ## PART 1 — NEW BLOCK TYPES
 
-Add these three blocks to `packages/core/src/types.ts` and `parser.ts`.
-They are document-header blocks — they declare document layout, not content.
+Add these blocks to `packages/core/src/types.ts` and `parser.ts`.
+
+### 1A — Layout Blocks (document-header level)
+
+These declare document layout. They should appear near the top of the document,
+before content. Only one `font:` and one `page:` per document.
 
 ### `font:` — Typography declaration
 
@@ -97,6 +102,204 @@ break:
 
 No properties. Renders as `<div class="it-page-break"></div>` in HTML.
 In print CSS: `page-break-after: always`.
+
+---
+
+### 1B — Writer Blocks (content level)
+
+These are semantic content blocks for writers. They appear in the document body,
+not in the header. All support inline formatting (`*bold*`, `_italic_`, etc.)
+and `{{variables}}`.
+
+### `byline:` — Author attribution
+
+```
+byline: Emad Jumaah | date: March 2026 | publication: Dalil Review
+```
+
+Properties:
+
+- `date` — publication or authorship date. Optional.
+- `publication` — publication name. Optional.
+- `role` — author role (e.g. `Staff Reporter`, `Contributing Editor`). Optional.
+
+JSON output:
+
+```json
+{
+  "type": "byline",
+  "content": "Emad Jumaah",
+  "properties": {
+    "date": "March 2026",
+    "publication": "Dalil Review"
+  }
+}
+```
+
+HTML rendering: render as `<div class="it-byline">` with author name in a slightly larger
+weight, date and publication in muted smaller text below. Typical journalism style.
+
+---
+
+### `epigraph:` — Opening quote with literary styling
+
+Distinguished from `quote:` — an epigraph appears at the opening of a book,
+chapter, or section. It is centered, italic, has no border or background,
+and is visually separated from the body text.
+
+```
+epigraph: The beginning is always today. | by: Mary Shelley
+```
+
+Properties:
+
+- `by` — attribution. Optional but typical.
+
+JSON output:
+
+```json
+{
+  "type": "epigraph",
+  "content": "The beginning is always today.",
+  "properties": {
+    "by": "Mary Shelley"
+  }
+}
+```
+
+HTML rendering: `<blockquote class="it-epigraph">` — centered, italic, no left border
+(contrast with `quote:` which has a left border). Attribution in smaller text below,
+right-aligned, prefixed with `—`.
+
+---
+
+### `caption:` — Figure, table, or exhibit label
+
+```
+caption: Figure 3 — Quarterly revenue breakdown, 2024–2026
+caption: Exhibit A — Certificate of Incorporation
+```
+
+No required properties. Content is the full caption text.
+
+JSON output:
+
+```json
+{
+  "type": "caption",
+  "content": "Figure 3 — Quarterly revenue breakdown, 2024–2026"
+}
+```
+
+HTML rendering: `<figcaption class="it-caption">` — small font, muted color,
+centered below the preceding image or table. In print: italicized, 10pt.
+
+`caption:` should always immediately follow an `image:` or pipe table block.
+Parser does not enforce this, but document it in the spec as the expected pattern.
+
+---
+
+### `footnote:` — Reference note
+
+Footnotes are declared as blocks at the point where they appear in the text.
+The inline reference uses the existing `[^N]` syntax added to inline formatting.
+
+```
+footnote: 1 | text: See Al-Rashid v. Ministry of Finance (2019), Court of Appeal, Doha.
+footnote: 2 | text: QCB Annual Report 2025, p. 47.
+```
+
+Properties:
+
+- `text` — the footnote content (required)
+
+The number in content (`1`, `2`, etc.) is the footnote identifier.
+It matches inline references written as `[^1]` in body text.
+
+Inline reference syntax — add to the inline formatting parser:
+
+```
+note: This was contested in court.[^1] The ruling established precedent.[^2]
+```
+
+Parses `[^N]` as `{ type: "footnote-ref", value: N }` in the inline array.
+
+JSON output (block):
+
+```json
+{
+  "type": "footnote",
+  "content": "1",
+  "properties": {
+    "text": "See Al-Rashid v. Ministry of Finance (2019), Court of Appeal, Doha."
+  }
+}
+```
+
+HTML rendering:
+
+- Inline `[^1]` → `<sup class="it-fn-ref"><a href="#fn-1">1</a></sup>`
+- `footnote:` block → collected at end of section or document and rendered as:
+  `<div class="it-footnotes"><ol>` with each entry as `<li id="fn-1">text</li>`
+- In print: footnotes appear at the bottom of the page using CSS `float: footnote`
+  where supported, falling back to end-of-document collection
+
+---
+
+### `toc:` — Auto-generated table of contents
+
+```
+toc:
+toc: | depth: 2 | title: Contents
+```
+
+Properties:
+
+- `depth` — how many heading levels to include. `1` = sections only, `2` = sections + subs. Default: `2`
+- `title` — heading above the TOC. Default: `"Contents"`
+
+The renderer automatically scans all `section:` and `sub:` blocks in the document
+and builds the TOC. Block IDs are auto-generated as slugs from the section content
+for anchor linking.
+
+JSON output:
+
+```json
+{
+  "type": "toc",
+  "properties": {
+    "depth": 2,
+    "title": "Contents"
+  }
+}
+```
+
+HTML rendering: `<nav class="it-toc">` with `<ol>` list. Each entry is an anchor
+link to the corresponding section. In print: page numbers are injected via CSS
+`target-counter(attr(href), page)`.
+
+---
+
+### `dedication:` — Book dedication
+
+```
+dedication: For my father, who taught me to read slowly.
+```
+
+No required properties. Content is the dedication text. Supports inline formatting.
+
+JSON output:
+
+```json
+{
+  "type": "dedication",
+  "content": "For my father, who taught me to read slowly."
+}
+```
+
+HTML rendering: `<div class="it-dedication">` — centered, italic, generous top margin,
+typically on its own page in a book. In print: render with `page-break-after: always`
+so the dedication stands alone.
 
 ---
 
@@ -275,6 +478,85 @@ body.it-print .it-callout {
 body.it-print .it-quote {
   font-style: italic;
   margin: 1em 2em;
+}
+
+/* Writer blocks */
+body.it-print .it-byline {
+  font-size: 0.9em;
+  color: #333;
+  margin-bottom: 1.5em;
+}
+body.it-print .it-byline .it-byline-author {
+  font-weight: bold;
+  display: block;
+}
+body.it-print .it-byline .it-byline-meta {
+  font-size: 0.85em;
+  color: #666;
+}
+
+body.it-print .it-epigraph {
+  font-style: italic;
+  text-align: center;
+  margin: 2em 3em;
+  border: none;
+  padding: 0;
+}
+body.it-print .it-epigraph .it-epigraph-by {
+  display: block;
+  text-align: right;
+  font-size: 0.9em;
+  margin-top: 0.5em;
+}
+
+body.it-print .it-caption {
+  font-size: 0.85em;
+  font-style: italic;
+  text-align: center;
+  color: #444;
+  margin-top: 0.3em;
+  margin-bottom: 1em;
+}
+
+body.it-print .it-dedication {
+  font-style: italic;
+  text-align: center;
+  margin: 4em auto;
+  page-break-after: always;
+}
+
+body.it-print .it-toc {
+  margin: 2em 0;
+}
+body.it-print .it-toc ol {
+  list-style: none;
+  padding: 0;
+}
+body.it-print .it-toc li {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.3em 0;
+}
+body.it-print .it-toc li::after {
+  content: target-counter(attr(href), page);
+}
+
+body.it-print .it-footnotes {
+  border-top: 1pt solid #ccc;
+  margin-top: 2em;
+  padding-top: 0.5em;
+  font-size: 0.85em;
+}
+body.it-print .it-footnotes ol {
+  padding-left: 1.5em;
+  margin: 0;
+}
+body.it-print .it-footnotes li {
+  margin: 0.3em 0;
+}
+body.it-print sup.it-fn-ref {
+  font-size: 0.7em;
+  vertical-align: super;
 }
 
 /* Keyword labels */
@@ -628,12 +910,21 @@ note: IN WITNESS WHEREOF, the parties have executed this Agreement as of the dat
 font: | family: Palatino Linotype, Palatino, serif | size: 12pt | leading: 1.8 | heading: Helvetica Neue, Arial, sans-serif
 page: | size: A5 | margins: 20mm 18mm 25mm 22mm | header: {{book.title}} | footer: {{page}}
 
+dedication: {{book.dedication}}
+
+break:
+
+toc: | depth: 2 | title: Contents
+
+break:
+
 note: {{chapter.number}} | align: center
 
 title: {{chapter.title}}
 
-note: _{{chapter.epigraph}}_ | align: center
-note: — {{chapter.epigraphAuthor}} | align: center
+epigraph: {{chapter.epigraph}} | by: {{chapter.epigraphAuthor}}
+
+byline: {{book.author}} | date: {{book.year}} | publication: {{book.publisher}}
 
 ---
 
@@ -649,11 +940,9 @@ note: {{chapter.body3}} | align: justify
 
 note: {{chapter.body4}} | align: justify
 
-sub: {{chapter.subheading2}}
-
-note: {{chapter.body5}} | align: justify
-
 quote: {{chapter.pullquote}} | by: {{chapter.pullquoteSource}}
+
+note: {{chapter.body5}}[^1] | align: justify
 
 note: {{chapter.body6}} | align: justify
 
@@ -662,11 +951,136 @@ note: {{chapter.closingParagraph}} | align: justify
 ---
 
 note: ✦ ✦ ✦ | align: center
+
+footnote: 1 | text: {{chapter.footnote1}}
+footnote: 2 | text: {{chapter.footnote2}}
+```
+
+**Sample data (`book-chapter.data.json`):**
+
+```json
+{
+  "book": {
+    "title": "The Architecture of Silence",
+    "author": "Emad Jumaah",
+    "publisher": "Dalil Press",
+    "year": "2026",
+    "dedication": "For my father, who taught me to read slowly."
+  },
+  "chapter": {
+    "number": "Chapter One",
+    "title": "The City Without Rain",
+    "epigraph": "We build in stone what we fear to say in words.",
+    "epigraphAuthor": "Anonymous",
+    "openingParagraph": "The city had no memory of rain. Not in the way that cities forget things — gradually, gracefully — but in the abrupt manner of a mind that has decided forgetting is cleaner than remembering.",
+    "body1": "She walked the corridors at dawn, when the marble floors still held the cool of the night and the air had not yet thickened with the day's ambition.",
+    "body2": "The archive was older than the building that housed it. That was the first thing they told you, and the last thing you remembered.",
+    "subheading1": "What the Records Said",
+    "body3": "The earliest entry was dated not by year but by season. Autumn, it said. The ink had faded to the colour of old tea.",
+    "body4": "She photographed each page. Not because she doubted her memory, but because she had learned to distrust her interpretations of it.",
+    "pullquote": "The past is not a place you visit. It is a place that visits you.",
+    "pullquoteSource": "Chapter One",
+    "body5": "Three months later, the building was closed for renovation.",
+    "body6": "She never returned. Some doors, once shut, resist the key not because they are locked but because they have decided to remain closed.",
+    "closingParagraph": "The city continued without rain. And she continued without the archive. Both managed.",
+    "footnote1": "The archive on Al-Rayyan Road was established in 1947. Its catalogue was last updated in 2019.",
+    "footnote2": "Interview conducted March 2026. Name withheld by request."
+  }
+}
 ```
 
 ---
 
-### Template 5: Meeting Minutes (`meeting-minutes.it`)
+### Template 5: Journalism Article (`article.it`)
+
+```
+// IntentText Journalism Article Template
+// Use case: News article, feature, investigation, op-ed
+
+font: | family: Georgia, serif | size: 11pt | leading: 1.7
+page: | size: A4 | margins: 20mm | footer: {{article.publication}} · {{article.date}} · Page {{page}}
+
+title: {{article.headline}}
+
+note: _{{article.deck}}_ | align: left
+
+byline: {{article.author}} | date: {{article.date}} | publication: {{article.publication}}
+
+---
+
+note: {{article.lede}} | align: justify
+
+note: {{article.body1}} | align: justify
+
+quote: {{article.quote1}} | by: {{article.quote1Source}}
+
+note: {{article.body2}} | align: justify
+
+sub: {{article.subheading1}}
+
+note: {{article.body3}} | align: justify
+
+note: {{article.body4}}[^1] | align: justify
+
+image: {{article.image1.alt}} | at: {{article.image1.path}}
+caption: {{article.image1.caption}}
+
+note: {{article.body5}} | align: justify
+
+quote: {{article.quote2}} | by: {{article.quote2Source}}
+
+note: {{article.body6}} | align: justify
+
+sub: {{article.subheading2}}
+
+note: {{article.body7}} | align: justify
+
+note: {{article.closing}} | align: justify
+
+---
+
+footnote: 1 | text: {{article.footnote1}}
+
+note: _{{article.correction}}_ | align: left
+```
+
+**Sample data (`article.data.json`):**
+
+```json
+{
+  "article": {
+    "headline": "The Quiet Revolution in Document Standards",
+    "deck": "A new open format is challenging how businesses store and print structured documents.",
+    "author": "Sara Al-Mansouri",
+    "date": "5 March 2026",
+    "publication": "The Gulf Technology Review",
+    "lede": "For decades, the invoice looked the same: a Word document, emailed as a PDF, filed in a folder no one could find. That may be changing.",
+    "body1": "A small open-source project from Qatar is attracting attention from ERP developers and technical writers who say existing document formats are failing them in the age of AI.",
+    "quote1": "We needed something a human could write in a text editor and a machine could execute without guessing.",
+    "quote1Source": "Emad Jumaah, creator of IntentText",
+    "body2": "The format, called IntentText, uses plain-language keywords and pipe metadata to produce structured JSON — making documents simultaneously readable by people and parseable by software.",
+    "subheading1": "The Template Problem",
+    "body3": "Most businesses rely on Word or Google Docs templates for their printed documents. Both formats store content as binary or proprietary XML, making them difficult to query, version, or generate programmatically.",
+    "body4": "Database-native document generation has existed for years in enterprise software, but always required developer effort to maintain.",
+    "body5": "IntentText's approach stores both the template and the data as plain JSON in a standard database. The document is rendered on demand.",
+    "quote2": "No binary files. No Google. Everything queryable and portable.",
+    "quote2Source": "Jumaah",
+    "subheading2": "Who Is Using It",
+    "body6": "Early adopters include a legal services firm in Doha using it for contract generation, and a regional logistics company replacing their invoice system.",
+    "body7": "The project remains open source under the MIT licence.",
+    "closing": "IntentText v2.1 is available at github.com/emadjumaah/IntentText.",
+    "footnote1": "IntentText source code reviewed by this publication. No independent security audit has been conducted.",
+    "correction": "",
+    "image1": {
+      "alt": "IntentText syntax example",
+      "path": "images/syntax-example.png",
+      "caption": "An IntentText template for an invoice. The {{placeholders}} are replaced with data at render time."
+    }
+  }
+}
+```
+
+---
 
 ```
 // IntentText Meeting Minutes Template
@@ -740,7 +1154,7 @@ note: These minutes are subject to confirmation at the next meeting.
 
 ---
 
-### Template 6: General Purpose Report (`report.it`)
+### Template 7: General Purpose Report (`report.it`)
 
 ```
 // IntentText General Report Template
@@ -809,6 +1223,8 @@ Create `packages/core/tests/document-generation.test.ts`
 
 Cover:
 
+**Merge engine:**
+
 - `mergeData()` resolves simple `{{key}}` references
 - `mergeData()` resolves nested `{{client.name}}` dot notation
 - `mergeData()` resolves array index `{{items.0.price}}`
@@ -816,17 +1232,42 @@ Cover:
 - `mergeData()` resolves `{{timestamp}}`, `{{date}}`, `{{year}}` automatically
 - `mergeData()` does NOT resolve `{{page}}` and `{{pages}}` (runtime variables)
 - `parseAndMerge()` parses source string and merges data in one call
-- `font:` block parses to correct JSON shape
+
+**Layout blocks:**
+
+- `font:` block parses to correct JSON shape with all properties
 - `page:` block parses to correct JSON shape with all properties
 - `break:` block parses to `{ type: "break" }` with no properties
 - `renderPrint()` includes `@media print` CSS in output
 - `renderPrint()` applies `font:` block values as CSS
 - `renderPrint()` applies `page:` block values as CSS
 - `renderPrint()` renders `break:` as `<div class="it-page-break">`
+
+**Writer blocks:**
+
+- `byline:` parses content as author name, `date` and `publication` as properties
+- `byline:` renders as `<div class="it-byline">` with correct child elements
+- `epigraph:` parses correctly with `by:` property
+- `epigraph:` renders as `<blockquote class="it-epigraph">` — no left border
+- `caption:` parses content only, no required properties
+- `caption:` renders as `<figcaption class="it-caption">`
+- `footnote:` parses number from content and `text:` from properties
+- `footnote:` blocks are collected and rendered as `<div class="it-footnotes"><ol>`
+- Inline `[^1]` parses as `{ type: "footnote-ref", value: "1" }`
+- Inline `[^1]` renders as `<sup class="it-fn-ref"><a href="#fn-1">1</a></sup>`
+- `toc:` parses with `depth` and `title` properties, defaults `depth: 2`
+- `toc:` renderer scans document sections and builds anchor list
+- `dedication:` parses content with inline formatting support
+- `dedication:` renders with `page-break-after: always` in print CSS
+
+**Integration:**
+
 - Full invoice template: parse + merge + render produces valid HTML
+- Full book chapter template: `dedication:`, `toc:`, `epigraph:`, `byline:`, `footnote:` all render correctly
+- Full journalism template: `byline:`, `caption:`, `[^1]` inline ref, `footnote:` all render correctly
 - Backward compatibility: existing v2 documents parse identically
 
-Target: 25+ new tests. All existing 255 tests must still pass.
+Target: 40+ new tests. All existing 255 tests must still pass.
 
 ---
 
@@ -836,12 +1277,13 @@ Create `docs/TEMPLATES.md` with:
 
 1. Overview of the template system
 2. How `{{variables}}` work (simple, nested, array)
-3. The three new blocks: `font:`, `page:`, `break:`
-4. The merge API: `mergeData()`, `parseAndMerge()`
-5. The print API: `renderPrint()`
-6. CLI usage for template rendering
-7. Database storage pattern — how to store templates and data as JSON
-8. Links to all example templates in `examples/templates/`
+3. Layout blocks: `font:`, `page:`, `break:`
+4. Writer blocks: `byline:`, `epigraph:`, `caption:`, `footnote:` + `[^N]` inline refs, `toc:`, `dedication:`
+5. The merge API: `mergeData()`, `parseAndMerge()`
+6. The print API: `renderPrint()`
+7. CLI usage for template rendering
+8. Database storage pattern — how to store templates and data as JSON
+9. Links to all seven example templates in `examples/templates/`
 
 ---
 
@@ -855,13 +1297,13 @@ Create `docs/TEMPLATES.md` with:
 
 ## IMPLEMENTATION ORDER
 
-1. `types.ts` — add `font`, `page`, `break` block types and properties
-2. `parser.ts` — add parsing for the three new blocks
+1. `types.ts` — add `font`, `page`, `break`, `byline`, `epigraph`, `caption`, `footnote`, `toc`, `dedication` block types
+2. `parser.ts` — add parsing for all nine new blocks + `[^N]` inline footnote reference
 3. `merge.ts` — implement `mergeData()` and `parseAndMerge()`
-4. `renderer.ts` — add `renderPrint()` with print CSS layer
+4. `renderer.ts` — add `renderPrint()` with full print CSS including writer block styles
 5. `index.ts` + `browser.ts` — export new functions
 6. `cli.js` — add `--data`, `--print`, `--pdf` flags
-7. `examples/templates/` — create all six template files with data files
+7. `examples/templates/` — create all seven template files with data files
 8. Tests — write `document-generation.test.ts`
 9. `docs/TEMPLATES.md` — write documentation
 10. Version bump + CHANGELOG
@@ -875,7 +1317,9 @@ Create `docs/TEMPLATES.md` with:
 - TypeScript strict mode — no `any` types without comment
 - `mergeData()` must be pure — it returns a new document, never mutates the input
 - The print CSS must work without JavaScript — pure CSS page breaks and counters
-- All six example templates must produce valid, useful output with their sample data files
+- `footnote:` blocks must be collected by the renderer — the parser only stores them as blocks
+- `toc:` is renderer-generated — the parser stores the `toc:` block, the renderer builds the list from sections
+- All seven example templates must produce valid, useful output with their sample data files
 
 ---
 
@@ -890,8 +1334,11 @@ npm test
 # Invoice template renders correctly
 node cli.js examples/templates/invoice.it --data examples/templates/invoice.data.json --html > /tmp/invoice.html
 
-# Book chapter template renders correctly
+# Book chapter with writer blocks renders correctly
 node cli.js examples/templates/book-chapter.it --data examples/templates/book-chapter.data.json --print > /tmp/chapter.html
+
+# Journalism article with byline, caption, footnotes renders correctly
+node cli.js examples/templates/article.it --data examples/templates/article.data.json --print > /tmp/article.html
 
 # Contract renders with page break
 node cli.js examples/templates/contract.it --data examples/templates/contract.data.json --print > /tmp/contract.html
@@ -905,12 +1352,14 @@ node -e "const {parseIntentText} = require('./packages/core/dist'); const d = pa
 
 ## THE BIG PICTURE (context for the agent)
 
-IntentText v2.1 now serves two audiences with one format:
+IntentText v2.1 now serves three audiences with one format:
 
-**Developers & AI agents** — use the agentic workflow blocks (`step:`, `decision:`, `gate:`, `call:`, etc.) to define executable plans that agents can run deterministically.
+**Developers & AI agents** — agentic workflow blocks (`step:`, `decision:`, `gate:`, `call:`, etc.) for executable plans that agents can run deterministically.
 
-**Writers, businesses & ERP systems** — use the document generation engine to create templates stored as JSON in a database, merge with data at runtime, and render print-ready output. No Word. No Google Docs. No LaTeX. No binary files. Everything queryable, versionable, and portable.
+**Businesses & ERP systems** — document generation engine with `font:`, `page:`, `break:` and `{{variables}}`. Templates stored as JSON in a database, merged with data at runtime, rendered print-ready. No Word. No Google Docs. No binary files.
 
-Same parser. Same format. Same JSON. Two powerful use cases.
+**Writers, journalists, academics, legal professionals** — `byline:`, `epigraph:`, `caption:`, `footnote:`, `toc:`, `dedication:` give long-form writers first-class tools in a format they can author in any text editor. A novelist, a court writer, and a journalist can all write in IntentText and get professionally typeset output.
+
+Same parser. Same format. Same JSON. Three audiences. One engine.
 
 _IntentText v2.1 Implementation Prompt — March 2026_
