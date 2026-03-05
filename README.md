@@ -178,6 +178,7 @@ result: Onboarded      | code: 200 | data: {{workspace}}
 | **VS Code Extension**  | Syntax highlighting, live preview, and snippets for `.it` files. [Install from Marketplace](https://marketplace.visualstudio.com/items?itemName=intenttext.intenttext) |
 | **Python Package**     | [![PyPI](https://img.shields.io/pypi/v/intenttext)](https://pypi.org/project/intenttext/) Install with `pip install intenttext`                                        |
 | **GitHub Action**      | Validate `.it` files in CI with one line: `uses: intenttext/intenttext-action@v1`                                                                                      |
+| **MCP Server**         | Give any AI agent IntentText tools via MCP. [Deployed](https://intenttext-mcp.onrender.com) · [GitHub](https://github.com/intenttext/intenttext-mcp)                   |
 | **Web Converter**      | Paste any web content or Markdown and convert to IntentText. [iteditor.vercel.app](https://iteditor.vercel.app/)                                                       |
 
 ---
