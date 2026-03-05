@@ -176,6 +176,7 @@ result: Onboarded      | code: 200 | data: {{workspace}}
 | **`@intenttext/core`** | The parser, renderer, and template engine. Install and use in any Node.js or browser project.                    |
 | **IntentText Editor**  | A WYSIWYG editor where the `.it` format is the data layer, invisible during normal writing. _(coming)_           |
 | **VS Code Extension**  | Syntax highlighting, live preview, and snippets for `.it` files.                                                 |
+| **GitHub Action**      | Validate `.it` files in CI with one line: `uses: intenttext/intenttext-action@v1`                                |
 | **Web Converter**      | Paste any web content or Markdown and convert to IntentText. [toit-psi.vercel.app](https://toit-psi.vercel.app/) |
 
 ---
