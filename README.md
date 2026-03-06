@@ -267,6 +267,61 @@ emit: support.resolved    | data: {{sent}} | channel: analytics
 result: Resolved          | code: 200
 ```
 
+### Query Files and Folders Like a Database
+
+Any `.it` file — or an entire folder of them — is queryable directly.
+No database. No server. No indexing step. Just files and the parser.
+
+**Query a single file:**
+
+```javascript
+import { parseIntentText, queryDocument } from "@intenttext/core";
+import fs from "fs";
+
+const doc = parseIntentText(fs.readFileSync("project.it", "utf-8"));
+
+// All tasks assigned to Ahmed
+const tasks = queryDocument(doc, {
+  type: "task",
+  properties: { owner: "Ahmed" },
+});
+
+// All steps using email tools
+const emailSteps = queryDocument(doc, {
+  type: "step",
+  properties: { tool: /email/ },
+});
+
+// Everything in the Deployment section
+const deployment = queryDocument(doc, { section: "Deployment" });
+```
+
+**Query across an entire folder:**
+
+```javascript
+const files = fs.readdirSync("./documents").filter((f) => f.endsWith(".it"));
+
+// Every overdue task across all documents
+const overdue = files.flatMap((file) => {
+  const doc = parseIntentText(fs.readFileSync(`./documents/${file}`, "utf-8"));
+  return queryDocument(doc, {
+    type: "task",
+    properties: { status: "overdue" },
+  });
+});
+
+// Every decision made this week across all meeting notes
+const decisions = files.flatMap((file) => {
+  const doc = parseIntentText(fs.readFileSync(`./documents/${file}`, "utf-8"));
+  return queryDocument(doc, { type: "done" });
+});
+```
+
+A folder of `.it` files behaves like a database table. Every document
+is a row. Every block is a queryable field. You can store contracts,
+meeting notes, invoices, agent logs — and query across all of them
+with the same API, from plain text files you own forever.
+
 ---
 
 ## What IntentText Is Not
@@ -436,6 +491,26 @@ no complex syntax to track. Each line is complete on its own.
 **Human-first.** `step: Verify email` reads as a sentence.
 The machine metadata lives after the pipe — present when needed,
 invisible when reading.
+
+### Custom Properties — Extend Any Block With Anything
+
+Every block accepts any property you invent. There is no list of
+allowed properties. The parser preserves everything.
+
+```
+quote: To begin is already to be halfway there. | by: Unknown | from: Kiev | verified: yes
+task:  Write introduction | owner: Ahmed | due: Friday | effort: 2h | sprint: 14
+step:  Send notification  | tool: email.send | region: MENA | priority: critical | sla: 4h
+note:  Patient presented with symptoms. | doctor: Dr. Hassan | ward: ICU | ref: case-2847
+```
+
+A journalist adds `source:` and `verified:`.
+A lawyer adds `clause:` and `jurisdiction:`.
+A developer adds `sprint:` and `effort:`.
+A doctor adds `ward:` and `ref:`.
+
+All valid. All parsed. All queryable. No spec change required.
+The format extends at the point of use — not at the point of definition.
 
 ### Document Header
 
