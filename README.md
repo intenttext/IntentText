@@ -191,6 +191,34 @@ Every block. Every time. No interpretation required.
 
 ---
 
+## Document Generation
+
+IntentText doubles as a template engine. Add `{{placeholders}}` to any line — the engine merges them with JSON data and renders a finished document.
+
+```
+title: Invoice {{invoice.number}}
+note: Bill To: {{client.name}}
+note: Date: {{invoice.date}}
+
+| Item                    | Qty              | Total              |
+| {{items.0.description}} | {{items.0.qty}}  | {{items.0.total}}  |
+
+note: **Total Due: {{totals.due}}** | align: right
+```
+
+Merge with data from any source — a database, an API, a JSON file:
+
+```javascript
+const doc = parseAndMerge(template, data);
+const html = renderPrint(doc); // print-ready HTML
+```
+
+Every invoice, contract, report, or letter becomes a reusable template. Store templates and data separately. Render on demand. No Word. No binary files.
+
+Browse ready-made templates at [IntentText Hub](https://intenttext-hub.vercel.app/) · Full guide: [docs/TEMPLATES.md](docs/TEMPLATES.md)
+
+---
+
 ## Three Audiences, One Format
 
 ### For Writers
@@ -674,10 +702,19 @@ humans and machines.
 
 ---
 
+## Template System
+
+IntentText includes a full document generation engine. Any `.it` file becomes a reusable template by adding `{{placeholders}}`. Merge with JSON data to produce invoices, contracts, reports, letters, or any repeatable document — on demand, from code, with no binary formats involved.
+
+The template guide covers placeholder syntax, nested data access, array indexing, the `mergeData` and `parseAndMerge` APIs, print-ready rendering with `renderPrint`, and ready-made templates for common business documents.
+
+Full guide: [docs/TEMPLATES.md](docs/TEMPLATES.md) · Browse templates: [IntentText Hub](https://intenttext-hub.vercel.app/)
+
+---
+
 ## Specification
 
 See [docs/SPEC.md](docs/SPEC.md) for the complete language specification.
-See [docs/TEMPLATES.md](docs/TEMPLATES.md) for the template system and document generation guide.
 
 ## License
 

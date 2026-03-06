@@ -37,15 +37,15 @@ note: **Total Due: {{totals.due}} {{invoice.currency}}** | align: right
 
 ### Variable Resolution
 
-| Syntax                    | Resolves to                   |
-| ------------------------- | ----------------------------- |
-| `{{name}}`                | `data.name`                   |
-| `{{company.name}}`        | `data.company.name`           |
-| `{{items.0.description}}` | `data.items[0].description`   |
-| `{{date}}`                | Current date (system)         |
-| `{{year}}`                | Current year (system)         |
-| `{{page}}`                | Page number (print renderer)  |
-| `{{pages}}`               | Total pages (print renderer)  |
+| Syntax                    | Resolves to                  |
+| ------------------------- | ---------------------------- |
+| `{{name}}`                | `data.name`                  |
+| `{{company.name}}`        | `data.company.name`          |
+| `{{items.0.description}}` | `data.items[0].description`  |
+| `{{date}}`                | Current date (system)        |
+| `{{year}}`                | Current year (system)        |
+| `{{page}}`                | Page number (print renderer) |
+| `{{pages}}`               | Total pages (print renderer) |
 
 - **Dot notation** resolves nested objects
 - **Index notation** resolves array items (`items.0`, `items.1`, ...)
@@ -66,24 +66,26 @@ page: | size: A4 | margins: 20mm | header: {{company.name}} | footer: Page {{pag
 
 ### `font:` Properties
 
-| Property  | Description                        | Example            |
-| --------- | ---------------------------------- | ------------------ |
-| `family`  | Body font family                   | `Georgia`          |
-| `size`    | Base font size                     | `12pt`             |
-| `leading` | Line height multiplier             | `1.8`              |
-| `heading` | Heading font (defaults to family)  | `Playfair Display` |
-| `mono`    | Monospace font for code blocks     | `JetBrains Mono`   |
+| Property  | Description                       | Example            |
+| --------- | --------------------------------- | ------------------ |
+| `family`  | Body font family                  | `Georgia`          |
+| `size`    | Base font size                    | `12pt`             |
+| `leading` | Line height multiplier            | `1.8`              |
+| `weight`  | `normal` or `bold`                | `normal`           |
+| `heading` | Heading font (defaults to family) | `Playfair Display` |
+| `mono`    | Monospace font for code blocks    | `JetBrains Mono`   |
 
 ### `page:` Properties
 
-| Property      | Description          | Example                     |
-| ------------- | -------------------- | --------------------------- |
-| `size`        | Paper size           | `A4`, `A5`, `Letter`        |
-| `margins`     | All margins (uniform)| `20mm`                      |
-| `header`      | Running header text  | `{{company.name}}`          |
-| `footer`      | Running footer text  | `Page {{page}} of {{pages}}`|
-| `orientation` | Page orientation     | `portrait`, `landscape`     |
-| `numbering`   | Page number style    | `arabic`, `roman`           |
+| Property      | Description           | Example                      |
+| ------------- | --------------------- | ---------------------------- |
+| `size`        | Paper size            | `A4`, `A5`, `Letter`         |
+| `margins`     | All margins (uniform) | `20mm`                       |
+| `header`      | Running header text   | `{{company.name}}`           |
+| `footer`      | Running footer text   | `Page {{page}} of {{pages}}` |
+| `orientation` | Page orientation      | `portrait`, `landscape`      |
+| `columns`     | Number of columns     | `1`, `2`, `3`                |
+| `numbering`   | Page number style     | `arabic`, `roman`            |
 
 ---
 
@@ -218,8 +220,18 @@ tip: Payment due by {{invoice.due_date}}. Late payments subject to {{payment.lat
     "notes": "Thank you for your business."
   },
   "items": [
-    { "description": "Consulting — March", "qty": "10", "unit_price": "500", "total": "5,000" },
-    { "description": "Design work",        "qty": "5",  "unit_price": "300", "total": "1,500" }
+    {
+      "description": "Consulting — March",
+      "qty": "10",
+      "unit_price": "500",
+      "total": "5,000"
+    },
+    {
+      "description": "Design work",
+      "qty": "5",
+      "unit_price": "300",
+      "total": "1,500"
+    }
   ],
   "totals": {
     "subtotal": "6,500",
@@ -253,13 +265,13 @@ section: Attendees
 note: {{meeting.attendees}}
 
 section: Agenda
-{{agenda}}
+note: {{agenda}}
 
 section: Key Decisions
-{{decisions}}
+note: {{decisions}}
 
 section: Action Items
-{{tasks}}
+note: {{tasks}}
 
 section: Next Meeting
 note: {{next_meeting.date}} — {{next_meeting.location}}
@@ -315,16 +327,16 @@ section: Highlights
 note: {{highlights}}
 
 section: Completed This Week
-{{completed_tasks}}
+note: {{completed_tasks}}
 
 section: In Progress
-{{in_progress_tasks}}
+note: {{in_progress_tasks}}
 
 section: Blocked
-{{blocked_tasks}}
+note: {{blocked_tasks}}
 
 section: Next Week
-{{next_week_tasks}}
+note: {{next_week_tasks}}
 
 section: Metrics
 | Metric           | This Week        | Last Week        |
