@@ -216,6 +216,8 @@ result: Done           | code: 200
 
 Four lines versus twenty-six. Zero brackets to forget versus fourteen. And when the agent makes a mistake on line three, IntentText still has lines one, two, and four. JSON has nothing.
 
+IntentText is the format agents would have invented for themselves if anyone had asked them.
+
 ---
 
 ## How It Works
