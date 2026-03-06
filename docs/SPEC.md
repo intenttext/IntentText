@@ -1,4 +1,4 @@
-# IntentText (`.it`) v2.7 — Official Specification
+# IntentText (`.it`) v2.8 — Official Specification
 
 > **Status:** Stable · **Version:** 2.7 · **Source of Truth**
 
@@ -614,13 +614,15 @@ result: Invoice {{invoice.number}} | code: 200
 
 ## 11. Reserved Keywords (v1.0)
 
-**Layer 1 — Document Structure (8):** `title` · `summary` · `section` · `sub` · `divider` · `note` · `headers` · `row` · `code` · `end`
+**Layer 1 — Document Identity (9):** `title` · `summary` · `section` · `sub` · `divider` · `note` · `headers` · `row` · `code` · `end` · `track`
 
 **Layer 2 — Human Content (10):** `task` · `done` · `ask` · `quote` · `info` · `warning` · `tip` · `success` · `link` · `image`
 
 **Layer 3 — Agentic Workflow (19):** `step` · `decision` · `parallel` · `loop` · `call` · `gate` · `wait` · `retry` · `error` · `trigger` · `checkpoint` · `handoff` · `audit` · `emit` · `result` · `policy` · `progress` · `import` · `export` · `context`
 
 **Layer 4 — Document Generation (9):** `font` · `page` · `break` · `byline` · `epigraph` · `caption` · `footnote` · `toc` · `dedication`
+
+**Layer 5 — Document Trust (4):** `approve` · `sign` · `freeze` · `revision`
 
 **Alias:** `status` → `emit` (backward compatibility)
 
@@ -641,7 +643,67 @@ Parsers should preserve unknown extension blocks as `body-text` (or optionally e
 
 ---
 
-## 12. Versioning
+## 12. Document Trust
+
+IntentText includes a native trust system for documents that require approval, signing, freezing, and audit trails. This is opt-in — documents without `track:` are completely unaffected.
+
+### 12.1 Activation
+
+Add `track:` after `title:` and `summary:` to activate:
+
+    track: | version: 1.0 | by: Ahmed
+
+### 12.2 The Trust Lifecycle
+
+    draft → tracked → approved → signed → frozen
+
+- **draft** — no `track:` block. Normal editing, no history.
+- **tracked** — `track:` present. Every save records what changed.
+- **approved** — `approve:` blocks present. Process approval recorded.
+- **signed** — `sign:` blocks present. Cryptographic binding to content.
+- **frozen** — `freeze:` block present. Document is immutable.
+
+### 12.3 The History Boundary
+
+A `---` divider followed by `// history` marks the system metadata section. Everything below this boundary is CLI-owned. Renderers ignore it. Editors hide it. Parsers skip it for block output.
+
+### 12.4 New Keywords
+
+**`track:`** — Activates history tracking. Properties: `version`, `by`.
+
+**`approve:`** — Workflow approval stamp. Properties: `by`, `role`, `at`, `ref`.
+
+**`sign:`** — Cryptographic signature. Content is the signer name. Properties: `role`, `at`, `hash`.
+
+**`freeze:`** — Seals the document. Properties: `at`, `hash`, `status`.
+
+**`revision:`** — System-generated change record in the history section. Properties: `version`, `at`, `by`, `change`, `id`, `block`, `section`, `was`, `now`.
+
+### 12.5 CLI Commands
+
+    intenttext seal <file>    — sign and freeze a document
+    intenttext verify <file>  — verify document integrity
+    intenttext history <file> — display change history
+
+### 12.6 History Section Format
+
+Below the history boundary:
+
+```
+---
+// history
+
+// registry
+b-1a2 | title | root | service agreement
+b-3c4 | note | Payment | net 30 days from invoice
+
+// revisions
+revision: | version: 1.1 | at: 2026-03-03T09:00:00Z | by: Sarah | change: added | id: b-5e6 | block: note | section: Scope | now: Consulting included
+```
+
+---
+
+## 13. Versioning
 
 | Version  | Status    | Notes                                                                                                         |
 | -------- | --------- | ------------------------------------------------------------------------------------------------------------- |
@@ -654,6 +716,7 @@ Parsers should preserve unknown extension blocks as `body-text` (or optionally e
 | **v2.5** | ✅ Stable | Document Generation Engine: layout blocks, writer blocks, template merge, print                               |
 | **v2.6** | ✅ Stable | Production API: parseIntentTextSafe, documentToSource, validateDocumentSemantic, queryDocument, diffDocuments |
 | **v2.7** | ✅ Stable | `policy:` keyword — standing behavioural rules for AI agents                                                  |
+| **v2.8** | ✅ Stable | Document Trust: `track`, `approve`, `sign`, `freeze`, `revision` — seal, verify, change history               |
 
 ### 12.1 Implemented Features (v1.0 – v1.3)
 

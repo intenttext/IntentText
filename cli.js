@@ -12,6 +12,9 @@ const {
   validateDocument,
   formatValidationResult,
   PREDEFINED_SCHEMAS,
+  sealDocument,
+  verifyDocument,
+  computeDocumentHash,
 } = require("./packages/core/dist");
 const fs = require("fs");
 const path = require("path");
@@ -21,7 +24,7 @@ function main() {
 
   if (args.length === 0) {
     console.log(`
-🚀 IntentText CLI v2.1
+🚀 IntentText CLI v2.8
 
 Usage:
   node cli.js <file.it>                     Parse and show JSON
@@ -38,6 +41,14 @@ Template / Document Generation:
   node cli.js <file.it> --data data.json --html        Merge and render HTML
   node cli.js <file.it> --data data.json --print       Merge and render print HTML
   node cli.js <file.it> --data data.json --pdf         Merge and save as PDF (requires puppeteer)
+
+Document Trust (v2.8):
+  node cli.js seal <file.it> --signer "Name" --role "Role"   Seal document
+  node cli.js verify <file.it>                                 Verify integrity
+  node cli.js history <file.it>                                Show history
+  node cli.js history <file.it> --json                         History as JSON
+  node cli.js history <file.it> --by "Ahmed"                   Filter by author
+  node cli.js history <file.it> --section "Scope"              Filter by section
 
 Query examples:
   node cli.js todo.it --query "type=task owner=Ahmed"
@@ -59,6 +70,158 @@ Examples:
   }
 
   const inputFile = args[0];
+
+  // v2.8: Trust commands (seal, verify, history)
+  if (
+    inputFile === "seal" ||
+    inputFile === "verify" ||
+    inputFile === "history"
+  ) {
+    const trustCommand = inputFile;
+    const targetFile = args[1];
+
+    if (!targetFile) {
+      console.error(`❌ Missing file argument for ${trustCommand} command`);
+      process.exit(1);
+    }
+
+    if (!fs.existsSync(targetFile)) {
+      console.error(`❌ File not found: ${targetFile}`);
+      process.exit(1);
+    }
+
+    const source = fs.readFileSync(targetFile, "utf-8");
+
+    if (trustCommand === "seal") {
+      const signerIdx = args.indexOf("--signer");
+      const signer = signerIdx >= 0 ? args[signerIdx + 1] : null;
+      const roleIdx = args.indexOf("--role");
+      const role = roleIdx >= 0 ? args[roleIdx + 1] : undefined;
+      const skipSign = args.includes("--no-sign");
+
+      if (!signer && !skipSign) {
+        console.error(
+          "❌ --signer is required for seal command (or use --no-sign)",
+        );
+        process.exit(1);
+      }
+
+      const result = sealDocument(source, {
+        signer: signer || "",
+        role,
+        skipSign,
+      });
+
+      if (result.success) {
+        fs.writeFileSync(targetFile, result.source);
+        console.log("✅  Document sealed");
+        if (signer)
+          console.log(`    Signer:   ${signer}${role ? ` (${role})` : ""}`);
+        console.log(`    Hash:     ${result.hash}`);
+        console.log(`    Frozen:   ${result.at}`);
+      } else {
+        console.error(`❌ Seal failed: ${result.error}`);
+        process.exit(1);
+      }
+      return;
+    }
+
+    if (trustCommand === "verify") {
+      const result = verifyDocument(source);
+
+      if (!result.frozen) {
+        console.log("⚠️  Document is not sealed. No freeze: block found.");
+        return;
+      }
+
+      if (result.intact) {
+        console.log("✅  Document intact");
+        console.log(`    Sealed:   ${result.frozenAt}`);
+        if (result.signers && result.signers.length > 0) {
+          console.log(
+            "    Signers:  " +
+              result.signers
+                .map(
+                  (s) =>
+                    `${s.signer}${s.role ? ` (${s.role})` : ""} ${s.valid ? "✅" : "❌"}`,
+                )
+                .join("\n              "),
+          );
+        }
+        console.log(`    Hash:     ${result.hash} ✅ matches`);
+      } else {
+        console.log("❌  Document has been modified since sealing");
+        console.log(`    Sealed:   ${result.frozenAt}`);
+        console.log(`    Expected: ${result.expectedHash}`);
+        console.log(`    Current:  ${result.hash}`);
+        if (result.signers && result.signers.length > 0) {
+          console.log(
+            "    Signers:  " +
+              result.signers
+                .map(
+                  (s) =>
+                    `${s.signer}${s.role ? ` (${s.role})` : ""} ${s.valid ? "✅" : "❌ signature invalid"}`,
+                )
+                .join("\n              "),
+          );
+        }
+        process.exit(1);
+      }
+      return;
+    }
+
+    if (trustCommand === "history") {
+      const doc = parseIntentText(source, { includeHistorySection: true });
+      const jsonMode = args.includes("--json");
+      const byFilter =
+        args.indexOf("--by") >= 0 ? args[args.indexOf("--by") + 1] : null;
+      const sectionFilter =
+        args.indexOf("--section") >= 0
+          ? args[args.indexOf("--section") + 1]
+          : null;
+      const blockFilter =
+        args.indexOf("--block") >= 0 ? args[args.indexOf("--block") + 1] : null;
+
+      if (!doc.history || doc.history.revisions.length === 0) {
+        console.log("No history found. Document may not be tracked.");
+        return;
+      }
+
+      let revisions = doc.history.revisions;
+      if (byFilter) revisions = revisions.filter((r) => r.by === byFilter);
+      if (sectionFilter)
+        revisions = revisions.filter((r) => r.section === sectionFilter);
+      if (blockFilter)
+        revisions = revisions.filter((r) => r.id === blockFilter);
+
+      if (jsonMode) {
+        console.log(
+          JSON.stringify(
+            { revisions, registry: doc.history.registry },
+            null,
+            2,
+          ),
+        );
+      } else {
+        for (const r of revisions) {
+          const date = r.at ? r.at.slice(0, 10) : "";
+          const detail =
+            r.change === "modified"
+              ? `"${(r.was || "").slice(0, 30)}" → "${(r.now || "").slice(0, 30)}"`
+              : r.change === "added"
+                ? (r.now || "").slice(0, 50)
+                : r.change === "removed"
+                  ? (r.was || "").slice(0, 50)
+                  : `${r.wasSection || ""} → ${r.nowSection || ""}`;
+          console.log(
+            `  ${r.version.padEnd(5)} ${date}  ${(r.by || "").padEnd(10)} [${r.change.padEnd(8)}] ${(r.block || "").padEnd(10)} ${r.section ? r.section + " › " : ""}${detail}`,
+          );
+        }
+      }
+      return;
+    }
+  }
+
   const outputHtml = args.includes("--html");
   const saveFile = args.includes("--output");
   const toIt = args.includes("--to-it");

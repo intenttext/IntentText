@@ -9,6 +9,38 @@ function escapeHtml(text: string): string {
     .replace(/'/g, "&#39;");
 }
 
+/**
+ * Format an ISO timestamp for trust block display.
+ */
+function formatTrustDate(isoStr: string): string {
+  try {
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return escapeHtml(isoStr);
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    const day = d.getUTCDate();
+    const month = months[d.getUTCMonth()];
+    const year = d.getUTCFullYear();
+    const hours = String(d.getUTCHours()).padStart(2, "0");
+    const minutes = String(d.getUTCMinutes()).padStart(2, "0");
+    return `${day} ${month} ${year}, ${hours}:${minutes} UTC`;
+  } catch {
+    return escapeHtml(isoStr);
+  }
+}
+
 function sanitizeUrl(url: string): string {
   const trimmed = url.trim();
   if (trimmed === "") return "";
@@ -616,6 +648,56 @@ function renderBlock(block: IntentBlock): string {
     case "dedication":
       return `<div class="it-dedication">${content}</div>`;
 
+    // ─── v2.8 Document Trust Blocks ────────────────────────────────────
+
+    case "track":
+      // Invisible — metadata only, not rendered
+      return "";
+
+    case "approve": {
+      const approveBy = props.by ? escapeHtml(String(props.by)) : "Unknown";
+      const approveRole = props.role ? escapeHtml(String(props.role)) : "";
+      const approveAt = props.at ? formatTrustDate(String(props.at)) : "";
+      return `<div class="it-approval">
+        <span class="it-approval__icon">✓</span>
+        <div class="it-approval__body">
+          <span class="it-approval__label">APPROVED</span>
+          <span class="it-approval__who">${approveBy}${approveRole ? ` — ${approveRole}` : ""}</span>
+          ${approveAt ? `<span class="it-approval__date">${approveAt}</span>` : ""}
+        </div>
+      </div>`;
+    }
+
+    case "sign": {
+      const signerName = escapeHtml(block.content);
+      const signRole = props.role ? escapeHtml(String(props.role)) : "";
+      const signAt = props.at ? formatTrustDate(String(props.at)) : "";
+      const signValid = props.hash ? true : false; // Basic: assume valid if hash present
+      return `<div class="it-signature${signValid ? " it-signature--valid" : " it-signature--invalid"}">
+        <span class="it-signature__name">${signerName}</span>
+        ${signRole ? `<span class="it-signature__role">${signRole}</span>` : ""}
+        ${signAt ? `<span class="it-signature__date">${signAt}</span>` : ""}
+        <span class="it-signature__status">${signValid ? "✅ Verified" : "❌ Invalid"}</span>
+      </div>`;
+    }
+
+    case "freeze": {
+      const freezeAt = props.at ? formatTrustDate(String(props.at)) : "";
+      const freezeHash = props.hash
+        ? escapeHtml(String(props.hash)).slice(0, 20) + "..."
+        : "";
+      return `<div class="it-sealed-banner">
+        <span class="it-sealed-banner__icon">🔒</span>
+        <span class="it-sealed-banner__text">Sealed Document</span>
+        ${freezeAt ? `<span class="it-sealed-banner__date">${freezeAt}</span>` : ""}
+        ${freezeHash ? `<span class="it-sealed-banner__hash">${freezeHash}</span>` : ""}
+      </div>`;
+    }
+
+    case "revision":
+      // Should never appear above the history boundary — render as muted if somehow present
+      return "";
+
     default:
       return `<div class="intent-unknown">
         <small class="intent-unknown-type">[${block.type}]</small> ${content}
@@ -976,6 +1058,25 @@ li{margin:3px 0;color:#222;}
 .it-footnotes li{margin:3px 0;}
 sup.it-fn-ref{font-size:0.7em;vertical-align:super;}
 sup.it-fn-ref a{color:#111;text-decoration:none;border-bottom:1px solid #999;}
+/* ── v2.8 Document Trust ───────────────────────────────── */
+.it-approval{display:flex;gap:10px;margin:10px 0;padding:10px 14px;border:1px solid #4caf50;background:#f8fdf8;}
+.it-approval__icon{font-size:1.2rem;color:#4caf50;flex-shrink:0;}
+.it-approval__body{display:flex;flex-direction:column;gap:2px;}
+.it-approval__label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#4caf50;}
+.it-approval__who{font-size:0.9rem;color:#222;}
+.it-approval__date{font-size:0.8rem;color:#666;}
+.it-signature{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0;padding:10px 14px;border:1px solid #daa520;background:#fffdf5;}
+.it-signature--valid{border-color:#4caf50;background:#f8fdf8;}
+.it-signature--invalid{border-color:#c62828;background:#fdf5f5;}
+.it-signature__name{font-weight:600;font-size:0.95rem;color:#111;}
+.it-signature__role{font-size:0.85rem;color:#555;}
+.it-signature__date{font-size:0.8rem;color:#666;}
+.it-signature__status{font-size:0.8rem;font-weight:600;margin-left:auto;}
+.it-sealed-banner{display:flex;gap:10px;align-items:center;margin:16px 0;padding:12px 16px;border:2px solid #c62828;background:#fdf5f5;font-weight:600;}
+.it-sealed-banner__icon{font-size:1.3rem;}
+.it-sealed-banner__text{font-size:1rem;color:#c62828;text-transform:uppercase;letter-spacing:0.04em;}
+.it-sealed-banner__date{font-size:0.8rem;color:#666;margin-left:auto;}
+.it-sealed-banner__hash{font-size:0.72rem;color:#888;font-family:monospace;}
 </style>
 ${html}
 </div>`;

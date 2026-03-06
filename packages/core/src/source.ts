@@ -37,6 +37,11 @@ const PROPERTY_ORDER: Record<string, string[]> = {
   quote: ["by"],
   font: ["size", "family", "weight", "color"],
   page: ["size", "margin", "orientation"],
+  // v2.8 trust keywords
+  sign: ["role", "at", "hash"],
+  approve: ["by", "role", "at", "ref"],
+  freeze: ["at", "hash", "status"],
+  track: ["version", "by"],
 };
 
 /** Properties that are internal / default-valued and should be skipped. */

@@ -33,6 +33,28 @@ export { diffDocuments } from "./diff";
 export type { DocumentDiff, BlockModification } from "./diff";
 export { extractWorkflow } from "./workflow";
 export type { WorkflowStep, WorkflowGraph } from "./workflow";
+// v2.8 trust and history
+export {
+  computeDocumentHash,
+  findHistoryBoundaryInSource,
+  sealDocument,
+  verifyDocument,
+  generateBlockId,
+  blockFingerprint,
+  matchBlocksToRegistry,
+  computeTrustDiff,
+  incrementVersion,
+} from "./trust";
+export type {
+  SealOptions,
+  SealResult,
+  VerifyResult,
+  BlockSnapshot,
+  TrustDiff,
+} from "./trust";
+export { updateHistory, parseHistorySection } from "./history";
+export type { SaveHistoryOptions } from "./history";
+export { detectHistoryBoundary } from "./parser";
 export type {
   IntentBlock,
   IntentDocument,
@@ -52,4 +74,7 @@ export type {
   PropertySchema,
   ValidationResult,
   ValidationError,
+  HistorySection,
+  RegistryEntry,
+  RevisionEntry,
 } from "./types";

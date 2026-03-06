@@ -68,6 +68,12 @@ export const KEYWORDS = [
   "status", // alias → emit (deprecated)
   // v2.7 agentic workflow keywords
   "policy",
+  // v2.8 document trust keywords
+  "track",
+  "approve",
+  "sign",
+  "freeze",
+  "revision",
   // v2.5 document generation keywords
   "font",
   "page",
@@ -134,6 +140,12 @@ export type BlockType =
   | "emit"
   // v2.7 agentic workflow block types
   | "policy"
+  // v2.8 document trust block types
+  | "track"
+  | "approve"
+  | "sign"
+  | "freeze"
+  | "revision"
   // v2.5 document generation block types
   | "font"
   | "page"
@@ -182,6 +194,8 @@ export interface IntentExtension {
 
 export interface ParseOptions {
   extensions?: IntentExtension[];
+  /** v2.8: If true, parse the history section below the boundary and attach to document.history. Default: false. */
+  includeHistorySection?: boolean;
 }
 
 export interface Diagnostic {
@@ -230,6 +244,26 @@ export interface IntentDocumentMetadata {
   context?: Record<string, string>;
   /** Document version string. */
   version?: string;
+  /** v2.8: Document tracking state, populated from track: block. */
+  tracking?: {
+    version: string;
+    by: string;
+    active: boolean;
+  };
+  /** v2.8: Cryptographic signatures from sign: blocks. */
+  signatures?: Array<{
+    signer: string;
+    role?: string;
+    at: string;
+    hash: string;
+    valid?: boolean;
+  }>;
+  /** v2.8: Freeze (seal) state from freeze: block. */
+  freeze?: {
+    at: string;
+    hash: string;
+    status: "locked";
+  };
 }
 
 export interface IntentDocument {
@@ -237,6 +271,37 @@ export interface IntentDocument {
   blocks: IntentBlock[];
   metadata?: IntentDocumentMetadata;
   diagnostics?: Diagnostic[];
+  /** v2.8: History section data, only populated when includeHistorySection is true. */
+  history?: HistorySection;
+}
+
+/** v2.8: Parsed history section below the history boundary. */
+export interface HistorySection {
+  registry: RegistryEntry[];
+  revisions: RevisionEntry[];
+  raw: string;
+}
+
+export interface RegistryEntry {
+  id: string;
+  blockType: string;
+  section: string;
+  fingerprint: string;
+  dead?: boolean;
+}
+
+export interface RevisionEntry {
+  version: string;
+  at: string;
+  by: string;
+  change: "added" | "removed" | "modified" | "moved";
+  id: string;
+  block: string;
+  section?: string;
+  was?: string;
+  now?: string;
+  wasSection?: string;
+  nowSection?: string;
 }
 
 // Query types

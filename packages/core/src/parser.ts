@@ -8,6 +8,9 @@ import {
   ParseOptions,
   IntentExtension,
   KEYWORDS,
+  HistorySection,
+  RegistryEntry,
+  RevisionEntry,
 } from "./types";
 
 // Fast sequential ID generator — deterministic and allocation-free vs uuid
@@ -91,6 +94,87 @@ const DOCGEN_WRITER_TYPES = new Set<string>([
 // v2 metadata-only keywords: when these appear before any section block,
 // they populate document metadata instead of emitting a block.
 const METADATA_KEYWORDS = new Set<string>(["agent", "model"]);
+
+// v2.8 trust keywords
+const TRUST_KEYWORDS = new Set<string>(["approve", "sign", "freeze"]);
+
+// v2.8 document identity keywords (track joins title, summary)
+const DOCUMENT_IDENTITY_KEYWORDS = new Set<string>([
+  "title",
+  "summary",
+  "track",
+]);
+
+// v2.8 history keywords — below boundary only, parser skips for block output
+const HISTORY_KEYWORDS = new Set<string>(["revision"]);
+
+/**
+ * Detect the history boundary in an array of lines.
+ * Returns the line index of the '---' divider that starts the history section, or -1 if not found.
+ */
+export function detectHistoryBoundary(lines: string[]): number {
+  for (let i = 0; i < lines.length - 1; i++) {
+    if (lines[i].trim() === "---") {
+      const next = lines[i + 1]?.trim();
+      if (next === "// history" || next?.startsWith("// history")) {
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+
+/**
+ * Parse the raw history section text into structured data.
+ */
+function parseHistorySectionText(raw: string): HistorySection {
+  const lines = raw.split("\n");
+  const registry: RegistryEntry[] = [];
+  const revisions: RevisionEntry[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("//")) continue;
+
+    if (trimmed.startsWith("revision:")) {
+      const content = trimmed.replace(/^revision:\s*\|?\s*/, "");
+      const props: Record<string, string> = {};
+      const segments = content.split(" | ");
+      for (const seg of segments) {
+        const colonIdx = seg.indexOf(":");
+        if (colonIdx > -1) {
+          props[seg.slice(0, colonIdx).trim()] = seg.slice(colonIdx + 1).trim();
+        }
+      }
+      revisions.push({
+        version: props.version || "",
+        at: props.at || "",
+        by: props.by || "",
+        change: (props.change || "added") as RevisionEntry["change"],
+        id: props.id || "",
+        block: props.block || "",
+        section: props.section,
+        was: props.was,
+        now: props.now,
+        wasSection: props["was-section"],
+        nowSection: props["now-section"],
+      });
+    } else if (/^[a-z0-9]{5}\s*\|/.test(trimmed)) {
+      const parts = trimmed.split("|").map((p) => p.trim());
+      if (parts.length >= 4) {
+        registry.push({
+          id: parts[0],
+          blockType: parts[1],
+          section: parts[2],
+          fingerprint: parts[3],
+          dead: parts[4] === "dead" || undefined,
+        });
+      }
+    }
+  }
+
+  return { registry, revisions, raw };
+}
 
 /**
  * Parse context key=value pairs from raw content.
@@ -918,6 +1002,28 @@ export function parseIntentText(
   let codeContent: string[] = [];
   let codeStartLine = 0;
 
+  // v2.8: Detect history boundary and split lines
+  const historyBoundaryIdx = detectHistoryBoundary(lines);
+  const parseLines =
+    historyBoundaryIdx === -1 ? lines : lines.slice(0, historyBoundaryIdx);
+  let historySection: HistorySection | undefined;
+  if (options?.includeHistorySection && historyBoundaryIdx !== -1) {
+    const historyRaw = lines.slice(historyBoundaryIdx).join("\n");
+    historySection = parseHistorySectionText(historyRaw);
+  }
+
+  // v2.8: trust metadata accumulators
+  const signatureBlocks: Array<{
+    signer: string;
+    role?: string;
+    at: string;
+    hash: string;
+  }> = [];
+  let trackingMeta:
+    | { version: string; by: string; active: boolean }
+    | undefined;
+  let freezeMeta: { at: string; hash: string; status: "locked" } | undefined;
+
   // v2: auto-ID counter for step blocks without explicit id
   let stepAutoIdCounter = 0;
   // v2: track whether we've seen a section block yet (for metadata detection)
@@ -1014,8 +1120,8 @@ export function parseIntentText(
     pendingTable = null;
   }
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  for (let i = 0; i < parseLines.length; i++) {
+    const line = parseLines[i];
     const trimmed = line.trim();
 
     // Handle multi-line code blocks (both keyword and fence modes)
@@ -1232,6 +1338,42 @@ export function parseIntentText(
       // Still emit the context block for rendering
     }
 
+    // v2.8: track: block populates tracking metadata
+    if (block.type === ("track" as BlockType)) {
+      trackingMeta = {
+        version: block.properties?.version
+          ? String(block.properties.version)
+          : "1.0",
+        by: block.properties?.by ? String(block.properties.by) : "",
+        active: true,
+      };
+      // Don't emit track: as a visible block — it's metadata
+      continue;
+    }
+
+    // v2.8: sign: block populates signatures metadata
+    if (block.type === ("sign" as BlockType)) {
+      signatureBlocks.push({
+        signer: block.content,
+        role: block.properties?.role
+          ? String(block.properties.role)
+          : undefined,
+        at: block.properties?.at ? String(block.properties.at) : "",
+        hash: block.properties?.hash ? String(block.properties.hash) : "",
+      });
+      // Still emit sign: as a block for rendering
+    }
+
+    // v2.8: freeze: block populates freeze metadata
+    if (block.type === ("freeze" as BlockType)) {
+      freezeMeta = {
+        at: block.properties?.at ? String(block.properties.at) : "",
+        hash: block.properties?.hash ? String(block.properties.hash) : "",
+        status: "locked",
+      };
+      // Still emit freeze: as a block for rendering
+    }
+
     // v2: auto-ID for step blocks
     if (block.type === "step") {
       stepAutoIdCounter++;
@@ -1339,6 +1481,11 @@ export function parseIntentText(
   const hasDocgenContent = allBlocks.some(
     (b) => DOCGEN_LAYOUT_TYPES.has(b.type) || DOCGEN_WRITER_TYPES.has(b.type),
   );
+  const hasTrustContent =
+    trackingMeta != null ||
+    signatureBlocks.length > 0 ||
+    freezeMeta != null ||
+    allBlocks.some((b) => TRUST_KEYWORDS.has(b.type));
   const hasV22Content = allBlocks.some((b) => V22_BLOCK_TYPES.has(b.type));
   const hasV21Content = allBlocks.some((b) => V21_BLOCK_TYPES.has(b.type));
   const hasAgenticContent =
@@ -1356,21 +1503,27 @@ export function parseIntentText(
     ...(agenticMetadata.context != null && {
       context: agenticMetadata.context,
     }),
+    ...(trackingMeta != null && { tracking: trackingMeta }),
+    ...(signatureBlocks.length > 0 && { signatures: signatureBlocks }),
+    ...(freezeMeta != null && { freeze: freezeMeta }),
   };
 
   const document: IntentDocument = {
-    version: hasDocgenContent
-      ? "2.5"
-      : hasV22Content
-        ? "2.2"
-        : hasV21Content
-          ? "2.1"
-          : hasAgenticContent
-            ? "2.0"
-            : "1.4",
+    version: hasTrustContent
+      ? "2.8"
+      : hasDocgenContent
+        ? "2.5"
+        : hasV22Content
+          ? "2.2"
+          : hasV21Content
+            ? "2.1"
+            : hasAgenticContent
+              ? "2.0"
+              : "1.4",
     blocks,
     metadata,
     diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
+    ...(historySection != null && { history: historySection }),
   };
 
   // Extension validations

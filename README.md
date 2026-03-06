@@ -220,6 +220,30 @@ IntentText is the format agents would have invented for themselves if anyone had
 
 ---
 
+## Document Trust — Sign, Freeze, Verify
+
+IntentText documents can become legal records. Opt in with one line:
+
+    track: | version: 1.0 | by: Ahmed
+
+From that point, every save records exactly what changed, who changed it, and when. When the document is ready to seal:
+
+    intenttext seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
+
+This appends a cryptographic signature and locks the document:
+
+    sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a3f8...
+    freeze: | at: 2026-03-06T15:14:00Z | hash: sha256:a3f8... | status: locked
+
+Anyone can verify it:
+
+    intenttext verify contract.it
+    ✅  Document intact. Sealed 2026-03-06. Signers: Ahmed Al-Rashid (CEO).
+
+The document carries its own audit trail. No database. No external system. The `.it` file is the source of truth.
+
+---
+
 ## How It Works
 
 Every `.it` file is a sequence of typed blocks. Each block is one line: a keyword, content, and optional pipe metadata.
@@ -755,7 +779,7 @@ npm run preview              # Live editor in browser
 
 **Keep the format dumb. Make the runtime smart.** IntentText expresses intent — what a document contains and means. How that intent is executed, stored, or rendered is the runtime's job. The format stays simple so a developer can understand the entire specification in an hour.
 
-**Every keyword earns its place.** A keyword is only added if it expresses something that genuinely cannot be expressed as a property on an existing block, and cannot be handled by the runtime without appearing in the document itself. The current set is final at 37 keywords.
+**Every keyword earns its place.** A keyword is only added if it expresses something that genuinely cannot be expressed as a property on an existing block, and cannot be handled by the runtime without appearing in the document itself. The current set is final at 42 keywords.
 
 **One line, one intent.** Every semantic unit fits on one line.
 The pipe syntax extends a line without breaking it. This makes

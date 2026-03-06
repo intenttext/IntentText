@@ -1,5 +1,6 @@
 import { IntentDocument, IntentBlock } from "./types";
 import { flattenBlocks } from "./utils";
+import { computeDocumentHash, findHistoryBoundaryInSource } from "./trust";
 
 export interface SemanticIssue {
   blockId: string;
@@ -277,6 +278,39 @@ export function validateDocumentSemantic(
 
     // Check for unresolved {{variables}} in content and property values
     checkUnresolvedVars(block, declaredVars, issues);
+
+    // v2.8: approve: without by
+    if (block.type === "approve" && !block.properties?.by) {
+      issues.push({
+        blockId: block.id,
+        blockType: block.type,
+        type: "error",
+        code: "APPROVE_NO_BY",
+        message: "approve block has no 'by' property",
+      });
+    }
+
+    // v2.8: sign: without hash
+    if (block.type === "sign" && !block.properties?.hash) {
+      issues.push({
+        blockId: block.id,
+        blockType: block.type,
+        type: "error",
+        code: "SIGN_NO_HASH",
+        message: "sign block has no 'hash' property",
+      });
+    }
+
+    // v2.8: sign: without at
+    if (block.type === "sign" && !block.properties?.at) {
+      issues.push({
+        blockId: block.id,
+        blockType: block.type,
+        type: "error",
+        code: "SIGN_NO_AT",
+        message: "sign block has no 'at' property",
+      });
+    }
   }
 
   // Check last section emptiness
@@ -288,6 +322,90 @@ export function validateDocumentSemantic(
       code: "EMPTY_SECTION",
       message: `Section "${lastSection.content}" is empty`,
     });
+  }
+
+  // v2.8: freeze: must be the last block before history boundary
+  const freezeBlocks = allBlocks.filter((b) => b.type === "freeze");
+  if (freezeBlocks.length > 1) {
+    issues.push({
+      blockId: freezeBlocks[1].id,
+      blockType: "freeze",
+      type: "error",
+      code: "MULTIPLE_FREEZE",
+      message: "More than one freeze: block found — only one is allowed",
+    });
+  }
+  if (freezeBlocks.length === 1) {
+    const freezeIdx = allBlocks.indexOf(freezeBlocks[0]);
+    const blocksAfterFreeze = allBlocks.slice(freezeIdx + 1);
+    if (blocksAfterFreeze.length > 0) {
+      issues.push({
+        blockId: freezeBlocks[0].id,
+        blockType: "freeze",
+        type: "error",
+        code: "FREEZE_NOT_LAST",
+        message:
+          "freeze: block is not the last block before the history boundary",
+      });
+    }
+  }
+
+  // v2.8: track: without version
+  if (doc.metadata?.tracking && !doc.metadata.tracking.version) {
+    issues.push({
+      blockId: "",
+      blockType: "track",
+      type: "error",
+      code: "TRACK_NO_VERSION",
+      message: "track block has no 'version' property",
+    });
+  }
+
+  // v2.8: track: without title warning
+  if (doc.metadata?.tracking && !allBlocks.some((b) => b.type === "title")) {
+    issues.push({
+      blockId: "",
+      blockType: "track",
+      type: "warning",
+      code: "TRACK_WITHOUT_TITLE",
+      message:
+        "Document has track: but no title: — tracked documents should have a title",
+    });
+  }
+
+  // v2.8: freeze: without any sign: blocks
+  if (freezeBlocks.length > 0 && !allBlocks.some((b) => b.type === "sign")) {
+    issues.push({
+      blockId: freezeBlocks[0].id,
+      blockType: "freeze",
+      type: "warning",
+      code: "FREEZE_UNSIGNED",
+      message:
+        "Document is frozen but has no sign: blocks — consider adding signatures before sealing",
+    });
+  }
+
+  // v2.8: sign: hash doesn't match current document content
+  const signBlocks = allBlocks.filter((b) => b.type === "sign");
+  if (signBlocks.length > 0 && doc.metadata?.signatures) {
+    for (let si = 0; si < signBlocks.length; si++) {
+      const signBlock = signBlocks[si];
+      const hash = signBlock.properties?.hash
+        ? String(signBlock.properties.hash)
+        : "";
+      if (hash && doc.metadata.signatures[si]?.hash) {
+        // We can't fully verify without source, but we can flag if metadata says invalid
+        if (doc.metadata.signatures[si].valid === false) {
+          issues.push({
+            blockId: signBlock.id,
+            blockType: "sign",
+            type: "warning",
+            code: "SIGN_HASH_INVALID",
+            message: `sign: hash does not match current document content — document was edited after signing`,
+          });
+        }
+      }
+    }
   }
 
   // Info: no title
