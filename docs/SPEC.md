@@ -4,67 +4,59 @@
 
 ## What IntentText Is
 
-IntentText is a universal semantic line protocol. Every line declares
-its type, carries its content, and attaches structured properties —
-all on one line, all human readable, all machine deterministic.
+IntentText is a universal semantic line protocol. Every line declares its type,
+carries its content, and attaches structured properties — all on one line,
+human readable, machine deterministic.
 
 **The complete grammar:**
 
 ```
-Line := Type ":" Content ("|" Property)*
+Line     := Type ":" Content ("|" Property)*
 Property := Key ":" Value
+Content  := any text (inline formatting applies)
 ```
 
-**The complete syntax in one example:**
+One pattern. Every block. No exceptions.
+
+**See it in 30 seconds across three domains:**
 
 ```
-// Each line: type, content, properties. Nothing else.
+// AI agent workflow
+agent: customer-support | model: claude-sonnet-4 | id: cs-agent
+policy: Refund window   | if: order_age_days < 30 | action: approve
+policy: Tone            | always: professional    | never: casual
+step: Get customer      | tool: crm.lookup  | input: {{phone}}  | output: customer
+decision: Route intent  | if: {{intent}} == "refund" | then: step-refund | else: step-answer
+gate: Escalate          | approver: support-lead | timeout: 2h
+audit: Resolved         | by: cs-agent | ref: {{customer.id}} | at: {{timestamp}}
+result: Done            | code: 200
+```
 
-title: Q2 Deployment Plan
-summary: Coordinating the June release across three teams.
-
-section: Tasks
-task: Finalize pricing page | owner: Sarah | due: Friday | priority: 1
-task: Record demo video | owner: Ahmed | due: Monday
-done: Legal review complete | time: Tuesday
-
-section: Agent Workflow
-agent: deploy-agent | model: claude-sonnet-4
-
-policy: No weekend deploys | if: day == "saturday" | action: deny
-policy: No weekend deploys | if: day == "sunday" | action: deny
-
-step: Run smoke tests | tool: ci.test | output: testResult
-decision: Tests passed | if: {{testResult.passed}} | then: step-deploy | else: step-rollback
-gate: Approve deployment | approver: ops-lead | timeout: 4h
-step: Deploy production | tool: k8s.deploy | depends: step-2
-audit: Deployed | by: deploy-agent | at: {{timestamp}}
-result: Success | code: 200
-
-section: Notes
+```
+// Writer document
+font: | family: Georgia | size: 12pt | leading: 1.8
+title: *The Weight of Small Things*
+byline: Emad Jumaah | date: March 2026 | publication: Dalil Review
+epigraph: We are shaped by the things we carry. | by: Anonymous
 note: The city had no memory of rain. | align: justify
-quote: Ship it. We can iterate. | by: Ahmed
+quote: To begin is already to be halfway there. | by: Unknown
+footnote: 1 | text: Source: field notes, Doha 2024.
 ```
 
-This single file contains: a task list, an agent definition, standing
-policies, an executable workflow, human approval gates, an audit trail,
-and prose notes. One format. One parser. Zero ambiguity.
+```
+// Business document template
+font: | family: Inter | size: 11pt
+page: | size: A4 | margins: 20mm | footer: Page {{page}} of {{pages}}
+title: Invoice {{invoice.number}}
+note: **{{client.name}}** — {{client.address}}
+| Description             | Qty             | Total              |
+| {{items.0.description}} | {{items.0.qty}} | {{items.0.total}}  |
+note: **Total Due: {{totals.due}} {{invoice.currency}}** | align: right
+```
 
-**What makes this different from every other format:**
-
-|                         | Markdown | YAML | JSON | IntentText |
-| ----------------------- | -------- | ---- | ---- | ---------- |
-| Human writable          | ✅       | ⚠️   | ❌   | ✅         |
-| Machine deterministic   | ❌       | ✅   | ✅   | ✅         |
-| No indentation rules    | ✅       | ❌   | ❌   | ✅         |
-| LLM-friendly generation | ⚠️       | ❌   | ❌   | ✅         |
-| Agent executable        | ❌       | ❌   | ❌   | ✅         |
-| Human-owned policies    | ❌       | ❌   | ❌   | ✅         |
-
-IntentText is not competing with Markdown for notes or with YAML for
-config. It fills the gap that none of them fill: a format where the
-description and the execution are the same document, readable by the
-human who owns it and executable by the agent that runs it.
+Three completely different domains. One syntax. One parser. One format.
+The same `.it` file is readable by a journalist, executable by an AI agent,
+and renderable as a PDF — without conversion, without interpretation.
 
 ---
 
@@ -303,7 +295,25 @@ The `|` symbol appends structured metadata to any keyword line without breaking 
 | `to:`      | `link:`   | Destination URL                  |
 | `title:`   | `link:`   | Accessible link title            |
 
-Properties are open-ended — writers may define custom properties as needed. Parsers must preserve unknown properties without error.
+**Properties are fully open-ended.** Any property key is valid on any block.
+The parser preserves everything it does not recognise — without error,
+without warning, without loss.
+
+```
+// Standard properties
+task: Write introduction | owner: Ahmed | due: Friday
+
+// Custom properties — all valid, all parsed, all queryable
+task: Write introduction | owner: Ahmed | due: Friday | sprint: 14 | effort: 2h | ticket: DEV-204
+quote: Ship it. | by: Ahmed | from: design-review | confidence: high
+step: Send email | tool: email.send | region: MENA | sla: 4h | retry_policy: aggressive
+note: Patient stable. | doctor: Dr. Hassan | ward: ICU | ref: case-2847
+```
+
+The format extends at the point of use, not at the point of definition.
+A journalist adds `source:` and `verified:`. A lawyer adds `clause:` and
+`jurisdiction:`. A developer adds `sprint:` and `effort:`. All valid.
+All stored. All queryable via `queryDocument()`.
 
 ### 6.1 Typed Conventions (Recommended)
 
@@ -455,10 +465,10 @@ task: Database migration | owner: Ahmed | due: Sunday
 
 ## 10. Complete Examples
 
-The same syntax works across entirely different domains. These three
-examples show the full range of IntentText in practice.
+The same syntax works across entirely different domains.
+These three examples show the full range of IntentText in practice.
 
-### 10.1 Agent Definition
+### 10.1 — AI Agent Definition
 
 ```
 agent: customer-support | model: claude-sonnet-4 | id: cs-agent
@@ -495,7 +505,7 @@ emit: support.resolved    | data: {{sent}} | channel: analytics
 result: Resolved          | code: 200
 ```
 
-### 10.2 Writer Document
+### 10.2 — Writer Document
 
 ```
 font: | family: Georgia | size: 12pt | leading: 1.8 | heading: Playfair Display
@@ -547,7 +557,7 @@ section: Acknowledgements
 note: This would not exist without the people who asked the right questions at the right time.
 ```
 
-### 10.3 Business Document with Placeholders
+### 10.3 — Business Document with Placeholders
 
 ```
 font: | family: Inter | size: 11pt | leading: 1.6 | mono: JetBrains Mono
@@ -608,7 +618,7 @@ result: Invoice {{invoice.number}} | code: 200
 
 **Layer 2 — Human Content (10):** `task` · `done` · `ask` · `quote` · `info` · `warning` · `tip` · `success` · `link` · `image`
 
-**Layer 3 — Agentic Workflow (18):** `step` · `decision` · `parallel` · `loop` · `call` · `gate` · `wait` · `retry` · `error` · `trigger` · `checkpoint` · `handoff` · `audit` · `emit` · `result` · `progress` · `import` · `export` · `context`
+**Layer 3 — Agentic Workflow (19):** `step` · `decision` · `parallel` · `loop` · `call` · `gate` · `wait` · `retry` · `error` · `trigger` · `checkpoint` · `handoff` · `audit` · `emit` · `result` · `policy` · `progress` · `import` · `export` · `context`
 
 **Layer 4 — Document Generation (9):** `font` · `page` · `break` · `byline` · `epigraph` · `caption` · `footnote` · `toc` · `dedication`
 
@@ -1176,33 +1186,42 @@ retry: Send email | retries: 5
 }
 ```
 
-### 12.2.1 How an AI Agent Reads an IntentText Document
+### 12.2.1 How an Agent Reads an IntentText Document
 
-When an agent receives a `.it` file via the MCP server or parses it
-directly, it sees a sequence of typed blocks:
+When an agent receives a `.it` file — via the MCP server, direct parse,
+or file query — it sees a flat sequence of typed blocks:
 
 ```javascript
 [
   {
     type: "agent",
     content: "customer-support",
-    properties: { model: "claude-sonnet-4" },
+    properties: { model: "claude-sonnet-4", id: "cs-agent" },
   },
+
   {
     type: "policy",
     content: "Refund window",
     properties: { if: "order_age_days < 30", action: "approve" },
   },
+
   {
     type: "policy",
     content: "Tone",
     properties: { always: "professional", never: "casual" },
   },
+
   {
     type: "step",
     content: "Get customer",
-    properties: { tool: "crm.lookup", input: "{{phone}}", output: "customer" },
+    properties: {
+      tool: "crm.lookup",
+      input: "{{phone}}",
+      output: "customer",
+      id: "step-1",
+    },
   },
+
   {
     type: "decision",
     content: "Route intent",
@@ -1212,25 +1231,36 @@ directly, it sees a sequence of typed blocks:
       else: "step-answer",
     },
   },
+
   {
     type: "gate",
     content: "Escalate",
     properties: { approver: "support-lead", timeout: "2h" },
   },
+
+  {
+    type: "audit",
+    content: "Resolved",
+    properties: { by: "cs-agent", ref: "{{customer.id}}", at: "{{timestamp}}" },
+  },
+
   { type: "result", content: "Done", properties: { code: "200" } },
 ];
 ```
 
-The agent can:
+The agent:
 
-- Query all `policy:` blocks to understand its own behavioural rules
-- Follow `step:` → `decision:` → `gate:` as an execution graph
-- Pause at `gate:` until a human approves
-- Write `audit:` blocks back into the document as execution records
-- Return the modified document with updated `status:` properties
+- Queries all `policy:` blocks to understand its own behavioural rules
+- Follows `step:` → `decision:` → `gate:` as an execution graph
+- Pauses at `gate:` until a human approves
+- Writes `audit:` blocks back into the document as execution records
+- Updates `status:` properties on each block as execution progresses
+- Returns the modified `.it` document as the execution record
 
-The `.it` file is simultaneously the agent's instruction set,
-its execution plan, and its audit trail — all in one human-readable file.
+The `.it` file is simultaneously the agent's instruction set, its
+execution plan, and its audit trail — all in one human-readable file
+that the person who owns the agent can open, read, and edit in any
+text editor.
 
 ### 12.3 Document Generation Engine (v2.5)
 
