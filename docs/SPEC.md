@@ -90,10 +90,10 @@ Every semantic block follows this pattern:
 
 ### 3.1 Document Identity
 
-| Keyword    | Description                        | Example                                     |
-| ---------- | ---------------------------------- | ------------------------------------------- |
-| `title:`   | Unique document identifier / title | `title: *Project Dalil* Launch Plan`        |
-| `summary:` | Short description of the document  | `summary: Finalizing deployment in _Doha_.` |
+| Keyword    | Description                                                   | Example                                                        |
+| ---------- | ------------------------------------------------------------- | -------------------------------------------------------------- |
+| `title:`   | Unique document identifier / title                            | `title: *Project Dalil* Launch Plan`                           |
+| `summary:` | Short description of the document                             | `summary: Finalizing deployment in _Doha_.`                    |
 | `meta:`    | Document metadata — invisible in output, any properties valid | `meta: \| author: Ahmed \| lang: en \| ref: CONTRACT-2026-042` |
 
 > `meta:` is the escape hatch for any document-level information that
@@ -245,35 +245,35 @@ All output always uses canonical keywords.
 **To add an alias in your parser implementation:**
 Add one entry to `src/aliases.ts`. No other files need to change.
 
-| Alias          | Canonical    | Context           |
-|----------------|--------------|-------------------|
-| `text:`        | `note:`      | Writer            |
-| `body:`        | `note:`      | Writer            |
-| `p:`           | `note:`      | HTML familiar     |
-| `paragraph:`   | `note:`      | Writer            |
-| `h1:`          | `title:`     | HTML familiar     |
-| `h2:`          | `section:`   | HTML familiar     |
-| `h3:`          | `sub:`       | HTML familiar     |
-| `heading:`     | `section:`   | Writer            |
-| `subheading:`  | `sub:`       | Writer            |
-| `blockquote:`  | `quote:`     | MD familiar       |
-| `cite:`        | `quote:`     | Writer            |
-| `check:`       | `task:`      | Natural           |
-| `todo:`        | `task:`      | Natural           |
-| `action:`      | `task:`      | Natural           |
-| `item:`        | `task:`      | Natural           |
-| `completed:`   | `done:`      | Natural           |
-| `finished:`    | `done:`      | Natural           |
-| `rule:`        | `policy:`    | Natural           |
-| `constraint:`  | `policy:`    | Formal            |
-| `guard:`       | `policy:`    | Developer         |
-| `requirement:` | `policy:`    | Formal            |
-| `log:`         | `audit:`     | Developer         |
-| `lock:`        | `freeze:`    | Intuitive         |
-| `on:`          | `trigger:`   | Natural           |
-| `run:`         | `step:`      | Developer         |
-| `if:`          | `decision:`  | Natural           |
-| `status:`      | `emit:`      | Backward compat   |
+| Alias          | Canonical   | Context         |
+| -------------- | ----------- | --------------- |
+| `text:`        | `note:`     | Writer          |
+| `body:`        | `note:`     | Writer          |
+| `p:`           | `note:`     | HTML familiar   |
+| `paragraph:`   | `note:`     | Writer          |
+| `h1:`          | `title:`    | HTML familiar   |
+| `h2:`          | `section:`  | HTML familiar   |
+| `h3:`          | `sub:`      | HTML familiar   |
+| `heading:`     | `section:`  | Writer          |
+| `subheading:`  | `sub:`      | Writer          |
+| `blockquote:`  | `quote:`    | MD familiar     |
+| `cite:`        | `quote:`    | Writer          |
+| `check:`       | `task:`     | Natural         |
+| `todo:`        | `task:`     | Natural         |
+| `action:`      | `task:`     | Natural         |
+| `item:`        | `task:`     | Natural         |
+| `completed:`   | `done:`     | Natural         |
+| `finished:`    | `done:`     | Natural         |
+| `rule:`        | `policy:`   | Natural         |
+| `constraint:`  | `policy:`   | Formal          |
+| `guard:`       | `policy:`   | Developer       |
+| `requirement:` | `policy:`   | Formal          |
+| `log:`         | `audit:`    | Developer       |
+| `lock:`        | `freeze:`   | Intuitive       |
+| `on:`          | `trigger:`  | Natural         |
+| `run:`         | `step:`     | Developer       |
+| `if:`          | `decision:` | Natural         |
+| `status:`      | `emit:`     | Backward compat |
 
 Aliases are case-insensitive. `Rule:`, `RULE:`, and `rule:` all resolve
 to `policy:`.
@@ -329,14 +329,14 @@ Intended for black-and-white laser printing.
 
 #### Paper sizes
 
-| Name      | CSS @page size     |
-| --------- | ------------------ |
-| `A4`      | A4                 |
-| `A5`      | A5                 |
-| `A3`      | 297mm 420mm        |
-| `Letter`  | Letter             |
-| `Legal`   | 8.5in 14in         |
-| `custom`  | uses `width:` and `height:` properties |
+| Name     | CSS @page size                         |
+| -------- | -------------------------------------- |
+| `A4`     | A4                                     |
+| `A5`     | A5                                     |
+| `A3`     | 297mm 420mm                            |
+| `Letter` | Letter                                 |
+| `Legal`  | 8.5in 14in                             |
+| `custom` | uses `width:` and `height:` properties |
 
 ---
 
@@ -443,18 +443,18 @@ Style properties apply visual formatting when rendered to HTML or print.
 They are plain pipe properties — the parser stores them like any property.
 The renderer applies them as inline CSS. Unknown style properties are ignored.
 
-| Property    | Effect              | Example                           |
-|-------------|---------------------|-----------------------------------|
-| `color:`    | Text colour         | `note: Warning. \| color: red`    |
-| `size:`     | Font size           | `note: Small. \| size: 0.85em`    |
-| `family:`   | Font family         | `note: Body. \| family: Georgia`  |
-| `weight:`   | Font weight         | `note: Bold. \| weight: bold`     |
-| `align:`    | Text alignment      | `note: Centre. \| align: center`  |
-| `bg:`       | Background colour   | `note: Highlight. \| bg: yellow`  |
-| `indent:`   | Left indent         | `note: Indented. \| indent: 2em`  |
-| `opacity:`  | Opacity             | `note: Faded. \| opacity: 0.5`    |
-| `italic:`   | Italic text         | `note: Aside. \| italic: true`    |
-| `border:`   | Border              | `note: Boxed. \| border: true`    |
+| Property   | Effect            | Example                          |
+| ---------- | ----------------- | -------------------------------- |
+| `color:`   | Text colour       | `note: Warning. \| color: red`   |
+| `size:`    | Font size         | `note: Small. \| size: 0.85em`   |
+| `family:`  | Font family       | `note: Body. \| family: Georgia` |
+| `weight:`  | Font weight       | `note: Bold. \| weight: bold`    |
+| `align:`   | Text alignment    | `note: Centre. \| align: center` |
+| `bg:`      | Background colour | `note: Highlight. \| bg: yellow` |
+| `indent:`  | Left indent       | `note: Indented. \| indent: 2em` |
+| `opacity:` | Opacity           | `note: Faded. \| opacity: 0.5`   |
+| `italic:`  | Italic text       | `note: Aside. \| italic: true`   |
+| `border:`  | Border            | `note: Boxed. \| border: true`   |
 
 Style properties are ignored by parsers that do not support rendering.
 The document is valid regardless of which style properties are present.
@@ -849,20 +849,20 @@ revision: | version: 1.1 | at: 2026-03-03T09:00:00Z | by: Sarah | change: added 
 
 ## 13. Versioning
 
-| Version  | Status    | Notes                                                                                                         |
-| -------- | --------- | ------------------------------------------------------------------------------------------------------------- |
-| **v1.0** | ✅ Stable | Core format                                                                                                   |
-| **v1.3** | ✅ Stable | Query, Schema, Converters, Accessibility                                                                      |
-| **v1.4** | ✅ Stable | Cleanup, fixture accuracy, spec overhaul                                                                      |
-| **v2.0** | ✅ Stable | Agentic workflow blocks, document metadata, interchange format                                                |
-| **v2.3** | ✅ Stable | gate/call/emit, `{{variable}}` interpolation, join/on properties, removed schema                              |
-| **v2.4** | ✅ Stable | Writer-first inline syntax, prose paragraphs, alignment                                                       |
-| **v2.5** | ✅ Stable | Document Generation Engine: layout blocks, writer blocks, template merge, print                               |
-| **v2.6** | ✅ Stable | Production API: parseIntentTextSafe, documentToSource, validateDocumentSemantic, queryDocument, diffDocuments |
-| **v2.7** | ✅ Stable | `policy:` keyword — standing behavioural rules for AI agents                                                  |
-| **v2.8** | ✅ Stable | Document Trust: `track`, `approve`, `sign`, `freeze`, `revision` — seal, verify, change history               |
+| Version    | Status    | Notes                                                                                                         |
+| ---------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| **v1.0**   | ✅ Stable | Core format                                                                                                   |
+| **v1.3**   | ✅ Stable | Query, Schema, Converters, Accessibility                                                                      |
+| **v1.4**   | ✅ Stable | Cleanup, fixture accuracy, spec overhaul                                                                      |
+| **v2.0**   | ✅ Stable | Agentic workflow blocks, document metadata, interchange format                                                |
+| **v2.3**   | ✅ Stable | gate/call/emit, `{{variable}}` interpolation, join/on properties, removed schema                              |
+| **v2.4**   | ✅ Stable | Writer-first inline syntax, prose paragraphs, alignment                                                       |
+| **v2.5**   | ✅ Stable | Document Generation Engine: layout blocks, writer blocks, template merge, print                               |
+| **v2.6**   | ✅ Stable | Production API: parseIntentTextSafe, documentToSource, validateDocumentSemantic, queryDocument, diffDocuments |
+| **v2.7**   | ✅ Stable | `policy:` keyword — standing behavioural rules for AI agents                                                  |
+| **v2.8**   | ✅ Stable | Document Trust: `track`, `approve`, `sign`, `freeze`, `revision` — seal, verify, change history               |
 | **v2.8.1** | ✅ Stable | `meta:` keyword, `each:` dynamic table rows, keyword aliases, known style properties                          |
-| **v2.9** | ✅ Stable | Print Quality: `header:`, `footer:`, `watermark:` keywords, extended `break:`, `print-mode:`, paper sizes    |
+| **v2.9**   | ✅ Stable | Print Quality: `header:`, `footer:`, `watermark:` keywords, extended `break:`, `print-mode:`, paper sizes     |
 
 ### 12.1 Implemented Features (v1.0 – v1.3)
 

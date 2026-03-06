@@ -209,7 +209,11 @@ function expandEachRows(
 
   for (const block of blocks) {
     // Only process table blocks with headers
-    if (block.type !== "table" || !block.table?.headers || block.table.headers.length === 0) {
+    if (
+      block.type !== "table" ||
+      !block.table?.headers ||
+      block.table.headers.length === 0
+    ) {
       // Recurse into children
       if (block.children && block.children.length > 0) {
         result.push({

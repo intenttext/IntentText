@@ -630,35 +630,35 @@ The format extends at the point of use, not at the point of definition.
 
 ### Document Header
 
-| Keyword    | Example                                                  |
-| ---------- | -------------------------------------------------------- |
-| `title:`   | `title: *My Document*`                                   |
-| `summary:` | `summary: A brief description`                           |
+| Keyword    | Example                                                    |
+| ---------- | ---------------------------------------------------------- |
+| `title:`   | `title: *My Document*`                                     |
+| `summary:` | `summary: A brief description`                             |
 | `meta:`    | `meta: \| author: Ahmed \| lang: en \| confidential: true` |
-| `agent:`   | `agent: my-agent \| model: claude-sonnet-4`              |
-| `context:` | `context: \| userId: u_123 \| plan: pro`                 |
-| `font:`    | `font: \| family: Georgia \| size: 12pt \| leading: 1.6` |
-| `page:`    | `page: \| size: A4 \| margins: 20mm \| footer: {{page}}` |
-| `track:`   | `track: \| version: 1.0 \| by: Ahmed`                   |
+| `agent:`   | `agent: my-agent \| model: claude-sonnet-4`                |
+| `context:` | `context: \| userId: u_123 \| plan: pro`                   |
+| `font:`    | `font: \| family: Georgia \| size: 12pt \| leading: 1.6`   |
+| `page:`    | `page: \| size: A4 \| margins: 20mm \| footer: {{page}}`   |
+| `track:`   | `track: \| version: 1.0 \| by: Ahmed`                      |
 
 ### Document Structure
 
-| Keyword    | Example                               |
-| ---------- | ------------------------------------- |
-| `section:` | `section: Action Items`               |
-| `sub:`     | `sub: Sub-section title`              |
-| `toc:`     | `toc: \| depth: 2 \| title: Contents` |
-| `---`      | Horizontal divider                    |
-| `//`       | Comment — ignored by parser           |
+| Keyword    | Example                                  |
+| ---------- | ---------------------------------------- |
+| `section:` | `section: Action Items`                  |
+| `sub:`     | `sub: Sub-section title`                 |
+| `toc:`     | `toc: \| depth: 2 \| title: Contents`    |
+| `---`      | Horizontal divider                       |
+| `//`       | Comment — ignored by parser              |
 | `break:`   | Explicit page break / pagination control |
 
 ### Print Layout (v2.9)
 
-| Keyword      | Example                                                                       |
-| ------------ | ----------------------------------------------------------------------------- |
-| `header:`    | `header: \| left: Acme Corp \| center: CONFIDENTIAL \| right: {{date}}`       |
-| `footer:`    | `footer: \| left: Ref-001 \| center: Page {{page}} of {{pages}}`              |
-| `watermark:` | `watermark: CONFIDENTIAL \| color: #ff000020 \| angle: -45 \| size: 72pt`    |
+| Keyword      | Example                                                                   |
+| ------------ | ------------------------------------------------------------------------- |
+| `header:`    | `header: \| left: Acme Corp \| center: CONFIDENTIAL \| right: {{date}}`   |
+| `footer:`    | `footer: \| left: Ref-001 \| center: Page {{page}} of {{pages}}`          |
+| `watermark:` | `watermark: CONFIDENTIAL \| color: #ff000020 \| angle: -45 \| size: 72pt` |
 
 ### Writer Blocks
 

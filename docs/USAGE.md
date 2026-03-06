@@ -901,7 +901,11 @@ IntentText v2.9 adds professional print layout for contracts, invoices,
 and reports.
 
 ```javascript
-import { parseIntentText, renderPrint, collectPrintLayout } from "@intenttext/core";
+import {
+  parseIntentText,
+  renderPrint,
+  collectPrintLayout,
+} from "@intenttext/core";
 
 const doc = parseIntentText(`
 page: | size: A4 | margins: 25mm | print-mode: full
@@ -921,7 +925,7 @@ const html = renderPrint(doc);
 // Inspect layout
 const layout = collectPrintLayout(doc);
 console.log(layout.header?.properties?.left); // "Acme Corp"
-console.log(layout.watermark?.content);       // "CONFIDENTIAL"
+console.log(layout.watermark?.content); // "CONFIDENTIAL"
 ```
 
 ### Paper sizes

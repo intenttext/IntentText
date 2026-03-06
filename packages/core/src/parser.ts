@@ -80,7 +80,14 @@ const V21_BLOCK_TYPES = new Set<string>([
 const V22_BLOCK_TYPES = new Set<string>(["gate", "call", "emit"]);
 
 // v2.5 document generation layout block types
-const DOCGEN_LAYOUT_TYPES = new Set<string>(["font", "page", "break", "header", "footer", "watermark"]);
+const DOCGEN_LAYOUT_TYPES = new Set<string>([
+  "font",
+  "page",
+  "break",
+  "header",
+  "footer",
+  "watermark",
+]);
 
 // v2.5 document generation writer block types
 const DOCGEN_WRITER_TYPES = new Set<string>([
@@ -736,7 +743,8 @@ function parseLine(
 
     // Apply keyword aliases: first external ALIASES, then legacy KEYWORD_ALIASES
     const aliasResolved = ALIASES[keyword] ?? keyword;
-    const resolvedType = (KEYWORD_ALIASES[aliasResolved] ?? aliasResolved) as BlockType;
+    const resolvedType = (KEYWORD_ALIASES[aliasResolved] ??
+      aliasResolved) as BlockType;
 
     // done: always carries status: "done" on the normalized task block
     // Also applies to aliases that resolve to "done" (e.g. completed:, finished:)

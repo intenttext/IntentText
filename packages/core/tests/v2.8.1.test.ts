@@ -333,8 +333,12 @@ describe("alias system", () => {
   });
 
   it("lock: parses identically to freeze:", () => {
-    const docAlias = parseIntentText("lock: | at: 2026-01-01 | hash: sha256:abc123");
-    const docCanonical = parseIntentText("freeze: | at: 2026-01-01 | hash: sha256:abc123");
+    const docAlias = parseIntentText(
+      "lock: | at: 2026-01-01 | hash: sha256:abc123",
+    );
+    const docCanonical = parseIntentText(
+      "freeze: | at: 2026-01-01 | hash: sha256:abc123",
+    );
     expect(docAlias.blocks[0].type).toBe("freeze");
     expect(docAlias.blocks[0].properties?.hash).toBe(
       docCanonical.blocks[0].properties?.hash,
@@ -342,9 +346,7 @@ describe("alias system", () => {
   });
 
   it("rule: parses identically to policy:", () => {
-    const docAlias = parseIntentText(
-      "rule: No PII in logs | action: block",
-    );
+    const docAlias = parseIntentText("rule: No PII in logs | action: block");
     const docCanonical = parseIntentText(
       "policy: No PII in logs | action: block",
     );
@@ -383,14 +385,10 @@ describe("alias system", () => {
     expect(doc2.blocks[0].type).toBe("section");
     expect(doc2.blocks[0].content).toBe("Intro");
 
-    const allBlocks1 = doc1.blocks.flatMap(function collect(
-      b: any,
-    ): any[] {
+    const allBlocks1 = doc1.blocks.flatMap(function collect(b: any): any[] {
       return [b, ...(b.children ?? []).flatMap(collect)];
     });
-    const allBlocks2 = doc2.blocks.flatMap(function collect(
-      b: any,
-    ): any[] {
+    const allBlocks2 = doc2.blocks.flatMap(function collect(b: any): any[] {
       return [b, ...(b.children ?? []).flatMap(collect)];
     });
 
@@ -416,9 +414,7 @@ describe("alias system", () => {
   });
 
   it("if: resolves to decision:", () => {
-    const doc = parseIntentText(
-      "if: Is valid? | then: proceed | else: abort",
-    );
+    const doc = parseIntentText("if: Is valid? | then: proceed | else: abort");
     expect(doc.blocks[0].type).toBe("decision");
     expect(doc.blocks[0].properties?.then).toBe("proceed");
   });

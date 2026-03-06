@@ -72,9 +72,7 @@ describe("v2.9 parser — header, footer, watermark", () => {
   });
 
   it("break: | before: section parsed correctly", () => {
-    const doc = parseIntentText(
-      "page: | size: A4\nbreak: | before: section",
-    );
+    const doc = parseIntentText("page: | size: A4\nbreak: | before: section");
     const br = doc.blocks.find((b) => b.type === "break");
     expect(br).toBeDefined();
     expect(br!.properties?.before).toBe("section");
@@ -101,9 +99,7 @@ describe("v2.9 renderer — print layout", () => {
   });
 
   it("footer: produces no HTML in web output", () => {
-    const doc = parseIntentText(
-      "title: Test\nfooter: | center: Page 1 of 5",
-    );
+    const doc = parseIntentText("title: Test\nfooter: | center: Page 1 of 5");
     const html = renderHTML(doc);
     expect(html).not.toContain("Page 1 of 5");
   });
@@ -172,9 +168,7 @@ describe("v2.9 renderer — print layout", () => {
   });
 
   it("break: | keep: sign adds break-inside: avoid to sign blocks", () => {
-    const doc = parseIntentText(
-      "page: | size: A4\nbreak: | keep: sign",
-    );
+    const doc = parseIntentText("page: | size: A4\nbreak: | keep: sign");
     const html = renderPrint(doc);
     expect(html).toContain(".it-sign{break-inside:avoid;}");
   });
@@ -226,9 +220,7 @@ describe("v2.9 validation — print layout warnings", () => {
   it("HEADER_WITHOUT_PAGE warning raised when header: present but no page:", () => {
     const doc = parseIntentText("title: Test\nheader: | left: Acme");
     const result = validateDocumentSemantic(doc);
-    const warning = result.issues.find(
-      (i) => i.code === "HEADER_WITHOUT_PAGE",
-    );
+    const warning = result.issues.find((i) => i.code === "HEADER_WITHOUT_PAGE");
     expect(warning).toBeDefined();
     expect(warning!.type).toBe("warning");
   });
@@ -236,9 +228,7 @@ describe("v2.9 validation — print layout warnings", () => {
   it("FOOTER_WITHOUT_PAGE warning raised when footer: present but no page:", () => {
     const doc = parseIntentText("title: Test\nfooter: | center: Page 1");
     const result = validateDocumentSemantic(doc);
-    const warning = result.issues.find(
-      (i) => i.code === "FOOTER_WITHOUT_PAGE",
-    );
+    const warning = result.issues.find((i) => i.code === "FOOTER_WITHOUT_PAGE");
     expect(warning).toBeDefined();
     expect(warning!.type).toBe("warning");
   });

@@ -54,7 +54,16 @@ const PROPERTY_ORDER: Record<string, string[]> = {
 const SKIP_INTERNAL = new Set(["id"]);
 
 /** Header block types that should be emitted first. */
-const HEADER_TYPES = new Set(["agent", "context", "font", "page", "meta", "header", "footer", "watermark"]);
+const HEADER_TYPES = new Set([
+  "agent",
+  "context",
+  "font",
+  "page",
+  "meta",
+  "header",
+  "footer",
+  "watermark",
+]);
 
 /**
  * Convert a parsed IntentDocument back to .it source text.
@@ -81,7 +90,16 @@ export function documentToSource(doc: IntentDocument): string {
   }
 
   // Emit header blocks first, in canonical order
-  const headerOrder = ["agent", "context", "font", "page", "header", "footer", "watermark", "meta"];
+  const headerOrder = [
+    "agent",
+    "context",
+    "font",
+    "page",
+    "header",
+    "footer",
+    "watermark",
+    "meta",
+  ];
   for (const hType of headerOrder) {
     for (const block of headerBlocks) {
       if (block.type === hType) {

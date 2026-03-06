@@ -17,42 +17,40 @@
  */
 
 export const ALIASES: Record<string, string> = {
-
   // ── Writer aliases ──────────────────────────────────────────────────────
-  'text'        : 'note',
-  'body'        : 'note',
-  'p'           : 'note',
-  'paragraph'   : 'note',
-  'h1'          : 'title',
-  'h2'          : 'section',
-  'h3'          : 'sub',
-  'heading'     : 'section',
-  'subheading'  : 'sub',
-  'blockquote'  : 'quote',
-  'cite'        : 'quote',
+  text: "note",
+  body: "note",
+  p: "note",
+  paragraph: "note",
+  h1: "title",
+  h2: "section",
+  h3: "sub",
+  heading: "section",
+  subheading: "sub",
+  blockquote: "quote",
+  cite: "quote",
 
   // ── Task aliases ────────────────────────────────────────────────────────
-  'check'       : 'task',
-  'todo'        : 'task',
-  'action'      : 'task',
-  'item'        : 'task',
-  'completed'   : 'done',
-  'finished'    : 'done',
+  check: "task",
+  todo: "task",
+  action: "task",
+  item: "task",
+  completed: "done",
+  finished: "done",
 
   // ── Policy aliases ───────────────────────────────────────────────────────
-  'rule'        : 'policy',
-  'constraint'  : 'policy',
-  'guard'       : 'policy',
-  'requirement' : 'policy',
+  rule: "policy",
+  constraint: "policy",
+  guard: "policy",
+  requirement: "policy",
 
   // ── Agent / workflow aliases ─────────────────────────────────────────────
-  'log'         : 'audit',
-  'lock'        : 'freeze',
-  'on'          : 'trigger',
-  'run'         : 'step',
-  'if'          : 'decision',
+  log: "audit",
+  lock: "freeze",
+  on: "trigger",
+  run: "step",
+  if: "decision",
 
   // ── Already exists (backward compat) ────────────────────────────────────
-  'status'      : 'emit',
-
+  status: "emit",
 };

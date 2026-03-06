@@ -460,7 +460,8 @@ export function validateDocumentSemantic(
         blockType: "header",
         type: "warning",
         code: "HEADER_WITHOUT_PAGE",
-        message: "header: block present but no page: block found — header will have no effect",
+        message:
+          "header: block present but no page: block found — header will have no effect",
       });
     }
   }
@@ -471,7 +472,8 @@ export function validateDocumentSemantic(
         blockType: "footer",
         type: "warning",
         code: "FOOTER_WITHOUT_PAGE",
-        message: "footer: block present but no page: block found — footer will have no effect",
+        message:
+          "footer: block present but no page: block found — footer will have no effect",
       });
     }
   }
@@ -482,7 +484,8 @@ export function validateDocumentSemantic(
         blockType: "watermark",
         type: "warning",
         code: "WATERMARK_WITHOUT_PAGE",
-        message: "watermark: block present but no page: block found — watermark will have no effect",
+        message:
+          "watermark: block present but no page: block found — watermark will have no effect",
       });
     }
   }
@@ -493,7 +496,8 @@ export function validateDocumentSemantic(
         blockType: "watermark",
         type: "warning",
         code: "MULTIPLE_WATERMARKS",
-        message: "Multiple watermark: blocks found — only the last one will be used",
+        message:
+          "Multiple watermark: blocks found — only the last one will be used",
       });
     }
   }

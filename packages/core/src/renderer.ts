@@ -11,15 +11,19 @@ const PAPER_SIZES: Record<string, string> = {
 
 /** v2.9: Collect print layout blocks from a document. */
 export function collectPrintLayout(doc: IntentDocument): PrintLayout {
-  const allBlocks = doc.blocks.flatMap(function collect(b: IntentBlock): IntentBlock[] {
+  const allBlocks = doc.blocks.flatMap(function collect(
+    b: IntentBlock,
+  ): IntentBlock[] {
     return [b, ...(b.children ?? []).flatMap(collect)];
   });
   return {
-    page: allBlocks.find(b => b.type === "page"),
-    header: allBlocks.filter(b => b.type === "header").pop(),
-    footer: allBlocks.filter(b => b.type === "footer").pop(),
-    watermark: allBlocks.filter(b => b.type === "watermark").pop(),
-    breaks: allBlocks.filter(b => b.type === "break" && (b.properties?.before || b.properties?.keep)),
+    page: allBlocks.find((b) => b.type === "page"),
+    header: allBlocks.filter((b) => b.type === "header").pop(),
+    footer: allBlocks.filter((b) => b.type === "footer").pop(),
+    watermark: allBlocks.filter((b) => b.type === "watermark").pop(),
+    breaks: allBlocks.filter(
+      (b) => b.type === "break" && (b.properties?.before || b.properties?.keep),
+    ),
   };
 }
 
@@ -1255,8 +1259,11 @@ export function renderPrint(doc: IntentDocument): string {
 
   // v2.9: Print mode class
   const pageBlock = layout.page;
-  const printMode = pageBlock?.properties?.["print-mode"] ? String(pageBlock.properties["print-mode"]) : "full";
-  const bodyClass = printMode === "minimal-ink" ? "it-print it-print-minimal" : "it-print";
+  const printMode = pageBlock?.properties?.["print-mode"]
+    ? String(pageBlock.properties["print-mode"])
+    : "full";
+  const bodyClass =
+    printMode === "minimal-ink" ? "it-print it-print-minimal" : "it-print";
 
   // v2.9: Backward compat — page: header/footer string properties treated as center zone
   let backwardCompatCSS = "";
@@ -1270,8 +1277,11 @@ export function renderPrint(doc: IntentDocument): string {
   }
 
   // v2.9: Minimal-ink CSS
-  const minimalInkCSS = printMode === "minimal-ink" ? `
-@media print{.it-print-minimal *{background-color:transparent !important;color:black !important;}.it-print-minimal strong,.it-print-minimal b{font-weight:bold;color:black !important;}.it-print-minimal em,.it-print-minimal i{font-style:italic;color:black !important;}.it-print-minimal .it-border{border:1px solid black !important;}}` : "";
+  const minimalInkCSS =
+    printMode === "minimal-ink"
+      ? `
+@media print{.it-print-minimal *{background-color:transparent !important;color:black !important;}.it-print-minimal strong,.it-print-minimal b{font-weight:bold;color:black !important;}.it-print-minimal em,.it-print-minimal i{font-style:italic;color:black !important;}.it-print-minimal .it-border{border:1px solid black !important;}}`
+      : "";
 
   return `<!DOCTYPE html><html ${direction}><head><meta charset="utf-8"><style>
 ${dynamicCSS}
