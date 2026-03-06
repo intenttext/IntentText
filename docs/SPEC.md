@@ -1183,14 +1183,42 @@ directly, it sees a sequence of typed blocks:
 
 ```javascript
 [
-  { type: "agent", content: "customer-support", properties: { model: "claude-sonnet-4" } },
-  { type: "policy", content: "Refund window", properties: { if: "order_age_days < 30", action: "approve" } },
-  { type: "policy", content: "Tone", properties: { always: "professional", never: "casual" } },
-  { type: "step", content: "Get customer", properties: { tool: "crm.lookup", input: "{{phone}}", output: "customer" } },
-  { type: "decision", content: "Route intent", properties: { if: "{{intent}} == 'refund'", then: "step-refund", else: "step-answer" } },
-  { type: "gate", content: "Escalate", properties: { approver: "support-lead", timeout: "2h" } },
-  { type: "result", content: "Done", properties: { code: "200" } }
-]
+  {
+    type: "agent",
+    content: "customer-support",
+    properties: { model: "claude-sonnet-4" },
+  },
+  {
+    type: "policy",
+    content: "Refund window",
+    properties: { if: "order_age_days < 30", action: "approve" },
+  },
+  {
+    type: "policy",
+    content: "Tone",
+    properties: { always: "professional", never: "casual" },
+  },
+  {
+    type: "step",
+    content: "Get customer",
+    properties: { tool: "crm.lookup", input: "{{phone}}", output: "customer" },
+  },
+  {
+    type: "decision",
+    content: "Route intent",
+    properties: {
+      if: "{{intent}} == 'refund'",
+      then: "step-refund",
+      else: "step-answer",
+    },
+  },
+  {
+    type: "gate",
+    content: "Escalate",
+    properties: { approver: "support-lead", timeout: "2h" },
+  },
+  { type: "result", content: "Done", properties: { code: "200" } },
+];
 ```
 
 The agent can:

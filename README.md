@@ -39,6 +39,7 @@ same line, no indentation required.
 That is the entire grammar. See it across three domains:
 
 **An AI agent workflow:**
+
 ```
 agent: customer-support | model: claude-sonnet-4 | id: cs-agent
 
@@ -54,6 +55,7 @@ result: Done | code: 200
 ```
 
 **A writer's document:**
+
 ```
 font: | family: Georgia | size: 12pt | leading: 1.8
 page: | size: A5 | margins: 24mm | footer: {{page}}
@@ -73,6 +75,7 @@ footnote: 1 | text: This scene was inspired by a photograph taken in Doha, winte
 ```
 
 **A business document template:**
+
 ```
 font: | family: Inter | size: 11pt
 page: | size: A4 | margins: 20mm | footer: Page {{page}} of {{pages}}
