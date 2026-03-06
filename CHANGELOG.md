@@ -6,6 +6,12 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-03-06
+
+### Added
+
+- **`policy:` keyword** — standing behavioural rules for AI agents. Supports `if:`, `always:`, `never:`, `action:`, `requires:`, `notify:`, `priority:`, `id:`, `scope:`, `after:` properties. Rendered as styled rule cards in HTML output. Validated for missing conditions (`POLICY_NO_CONDITION`) and missing actions (`POLICY_NO_ACTION`). `documentToSource()` canonical property order. 19 new tests (445 total).
+
 ## [2.6.0] - 2026-03-05
 
 ### Added

@@ -243,6 +243,38 @@ export function validateDocumentSemantic(
       });
     }
 
+    // policy: without any condition
+    if (block.type === "policy") {
+      const hasCondition =
+        block.properties?.if ||
+        block.properties?.always ||
+        block.properties?.never;
+      if (!hasCondition) {
+        issues.push({
+          blockId: block.id,
+          blockType: block.type,
+          type: "warning",
+          code: "POLICY_NO_CONDITION",
+          message: `Policy "${block.content}" has no condition (if:, always:, or never:). Add a condition or use note: instead.`,
+        });
+      }
+      // policy: with if: but no action/notify/requires
+      if (
+        block.properties?.if &&
+        !block.properties?.action &&
+        !block.properties?.notify &&
+        !block.properties?.requires
+      ) {
+        issues.push({
+          blockId: block.id,
+          blockType: block.type,
+          type: "warning",
+          code: "POLICY_NO_ACTION",
+          message: `Policy "${block.content}" has a condition but no action. Add action:, notify:, or requires:.`,
+        });
+      }
+    }
+
     // Check for unresolved {{variables}} in content and property values
     checkUnresolvedVars(block, declaredVars, issues);
   }

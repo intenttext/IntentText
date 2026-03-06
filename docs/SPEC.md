@@ -439,6 +439,7 @@ Parsers should preserve unknown extension blocks as `body-text` (or optionally e
 | **v2.4** | ✅ Stable | Writer-first inline syntax, prose paragraphs, alignment                                                       |
 | **v2.5** | ✅ Stable | Document Generation Engine: layout blocks, writer blocks, template merge, print                               |
 | **v2.6** | ✅ Stable | Production API: parseIntentTextSafe, documentToSource, validateDocumentSemantic, queryDocument, diffDocuments |
+| **v2.7** | ✅ Stable | `policy:` keyword — standing behavioural rules for AI agents                                                   |
 
 ### 12.1 Implemented Features (v1.0 – v1.3)
 
@@ -536,6 +537,7 @@ context: | userId: u_123 | plan: pro
 | `wait:`       | Async pause point               | `wait: User confirmation \| on: human.approved \| timeout: 30s`          |
 | `parallel:`   | Concurrent execution group      | `parallel: Run checks \| steps: validate,lint,test \| join: all`         |
 | `retry:`      | Retry policy                    | `retry: API call \| max: 3 \| delay: 1000 \| backoff: exponential`       |
+| `policy:`     | Standing behavioural rule       | `policy: Refund window \| if: order_age_days < 30 \| action: approve`     |
 
 > **Note:** `status:` is accepted as an alias for `emit:` for backward compatibility. The parser auto-maps `status:` → `emit:`.
 

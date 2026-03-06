@@ -66,6 +66,8 @@ export const KEYWORDS = [
   "call",
   "emit",
   "status", // alias → emit (deprecated)
+  // v2.7 agentic workflow keywords
+  "policy",
   // v2.5 document generation keywords
   "font",
   "page",
@@ -130,6 +132,8 @@ export type BlockType =
   | "gate"
   | "call"
   | "emit"
+  // v2.7 agentic workflow block types
+  | "policy"
   // v2.5 document generation block types
   | "font"
   | "page"

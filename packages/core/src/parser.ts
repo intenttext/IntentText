@@ -59,6 +59,8 @@ const AGENTIC_BLOCK_TYPES = new Set<string>([
   "gate",
   "call",
   "emit",
+  // v2.7
+  "policy",
 ]);
 
 // v2.1+ inter-agent block types (subset of AGENTIC_BLOCK_TYPES)

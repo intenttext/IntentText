@@ -501,6 +501,32 @@ const steps = doc.blocks
 console.log(steps[0].properties?.input); // "{{version}}"
 ```
 
+### Working with v2.7 Blocks
+
+```javascript
+const { parseIntentText } = require("@intenttext/core");
+
+const content = `title: Code Review Agent
+agent: review-bot | model: claude-sonnet-4
+
+policy: Language | always: Use British English spelling
+policy: Tone | if: audience = external | always: formal register | never: use jargon
+policy: Security | always: flag credential strings | action: open-issue | priority: high`;
+
+const doc = parseIntentText(content);
+
+// v2.7: Get policy blocks (standing behavioural rules)
+const policies = doc.blocks.filter((b) => b.type === "policy");
+console.log(policies[0].content); // "Language"
+console.log(policies[0].properties?.always); // "Use British English spelling"
+
+console.log(policies[1].properties?.if); // "audience = external"
+console.log(policies[1].properties?.never); // "use jargon"
+
+console.log(policies[2].properties?.action); // "open-issue"
+console.log(policies[2].properties?.priority); // "high"
+```
+
 ### Working with Properties
 
 ```javascript

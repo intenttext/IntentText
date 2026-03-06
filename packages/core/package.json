@@ -1,6 +1,6 @@
 {
   "name": "@intenttext/core",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "description": "IntentText Parser, HTML Renderer, and Converters",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

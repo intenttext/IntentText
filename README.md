@@ -150,6 +150,8 @@ title: User Onboarding Pipeline
 agent: onboard-agent | model: claude-sonnet-4
 context: | userId: {{userId}} | plan: pro
 
+policy: Language        | always: respond_in_user_language
+policy: Tone            | always: professional | never: casual
 step: Verify email     | tool: email.verify  | input: {{userId}}  | output: emailStatus
 step: Create workspace | tool: ws.create     | depends: step-1    | output: workspace
 gate: Confirm account  | approver: {{emailStatus.email}} | timeout: 24h
@@ -368,6 +370,7 @@ node cli.js template.it --data data.json --pdf             # Template + data →
 | `audit:`      | Immutable execution record | `audit: Complete \| by: {{agent}} \| at: {{timestamp}}`                  |
 | `emit:`       | Broadcast state externally | `emit: deploy.complete \| phase: production`                             |
 | `result:`     | Terminal workflow output   | `result: Success \| code: 200 \| data: {{workspace}}`                    |
+| `policy:`     | Standing behavioural rule | `policy: Refund window \| if: order_age_days < 30 \| action: approve`    |
 
 ### Inline Formatting
 
@@ -447,7 +450,7 @@ npm run preview              # Live editor in browser
 
 **Keep the format dumb. Make the runtime smart.** IntentText expresses intent — what a document contains and means. How that intent is executed, stored, or rendered is the runtime's job. The format stays simple so a developer can understand the entire specification in an hour.
 
-**Every keyword earns its place.** A keyword is only added if it expresses something that genuinely cannot be expressed as a property on an existing block, and cannot be handled by the runtime without appearing in the document itself. The current set is final at 36 keywords.
+**Every keyword earns its place.** A keyword is only added if it expresses something that genuinely cannot be expressed as a property on an existing block, and cannot be handled by the runtime without appearing in the document itself. The current set is final at 37 keywords.
 
 **The human is always the primary author.** Even in agentic workflows, the document must be readable and editable by a human without special tools. A `.it` file opened in any text editor must be immediately understandable.
 
