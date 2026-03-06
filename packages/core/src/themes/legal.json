@@ -1,0 +1,57 @@
+{
+  "name": "legal",
+  "version": "1.0.0",
+  "description": "Formal and dense — contracts, NDAs, legal briefs, compliance documents",
+  "author": "IntentText",
+  "fonts": {
+    "body": "Times New Roman",
+    "heading": "Times New Roman",
+    "mono": "Courier New",
+    "size": "12pt",
+    "leading": "1.4"
+  },
+  "colors": {
+    "text": "#1a1a1a",
+    "heading": "#000000",
+    "muted": "#555555",
+    "accent": "#1a1a1a",
+    "border": "#999999",
+    "background": "#ffffff",
+    "code-bg": "#f5f5f5",
+    "trust-approved": "#1a6b1a",
+    "trust-signed": "#1a4a6b",
+    "trust-frozen": "#4a1a6b",
+    "trust-warning": "#8b0000",
+    "watermark": "#00000008"
+  },
+  "spacing": {
+    "page-margin": "25mm",
+    "section-gap": "1.5em",
+    "block-gap": "0.5em",
+    "indent": "2em"
+  },
+  "blocks": {
+    "section": {
+      "font-weight": "bold",
+      "margin-top": "1.5em",
+      "text-transform": "uppercase"
+    },
+    "sign": {
+      "border": "1px solid #000",
+      "padding": "0.75em",
+      "margin-top": "2em"
+    },
+    "freeze": {
+      "border": "2px solid #000",
+      "padding": "1em",
+      "text-align": "center",
+      "font-weight": "bold"
+    }
+  },
+  "print": {
+    "header-font-size": "8pt",
+    "footer-font-size": "8pt",
+    "header-color": "#555",
+    "footer-color": "#555"
+  }
+}

@@ -1,6 +1,6 @@
-# IntentText (`.it`) v2.9 — Official Specification
+# IntentText (`.it`) v2.10 — Official Specification
 
-> **Status:** Stable · **Version:** 2.9 · **Source of Truth**
+> **Status:** Stable · **Version:** 2.10 · **Source of Truth**
 
 ## What IntentText Is
 
@@ -1717,6 +1717,117 @@ The following features are under consideration for future versions. They are **n
 - **Natural language dates** — Parse "tomorrow", "next Friday" to ISO dates
 
 _Breaking changes require a major version bump. Additive features (new keywords, new standard properties) increment the minor version._
+
+---
+
+## 13. Theme System (v2.10)
+
+Themes are JSON-based design value sets applied by the renderer. The `.it` format does not change. Themes are purely a renderer concern — they control typography, colors, spacing, and block-level styling.
+
+### 13.1 Theme Structure
+
+```typescript
+interface IntentTheme {
+  name: string;           // e.g. "corporate"
+  version: string;        // e.g. "1.0.0"
+  description?: string;
+  author?: string;
+  fonts: { body, heading, mono, size, leading };
+  colors: { text, heading, muted, accent, border, background, "code-bg", ... };
+  spacing: { "page-margin", "section-gap", "block-gap", indent };
+  blocks?: Record<string, Record<string, string | boolean>>;
+  print?: { "header-font-size"?, "footer-font-size"?, "header-color"?, "footer-color"? };
+}
+```
+
+### 13.2 Built-in Themes
+
+| Theme       | Description                                     |
+| ----------- | ----------------------------------------------- |
+| `corporate` | Clean, professional — contracts, reports        |
+| `minimal`   | Maximum whitespace, high contrast               |
+| `warm`      | Serif body, warm tones — editorial, long-form   |
+| `technical` | Monospace-forward — developer docs, runbooks    |
+| `print`     | B&W laser printing, no color, no backgrounds    |
+| `legal`     | Formal and dense — contracts, NDAs, compliance  |
+| `editorial` | Magazine-style — articles, journalism           |
+| `dark`      | Dark background — technical docs, presentations |
+
+### 13.3 Applying a Theme
+
+**In the document (via `meta:`):**
+
+```
+meta: | theme: corporate
+title: Quarterly Report
+```
+
+**Via render options:**
+
+```typescript
+const html = renderHTML(doc, { theme: "corporate" });
+const printHtml = renderPrint(doc, { theme: "legal" });
+```
+
+**Resolution order:** `options.theme` → `meta.theme` → no theme.
+
+### 13.4 CSS Generation
+
+`generateThemeCSS(theme, mode)` produces CSS custom properties and block styles. Mode `"web"` generates base styles; mode `"print"` adds header/footer font sizing.
+
+---
+
+## 14. Query UX and .it-index (v2.10)
+
+### 14.1 Shallow Index Architecture
+
+Every `.it-index` covers **only** the `.it` files sitting directly in its folder. Never subfolders. Never recursive content in a single index.
+
+```typescript
+interface ItIndex {
+  version: "1";
+  scope: "shallow"; // always shallow
+  folder: string; // the folder this index covers
+  built_at: string; // ISO timestamp
+  core_version: string;
+  files: Record<string, IndexFileEntry>;
+}
+```
+
+### 14.2 Building and Updating Indexes
+
+```typescript
+const index = buildShallowIndex(folder, files, coreVersion);
+const staleness = checkStaleness(existingIndex, currentFiles);
+const updated = updateIndex(existingIndex, changedFiles, removedFiles);
+```
+
+### 14.3 Composition and Querying
+
+Multiple shallow indexes can be composed for cross-folder queries:
+
+```typescript
+const composed = composeIndexes([idx1, idx2, idx3], rootFolder);
+const tasks = queryComposed(composed, { type: "task", status: "pending" });
+```
+
+### 14.4 Output Formats
+
+```typescript
+formatTable(results); // Human-readable table
+formatJSON(results); // JSON array
+formatCSV(results); // CSV with headers
+```
+
+### 14.5 CLI Commands
+
+```bash
+intenttext query <dir>                    # Query all .it files in a directory
+intenttext index <dir> [--recursive]      # Build .it-index files
+intenttext ask <dir> "question"           # Natural language query via Anthropic API
+intenttext theme list                     # List all built-in themes
+intenttext theme info <name>              # Show theme details
+```
 
 ---
 

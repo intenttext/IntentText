@@ -1,0 +1,86 @@
+{
+  "name": "corporate",
+  "version": "1.0.0",
+  "description": "Clean, professional — contracts, reports, and business documents",
+  "author": "IntentText",
+  "fonts": {
+    "body": "Inter",
+    "heading": "Inter",
+    "mono": "JetBrains Mono",
+    "size": "11pt",
+    "leading": "1.6"
+  },
+  "colors": {
+    "text": "#1a1a2e",
+    "heading": "#0f0f23",
+    "muted": "#6b7280",
+    "accent": "#2563eb",
+    "border": "#e5e7eb",
+    "background": "#ffffff",
+    "code-bg": "#f8fafc",
+    "trust-approved": "#16a34a",
+    "trust-signed": "#2563eb",
+    "trust-frozen": "#7c3aed",
+    "trust-warning": "#dc2626",
+    "watermark": "#00000010"
+  },
+  "spacing": {
+    "page-margin": "25mm",
+    "section-gap": "2em",
+    "block-gap": "0.75em",
+    "indent": "1.5em"
+  },
+  "blocks": {
+    "section": {
+      "border-bottom": true,
+      "font-weight": "600",
+      "margin-top": "2em"
+    },
+    "warning": {
+      "border-left": "4px solid",
+      "border-color": "trust-warning",
+      "padding-left": "1em",
+      "background": "#fef2f2"
+    },
+    "quote": {
+      "border-left": "3px solid",
+      "border-color": "accent",
+      "padding-left": "1em",
+      "font-style": "italic",
+      "color": "muted"
+    },
+    "code": {
+      "background": "code-bg",
+      "font-family": "mono",
+      "padding": "0.2em 0.4em",
+      "border-radius": "3px"
+    },
+    "sign": {
+      "border": "1px solid",
+      "border-color": "trust-signed",
+      "padding": "0.75em",
+      "border-radius": "4px"
+    },
+    "approve": {
+      "background": "#f0fdf4",
+      "border": "1px solid",
+      "border-color": "trust-approved",
+      "padding": "0.5em 0.75em",
+      "border-radius": "4px"
+    },
+    "freeze": {
+      "background": "#f5f3ff",
+      "border": "2px solid",
+      "border-color": "trust-frozen",
+      "padding": "1em",
+      "border-radius": "4px",
+      "text-align": "center"
+    }
+  },
+  "print": {
+    "header-font-size": "8pt",
+    "footer-font-size": "8pt",
+    "header-color": "muted",
+    "footer-color": "muted"
+  }
+}

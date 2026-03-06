@@ -1,0 +1,53 @@
+{
+  "name": "warm",
+  "version": "1.0.0",
+  "description": "Serif body font, warm tones — editorial, journalism, long-form writing",
+  "author": "IntentText",
+  "fonts": {
+    "body": "Georgia",
+    "heading": "Georgia",
+    "mono": "Menlo",
+    "size": "11.5pt",
+    "leading": "1.7"
+  },
+  "colors": {
+    "text": "#2c2416",
+    "heading": "#1a1208",
+    "muted": "#7a6e5e",
+    "accent": "#b45309",
+    "border": "#d6cfc2",
+    "background": "#fafaf8",
+    "code-bg": "#f3f0ea",
+    "trust-approved": "#3d7a3d",
+    "trust-signed": "#4a6fa5",
+    "trust-frozen": "#6b4c8a",
+    "trust-warning": "#b91c1c",
+    "watermark": "#00000008"
+  },
+  "spacing": {
+    "page-margin": "30mm",
+    "section-gap": "2em",
+    "block-gap": "0.75em",
+    "indent": "1.5em"
+  },
+  "blocks": {
+    "section": {
+      "border-bottom": true,
+      "font-weight": "600",
+      "margin-top": "2em"
+    },
+    "quote": {
+      "border-left": "3px solid",
+      "border-color": "accent",
+      "padding-left": "1.2em",
+      "font-style": "italic",
+      "color": "muted"
+    }
+  },
+  "print": {
+    "header-font-size": "8pt",
+    "footer-font-size": "8pt",
+    "header-color": "muted",
+    "footer-color": "muted"
+  }
+}

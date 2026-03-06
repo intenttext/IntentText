@@ -6,6 +6,19 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [2.10.0] - 2026-03-07
+
+### Added
+
+- **Theme System** — JSON-based design value sets applied by the renderer. 8 built-in themes: `corporate`, `minimal`, `warm`, `technical`, `print`, `legal`, `editorial`, `dark`. Themes control typography, colors, spacing, and block-level styling. Applied via `meta: | theme: name` or `renderHTML(doc, { theme: "name" })`. `generateThemeCSS(theme, mode)` produces CSS custom properties. Resolution order: options → meta → none.
+- **Shallow Index Builder** — `.it-index` architecture for folder-level querying. `buildShallowIndex()`, `checkStaleness()`, `updateIndex()` for incremental index maintenance. Each index covers only direct files in its folder — never recursive.
+- **Index Composition and Query** — `composeIndexes()` merges multiple shallow indexes. `queryComposed()` filters by type, content, by, status, section. Three output formatters: `formatTable()`, `formatJSON()`, `formatCSV()`.
+- **Natural Language Query** — `askDocuments()` uses Anthropic API to answer questions about `.it` documents. `serializeContext()` converts composed results to LLM-ready context.
+- **CLI Commands** — `query <dir>`, `index <dir> [--recursive]`, `ask <dir> "question"`, `theme list`, `theme info <name>`, `--theme` flag on render commands.
+- **Hub Platform** — GitHub OAuth authentication, user accounts, publish/review workflow, theme browsing, community and curated template tiers, admin review queue, user profile pages.
+- **60 Templates** — 8 domains: business (14), reports (8), editorial (8), book (6), personal (6), agent (8), organization (6), developer (4). Each with paired `.data.json` example data.
+- 62 new tests (628 total passing across 17 test files).
+
 ## [2.7.0] - 2026-03-06
 
 ### Added

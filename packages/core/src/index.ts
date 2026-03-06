@@ -1,5 +1,18 @@
 export { ALIASES } from "./aliases";
 export {
+  getBuiltinTheme,
+  listBuiltinThemes,
+  registerBuiltinTheme,
+  generateThemeCSS,
+} from "./theme";
+export type {
+  IntentTheme,
+  ThemeFonts,
+  ThemeColors,
+  ThemeSpacing,
+} from "./theme";
+export type { RenderOptions } from "./renderer";
+export {
   parseIntentText,
   _resetIdCounter,
   parseIntentTextSafe,
@@ -56,6 +69,27 @@ export type {
 export { updateHistory, parseHistorySection } from "./history";
 export type { SaveHistoryOptions } from "./history";
 export { detectHistoryBoundary } from "./parser";
+// v2.10 index builder
+export {
+  buildShallowIndex,
+  buildIndexEntry,
+  checkStaleness,
+  updateIndex,
+  composeIndexes,
+  queryComposed,
+  formatTable,
+  formatJSON,
+  formatCSV,
+} from "./index-builder";
+export type {
+  ItIndex,
+  IndexFileEntry,
+  IndexBlockEntry,
+  ComposedResult,
+} from "./index-builder";
+// v2.10 natural language query
+export { askDocuments, serializeContext } from "./ask";
+export type { AskOptions } from "./ask";
 export type {
   IntentBlock,
   IntentDocument,

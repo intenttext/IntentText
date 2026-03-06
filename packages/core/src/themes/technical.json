@@ -1,0 +1,59 @@
+{
+  "name": "technical",
+  "version": "1.0.0",
+  "description": "Monospace-forward, high contrast — developer docs, agent specs, runbooks",
+  "author": "IntentText",
+  "fonts": {
+    "body": "JetBrains Mono",
+    "heading": "JetBrains Mono",
+    "mono": "JetBrains Mono",
+    "size": "10pt",
+    "leading": "1.5"
+  },
+  "colors": {
+    "text": "#1e1e1e",
+    "heading": "#0a0a0a",
+    "muted": "#6b7280",
+    "accent": "#0969da",
+    "border": "#30363d",
+    "background": "#ffffff",
+    "code-bg": "#f0f2f4",
+    "trust-approved": "#16a34a",
+    "trust-signed": "#0969da",
+    "trust-frozen": "#7c3aed",
+    "trust-warning": "#dc2626",
+    "watermark": "#00000008"
+  },
+  "spacing": {
+    "page-margin": "20mm",
+    "section-gap": "1.8em",
+    "block-gap": "0.6em",
+    "indent": "2em"
+  },
+  "blocks": {
+    "section": {
+      "font-weight": "700",
+      "margin-top": "1.8em",
+      "border-bottom": true
+    },
+    "code": {
+      "background": "code-bg",
+      "padding": "0.3em 0.5em",
+      "border-radius": "2px",
+      "border": "1px solid",
+      "border-color": "border"
+    },
+    "warning": {
+      "border-left": "4px solid",
+      "border-color": "trust-warning",
+      "padding-left": "1em",
+      "background": "#fef2f2"
+    }
+  },
+  "print": {
+    "header-font-size": "7pt",
+    "footer-font-size": "7pt",
+    "header-color": "muted",
+    "footer-color": "muted"
+  }
+}

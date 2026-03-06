@@ -1,0 +1,54 @@
+{
+  "name": "editorial",
+  "version": "1.0.0",
+  "description": "Newspaper / magazine feel — journalism, press releases, newsletters",
+  "author": "IntentText",
+  "fonts": {
+    "body": "Georgia",
+    "heading": "Playfair Display",
+    "mono": "Menlo",
+    "size": "11pt",
+    "leading": "1.65"
+  },
+  "colors": {
+    "text": "#222222",
+    "heading": "#111111",
+    "muted": "#666666",
+    "accent": "#c0392b",
+    "border": "#cccccc",
+    "background": "#ffffff",
+    "code-bg": "#f8f8f8",
+    "trust-approved": "#27ae60",
+    "trust-signed": "#2980b9",
+    "trust-frozen": "#8e44ad",
+    "trust-warning": "#c0392b",
+    "watermark": "#00000008"
+  },
+  "spacing": {
+    "page-margin": "25mm",
+    "section-gap": "2em",
+    "block-gap": "0.75em",
+    "indent": "1.5em"
+  },
+  "blocks": {
+    "section": {
+      "font-weight": "700",
+      "margin-top": "2em",
+      "font-size": "1.3em",
+      "border-bottom": true
+    },
+    "quote": {
+      "border-left": "4px solid",
+      "border-color": "accent",
+      "padding-left": "1em",
+      "font-size": "1.15em",
+      "font-style": "italic"
+    }
+  },
+  "print": {
+    "header-font-size": "7pt",
+    "footer-font-size": "7pt",
+    "header-color": "muted",
+    "footer-color": "muted"
+  }
+}

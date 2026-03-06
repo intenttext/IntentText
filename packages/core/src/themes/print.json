@@ -1,0 +1,54 @@
+{
+  "name": "print",
+  "version": "1.0.0",
+  "description": "Optimized for black-and-white laser printing. No color, no backgrounds.",
+  "author": "IntentText",
+  "fonts": {
+    "body": "Georgia",
+    "heading": "Helvetica",
+    "mono": "Courier",
+    "size": "11pt",
+    "leading": "1.5"
+  },
+  "colors": {
+    "text": "#000000",
+    "heading": "#000000",
+    "muted": "#333333",
+    "accent": "#000000",
+    "border": "#000000",
+    "background": "#ffffff",
+    "code-bg": "#ffffff",
+    "trust-approved": "#000000",
+    "trust-signed": "#000000",
+    "trust-frozen": "#000000",
+    "trust-warning": "#000000",
+    "watermark": "#00000008"
+  },
+  "spacing": {
+    "page-margin": "25mm",
+    "section-gap": "2em",
+    "block-gap": "0.75em",
+    "indent": "1.5em"
+  },
+  "blocks": {
+    "section": {
+      "font-weight": "bold",
+      "margin-top": "2em",
+      "border-bottom": true
+    },
+    "quote": {
+      "padding-left": "1em",
+      "font-style": "italic"
+    },
+    "warning": {
+      "border-left": "3px solid #000",
+      "padding-left": "1em"
+    }
+  },
+  "print": {
+    "header-font-size": "8pt",
+    "footer-font-size": "8pt",
+    "header-color": "#333333",
+    "footer-color": "#333333"
+  }
+}

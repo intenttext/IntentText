@@ -1,0 +1,64 @@
+{
+  "name": "dark",
+  "version": "1.0.0",
+  "description": "Dark background, light text — screen-only documents, agent outputs, dashboards",
+  "author": "IntentText",
+  "fonts": {
+    "body": "Inter",
+    "heading": "Inter",
+    "mono": "JetBrains Mono",
+    "size": "11pt",
+    "leading": "1.6"
+  },
+  "colors": {
+    "text": "#e8e8e8",
+    "heading": "#f0f0f0",
+    "muted": "#9ca3af",
+    "accent": "#60a5fa",
+    "border": "#374151",
+    "background": "#0f0f0f",
+    "code-bg": "#1a1a2e",
+    "trust-approved": "#4ade80",
+    "trust-signed": "#60a5fa",
+    "trust-frozen": "#a78bfa",
+    "trust-warning": "#f87171",
+    "watermark": "#ffffff08"
+  },
+  "spacing": {
+    "page-margin": "20mm",
+    "section-gap": "2em",
+    "block-gap": "0.75em",
+    "indent": "1.5em"
+  },
+  "blocks": {
+    "section": {
+      "font-weight": "600",
+      "margin-top": "2em",
+      "border-bottom": true
+    },
+    "code": {
+      "background": "code-bg",
+      "padding": "0.3em 0.5em",
+      "border-radius": "4px"
+    },
+    "warning": {
+      "border-left": "4px solid",
+      "border-color": "trust-warning",
+      "padding-left": "1em",
+      "background": "#1f1010"
+    },
+    "quote": {
+      "border-left": "3px solid",
+      "border-color": "accent",
+      "padding-left": "1em",
+      "font-style": "italic",
+      "color": "muted"
+    }
+  },
+  "print": {
+    "header-font-size": "8pt",
+    "footer-font-size": "8pt",
+    "header-color": "#9ca3af",
+    "footer-color": "#9ca3af"
+  }
+}

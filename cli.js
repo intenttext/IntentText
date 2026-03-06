@@ -15,16 +15,29 @@ const {
   sealDocument,
   verifyDocument,
   computeDocumentHash,
+  listBuiltinThemes,
+  getBuiltinTheme,
+  buildShallowIndex,
+  buildIndexEntry,
+  checkStaleness,
+  updateIndex,
+  composeIndexes,
+  queryComposed,
+  formatTable,
+  formatJSON,
+  formatCSV,
+  serializeContext,
 } = require("./packages/core/dist");
 const fs = require("fs");
 const path = require("path");
+const { glob } = require("fs");
 
 function main() {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
     console.log(`
-🚀 IntentText CLI v2.8
+🚀 IntentText CLI v2.10
 
 Usage:
   node cli.js <file.it>                     Parse and show JSON
@@ -41,6 +54,27 @@ Template / Document Generation:
   node cli.js <file.it> --data data.json --html        Merge and render HTML
   node cli.js <file.it> --data data.json --print       Merge and render print HTML
   node cli.js <file.it> --data data.json --pdf         Merge and save as PDF (requires puppeteer)
+
+Themes (v2.10):
+  node cli.js <file.it> --html --theme corporate       Render with theme
+  node cli.js <file.it> --print --theme minimal         Print with theme
+  node cli.js theme list                                List built-in themes
+  node cli.js theme info <name>                         Show theme metadata
+
+Query (v2.10):
+  node cli.js query <dir> --type task                   Query a directory
+  node cli.js query "docs/*.it" --type sign             Query a glob pattern
+  node cli.js query <dir> --type task --format table    Table output (default)
+  node cli.js query <dir> --type task --format json     JSON output
+  node cli.js query <dir> --type task --format csv      CSV output
+
+Index (v2.10):
+  node cli.js index <dir>                               Build shallow index
+  node cli.js index <dir> --recursive                   Build indexes in all subfolders
+
+Natural Language Query (v2.10):
+  node cli.js ask <dir> "question"                      Ask about documents
+  node cli.js ask <dir> "question" --format json        Ask with JSON output
 
 Document Trust (v2.8):
   node cli.js seal <file.it> --signer "Name" --role "Role"   Seal document
@@ -59,17 +93,178 @@ Validation:
   node cli.js article.it --validate article
 
 Available schemas: ${Object.keys(PREDEFINED_SCHEMAS).join(", ")}
-
-Examples:
-  node cli.js examples/simple.it
-  node cli.js examples/simple.it --html
-  node cli.js examples/simple.it --output
-  node cli.js README.md --to-it
+Built-in themes: ${listBuiltinThemes().join(", ")}
 `);
     return;
   }
 
   const inputFile = args[0];
+
+  // v2.10: Theme commands
+  if (inputFile === "theme") {
+    const subCmd = args[1];
+    if (subCmd === "list") {
+      const themes = listBuiltinThemes();
+      console.log("Built-in themes:");
+      for (const name of themes) {
+        const t = getBuiltinTheme(name);
+        console.log(`  ${name.padEnd(12)} ${t?.description || ""}`);
+      }
+      return;
+    }
+    if (subCmd === "info") {
+      const name = args[2];
+      if (!name) {
+        console.error("❌ Missing theme name");
+        process.exit(1);
+      }
+      const t = getBuiltinTheme(name);
+      if (!t) {
+        console.error(`❌ Theme not found: ${name}`);
+        process.exit(1);
+      }
+      console.log(`Theme: ${t.name} v${t.version}`);
+      console.log(`Description: ${t.description || ""}`);
+      console.log(`Author: ${t.author || ""}`);
+      console.log(
+        `Fonts: body=${t.fonts.body}, heading=${t.fonts.heading}, mono=${t.fonts.mono}`,
+      );
+      console.log(`Size: ${t.fonts.size}, Leading: ${t.fonts.leading}`);
+      console.log(
+        `Colors: text=${t.colors.text}, accent=${t.colors.accent}, bg=${t.colors.background}`,
+      );
+      return;
+    }
+    console.error(
+      "❌ Unknown theme command. Use: theme list | theme info <name>",
+    );
+    process.exit(1);
+  }
+
+  // v2.10: Folder / glob query command
+  if (inputFile === "query") {
+    const target = args[1];
+    if (!target) {
+      console.error("❌ Missing directory or glob argument");
+      process.exit(1);
+    }
+    const typeFilter =
+      args.indexOf("--type") >= 0 ? args[args.indexOf("--type") + 1] : null;
+    const byFilter =
+      args.indexOf("--by") >= 0 ? args[args.indexOf("--by") + 1] : null;
+    const statusFilter =
+      args.indexOf("--status") >= 0 ? args[args.indexOf("--status") + 1] : null;
+    const sectionFilter =
+      args.indexOf("--section") >= 0
+        ? args[args.indexOf("--section") + 1]
+        : null;
+    const contentFilter =
+      args.indexOf("--content") >= 0
+        ? args[args.indexOf("--content") + 1]
+        : null;
+    const formatIdx = args.indexOf("--format");
+    const fmt = formatIdx >= 0 ? args[formatIdx + 1] : "table";
+
+    // Resolve files
+    const itFiles = resolveItFiles(target);
+    if (itFiles.length === 0) {
+      console.log("No .it files found.");
+      return;
+    }
+
+    // Try to use indexes, fall back to direct parse
+    const composed = [];
+    for (const filePath of itFiles) {
+      const source = fs.readFileSync(filePath, "utf-8");
+      const doc = parseIntentText(source);
+      const relPath = path.relative(process.cwd(), filePath);
+      const entry = buildIndexEntry(doc, source, new Date().toISOString());
+      for (const block of entry.blocks) {
+        composed.push({ file: relPath, block });
+      }
+    }
+
+    // Apply filters
+    const filtered = queryComposed(composed, {
+      type: typeFilter || undefined,
+      content: contentFilter || undefined,
+      by: byFilter || undefined,
+      status: statusFilter || undefined,
+      section: sectionFilter || undefined,
+    });
+
+    if (fmt === "json") console.log(formatJSON(filtered));
+    else if (fmt === "csv") console.log(formatCSV(filtered));
+    else console.log(formatTable(filtered));
+    return;
+  }
+
+  // v2.10: Index command
+  if (inputFile === "index") {
+    const target = args[1];
+    if (!target) {
+      console.error("❌ Missing directory argument");
+      process.exit(1);
+    }
+    const recursive = args.includes("--recursive");
+    const resolvedTarget = path.resolve(target);
+
+    if (
+      !fs.existsSync(resolvedTarget) ||
+      !fs.statSync(resolvedTarget).isDirectory()
+    ) {
+      console.error(`❌ Not a directory: ${target}`);
+      process.exit(1);
+    }
+
+    if (recursive) {
+      buildIndexRecursive(resolvedTarget);
+    } else {
+      buildIndexForFolder(resolvedTarget);
+    }
+    return;
+  }
+
+  // v2.10: Ask command (natural language query)
+  if (inputFile === "ask") {
+    const target = args[1];
+    const question = args[2];
+    if (!target || !question) {
+      console.error('❌ Usage: intenttext ask <dir> "question"');
+      process.exit(1);
+    }
+
+    const itFiles = resolveItFiles(target);
+    if (itFiles.length === 0) {
+      console.log("No .it files found.");
+      return;
+    }
+
+    const composed = [];
+    for (const filePath of itFiles) {
+      const source = fs.readFileSync(filePath, "utf-8");
+      const doc = parseIntentText(source);
+      const relPath = path.relative(process.cwd(), filePath);
+      const entry = buildIndexEntry(doc, source, new Date().toISOString());
+      for (const block of entry.blocks) {
+        composed.push({ file: relPath, block });
+      }
+    }
+
+    // Dynamic import for ask module (async)
+    const { askDocuments } = require("./packages/core/dist");
+    const formatIdx = args.indexOf("--format");
+    const fmt = formatIdx >= 0 ? args[formatIdx + 1] : "text";
+    askDocuments(composed, question, {
+      format: fmt === "json" ? "json" : "text",
+    })
+      .then((answer) => console.log(answer))
+      .catch((err) => {
+        console.error(`❌ ${err.message}`);
+        process.exit(1);
+      });
+    return;
+  }
 
   // v2.8: Trust commands (seal, verify, history)
   if (
@@ -227,6 +422,9 @@ Examples:
   const toIt = args.includes("--to-it");
   const printMode = args.includes("--print");
   const pdfMode = args.includes("--pdf");
+  const themeIdx = args.indexOf("--theme");
+  const themeName = themeIdx >= 0 ? args[themeIdx + 1] : null;
+  const renderOpts = themeName ? { theme: themeName } : undefined;
   const queryIndex = args.indexOf("--query");
   const queryString = queryIndex >= 0 ? args[queryIndex + 1] : null;
   const validateIndex = args.indexOf("--validate");
@@ -299,7 +497,7 @@ Examples:
         );
         process.exit(1);
       }
-      const printHtml = renderPrint(document);
+      const printHtml = renderPrint(document, renderOpts);
       (async () => {
         const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
@@ -314,7 +512,7 @@ Examples:
 
     // Print mode
     if (printMode) {
-      const printHtml = renderPrint(document);
+      const printHtml = renderPrint(document, renderOpts);
       if (saveFile) {
         const outputFile = inputFile.replace(/\.it$/i, "-print.html");
         fs.writeFileSync(outputFile, printHtml);
@@ -327,7 +525,7 @@ Examples:
 
     // HTML output
     if (outputHtml || saveFile) {
-      const html = renderHTML(document);
+      const html = renderHTML(document, renderOpts);
       if (saveFile) {
         const outputFile = inputFile.replace(/\.it$/i, ".html");
         fs.writeFileSync(outputFile, html);
@@ -346,3 +544,125 @@ Examples:
 }
 
 main();
+
+// ── v2.10 Helper Functions ──────────────────────────────
+
+/**
+ * Resolve .it files from a path that could be a file, directory, or glob.
+ */
+function resolveItFiles(target) {
+  const resolved = path.resolve(target);
+
+  // If it's a directory, glob all .it files recursively
+  if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+    return walkDir(resolved).filter((f) => f.endsWith(".it"));
+  }
+
+  // If it's a single .it file
+  if (fs.existsSync(resolved) && resolved.endsWith(".it")) {
+    return [resolved];
+  }
+
+  // Treat as a glob pattern — basic implementation
+  const dir = path.dirname(resolved);
+  const pattern = path.basename(target);
+  if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
+    const files = fs.readdirSync(dir).filter((f) => {
+      if (!f.endsWith(".it")) return false;
+      if (pattern.includes("*")) {
+        const regex = new RegExp(
+          "^" + pattern.replace(/\*/g, ".*").replace(/\?/g, ".") + "$",
+        );
+        return regex.test(f);
+      }
+      return f === pattern;
+    });
+    return files.map((f) => path.join(dir, f));
+  }
+
+  // Recursive glob: **/*.it
+  if (target.includes("**")) {
+    const base = target.split("**")[0] || ".";
+    const baseResolved = path.resolve(base);
+    if (
+      fs.existsSync(baseResolved) &&
+      fs.statSync(baseResolved).isDirectory()
+    ) {
+      return walkDir(baseResolved).filter((f) => f.endsWith(".it"));
+    }
+  }
+
+  return [];
+}
+
+function walkDir(dir) {
+  const results = [];
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (
+      entry.isDirectory() &&
+      !entry.name.startsWith(".") &&
+      entry.name !== "node_modules"
+    ) {
+      results.push(...walkDir(full));
+    } else if (entry.isFile()) {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
+function buildIndexForFolder(folder) {
+  const entries = fs.readdirSync(folder, { withFileTypes: true });
+  const itFiles = entries.filter((e) => e.isFile() && e.name.endsWith(".it"));
+
+  if (itFiles.length === 0) {
+    console.log(`No .it files in ${folder}`);
+    return;
+  }
+
+  const filesData = {};
+  for (const entry of itFiles) {
+    const filePath = path.join(folder, entry.name);
+    const source = fs.readFileSync(filePath, "utf-8");
+    const stat = fs.statSync(filePath);
+    const doc = parseIntentText(source);
+    filesData[entry.name] = {
+      source,
+      doc,
+      modifiedAt: stat.mtime.toISOString(),
+    };
+  }
+
+  const relFolder = path.relative(process.cwd(), folder);
+  const index = buildShallowIndex(relFolder || ".", filesData, "2.10.0");
+  const indexPath = path.join(folder, ".it-index");
+  fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
+  console.log(`✅ Index built: ${indexPath} (${itFiles.length} files)`);
+}
+
+function buildIndexRecursive(rootDir) {
+  let count = 0;
+  function walk(dir) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const hasItFiles = entries.some(
+      (e) => e.isFile() && e.name.endsWith(".it"),
+    );
+    if (hasItFiles) {
+      buildIndexForFolder(dir);
+      count++;
+    }
+    for (const entry of entries) {
+      if (
+        entry.isDirectory() &&
+        !entry.name.startsWith(".") &&
+        entry.name !== "node_modules"
+      ) {
+        walk(path.join(dir, entry.name));
+      }
+    }
+  }
+  walk(rootDir);
+  console.log(`\n✅ Built ${count} indexes recursively under ${rootDir}`);
+}

@@ -397,16 +397,17 @@ result: Resolved          | code: 200
 
 ## The Ecosystem
 
-| Project                | What it is                                                                                                                                                             |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`@intenttext/core`** | The parser, renderer, and template engine. Install and use in any Node.js or browser project.                                                                          |
-| **IntentText Editor**  | A block-based editor where the `.it` format is the data layer. Write visually, export structured. [iteditor.vercel.app](https://iteditor.vercel.app/)                  |
-| **VS Code Extension**  | Syntax highlighting, live preview, and snippets for `.it` files. [Install from Marketplace](https://marketplace.visualstudio.com/items?itemName=intenttext.intenttext) |
-| **Python Package**     | [![PyPI](https://img.shields.io/pypi/v/intenttext)](https://pypi.org/project/intenttext/) Install with `pip install intenttext`                                        |
-| **GitHub Action**      | Validate `.it` files in CI with one line: `uses: intenttext/intenttext-action@v1`                                                                                      |
-| **MCP Server**         | Give any AI agent IntentText tools via MCP. [Deployed](https://intenttext-mcp.onrender.com) · [GitHub](https://github.com/intenttext/intenttext-mcp)                   |
-| **Web Converter**      | Paste any web content or Markdown and convert to IntentText. [iteditor.vercel.app](https://iteditor.vercel.app/)                                                       |
-| **IntentText Hub**     | The template registry — browse, search, and share `.it` templates. [intenttext-hub.vercel.app](https://intenttext-hub.vercel.app/)                                     |
+| Project                | What it is                                                                                                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`@intenttext/core`** | The parser, renderer, and template engine. Install and use in any Node.js or browser project.                                                                                        |
+| **IntentText Editor**  | A block-based editor where the `.it` format is the data layer. Write visually, export structured. [iteditor.vercel.app](https://iteditor.vercel.app/)                                |
+| **VS Code Extension**  | Syntax highlighting, live preview, and snippets for `.it` files. [Install from Marketplace](https://marketplace.visualstudio.com/items?itemName=intenttext.intenttext)               |
+| **Python Package**     | [![PyPI](https://img.shields.io/pypi/v/intenttext)](https://pypi.org/project/intenttext/) Install with `pip install intenttext`                                                      |
+| **GitHub Action**      | Validate `.it` files in CI with one line: `uses: intenttext/intenttext-action@v1`                                                                                                    |
+| **MCP Server**         | Give any AI agent IntentText tools via MCP. [Deployed](https://intenttext-mcp.onrender.com) · [GitHub](https://github.com/intenttext/intenttext-mcp)                                 |
+| **Web Converter**      | Paste any web content or Markdown and convert to IntentText. [iteditor.vercel.app](https://iteditor.vercel.app/)                                                                     |
+| **IntentText Hub**     | The template registry — browse, search, publish, and share `.it` templates. GitHub OAuth, community + curated tiers. [intenttext-hub.vercel.app](https://intenttext-hub.vercel.app/) |
+| **60 Templates**       | Ready-to-use templates across 8 domains: business, reports, editorial, book, personal, agent, organization, developer. Each with example data.                                       |
 
 ---
 
@@ -566,6 +567,52 @@ node cli.js document.it                                    # Parse to JSON
 node cli.js document.it --html                             # Render to HTML
 node cli.js template.it --data data.json --print           # Template + data → print HTML
 node cli.js template.it --data data.json --pdf             # Template + data → PDF
+node cli.js document.it --html --theme corporate           # Render with theme
+node cli.js query docs/                                    # Query all .it files in folder
+node cli.js index docs/ --recursive                        # Build .it-index files
+node cli.js ask docs/ "What tasks are overdue?"            # Natural language query
+node cli.js theme list                                     # List built-in themes
+node cli.js theme info corporate                           # Show theme details
+```
+
+### Themes
+
+Apply a built-in theme to any render — controls typography, colors, spacing, and block styling:
+
+```javascript
+import { renderHTML, renderPrint, listBuiltinThemes } from "@intenttext/core";
+
+// Apply via render options
+const html = renderHTML(doc, { theme: "corporate" });
+const printHtml = renderPrint(doc, { theme: "legal" });
+
+// Or declare in the document itself
+// meta: | theme: warm
+
+// 8 built-in themes: corporate, minimal, warm, technical, print, legal, editorial, dark
+console.log(listBuiltinThemes());
+```
+
+### Query Folders Like a Database
+
+```javascript
+import {
+  buildShallowIndex,
+  composeIndexes,
+  queryComposed,
+  formatTable,
+} from "@intenttext/core";
+
+// Build indexes per folder
+const idx = buildShallowIndex("contracts/", files, "2.10.0");
+
+// Compose and query across folders
+const composed = composeIndexes([idx1, idx2], ".");
+const overdueTasks = queryComposed(composed, {
+  type: "task",
+  status: "overdue",
+});
+console.log(formatTable(overdueTasks));
 ```
 
 ---
@@ -768,8 +815,7 @@ IntentText/
 │   ├── SPEC.md             # Full language specification
 │   ├── TEMPLATES.md        # Template system and document generation
 │   └── USAGE.md            # Usage guide
-├── examples/
-│   └── templates/          # Invoice, contract, book, report, and more
+├── examples/               # Example .it files
 ├── cli.js                  # CLI tool
 ├── preview.html            # Live editor
 └── intenttext.browser.js   # Browser bundle

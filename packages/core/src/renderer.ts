@@ -1,4 +1,15 @@
 import { IntentBlock, IntentDocument, InlineNode, PrintLayout } from "./types";
+import { IntentTheme, getBuiltinTheme, generateThemeCSS } from "./theme";
+
+export interface RenderOptions {
+  /** Theme name (built-in) or IntentTheme object */
+  theme?: string | IntentTheme;
+}
+
+function resolveThemeSync(ref: string | IntentTheme): IntentTheme | undefined {
+  if (typeof ref === "object") return ref;
+  return getBuiltinTheme(ref);
+}
 
 // v2.9: Paper size to CSS @page size mapping
 const PAPER_SIZES: Record<string, string> = {
@@ -899,7 +910,10 @@ function renderBlocks(
 }
 
 // Main HTML renderer function
-export function renderHTML(document: IntentDocument): string {
+export function renderHTML(
+  document: IntentDocument,
+  options?: RenderOptions,
+): string {
   if (!document || !document.blocks) return "";
 
   const bodyHtml = renderBlocks(document.blocks);
@@ -921,6 +935,12 @@ export function renderHTML(document: IntentDocument): string {
   }
 
   const html = bodyHtml + footnotesHtml;
+
+  // v2.10: Resolve theme — from options, from meta, or none
+  const themeRef =
+    options?.theme ?? document.metadata?.meta?.theme ?? undefined;
+  const theme = themeRef ? resolveThemeSync(themeRef) : undefined;
+  const themeCSS = theme ? generateThemeCSS(theme, "web") : "";
 
   // Wrap in a container
   const direction =
@@ -1152,6 +1172,7 @@ sup.it-fn-ref a{color:#111;text-decoration:none;border-bottom:1px solid #999;}
 .it-sealed-banner__text{font-size:1rem;color:#c62828;text-transform:uppercase;letter-spacing:0.04em;}
 .it-sealed-banner__date{font-size:0.8rem;color:#666;margin-left:auto;}
 .it-sealed-banner__hash{font-size:0.72rem;color:#888;font-family:monospace;}
+${themeCSS}
 </style>
 ${html}
 </div>`;
@@ -1182,7 +1203,10 @@ function buildDynamicCSS(doc: IntentDocument): string {
 }
 
 // Print-optimized HTML renderer
-export function renderPrint(doc: IntentDocument): string {
+export function renderPrint(
+  doc: IntentDocument,
+  options?: RenderOptions,
+): string {
   if (!doc || !doc.blocks) return "";
 
   const bodyHtml = renderBlocks(doc.blocks);
@@ -1207,6 +1231,11 @@ export function renderPrint(doc: IntentDocument): string {
   const dynamicCSS = buildDynamicCSS(doc);
   const direction =
     doc.metadata?.language === "rtl" ? 'dir="rtl"' : 'dir="ltr"';
+
+  // v2.10: Resolve theme
+  const themeRef = options?.theme ?? doc.metadata?.meta?.theme ?? undefined;
+  const theme = themeRef ? resolveThemeSync(themeRef) : undefined;
+  const themeCSS = theme ? generateThemeCSS(theme, "print") : "";
 
   // v2.9: Collect print layout
   const layout = collectPrintLayout(doc);
@@ -1285,6 +1314,7 @@ export function renderPrint(doc: IntentDocument): string {
 
   return `<!DOCTYPE html><html ${direction}><head><meta charset="utf-8"><style>
 ${dynamicCSS}
+${themeCSS}
 ${headerFooterCSS}
 ${backwardCompatCSS}
 ${breakCSS}
