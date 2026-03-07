@@ -110,6 +110,7 @@ const TRUST_KEYWORDS = new Set<string>([
   "sign",
   "freeze",
   "amendment",
+  "history",
 ]);
 
 // v2.8 document identity keywords (track joins title, summary)
@@ -135,11 +136,19 @@ const V211_BLOCK_TYPES = new Set<string>([
 
 /**
  * Detect the history boundary in an array of lines.
- * Returns the line index of the '---' divider that starts the history section, or -1 if not found.
+ * v2.12: looks for `history:` keyword line.
+ * Backward compat: also detects legacy `---` + `// history` pattern.
+ * Returns the line index of the boundary, or -1 if not found.
  */
 export function detectHistoryBoundary(lines: string[]): number {
-  for (let i = 0; i < lines.length - 1; i++) {
-    if (lines[i].trim() === "---") {
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    // v2.12: history: keyword is the canonical boundary
+    if (trimmed === "history:" || trimmed === "history: ") {
+      return i;
+    }
+    // Legacy v2.11: --- followed by // history
+    if (trimmed === "---" && i < lines.length - 1) {
       const next = lines[i + 1]?.trim();
       if (next === "// history" || next?.startsWith("// history")) {
         return i;
@@ -1041,6 +1050,19 @@ export function parseIntentText(
     historySection = parseHistorySectionText(historyRaw);
   }
 
+  // v2.12: LEGACY_HISTORY_BOUNDARY warning when old --- + // history pattern used
+  if (historyBoundaryIdx !== -1 && lines[historyBoundaryIdx].trim() === "---") {
+    diagnostics.push({
+      severity: "warning",
+      code: "LEGACY_HISTORY_BOUNDARY",
+      message:
+        "Legacy history boundary detected: '---' followed by '// history'. " +
+        "Use 'history:' keyword instead (v2.12+).",
+      line: historyBoundaryIdx + 1,
+      column: 1,
+    });
+  }
+
   // v2.8: trust metadata accumulators
   const signatureBlocks: Array<{
     signer: string;
@@ -1401,6 +1423,11 @@ export function parseIntentText(
       continue;
     }
 
+    // v2.12: history: keyword produces no block output — it's a structural boundary
+    if (block.type === ("history" as BlockType)) {
+      continue;
+    }
+
     // v2.8: sign: block populates signatures metadata
     if (block.type === ("sign" as BlockType)) {
       signatureBlocks.push({
@@ -1559,20 +1586,28 @@ export function parseIntentText(
     ...(Object.keys(metaAccumulator).length > 0 && { meta: metaAccumulator }),
   };
 
+  // v2.12: detect if history: keyword boundary is used (not legacy ---)
+  const hasV212Content =
+    (historyBoundaryIdx !== -1 &&
+      lines[historyBoundaryIdx].trim().startsWith("history:")) ||
+    allBlocks.some((b) => b.type === "history");
+
   const document: IntentDocument = {
-    version: allBlocks.some((b) => V211_BLOCK_TYPES.has(b.type))
-      ? "2.11"
-      : hasTrustContent
-        ? "2.8"
-        : hasDocgenContent
-          ? "2.5"
-          : hasV22Content
-            ? "2.2"
-            : hasV21Content
-              ? "2.1"
-              : hasAgenticContent
-                ? "2.0"
-                : "1.4",
+    version: hasV212Content
+      ? "2.12"
+      : allBlocks.some((b) => V211_BLOCK_TYPES.has(b.type))
+        ? "2.11"
+        : hasTrustContent
+          ? "2.8"
+          : hasDocgenContent
+            ? "2.5"
+            : hasV22Content
+              ? "2.2"
+              : hasV21Content
+                ? "2.1"
+                : hasAgenticContent
+                  ? "2.0"
+                  : "1.4",
     blocks,
     metadata,
     diagnostics: diagnostics.length > 0 ? diagnostics : undefined,

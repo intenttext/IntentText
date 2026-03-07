@@ -96,4 +96,8 @@ export const ALIASES: Record<string, string> = {
   citation: "quote",
   source: "quote",
   reference: "quote",
+
+  // ── v2.12 divider: aliases ──────────────────────────────────────────────
+  hr: "divider",
+  separator: "divider",
 };

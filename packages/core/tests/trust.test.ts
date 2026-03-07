@@ -60,8 +60,7 @@ track: | version: 1.0 | by: Ahmed
 section: Scope
 note: Payment within 15 days.
 
----
-// history
+history:
 
 // registry
 b7f3a | note | Scope | payment within 15 days.
@@ -137,8 +136,7 @@ describe("Parser — History Boundary", () => {
     const lines = docWithHistory.split(/\r?\n/);
     const idx = detectHistoryBoundary(lines);
     expect(idx).toBeGreaterThan(0);
-    expect(lines[idx].trim()).toBe("---");
-    expect(lines[idx + 1].trim()).toBe("// history");
+    expect(lines[idx].trim()).toBe("history:");
   });
 
   it("returns -1 when no history boundary", () => {
@@ -466,7 +464,7 @@ revision: | version: 1.1 | at: 2026-03-02 | by: Sarah | change: modified | id: b
     const prev = `title: Test\ntrack: | version: 1.0 | by: Ahmed\n\nsection: Scope\nnote: Hello`;
     const curr = `title: Test\ntrack: | version: 1.0 | by: Ahmed\n\nsection: Scope\nnote: Hello\nnote: World`;
     const result = updateHistory(prev, curr, { by: "Ahmed" });
-    expect(result).toContain("// history");
+    expect(result).toContain("history:");
     expect(result).toContain("// revisions");
     expect(result).toContain("change: added");
   });

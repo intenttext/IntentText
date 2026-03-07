@@ -22,13 +22,21 @@ export function computeDocumentHash(source: string): string {
 
 /**
  * Find history boundary position in raw source string.
- * Returns byte offset of the '---' line that starts the history section, or -1.
+ * v2.12: looks for `history:` keyword line.
+ * Backward compat: also detects legacy `---` + `// history` pattern.
+ * Returns byte offset of the boundary line, or -1.
  */
 export function findHistoryBoundaryInSource(source: string): number {
   const lines = source.split("\n");
   let pos = 0;
-  for (let i = 0; i < lines.length - 1; i++) {
-    if (lines[i].trim() === "---") {
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    // v2.12: history: keyword is the canonical boundary
+    if (trimmed === "history:" || trimmed === "history: ") {
+      return pos;
+    }
+    // Legacy v2.11: --- followed by // history
+    if (trimmed === "---" && i < lines.length - 1) {
       const next = lines[i + 1]?.trim();
       if (next === "// history" || next?.startsWith("// history")) {
         return pos;

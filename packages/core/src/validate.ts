@@ -354,6 +354,19 @@ export function validateDocumentSemantic(
     }
   }
 
+  // v2.12: HISTORY_WITHOUT_FREEZE warning — history: present but no freeze:
+  if (doc.history && freezeBlocks.length === 0) {
+    issues.push({
+      blockId: "",
+      blockType: "history",
+      type: "warning",
+      code: "HISTORY_WITHOUT_FREEZE",
+      message:
+        "Document has a history section but no freeze: block — " +
+        "this may indicate manual editing or a broken seal.",
+    });
+  }
+
   // v2.8: track: without version
   if (doc.metadata?.tracking && !doc.metadata.tracking.version) {
     issues.push({

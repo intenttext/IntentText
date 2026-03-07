@@ -133,7 +133,10 @@ function serializeBlock(block: IntentBlock): string {
   const type = block.type;
 
   // Special case: divider
-  if (type === "divider") return "---";
+  if (type === "divider") {
+    const props = serializeProperties(block);
+    return props ? `divider: ${props}` : "---";
+  }
 
   // Special case: break
   if (type === "break") return "break:";

@@ -238,11 +238,12 @@ function renderBlock(block: IntentBlock): string {
       return `<h3 id="${slugify(block.content)}" class="intent-sub${alignClass}"${styleAttr}>${content}</h3>`;
 
     case "divider":
+      const dividerStyle = props.style ? String(props.style) : "solid";
       const label = content
         ? `<span class="intent-divider-label">${content}</span>`
         : "";
       return `<div class="intent-divider">
-        <hr class="intent-divider-line" />
+        <hr class="it-divider" style="border-style: ${dividerStyle}" />
         ${label}
       </div>`;
 
@@ -705,7 +706,12 @@ function renderBlock(block: IntentBlock): string {
       return "";
 
     case "break":
-      return `<div class="it-page-break"></div>`;
+      // Invisible in web output; forces page break in print only
+      return `<div class="it-page-break" aria-hidden="true" style="display:none"></div>`;
+
+    case "history":
+      // history: keyword produces no rendered output
+      return "";
 
     case "byline": {
       const author = content;

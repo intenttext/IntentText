@@ -160,6 +160,8 @@ export type BlockType =
   | "sign"
   | "freeze"
   | "revision"
+  // v2.12 history boundary keyword
+  | "history"
   // v2.8.1 document metadata block type
   | "meta"
   // v2.5 document generation block types
@@ -253,7 +255,10 @@ export interface Diagnostic {
     | "FIGURE_MISSING_CAPTION"
     | "CONTACT_NO_REACH"
     | "DEADLINE_MISSING_DATE"
-    | "DEADLINE_PAST";
+    | "DEADLINE_PAST"
+    // v2.12 diagnostic codes
+    | "LEGACY_HISTORY_BOUNDARY"
+    | "HISTORY_WITHOUT_FREEZE";
 }
 
 /** Execution status values for agentic workflow blocks. */

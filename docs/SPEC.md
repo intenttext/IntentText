@@ -2,9 +2,9 @@
 > [itdocs.vercel.app/docs/reference](https://itdocs.vercel.app/docs/reference).
 > This file is kept for reference and will no longer be updated after v2.11.
 
-# IntentText (`.it`) v2.10 — Official Specification
+# IntentText (`.it`) v2.12 — Official Specification
 
-> **Status:** Stable · **Version:** 2.11 · **Source of Truth**
+> **Status:** Stable · **Version:** 2.12 · **Source of Truth**
 
 ## What IntentText Is
 
@@ -107,11 +107,11 @@ Every semantic block follows this pattern:
 
 ### 3.2 Structure
 
-| Keyword    | Description                               | Example                                 |
-| ---------- | ----------------------------------------- | --------------------------------------- |
-| `section:` | Opens a new named context / major heading | `section: Logistics & Equipment`        |
-| `sub:`     | Sub-section within a section              | `sub: Technical Details`                |
-| `divider:` | Visual separator; optional label          | `divider:` or `divider: End of Section` |
+| Keyword    | Description                                | Example                                                  |
+| ---------- | ------------------------------------------ | -------------------------------------------------------- |
+| `section:` | Opens a new named context / major heading  | `section: Logistics & Equipment`                         |
+| `sub:`     | Sub-section within a section               | `sub: Technical Details`                                 |
+| `divider:` | Visual separator; optional label and style | `divider:` or `divider: End of Section \| style: dashed` |
 
 > **Note on deeper hierarchy:** `sub:` covers H3-level nesting. If a document requires H4+, use nested `sub:` blocks contextually. A `sub2:` keyword is reserved for v1.1 to keep v1.0 clean.
 
@@ -416,7 +416,9 @@ Renders as fixed background text on every page.
 
 #### `break:` — Pagination control (extended in v2.9)
 
-    break:                          // explicit page break
+`break:` is **invisible in web output** (`display:none`, `aria-hidden="true"`) and forces a page break in print only.
+
+    break:                          // explicit page break (print only)
     break: | before: section       // page break before every section
     break: | keep: table           // never split tables across pages
     break: | keep: sign            // keep signatures with preceding content
@@ -689,26 +691,26 @@ task: Database migration | owner: Ahmed | due: Sunday
 
 ## 9. Comparison: IntentText vs. Markdown
 
-| Feature         | Markdown         | IntentText                                   | Why IT Wins                            |
-| --------------- | ---------------- | -------------------------------------------- | -------------------------------------- |
-| Document title  | `# Title`        | `title: My Document`                         | AI identifies it as the unique Doc ID  |
-| Main heading    | `## Header`      | `section: Strategy`                          | Explicitly defines a new "Context"     |
-| Sub-heading     | `### Sub`        | `sub: Technicals`                            | Natural hierarchy without counting `#` |
-| Standalone fact | `- Item`         | `note: Witness is 40 yrs old`                | Distinguishes "data" from "lists"      |
-| Unordered list  | `- Item`         | `- Item`                                     | Familiar — same as WhatsApp / MD       |
-| Ordered process | `1. Item`        | `1. Item`                                    | Familiar — AI knows order is critical  |
-| Actionable task | `- [ ] Task`     | `task: Review File \| owner: Ali`            | Executable; can be tracked in a CRM    |
-| Completed task  | `- [x] Task`     | `done: Review File \| time: 2pm`             | Historical; records _when_ it finished |
-| Question        | _(none)_         | `question: Where is the key?`                | AI can flag unanswered items           |
-| Image           | `![Alt](URL)`    | `image: Logo \| at: img.png \| caption: ...` | Human + accessible                     |
-| Link            | `[Text](URL)`    | `link: Web \| to: site.com \| title: ...`    | Human + accessible                     |
-| Table header    | `\| H1 \| H2 \|` | `headers: Name \| Role \| Date`              | Portable — no pipe-alignment pain      |
-| Table row       | `\| D1 \| D2 \|` | `row: Ahmed \| Admin \| 2026`                | Data-ready — basically a CSV row       |
-| Bold            | `**Text**`       | `*Text*`                                     | WhatsApp — everyone knows this         |
-| Italic          | `_Text_`         | `_Text_`                                     | WhatsApp — familiar muscle memory      |
-| Strikethrough   | `~~Text~~`       | `~Text~`                                     | WhatsApp — simple and fast             |
-| Code block      | ` ```…``` `      | `code:` / `end:`                             | Explicit open/close — parser-safe      |
-| Divider         | `---`            | `divider:` or `divider: Label`               | Optional label adds context            |
+| Feature         | Markdown         | IntentText                                      | Why IT Wins                                  |
+| --------------- | ---------------- | ----------------------------------------------- | -------------------------------------------- |
+| Document title  | `# Title`        | `title: My Document`                            | AI identifies it as the unique Doc ID        |
+| Main heading    | `## Header`      | `section: Strategy`                             | Explicitly defines a new "Context"           |
+| Sub-heading     | `### Sub`        | `sub: Technicals`                               | Natural hierarchy without counting `#`       |
+| Standalone fact | `- Item`         | `note: Witness is 40 yrs old`                   | Distinguishes "data" from "lists"            |
+| Unordered list  | `- Item`         | `- Item`                                        | Familiar — same as WhatsApp / MD             |
+| Ordered process | `1. Item`        | `1. Item`                                       | Familiar — AI knows order is critical        |
+| Actionable task | `- [ ] Task`     | `task: Review File \| owner: Ali`               | Executable; can be tracked in a CRM          |
+| Completed task  | `- [x] Task`     | `done: Review File \| time: 2pm`                | Historical; records _when_ it finished       |
+| Question        | _(none)_         | `question: Where is the key?`                   | AI can flag unanswered items                 |
+| Image           | `![Alt](URL)`    | `image: Logo \| at: img.png \| caption: ...`    | Human + accessible                           |
+| Link            | `[Text](URL)`    | `link: Web \| to: site.com \| title: ...`       | Human + accessible                           |
+| Table header    | `\| H1 \| H2 \|` | `headers: Name \| Role \| Date`                 | Portable — no pipe-alignment pain            |
+| Table row       | `\| D1 \| D2 \|` | `row: Ahmed \| Admin \| 2026`                   | Data-ready — basically a CSV row             |
+| Bold            | `**Text**`       | `*Text*`                                        | WhatsApp — everyone knows this               |
+| Italic          | `_Text_`         | `_Text_`                                        | WhatsApp — familiar muscle memory            |
+| Strikethrough   | `~~Text~~`       | `~Text~`                                        | WhatsApp — simple and fast                   |
+| Code block      | ` ```…``` `      | `code:` / `end:`                                | Explicit open/close — parser-safe            |
+| Divider         | `---`            | `divider:` or `divider: Label \| style: dashed` | Optional label + style (solid/dashed/dotted) |
 
 ---
 
@@ -871,13 +873,15 @@ result: Invoice {{invoice.number}} | code: 200
 
 **Layer 4 — Document Generation (9):** `font` · `page` · `break` · `byline` · `epigraph` · `caption` · `footnote` · `toc` · `dedication`
 
-**Layer 5 — Document Trust (5):** `approve` · `sign` · `freeze` · `revision` · `amendment`
+**Layer 5 — Document Trust (6):** `approve` · `sign` · `freeze` · `revision` · `amendment` · `history`
 
 **Layer 6 — v2.11 Keyword Expansion (7):** `def` · `metric` · `figure` · `signline` · `contact` · `deadline` · `ref` (redesigned)
 
 **Alias:** `status` → `emit` (backward compatibility)
 
-**Total canonical keywords: 55.** **Total aliases: 47.**
+**Total canonical keywords: 57.** **Total aliases: 49.**
+
+**v2.12 additions:** `history` (Trust — boundary marker, no rendered output). Aliases: `hr` → `divider`, `separator` → `divider`.
 
 All keywords are **case-insensitive** (`Title:` = `title:`). User content is always preserved as written.
 
@@ -918,7 +922,9 @@ Add `track:` after `title:` and `summary:` to activate:
 
 ### 12.3 The History Boundary
 
-A `---` divider followed by `// history` marks the system metadata section. Everything below this boundary is CLI-owned. Renderers ignore it. Editors hide it. Parsers skip it for block output.
+The `history:` keyword marks the system metadata section. Everything below this boundary is CLI-owned. Renderers ignore it. Editors hide it. Parsers skip it for block output.
+
+> **v2.12 change:** Prior versions used `---` followed by `// history` as the boundary marker. The `history:` keyword replaces this. The legacy pattern is still recognized for backward compatibility but emits a `LEGACY_HISTORY_BOUNDARY` diagnostic warning.
 
 ### 12.4 New Keywords
 
@@ -943,8 +949,7 @@ A `---` divider followed by `// history` marks the system metadata section. Ever
 Below the history boundary:
 
 ```
----
-// history
+history:
 
 // registry
 b-1a2 | title | root | service agreement
@@ -958,20 +963,21 @@ revision: | version: 1.1 | at: 2026-03-03T09:00:00Z | by: Sarah | change: added 
 
 ## 13. Versioning
 
-| Version    | Status    | Notes                                                                                                         |
-| ---------- | --------- | ------------------------------------------------------------------------------------------------------------- |
-| **v1.0**   | ✅ Stable | Core format                                                                                                   |
-| **v1.3**   | ✅ Stable | Query, Schema, Converters, Accessibility                                                                      |
-| **v1.4**   | ✅ Stable | Cleanup, fixture accuracy, spec overhaul                                                                      |
-| **v2.0**   | ✅ Stable | Agentic workflow blocks, document metadata, interchange format                                                |
-| **v2.3**   | ✅ Stable | gate/call/emit, `{{variable}}` interpolation, join/on properties, removed schema                              |
-| **v2.4**   | ✅ Stable | Writer-first inline syntax, prose paragraphs, alignment                                                       |
-| **v2.5**   | ✅ Stable | Document Generation Engine: layout blocks, writer blocks, template merge, print                               |
-| **v2.6**   | ✅ Stable | Production API: parseIntentTextSafe, documentToSource, validateDocumentSemantic, queryDocument, diffDocuments |
-| **v2.7**   | ✅ Stable | `policy:` keyword — standing behavioural rules for AI agents                                                  |
-| **v2.8**   | ✅ Stable | Document Trust: `track`, `approve`, `sign`, `freeze`, `revision` — seal, verify, change history               |
-| **v2.8.1** | ✅ Stable | `meta:` keyword, `each:` dynamic table rows, keyword aliases, known style properties                          |
-| **v2.9**   | ✅ Stable | Print Quality: `header:`, `footer:`, `watermark:` keywords, extended `break:`, `print-mode:`, paper sizes     |
+| Version    | Status    | Notes                                                                                                                                    |
+| ---------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **v1.0**   | ✅ Stable | Core format                                                                                                                              |
+| **v1.3**   | ✅ Stable | Query, Schema, Converters, Accessibility                                                                                                 |
+| **v1.4**   | ✅ Stable | Cleanup, fixture accuracy, spec overhaul                                                                                                 |
+| **v2.0**   | ✅ Stable | Agentic workflow blocks, document metadata, interchange format                                                                           |
+| **v2.3**   | ✅ Stable | gate/call/emit, `{{variable}}` interpolation, join/on properties, removed schema                                                         |
+| **v2.4**   | ✅ Stable | Writer-first inline syntax, prose paragraphs, alignment                                                                                  |
+| **v2.5**   | ✅ Stable | Document Generation Engine: layout blocks, writer blocks, template merge, print                                                          |
+| **v2.6**   | ✅ Stable | Production API: parseIntentTextSafe, documentToSource, validateDocumentSemantic, queryDocument, diffDocuments                            |
+| **v2.7**   | ✅ Stable | `policy:` keyword — standing behavioural rules for AI agents                                                                             |
+| **v2.8**   | ✅ Stable | Document Trust: `track`, `approve`, `sign`, `freeze`, `revision` — seal, verify, change history                                          |
+| **v2.8.1** | ✅ Stable | `meta:` keyword, `each:` dynamic table rows, keyword aliases, known style properties                                                     |
+| **v2.9**   | ✅ Stable | Print Quality: `header:`, `footer:`, `watermark:` keywords, extended `break:`, `print-mode:`, paper sizes                                |
+| **v2.12**  | ✅ Stable | Format Fixes: `history:` keyword replaces `---` boundary, `---` always visible divider, `divider:` with style, `break:` invisible in web |
 
 ### 12.1 Implemented Features (v1.0 – v1.3)
 

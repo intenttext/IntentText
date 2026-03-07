@@ -269,8 +269,7 @@ function buildHistorySection(
   revisions: RevisionEntry[],
 ): string {
   const lines = [
-    "---",
-    "// history",
+    "history:",
     "",
     "// registry",
     ...registry.map(
