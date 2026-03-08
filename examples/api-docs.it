@@ -93,5 +93,5 @@ ai: Generate SDK code examples for the endpoints above | model: gpt-4
 
 synthesize: Quick Start Guide | scope: section | output: key-points
 
-ref: Authentication Guide | to: ./auth-guide.it
-ref: Error Handling Best Practices | to: ./errors.it
+ref: Authentication Guide | rel: related | file: ./auth-guide.it
+ref: Error Handling Best Practices | rel: related | file: ./errors.it
