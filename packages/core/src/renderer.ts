@@ -217,7 +217,10 @@ function extractInlineStyles(
 // Helper function to render a single block
 function renderBlock(block: IntentBlock): string {
   // Pre-section metadata keywords — invisible in rendered output
-  if (block.type === ("agent" as string) || block.type === ("model" as string)) {
+  if (
+    block.type === ("agent" as string) ||
+    block.type === ("model" as string)
+  ) {
     return "";
   }
 
