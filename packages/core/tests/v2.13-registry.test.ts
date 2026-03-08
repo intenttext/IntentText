@@ -31,12 +31,6 @@ describe("v2.13 Language registry — new block types", () => {
     expect(doc.blocks[0].properties?.format).toBe("JSON");
   });
 
-  it("parses group: as its own block type", () => {
-    const doc = parseIntentText("group: Financial Summary");
-    expect(doc.blocks[0].type).toBe("group");
-    expect(doc.blocks[0].content).toBe("Financial Summary");
-  });
-
   it("parses tool: with api and method properties", () => {
     const doc = parseIntentText(
       "tool: Slack | api: https://hooks.slack.com | method: POST",
@@ -226,12 +220,6 @@ describe("v2.13 Language registry — renderer", () => {
     expect(html).toContain("Legal");
   });
 
-  it("renders group: block with data-group attribute", () => {
-    const doc = parseIntentText("group: Features");
-    const html = renderHTML(doc);
-    expect(html).toContain("it-group");
-    expect(html).toContain('data-group="Features"');
-  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

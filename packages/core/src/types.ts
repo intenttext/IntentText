@@ -45,7 +45,6 @@ export type BlockType =
   | "ask"
   | "quote"
   | "cite"
-  | "group"
   | "image"
   | "link"
   | "ref"

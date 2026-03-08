@@ -280,14 +280,6 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     ],
   },
   {
-    canonical: "group",
-    category: "structure",
-    since: "1.0",
-    status: "stable",
-    description: "Logical grouping of blocks — no visual output",
-    aliases: [],
-  },
-  {
     canonical: "break",
     category: "structure",
     since: "1.0",

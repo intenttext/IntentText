@@ -310,13 +310,6 @@ function renderBlock(block: IntentBlock): string {
       return `<div class="it-cite">${citeTitle}${citeAuthor ? ` — ${citeAuthor}` : ""}${citeDate ? `, ${citeDate}` : ""}</div>`;
     }
 
-    case "group": {
-      const childHtml = (block.children ?? [])
-        .map((c) => renderBlock(c))
-        .join("\n");
-      return `<div class="it-group" data-group="${escapeHtml(block.content)}">${childHtml}</div>`;
-    }
-
     case "image":
       const imgSrc = escapeHtml(
         sanitizeUrl(String(props.at || "")) || String(props.at || content),
@@ -837,6 +830,11 @@ function renderBlock(block: IntentBlock): string {
       return "";
 
     case "meta":
+      // Invisible — metadata only, not rendered
+      return "";
+
+    case "agent":
+    case "model":
       // Invisible — metadata only, not rendered
       return "";
 
