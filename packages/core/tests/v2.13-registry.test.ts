@@ -219,7 +219,6 @@ describe("v2.13 Language registry — renderer", () => {
     expect(html).toContain("it-label");
     expect(html).toContain("Legal");
   });
-
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
