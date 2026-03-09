@@ -63,11 +63,13 @@ export interface ExecutionResult {
   /** Execution log — one entry per block processed. */
   log: ExecutionLogEntry[];
   /** Overall status. */
-  status: "completed" | "gate_blocked" | "error" | "dry_run";
+  status: "completed" | "gate_blocked" | "policy_blocked" | "error" | "dry_run";
   /** Error if status is 'error'. */
   error?: Error;
   /** Gate block if status is 'gate_blocked'. */
   blockedAt?: IntentBlock;
+  /** Policy block that blocked execution (status is 'policy_blocked'). */
+  blockedByPolicy?: IntentBlock;
 }
 
 export interface ExecutionLogEntry {
@@ -532,7 +534,37 @@ export async function executeWorkflow(
     context.__policies = policies;
   }
 
-  // 4. Walk executionOrder — string[][] (batches of parallel steps)
+  // 4. Enforce policy: blocks with requires: gate
+  //    If a policy's condition is satisfied but no approved gate exists → block immediately.
+  for (const policy of policies) {
+    const requires = policy.properties?.requires as string | undefined;
+    if (requires !== "gate") continue;
+
+    const condition = (policy.properties?.if as string | undefined) ||
+      (policy.properties?.always ? "true" : undefined);
+
+    if (!evaluateCondition(condition, context)) continue;
+
+    // Check if any gate block in the document has status: approved
+    const hasApprovedGate = allBlocks.some(
+      (b) => b.type === "gate" && b.properties?.status === "approved",
+    );
+
+    if (!hasApprovedGate) {
+      return {
+        document,
+        context,
+        log: [],
+        status: "policy_blocked",
+        blockedByPolicy: policy,
+        error: new Error(
+          `Policy "${policy.content}" requires an approved gate but none found`,
+        ),
+      };
+    }
+  }
+
+  // 5. Walk executionOrder — string[][] (batches of parallel steps)
   const log: ExecutionLogEntry[] = [];
   const resultDoc = structuredClone(document);
   let stepCount = 0;

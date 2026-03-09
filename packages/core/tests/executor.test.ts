@@ -677,3 +677,80 @@ decision: Bad | if: ??? bogus !!! | then: yes | else: no
     expect(d.result).toBe(false);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 13. Policy enforcement (requires: gate)
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("executeWorkflow — policy enforcement", () => {
+  it("returns policy_blocked when requires:gate but no gate present", async () => {
+    const doc = parse(`
+title: Test
+policy: Approval required | requires: gate
+step: Send | tool: email.send
+`);
+    const result = await executeWorkflow(doc, {
+      tools: { "email.send": async () => ({ sent: true }) },
+    });
+
+    expect(result.status).toBe("policy_blocked");
+    expect(result.blockedByPolicy?.type).toBe("policy");
+    expect(result.log).toHaveLength(0);
+  });
+
+  it("allows execution when requires:gate and an approved gate is present", async () => {
+    const doc = parse(`
+title: Test
+policy: Approval required | requires: gate
+gate: Manager approval | status: approved
+step: Send | tool: email.send
+`);
+    const result = await executeWorkflow(doc, {
+      onGate: async () => true,
+      tools: { "email.send": async () => ({ sent: true }) },
+    });
+
+    expect(result.status).toBe("completed");
+  });
+
+  it("skips policy check when requires:gate condition (if:) evaluates false", async () => {
+    const doc = parse(`
+title: Test
+policy: Approval required | requires: gate | if: {{env}} == 'prod'
+step: Send | tool: email.send
+`);
+    const result = await executeWorkflow(doc, {
+      context: { env: "staging" },
+      tools: { "email.send": async () => ({ sent: true }) },
+    });
+
+    expect(result.status).toBe("completed");
+  });
+
+  it("blocks when requires:gate condition (if:) evaluates true and no approved gate", async () => {
+    const doc = parse(`
+title: Test
+policy: Approval required | requires: gate | if: {{env}} == 'prod'
+step: Send | tool: email.send
+`);
+    const result = await executeWorkflow(doc, {
+      context: { env: "prod" },
+      tools: { "email.send": async () => ({ sent: true }) },
+    });
+
+    expect(result.status).toBe("policy_blocked");
+  });
+
+  it("policy without requires:gate does not block execution", async () => {
+    const doc = parse(`
+title: Test
+policy: Audit only | action: log
+step: Send | tool: email.send
+`);
+    const result = await executeWorkflow(doc, {
+      tools: { "email.send": async () => ({ sent: true }) },
+    });
+
+    expect(result.status).toBe("completed");
+  });
+});
