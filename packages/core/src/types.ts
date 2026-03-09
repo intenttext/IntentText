@@ -130,7 +130,10 @@ export type BlockType =
   | "deadline"
   // v2.13 new keywords
   | "assert"
-  | "secret";
+  | "secret"
+  // v2.14 extension keywords (emit real types)
+  | "agent"
+  | "model";
 
 export type InlineNode =
   | { type: "text"; value: string }

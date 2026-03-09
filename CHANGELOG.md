@@ -6,6 +6,18 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [2.14.0] - 2026-03-09
+
+### Added
+
+- **Workflow Executor** — `executeWorkflow(document, runtime)` runs agentic workflow documents. Handles `step:`, `decision:`, `gate:`, `trigger:`, `result:`, and `audit:` blocks. Caller provides tool implementations via `WorkflowRuntime`. Outputs flow between steps via shared `ExecutionContext`. Decision conditions evaluated with a safe recursive-descent parser (no `eval()`). Gate blocks pause execution for external approval. Dry-run mode validates flow without calling tools. Status written back to every processed block. 38 new tests.
+
+### Changed
+
+- **Keyword Freeze at 37 Canonical Keywords** — `CANONICAL_KEYWORDS` frozen at exactly 37 entries. Extension keywords (`signal`, `figure`, `byline`, etc.) now emit their real block type directly (e.g. `type: "signal"`) instead of wrapping in `type: "extension"` with `x-type` metadata. Eliminates `effectiveType()` indirection layer entirely.
+- **Callout Consolidation** — `warning:`, `danger:`, `tip:`, `success:` are now aliases of `info:` with `properties.type` injection for variant styling. Removed dead `BlockType` union members (`"warning"`, `"tip"`, `"success"`, `"danger"`). Renderer consolidated to single `case "info":` handler.
+- **Code Quality** — Removed dead `interpolateVariables()` function. Standardized `Object.create(null)` for property dictionaries (prototype pollution guard). Fixed stale type comments.
+
 ## [2.11.0] - 2026-03-08
 
 ### Added
