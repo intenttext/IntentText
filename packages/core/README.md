@@ -35,6 +35,14 @@ const html = renderHTML(doc); // Styled HTML output
 
 ## API
 
+### Engine Selection (v3)
+
+`@intenttext/core` defaults to the Rust/WASM path for core operations.
+
+- `INTENTTEXT_CORE_ENGINE=ts` forces TypeScript engine mode in Node runtimes.
+- `globalThis.__INTENTTEXT_CORE_ENGINE = "ts"` forces TypeScript engine mode in browser-like runtimes.
+- `INTENTTEXT_CORE_ENGINE=rust` and `globalThis.__INTENTTEXT_CORE_ENGINE = "rust"` explicitly force Rust mode.
+
 ### Parsing
 
 ```typescript

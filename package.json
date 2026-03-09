@@ -1,7 +1,7 @@
 {
   "$schema": "https://www.schemastore.org/package",
   "name": "intenttext",
-  "version": "2.14.2",
+  "version": "3.1.0",
   "description": "IntentText v1.4 - Semantic Document Language",
   "private": true,
   "workspaces": [

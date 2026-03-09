@@ -38,7 +38,7 @@ function main() {
 
   if (args.length === 0) {
     console.log(`
-🚀 IntentText CLI v2.13.2
+🚀 IntentText CLI v3.1.0
 
 Usage:
   node cli.js <file.it>                     Parse and show JSON

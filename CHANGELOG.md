@@ -6,6 +6,30 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-03-09
+
+### Changed
+
+- **Rust Core Default On** - `@intenttext/core` now defaults to Rust/WASM mode without requiring any environment variable.
+- **Engine Override Policy** - TypeScript mode remains available only as an explicit override (`INTENTTEXT_CORE_ENGINE=ts` or `globalThis.__INTENTTEXT_CORE_ENGINE = "ts"`).
+- **Safety Fallbacks Retained** - Temporary TS fallback behavior remains in place for compatibility-sensitive paths (options/theme and WASM failure scenarios) while parity hardening continues.
+
+### Docs
+
+- Updated engine-selection documentation to reflect Rust-default behavior and explicit TS override usage.
+
+## [3.0.0] - 2026-03-09
+
+### Added
+
+- **Rust Core Engine Path** — `@intenttext/core` now ships Rust/WASM artifacts generated from `intenttext-rust` under `dist/rust-wasm`.
+- **Rust Engine API Bridge** — `parseIntentText`, `renderHTML`, `documentToSource`, and `validateDocumentSemantic` now flow through a Rust-core bridge module when Rust mode is enabled.
+
+### Changed
+
+- **Engine Selection** — Added explicit Rust engine activation via `INTENTTEXT_CORE_ENGINE=rust` (or `globalThis.__INTENTTEXT_CORE_ENGINE = "rust"`) for controlled cutover while parity hardening continues.
+- **Build Output** — Core build now copies Rust WASM runtime artifacts into the published package.
+
 ## [2.14.0] - 2026-03-09
 
 ### Added

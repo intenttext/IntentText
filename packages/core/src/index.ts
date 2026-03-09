@@ -30,14 +30,17 @@ export {
   parseIntentText,
   _resetIdCounter,
   parseIntentTextSafe,
-} from "./parser";
+  renderHTML,
+  validateDocumentSemantic,
+  documentToSource,
+} from "./rust-core";
 export type {
   SafeParseOptions,
   SafeParseResult,
   ParseWarning,
   ParseError,
 } from "./parser";
-export { renderHTML, renderPrint, collectPrintLayout } from "./renderer";
+export { renderPrint, collectPrintLayout } from "./renderer";
 export { mergeData, parseAndMerge } from "./merge";
 export { convertMarkdownToIntentText } from "./markdown";
 export { convertHtmlToIntentText } from "./html-to-it";
@@ -54,8 +57,6 @@ export {
   formatValidationResult,
   PREDEFINED_SCHEMAS,
 } from "./schema";
-export { documentToSource } from "./source";
-export { validateDocumentSemantic } from "./validate";
 export type { SemanticIssue, SemanticValidationResult } from "./validate";
 export { diffDocuments } from "./diff";
 export type { DocumentDiff, BlockModification } from "./diff";
