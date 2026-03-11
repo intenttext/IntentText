@@ -241,3 +241,11 @@ Active CI thresholds:
 - [ ] Step 8 complete: UK date-format contract enforced (`DD/MM/YYYY`).
 - [x] CI pure-Rust regression guards active.
 - [ ] Final docs/changelog updated for `3.2.0` pure-Rust declaration.
+
+## Post-v3.2 Language Sequencing
+
+- `v3.3`: implement implicit text only (no shortcuts, no serializer rewrite).
+  - Plan: `IntentText/todo/v3.3-implicit-text-plan.md`
+- `v3.4`: implement property continuation formatting only (`indented | key: value` lines).
+  - Plan: `IntentText/todo/v3.4-property-continuation-plan.md`
+- Explicitly deferred until after `v3.4`: shortcut syntaxes, `with:` defaults, multiline grammar redesign.
