@@ -173,6 +173,13 @@ Work packages:
 - [ ] Keep CI for Rust core, runtime contract, replay/determinism/parity/pdfs.
 - [ ] Update package manifests and docs for removed modules/files.
 
+4. Rust-only bootstrap contract:
+
+- [ ] Require explicit startup call to `initRustCore()` in browser and desktop runtimes.
+- [ ] Verify wasm asset delivery path (`rust-wasm/intenttext_bg.wasm`) in each runtime/bundler.
+- [ ] Flip runtime mode to `rust-only` after bootstrap succeeds and monitor for one full release cycle.
+- [ ] Remove `hybrid` fallback behavior only after rust-only error budget is met.
+
 4. Documentation and release notes:
 
 - [ ] Replace "deferred until PDF beta stability" language with actual `v3.3`/`v3.4`/`v3.5` outcomes.
@@ -184,6 +191,21 @@ Exit gate (`v3.5`):
 - [ ] No duplicate grammar logic remains outside Rust core.
 - [ ] All contract gates green.
 - [ ] Integrator docs updated and examples validated.
+
+## 6.1) Rust Bootstrap Implementation Notes (2026-03-13)
+
+Implemented in `packages/core/src/rust-core.ts`:
+
+- Added `initRustCore(options)` async initializer for browser-compatible wasm loading.
+- Added readiness API `isRustCoreInitialized()`.
+- Added runtime mode API `setRustCoreRuntimeMode()` / `getRustCoreRuntimeMode()`.
+- Runtime mode supports `hybrid` (default) and `rust-only` for staged fallback removal.
+
+Adoption guidance:
+
+- Browser apps should call `initRustCore({ wasmUrl })` during startup.
+- After successful init, apps can set `setRustCoreRuntimeMode("rust-only")`.
+- Keep `hybrid` mode for environments where wasm delivery is not yet guaranteed.
 
 ## 7) Decision Protocol (Strict)
 

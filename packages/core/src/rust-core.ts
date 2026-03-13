@@ -4,6 +4,13 @@ import type { RenderOptions } from "./renderer";
 import type { SemanticIssue, SemanticValidationResult } from "./validate";
 import type { IntentTheme } from "./theme";
 
+import {
+  _resetIdCounter as resetTsParserIdCounter,
+  parseIntentText as parseIntentTextTs,
+  parseIntentTextSafe as parseIntentTextSafeTs,
+} from "./parser";
+import { renderHTML as renderHtmlTs } from "./renderer";
+import { validateDocumentSemantic as validateSemanticTs } from "./validate";
 import { documentToSource as documentToSourceTs } from "./source";
 import { parseHistorySection } from "./history";
 import { findHistoryBoundaryInSource } from "./trust";
@@ -14,6 +21,17 @@ type RustWasmModule = {
   to_source_wasm: (doc: unknown) => string;
   validate_wasm: (doc: unknown) => unknown;
 };
+
+type RustWasmBindingsModule = RustWasmModule & {
+  __wbg_set_wasm: (val: unknown) => void;
+};
+
+export type RustCoreInitOptions = {
+  wasmUrl?: string;
+  forceReload?: boolean;
+};
+
+export type RustCoreRuntimeMode = "hybrid" | "rust-only";
 
 export type RustCoreFallbackTelemetry = {
   parser_option_fallback_to_ts: number;
@@ -31,6 +49,11 @@ const fallbackTelemetry: RustCoreFallbackTelemetry = {
   wasm_call_failure_fallback_to_ts: 0,
 };
 
+let runtimeMode: RustCoreRuntimeMode = "hybrid";
+let cachedRustWasmModule: RustWasmModule | null = null;
+let rustCoreInitPromise: Promise<RustWasmModule | null> | null = null;
+const globalAny = globalThis as Record<string, unknown>;
+
 function bumpFallbackCounter(key: keyof RustCoreFallbackTelemetry): void {
   fallbackTelemetry[key] += 1;
 }
@@ -47,16 +70,146 @@ export function resetRustCoreFallbackTelemetry(): void {
   }
 }
 
+export function getRustCoreRuntimeMode(): RustCoreRuntimeMode {
+  return runtimeMode;
+}
+
+export function setRustCoreRuntimeMode(mode: RustCoreRuntimeMode): void {
+  runtimeMode = mode;
+}
+
+export function isRustCoreInitialized(): boolean {
+  return cachedRustWasmModule !== null;
+}
+
+function toRustOnlyInitError(operation: string): Error {
+  return new Error(
+    `Rust/WASM ${operation} failed in rust-only mode. Ensure initRustCore() succeeded and rust-wasm/intenttext_bg.wasm is reachable.`,
+  );
+}
+
+function resolveDefaultWasmUrl(): string {
+  const location = globalAny.location as { origin?: string } | undefined;
+  if (location?.origin) {
+    return `${location.origin}/rust-wasm/intenttext_bg.wasm`;
+  }
+  return "./rust-wasm/intenttext_bg.wasm";
+}
+
+async function loadRustWasmBrowser(
+  options?: RustCoreInitOptions,
+): Promise<RustWasmModule | null> {
+  const webAssemblyApi = globalAny.WebAssembly as
+    | {
+        instantiate: (
+          bytes: ArrayBuffer | ArrayBufferView,
+          imports?: Record<string, unknown>,
+        ) => Promise<{ instance: { exports: unknown } } | { exports: unknown }>;
+        Instance: unknown;
+      }
+    | undefined;
+  const fetchApi = globalAny.fetch as
+    | ((
+        url: string,
+      ) => Promise<{ ok: boolean; arrayBuffer: () => Promise<ArrayBuffer> }>)
+    | undefined;
+
+  if (!webAssemblyApi || typeof fetchApi !== "function") {
+    return null;
+  }
+
+  try {
+    const dynamicImport = new Function("path", "return import(path);") as (
+      path: string,
+    ) => Promise<unknown>;
+    const bindings =
+      ((await dynamicImport("./rust-wasm/intenttext_bg.js")) as
+        | RustWasmBindingsModule
+        | undefined) ?? null;
+    if (!bindings) return null;
+
+    const wasmUrl = options?.wasmUrl || resolveDefaultWasmUrl();
+    const response = await fetchApi(wasmUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch wasm module from ${wasmUrl}`);
+    }
+
+    const wasmBytes = await response.arrayBuffer();
+    const imports = {
+      "./intenttext_bg.js": bindings,
+    };
+
+    const instantiated = await webAssemblyApi.instantiate(wasmBytes, imports);
+    const instance =
+      "instance" in instantiated ? instantiated.instance : instantiated;
+
+    const exports = (instance as { exports?: unknown }).exports;
+    if (!exports) return null;
+
+    bindings.__wbg_set_wasm(exports);
+    const start = (exports as { __wbindgen_start?: () => void })
+      .__wbindgen_start;
+    if (typeof start === "function") start();
+
+    return {
+      parse_wasm: bindings.parse_wasm,
+      render_wasm: bindings.render_wasm,
+      to_source_wasm: bindings.to_source_wasm,
+      validate_wasm: bindings.validate_wasm,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function loadRustWasm(): RustWasmModule | null {
+  if (cachedRustWasmModule) return cachedRustWasmModule;
+
   try {
     const req: NodeRequire =
       typeof require === "function"
         ? require
         : ((0, eval)("require") as NodeRequire);
-    return req("./rust-wasm/intenttext.js") as RustWasmModule;
+    const loaded = req("./rust-wasm/intenttext.js") as RustWasmModule;
+    cachedRustWasmModule = loaded;
+    return loaded;
   } catch {
     return null;
   }
+}
+
+export async function initRustCore(
+  options?: RustCoreInitOptions,
+): Promise<boolean> {
+  if (cachedRustWasmModule && !options?.forceReload) return true;
+  if (rustCoreInitPromise && !options?.forceReload) {
+    const resolved = await rustCoreInitPromise;
+    return Boolean(resolved);
+  }
+
+  rustCoreInitPromise = (async () => {
+    const syncLoaded = loadRustWasm();
+    if (syncLoaded) return syncLoaded;
+
+    const browserLoaded = await loadRustWasmBrowser(options);
+    if (browserLoaded) {
+      cachedRustWasmModule = browserLoaded;
+      return browserLoaded;
+    }
+
+    return null;
+  })();
+
+  const loaded = await rustCoreInitPromise;
+  rustCoreInitPromise = null;
+
+  if (!loaded) {
+    bumpFallbackCounter("wasm_load_failure_fallback_to_ts");
+    return false;
+  }
+
+  cachedRustWasmModule = loaded;
+  return true;
 }
 
 function applyParseOptions(
@@ -84,11 +237,12 @@ function applyParseOptions(
 }
 
 function requireRustWasm(): RustWasmModule {
-  const wasm = loadRustWasm();
+  const wasm = cachedRustWasmModule ?? loadRustWasm();
   if (!wasm) {
     bumpFallbackCounter("wasm_load_failure_fallback_to_ts");
     throw new Error("Rust/WASM core unavailable: failed to load wasm module.");
   }
+  cachedRustWasmModule = wasm;
   return wasm;
 }
 
@@ -187,14 +341,18 @@ export function parseIntentText(
     parsed = wasm.parse_wasm(source) as IntentDocument;
   } catch {
     bumpFallbackCounter("wasm_call_failure_fallback_to_ts");
-    throw new Error("Rust/WASM parser execution failed.");
+    if (runtimeMode === "rust-only") {
+      throw toRustOnlyInitError("parser execution");
+    }
+    parsed = parseIntentTextTs(source, options);
   }
 
   return applyParseOptions(source, parsed, options);
 }
 
 export function _resetIdCounter(): void {
-  // Rust core parser does not expose mutable ID counter state.
+  // Keep TS parser deterministic when wasm is unavailable.
+  resetTsParserIdCounter();
 }
 
 export function parseIntentTextSafe(
@@ -202,25 +360,16 @@ export function parseIntentTextSafe(
   options?: SafeParseOptions,
 ): SafeParseResult {
   try {
+    const result = parseIntentTextSafeTs(source, options);
+    if (result.errors.length > 0 || result.warnings.length > 0) return result;
+
     const document = parseIntentText(
       source,
       options as ParseOptions | undefined,
     );
-    return { document, warnings: [], errors: [] };
-  } catch (error) {
-    return {
-      document: { version: "1.4", blocks: [], metadata: {}, diagnostics: [] },
-      warnings: [],
-      errors: [
-        {
-          line: 1,
-          message:
-            error instanceof Error ? error.message : "Rust/WASM parse failed",
-          code: "RUST_PARSE_FAILURE",
-          original: typeof source === "string" ? source.slice(0, 200) : "",
-        },
-      ],
-    };
+    return { ...result, document };
+  } catch {
+    return parseIntentTextSafeTs(source, options);
   }
 }
 
@@ -237,7 +386,10 @@ export function renderHTML(
     return injectThemeCssIntoHtml(raw, themeCss);
   } catch {
     bumpFallbackCounter("wasm_call_failure_fallback_to_ts");
-    throw new Error("Rust/WASM renderer execution failed.");
+    if (runtimeMode === "rust-only") {
+      throw toRustOnlyInitError("renderer execution");
+    }
+    return renderHtmlTs(doc, options);
   }
 }
 
@@ -247,6 +399,9 @@ export function documentToSource(doc: IntentDocument): string {
     return wasm.to_source_wasm(normalizeDocumentForRustWasm(doc));
   } catch {
     bumpFallbackCounter("wasm_call_failure_fallback_to_ts");
+    if (runtimeMode === "rust-only") {
+      throw toRustOnlyInitError("source conversion");
+    }
     return documentToSourceTs(doc);
   }
 }
@@ -313,6 +468,9 @@ export function validateDocumentSemantic(
     };
   } catch {
     bumpFallbackCounter("wasm_call_failure_fallback_to_ts");
-    throw new Error("Rust/WASM semantic validation execution failed.");
+    if (runtimeMode === "rust-only") {
+      throw toRustOnlyInitError("semantic validation");
+    }
+    return validateSemanticTs(doc);
   }
 }

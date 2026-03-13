@@ -27,6 +27,10 @@ export type {
 } from "./theme";
 export type { RenderOptions } from "./renderer";
 export {
+  initRustCore,
+  isRustCoreInitialized,
+  getRustCoreRuntimeMode,
+  setRustCoreRuntimeMode,
   parseIntentText,
   _resetIdCounter,
   parseIntentTextSafe,
@@ -36,7 +40,11 @@ export {
   getRustCoreFallbackTelemetry,
   resetRustCoreFallbackTelemetry,
 } from "./rust-core";
-export type { RustCoreFallbackTelemetry } from "./rust-core";
+export type {
+  RustCoreFallbackTelemetry,
+  RustCoreInitOptions,
+  RustCoreRuntimeMode,
+} from "./rust-core";
 export type {
   SafeParseOptions,
   SafeParseResult,
