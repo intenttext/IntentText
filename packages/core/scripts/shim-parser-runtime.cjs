@@ -10,6 +10,21 @@ if (!fs.existsSync(distParserPath)) {
   process.exit(1);
 }
 
+// Save the original tsc-compiled parser as parser-ts.js so rust-core can import
+// the real TS implementation as a fallback without going through the shim (which
+// would create an infinite call cycle: rust-core → parser shim → rust-core → ...).
+const parserTsPath = path.join(__dirname, "..", "dist", "parser-ts.js");
+const originalParserContent = fs.readFileSync(distParserPath, "utf8");
+fs.writeFileSync(parserTsPath, originalParserContent, "utf8");
+console.log("Saved original TS parser as dist/parser-ts.js");
+
+const parserDtsPath = path.join(__dirname, "..", "dist", "parser.d.ts");
+const parserTsDtsPath = path.join(__dirname, "..", "dist", "parser-ts.d.ts");
+if (fs.existsSync(parserDtsPath)) {
+  fs.copyFileSync(parserDtsPath, parserTsDtsPath);
+  console.log("Copied parser.d.ts to dist/parser-ts.d.ts");
+}
+
 const shim = `"use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });

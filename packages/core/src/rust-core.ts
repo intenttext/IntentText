@@ -8,7 +8,7 @@ import {
   _resetIdCounter as resetTsParserIdCounter,
   parseIntentText as parseIntentTextTs,
   parseIntentTextSafe as parseIntentTextSafeTs,
-} from "./parser";
+} from "./parser-ts";
 import { renderHTML as renderHtmlTs } from "./renderer";
 import { validateDocumentSemantic as validateSemanticTs } from "./validate";
 import { documentToSource as documentToSourceTs } from "./source";
