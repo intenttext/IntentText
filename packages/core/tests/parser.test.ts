@@ -261,14 +261,14 @@ image: *Launch Banner* | src: assets/banner.png | caption: Project Dalil launch 
     expect(result.blocks[0].inline?.some((n) => n.type === "label")).toBe(true);
   });
 
-  it("should merge consecutive no-keyword prose lines into one body-text block", () => {
+  it("should merge consecutive no-keyword prose lines into one text block", () => {
     const input = `First line of prose
 continues naturally
 
 New paragraph starts`;
     const result = parseIntentText(input);
 
-    const prose = result.blocks.filter((b) => b.type === "body-text");
+    const prose = result.blocks.filter((b) => b.type === "text");
     expect(prose).toHaveLength(2);
     expect(prose[0].content).toBe("First line of prose continues naturally");
     expect(prose[1].content).toBe("New paragraph starts");

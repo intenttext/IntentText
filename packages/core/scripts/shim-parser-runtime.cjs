@@ -35,14 +35,10 @@ exports.parseIntentText = parseIntentText;
 exports.parseIntentTextSafe = parseIntentTextSafe;
 
 const rustCore = require("./rust-core");
+const tsParser = require("./parser-ts");
 const trust = require("./trust");
 
-exports.DEFAULT_SAFE_PARSE_OPTIONS = {
-  unknownKeyword: "note",
-  maxBlocks: 10000,
-  maxLineLength: 50000,
-  strict: false,
-};
+exports.DEFAULT_SAFE_PARSE_OPTIONS = tsParser.DEFAULT_SAFE_PARSE_OPTIONS;
 
 function _resetIdCounter() {
   return rustCore._resetIdCounter();
@@ -56,8 +52,11 @@ function parseIntentText(source, options) {
   return rustCore.parseIntentText(source, options);
 }
 
+// parseIntentTextSafe is a TS-layer concern (input validation, maxBlocks,
+// unknownKeyword handling). Always use the TS implementation so it works
+// in Node (tests) and browser (before WASM init) without WASM dependency.
 function parseIntentTextSafe(source, options) {
-  return rustCore.parseIntentTextSafe(source, options);
+  return tsParser.parseIntentTextSafe(source, options);
 }
 `;
 

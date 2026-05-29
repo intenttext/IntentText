@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { parseIntentText } from "../src/parser";
 
 describe("IntentText v1.3 - Accessibility Improvements", () => {
-  describe("Implicit paragraphs (body-text)", () => {
-    it("should parse lines without keywords as body-text", () => {
+  describe("Implicit paragraphs (text)", () => {
+    it("should parse lines without keywords as text", () => {
       const input = `title: My Document
 This is implicit body text.
 It needs no keyword prefix.
@@ -13,7 +13,7 @@ note: This is a note`;
       const doc = parseIntentText(input);
 
       expect(doc.blocks[0].type).toBe("title");
-      expect(doc.blocks[1].type).toBe("body-text");
+      expect(doc.blocks[1].type).toBe("text");
       expect(doc.blocks[1].content).toBe(
         "This is implicit body text. It needs no keyword prefix.",
       );
@@ -144,7 +144,7 @@ note: Check our [documentation](https://docs.com) for details.`;
 
       // Check structure
       expect(doc.blocks[0].type).toBe("title");
-      expect(doc.blocks[1].type).toBe("body-text");
+      expect(doc.blocks[1].type).toBe("text");
       expect(doc.blocks[2].type).toBe("section");
 
       // Check tasks with shortcuts

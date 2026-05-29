@@ -90,9 +90,11 @@ describe("parseIntentTextSafe", () => {
   });
 
   it("respects maxBlocks limit, adds MAX_BLOCKS_REACHED warning", () => {
+    // Use section: blocks — they don't merge (unlike note:/text: which merge
+    // consecutive lines into one block).
     const source = Array.from(
       { length: 20 },
-      (_, i) => `note: Block ${i}`,
+      (_, i) => `section: Block ${i}`,
     ).join("\n");
     const result = parseIntentTextSafe(source, { maxBlocks: 5 });
     expect(result.document.blocks.length).toBeLessThanOrEqual(5);

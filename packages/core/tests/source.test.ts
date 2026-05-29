@@ -39,12 +39,12 @@ describe("documentToSource — round-trip guarantee", () => {
     expect(result).toContain("step-item: Second step");
   });
 
-  it("serializes body-text blocks with body-text: prefix", () => {
+  it("serializes text blocks with text: prefix", () => {
     const src = "Hello world";
     const doc = parseIntentText(src);
-    expect(doc.blocks[0].type).toBe("body-text");
+    expect(doc.blocks[0].type).toBe("text");
     expect(doc.blocks[0].content).toBe("Hello world");
     const result = documentToSource(doc);
-    expect(result).toBe("body-text: Hello world");
+    expect(result).toBe("text: Hello world");
   });
 });

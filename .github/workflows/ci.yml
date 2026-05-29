@@ -17,16 +17,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Install
-        run: npm ci
+        run: pnpm install
 
-      - name: Build
-        run: npm run build
+      - name: Build core
+        run: pnpm --filter @intenttext/core build
 
-      - name: Test
-        run: npm test
+      - name: Test core
+        run: pnpm --filter @intenttext/core test
 
       - name: Emit Rust Core Fallback Telemetry
         run: node packages/core/scripts/report-fallback-telemetry.cjs > core-fallback-telemetry.json
