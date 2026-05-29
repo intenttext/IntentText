@@ -716,13 +716,29 @@ function parseLine(
         };
       }
 
-      const { content: cleanContent, inline } = ctx.parseInline(trimmed);
+      // Custom (user-defined) keyword: parse pipe metadata, then pass through.
+      const customParts = splitPipeMetadata(rest);
+      const customContent = unescapeIntentText(customParts[0] || "");
+      const customProps: Record<string, string | number> = Object.create(null);
+      customProps["keyword"] = keyword;
+      for (let i = 1; i < customParts.length; i++) {
+        const seg = customParts[i];
+        const pm = seg.match(/^([^:]+):\s*(.*)$/);
+        if (pm) {
+          const k = pm[1].trim();
+          if (!k.includes("\\") && !k.includes("|") && !DANGEROUS_KEYS.has(k)) {
+            customProps[k] = unescapeIntentText(pm[2].trim());
+          }
+        }
+      }
+      const { content: parsedContent, inline } = ctx.parseInline(customContent);
       return {
         id: nextId(),
-        type: "text",
-        content: cleanContent,
+        type: "custom",
+        content: parsedContent,
         originalContent: trimmed,
         inline,
+        properties: customProps,
       };
     }
 
@@ -1932,11 +1948,8 @@ export function parseIntentTextSafe(
           if (opts.unknownKeyword === "skip") {
             continue; // skip this line entirely
           }
-          // 'note' mode: rewrite as text: so the parser handles it (note: also works via alias)
-          if (opts.unknownKeyword === "note") {
-            const content = line.slice(line.indexOf(":") + 1).trim();
-            line = `text: ${content}`;
-          }
+          // 'note' mode: keep the line as-is; the parser emits type:"custom" for
+          // unknown keywords and preserves the original keyword in properties.
         }
       }
 

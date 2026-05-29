@@ -611,3 +611,44 @@ describe("diffDocuments", () => {
     expect(diff.modified.length).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe("custom keyword passthrough (v3.5.0)", () => {
+  it("unknown keyword emits type:custom with keyword property", () => {
+    const doc = parseIntentText("computer: mac");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("computer");
+    expect(doc.blocks[0].content).toBe("mac");
+  });
+
+  it("custom keyword with pipe metadata preserves keyword and content", () => {
+    const doc = parseIntentText("computer: mac | cpu: 2.8GHz | ram: 16GB");
+    const b = doc.blocks[0];
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("computer");
+    expect(b.content).toBe("mac");
+    expect(b.properties?.cpu).toBe("2.8GHz");
+    expect(b.properties?.ram).toBe("16GB");
+  });
+
+  it("multiple custom keywords each get type:custom", () => {
+    const doc = parseIntentText(
+      "computer: mac | cpu: 2.8GHz\nauthorship: Team Alpha\nstatus-code: 42",
+    );
+    expect(doc.blocks.every((b) => b.type === "custom")).toBe(true);
+    expect(doc.blocks[0].properties?.keyword).toBe("computer");
+    expect(doc.blocks[1].properties?.keyword).toBe("authorship");
+    expect(doc.blocks[2].properties?.keyword).toBe("status-code");
+  });
+
+  it("x-* prefixed keywords still emit type:extension (unchanged)", () => {
+    const doc = parseIntentText("x-tracking: GA-123");
+    expect(doc.blocks[0].type).toBe("extension");
+  });
+
+  it("known keyword after custom keyword still parses correctly", () => {
+    const doc = parseIntentText("computer: mac\ntitle: My Doc\nfoo-bar: value");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[1].type).toBe("title");
+    expect(doc.blocks[2].type).toBe("custom");
+  });
+});

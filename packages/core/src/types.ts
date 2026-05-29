@@ -133,7 +133,9 @@ export type BlockType =
   | "secret"
   // v2.14 extension keywords (emit real types)
   | "agent"
-  | "model";
+  | "model"
+  // v3.5 custom (user-defined) keyword passthrough
+  | "custom";
 
 export type InlineNode =
   | { type: "text"; value: string }
