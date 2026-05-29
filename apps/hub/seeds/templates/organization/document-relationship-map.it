@@ -1,0 +1,29 @@
+title: {{map_title}}
+meta: | type: template | domain: organization | description: Document relationship map showing how contracts and agreements reference each other | theme: minimal | version: 1.0 | author: IntentText | since: 2.11
+summary: {{map_summary}}
+---
+section: Master Agreements
+---
+ref: {{master_1_name}} | file: {{master_1_path}} | rel: governed-by
+ref: {{master_2_name}} | file: {{master_2_path}} | rel: governed-by
+---
+section: Active Contracts
+---
+ref: {{contract_1_name}} | file: {{contract_1_path}} | rel: continuation
+ref: {{contract_2_name}} | file: {{contract_2_path}} | rel: relates-to
+ref: {{contract_3_name}} | file: {{contract_3_path}} | rel: continuation
+---
+section: Superseded Documents
+---
+ref: {{superseded_1_name}} | file: {{superseded_1_path}} | rel: supersedes
+ref: {{superseded_2_name}} | file: {{superseded_2_path}} | rel: supersedes
+---
+section: Amendments
+---
+ref: {{amendment_1_name}} | file: {{amendment_1_path}} | rel: amends
+ref: {{amendment_2_name}} | file: {{amendment_2_path}} | rel: amends
+---
+section: External Sources
+---
+ref: {{source_1_name}} | url: {{source_1_url}} | rel: basis
+ref: {{source_2_name}} | url: {{source_2_url}} | rel: source

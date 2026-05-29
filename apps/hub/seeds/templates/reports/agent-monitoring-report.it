@@ -1,0 +1,35 @@
+title: {{title}}
+meta: | type: template | domain: reports | description: AI agent performance report with task completion, success rate, token usage, and error tracking | theme: technical | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+x-writer: byline | content: {{author}} | role: {{author_role}} | date: {{report_date}}
+---
+section: Session Overview
+---
+metric: Tasks Completed | value: {{tasks_completed}} | unit: tasks | target: {{tasks_target}} | trend: {{tasks_trend}} | period: {{period}}
+metric: Success Rate | value: {{success_rate}} | unit: % | target: {{success_target}} | trend: {{success_trend}} | period: {{period}}
+metric: Total Tokens Used | value: {{tokens_used}} | unit: tokens | target: {{tokens_target}} | trend: {{tokens_trend}} | period: {{period}}
+---
+section: Performance Metrics
+---
+metric: Avg Latency | value: {{avg_latency}} | unit: ms | target: {{latency_target}} | trend: {{latency_trend}} | period: {{period}}
+metric: Error Rate | value: {{error_rate}} | unit: % | target: {{error_target}} | trend: {{error_trend}} | period: {{period}}
+metric: Tool Call Success | value: {{tool_success}} | unit: % | target: {{tool_target}} | trend: {{tool_trend}} | period: {{period}}
+metric: Context Window Usage | value: {{context_usage}} | unit: % | target: {{context_target}} | trend: {{context_trend}} | period: {{period}}
+---
+section: Cost Metrics
+---
+metric: Input Token Cost | value: {{input_cost}} | unit: USD | trend: {{input_cost_trend}} | period: {{period}}
+metric: Output Token Cost | value: {{output_cost}} | unit: USD | trend: {{output_cost_trend}} | period: {{period}}
+metric: Total Session Cost | value: {{total_cost}} | unit: USD | target: {{cost_target}} | trend: {{cost_trend}} | period: {{period}}
+---
+section: Audit Trail
+---
+audit: Session started — model: {{model_name}}, context: {{context_size}} tokens
+audit: {{audit_1}}
+audit: {{audit_2}}
+audit: {{audit_3}}
+audit: Session completed — {{completion_status}}
+---
+section: Session Seal
+---
+freeze: | at: {{freeze_time}} | status: locked

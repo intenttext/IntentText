@@ -1,0 +1,83 @@
+{
+  "spec_name": "Payment Processing Error Handling Specification",
+  "system_name": "Checkout Service v4",
+  "agent_name": "payment-guardian",
+  "environment": "production",
+  "author": "Aisha Bello",
+  "created_date": "March 7, 2026",
+  "coverage_description": "All error conditions in the payment processing pipeline from cart submission through charge confirmation, covering gateway timeouts, fraud detection, card declines, idempotency conflicts, and webhook delivery failures",
+  "error_types": [
+    {
+      "name": "Gateway Timeout",
+      "severity": "critical",
+      "error_code": "PAY-001",
+      "category": "Infrastructure",
+      "description": "The payment gateway (Stripe or Adyen) fails to respond within the configured 12-second timeout window, leaving the charge in an indeterminate state",
+      "detection_method": "HTTP client timeout exception caught at the gateway adapter layer; cross-reference with gateway status page API",
+      "recovery_action": "Query the gateway's idempotency endpoint to check if the charge was created. If yes, proceed normally. If no, retry once with the same idempotency key. If still no response, hold the order and queue for manual review.",
+      "escalation_path": "Page payments-oncall immediately; notify #payments-incidents Slack channel",
+      "response_sla": "Acknowledgment within 5 minutes, resolution within 30 minutes"
+    },
+    {
+      "name": "Fraud Score Exceeds Threshold",
+      "severity": "high",
+      "error_code": "PAY-002",
+      "category": "Security",
+      "description": "The real-time fraud scoring model returns a risk score above 0.92 for the transaction, indicating likely fraudulent activity",
+      "detection_method": "Fraud scoring microservice returns risk_score > 0.92 in the pre-authorization response; also detected if velocity check shows > 5 attempts from the same fingerprint in 10 minutes",
+      "recovery_action": "Decline the transaction with a generic error message (do not reveal fraud detection). Log the full fraud signal payload. Add the card fingerprint to the 24-hour watch list. If the customer is a verified enterprise account, route to manual review instead of auto-decline.",
+      "escalation_path": "Alert fraud-ops team via PagerDuty; if pattern affects > 10 transactions in an hour, escalate to security lead",
+      "response_sla": "Auto-decline is instant; fraud-ops review within 15 minutes for enterprise accounts"
+    },
+    {
+      "name": "Card Declined — Insufficient Funds",
+      "severity": "medium",
+      "error_code": "PAY-003",
+      "category": "Customer",
+      "description": "The issuing bank returns a soft decline (code: insufficient_funds) for the charge attempt",
+      "detection_method": "Gateway returns decline_code: insufficient_funds in the charge response object",
+      "recovery_action": "Display a clear, non-technical message to the customer suggesting they try a different payment method. Offer to save the cart for 48 hours. If the customer has a secondary card on file, prompt to use it.",
+      "escalation_path": "No escalation required; log for analytics. If decline rate for a specific BIN range exceeds 40% in an hour, alert payments-analytics",
+      "response_sla": "Immediate customer-facing response; analytics review within 4 hours if threshold breached"
+    },
+    {
+      "name": "Idempotency Key Conflict",
+      "severity": "high",
+      "error_code": "PAY-004",
+      "category": "Data Integrity",
+      "description": "A charge request is submitted with an idempotency key that was already used for a different payload, indicating a potential double-charge or replay attack",
+      "detection_method": "Gateway returns 409 Conflict with idempotency_key_in_use error; internal deduplication cache also flags the mismatch",
+      "recovery_action": "Reject the second request. Compare the original charge payload with the new one. If payloads match, return the original charge result. If payloads differ, log as a potential integrity issue and block the transaction.",
+      "escalation_path": "Alert payments-oncall; if more than 3 conflicts occur in 10 minutes from the same merchant account, escalate to security lead",
+      "response_sla": "Immediate block; investigation within 20 minutes"
+    },
+    {
+      "name": "Webhook Delivery Failure",
+      "severity": "medium",
+      "error_code": "PAY-005",
+      "category": "Integration",
+      "description": "An outbound payment event webhook fails to deliver to the merchant's configured endpoint after all retry attempts are exhausted",
+      "detection_method": "Webhook delivery queue reports 3 consecutive failures (HTTP 5xx or timeout) for the same event within the exponential backoff window",
+      "recovery_action": "Store the event in the dead letter queue. Send a notification email to the merchant's technical contact with the event ID and a link to manually retrieve it via the API. Mark the webhook endpoint as degraded in the dashboard.",
+      "escalation_path": "Notify integrations-support team; if the merchant is on an enterprise plan, alert their assigned solutions engineer",
+      "response_sla": "Dead letter storage is immediate; merchant notification within 10 minutes; manual follow-up within 2 hours for enterprise"
+    }
+  ],
+  "retry_policy_name": "Exponential Backoff with Jitter",
+  "max_retries": "3",
+  "backoff_strategy": "Exponential with full jitter — base delay 500ms, max delay 30s, multiplier 2x",
+  "circuit_breaker_threshold": "5 consecutive failures within 60 seconds triggers open state",
+  "cooldown_period": "90 seconds before half-open probe attempt",
+  "logging_policy_name": "Structured Error Logging",
+  "log_level": "ERROR and above; DEBUG for retry attempts in non-production",
+  "log_destination": "Datadog via structured JSON over HTTPS; mirrored to S3 for long-term retention",
+  "include_stack_trace": "Yes for severity critical and high; omitted for medium and low to reduce log volume",
+  "pii_redaction": "Card numbers masked to last 4 digits; customer email hashed with SHA-256; IP addresses retained for fraud analysis only and purged after 30 days",
+  "escalation_critical": "Immediate PagerDuty alert to payments-oncall → 5-minute SLA → auto-escalate to engineering director if unacknowledged",
+  "escalation_high": "PagerDuty alert to payments-oncall → 15-minute SLA → escalate to payments team lead if unresolved in 30 minutes",
+  "escalation_medium": "Slack notification to #payments-alerts → 1-hour SLA → included in daily triage if unresolved",
+  "escalation_low": "Logged only → reviewed in weekly error budget meeting",
+  "dashboard_url": "https://app.datadoghq.com/dashboard/payments-errors-prod",
+  "alert_channel": "#payments-incidents (Slack) and payments-oncall (PagerDuty)",
+  "oncall_rotation": "Weekly rotation across 4 senior engineers; schedule managed in PagerDuty under payments-primary"
+}

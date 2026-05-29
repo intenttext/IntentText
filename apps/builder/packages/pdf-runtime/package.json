@@ -1,0 +1,24 @@
+{
+  "name": "@intenttext/pdf-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/retry.test.js dist/create-pdf.test.js",
+    "test:retry": "npm run test"
+  },
+  "dependencies": {
+    "@intenttext/core": "file:../../../IntentText/packages/core",
+    "puppeteer": "^24.39.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "typescript": "^5.5.4"
+  }
+}

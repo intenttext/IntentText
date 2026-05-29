@@ -1,0 +1,9 @@
+page: | size: Letter | marginTopMm: 18 | marginBottomMm: 16
+title: Quote {{quote_number}}
+section: Customer
+text: {{customer_name}}
+text: {{customer_city}}
+divider:
+text: Scope: {{scope_summary}}
+metric: Estimated Total | value: {{estimate_total}} | unit: {{currency}}
+text: Valid Until: {{valid_until}}

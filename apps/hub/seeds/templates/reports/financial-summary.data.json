@@ -1,0 +1,104 @@
+{
+  "company_name": "Kestrel Analytics, Inc.",
+  "period": "Q4 2025 (October 1 — December 31, 2025)",
+  "prepared_by": "Ingrid Nordström, Director of Finance",
+  "report_date": "January 22, 2026",
+  "currency": "USD",
+  "revenue_lines": [
+    {
+      "source": "Enterprise SaaS Subscriptions",
+      "amount": "$2,840,000",
+      "prior_period": "$2,510,000",
+      "change": "+13.1%",
+      "notes": "Three new enterprise contracts closed in November"
+    },
+    {
+      "source": "Mid-Market SaaS Subscriptions",
+      "amount": "$1,220,000",
+      "prior_period": "$1,080,000",
+      "change": "+13.0%",
+      "notes": "Steady growth from Q3 pipeline conversion"
+    },
+    {
+      "source": "Professional Services",
+      "amount": "$485,000",
+      "prior_period": "$620,000",
+      "change": "-21.8%",
+      "notes": "Two implementation projects pushed to Q1 2026"
+    },
+    {
+      "source": "Data API Usage Fees",
+      "amount": "$310,000",
+      "prior_period": "$245,000",
+      "change": "+26.5%",
+      "notes": "Increased consumption from financial services vertical"
+    },
+    {
+      "source": "Training and Certification",
+      "amount": "$95,000",
+      "prior_period": "$72,000",
+      "change": "+31.9%",
+      "notes": "New certification program launched in October"
+    }
+  ],
+  "total_revenue": "$4,950,000",
+  "prior_period_revenue": "$4,527,000",
+  "revenue_growth": "+9.3%",
+  "expense_lines": [
+    {
+      "category": "Engineering and Product",
+      "amount": "$1,680,000",
+      "budget": "$1,720,000",
+      "variance": "-$40,000 (2.3% under)",
+      "notes": "One senior hire deferred to January"
+    },
+    {
+      "category": "Sales and Marketing",
+      "amount": "$1,140,000",
+      "budget": "$1,050,000",
+      "variance": "+$90,000 (8.6% over)",
+      "notes": "Additional spend on Q4 conference sponsorships and lead gen campaign"
+    },
+    {
+      "category": "Customer Success",
+      "amount": "$420,000",
+      "budget": "$400,000",
+      "variance": "+$20,000 (5.0% over)",
+      "notes": "Contractor brought in for enterprise onboarding backlog"
+    },
+    {
+      "category": "General and Administrative",
+      "amount": "$380,000",
+      "budget": "$390,000",
+      "variance": "-$10,000 (2.6% under)",
+      "notes": "Legal fees lower than projected"
+    },
+    {
+      "category": "Infrastructure and Hosting",
+      "amount": "$295,000",
+      "budget": "$280,000",
+      "variance": "+$15,000 (5.4% over)",
+      "notes": "Compute scaling for new enterprise workloads"
+    }
+  ],
+  "total_expenses": "$3,915,000",
+  "total_budget": "$3,840,000",
+  "expense_variance": "+$75,000 (2.0% over budget)",
+  "gross_profit": "$3,170,000",
+  "gross_margin": "64.0%",
+  "operating_profit": "$1,035,000",
+  "operating_margin": "20.9%",
+  "net_profit": "$812,000",
+  "net_margin": "16.4%",
+  "ebitda": "$1,180,000",
+  "mrr": "$1,353,000",
+  "cac": "$14,200",
+  "ltv": "$68,400",
+  "ltv_cac_ratio": "4.8x",
+  "burn_rate": "N/A — cash flow positive since Q2 2025",
+  "runway": "N/A — profitable",
+  "executive_summary": "Q4 2025 was the strongest quarter in company history by revenue, driven by enterprise SaaS growth and API consumption. Total revenue reached $4.95M, up 9.3% from Q3. Operating margin improved to 20.9% despite slightly elevated sales and marketing spend, which was a deliberate investment in pipeline building for H1 2026. Three new enterprise logos (Nordea, Orica, and Chubb) contributed $420K in new annual contract value. Professional services revenue declined due to project timing, not demand — the backlog entering Q1 is the largest in 12 months.",
+  "risks_outlook": "1. Two enterprise renewals totaling $680K ARR are due in Q1 — both accounts are flagged as healthy but require exec-level engagement\n2. AWS infrastructure costs are trending 8% above forecast due to higher-than-expected GPU usage for the new ML features — evaluating reserved capacity commitment\n3. Sales hiring plan calls for 4 additional AEs in Q1; slower-than-expected recruiting could impact H1 pipeline targets\n4. The competitive landscape is intensifying — two well-funded startups entered the mid-market segment in Q4 with aggressive pricing",
+  "cfo_name": "Ingrid Nordström",
+  "cfo_approval_date": "2026-01-24"
+}

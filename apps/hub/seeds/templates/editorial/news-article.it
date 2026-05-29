@@ -1,0 +1,27 @@
+title: News Article
+meta: | type: template | domain: editorial | description: News article with headline, byline, dateline, lede, body paragraphs, and pull quotes | theme: editorial | version: 1.0 | author: IntentText
+---
+section: Headline
+---
+text: {{headline}}
+text: *{{byline}}* · {{dateline}}
+---
+section: Lede
+---
+text: {{lede}}
+---
+section: Body
+---
+text: {{text}}
+---
+section: Pull Quote
+---
+quote: {{pull_quote}} | by: {{pull_quote_attribution}}
+---
+section: Continued
+---
+text: {{text}}
+---
+quote: {{closing_quote}} | by: {{closing_quote_attribution}}
+---
+text: *{{tagline}}*

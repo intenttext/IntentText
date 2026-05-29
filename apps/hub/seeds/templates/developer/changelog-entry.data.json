@@ -1,0 +1,76 @@
+{
+  "project_name": "Velocistream",
+  "version": "3.8.0",
+  "release_date": "March 5, 2026",
+  "codename": "Peregrine",
+  "stability": "Stable — recommended for production",
+  "upgrade_path": "Direct upgrade from 3.6.x or 3.7.x. Users on 3.5.x should first upgrade to 3.6.4 to apply schema migrations.",
+  "release_summary": "Velocistream 3.8 introduces native Parquet export from streaming pipelines, reworked back-pressure management for high-throughput connectors, and fourteen bug fixes including a critical fix for the Kafka offset commit race condition reported in VST-4921. The deprecated XML serializer has been removed.",
+  "added_items": [
+    {
+      "title": "Native Parquet export in streaming pipelines",
+      "description": "Streaming sinks can now write directly to Parquet format without an intermediate CSV stage. Supports Snappy and ZSTD compression. Reduces storage costs by approximately 40% for columnar-heavy workloads. See `ParquetSinkConfig` in the SDK reference."
+    },
+    {
+      "title": "Pipeline-level resource quotas",
+      "description": "Operators can set per-pipeline CPU and memory limits via the new `resources.limits` configuration block. Exceeding limits triggers graceful back-pressure rather than OOM termination."
+    },
+    {
+      "title": "OpenTelemetry trace propagation for connectors",
+      "description": "All built-in connectors now propagate W3C Trace Context headers end-to-end. Enables distributed tracing across Velocistream pipelines and downstream consumers without custom middleware."
+    },
+    {
+      "title": "CLI command: vstream pipeline inspect",
+      "description": "New CLI command that prints a detailed DAG visualization of a running pipeline, including per-stage throughput, buffer utilization, and current checkpoint offsets."
+    }
+  ],
+  "changed_items": [
+    {
+      "title": "Back-pressure algorithm upgraded to adaptive token bucket",
+      "description": "Replaced the fixed-window rate limiter with an adaptive token-bucket algorithm that adjusts based on downstream consumer acknowledgment latency. Improves throughput by 18–25% under sustained load in benchmark testing."
+    },
+    {
+      "title": "Default checkpoint interval reduced to 5 seconds",
+      "description": "Previously 30 seconds. Reduces potential data replay on recovery. Configurable via `checkpoint.interval_ms`. Existing configurations are not overwritten on upgrade."
+    },
+    {
+      "title": "Kafka connector upgraded to librdkafka 2.5.0",
+      "description": "Brings support for KRaft-mode brokers and cooperative sticky partition assignment. The `partition.assignment.strategy` default changes from `range` to `cooperative-sticky`."
+    }
+  ],
+  "fixed_items": [
+    {
+      "title": "Kafka offset commit race condition (VST-4921)",
+      "description": "Under high partition rebalance frequency, offsets could be committed for revoked partitions, causing duplicate processing on consumer restart. Root cause was a missing lock acquisition in the async commit callback path."
+    },
+    {
+      "title": "Memory leak in windowed aggregation with late arrivals (VST-5003)",
+      "description": "Tumbling windows with allowed lateness greater than the window size accumulated state entries that were never evicted. Fixed by aligning the eviction watermark with the lateness boundary."
+    },
+    {
+      "title": "S3 sink multipart upload failures on network retry (VST-5112)",
+      "description": "When an individual part upload was retried after a transient network error, the ETag tracking array contained duplicates, causing the CompleteMultipartUpload call to fail with InvalidPart."
+    },
+    {
+      "title": "Incorrect timestamp parsing for ISO 8601 with microsecond precision (VST-5087)",
+      "description": "Timestamps with exactly six fractional digits were truncated to milliseconds instead of preserving microsecond precision. Affected the `event_time` extraction in the JSON deserializer."
+    },
+    {
+      "title": "CLI --dry-run flag ignored for delete operations (VST-5140)",
+      "description": "The `vstream pipeline delete --dry-run` command was executing the actual deletion. Added guard check in the command dispatch layer."
+    }
+  ],
+  "removed_items": [
+    {
+      "title": "XML serializer (deprecated since 3.5.0)",
+      "description": "The built-in XML serializer and `XmlSinkConfig` have been removed. Users requiring XML output should migrate to the community-maintained `velocistream-xml-plugin` package, which supports the same configuration schema."
+    },
+    {
+      "title": "Legacy v1 checkpoint format support",
+      "description": "Checkpoint files in the v1 binary format (used prior to 3.0.0) are no longer readable. Run `vstream checkpoint migrate` on any v1 checkpoints before upgrading."
+    }
+  ],
+  "breaking_changes": "1. The Kafka connector default partition assignment strategy is now `cooperative-sticky`. Pipelines relying on `range` assignment must explicitly set `partition.assignment.strategy: range` in their connector configuration.\n2. The XML serializer has been removed. Replace `type: xml` sinks with the `velocistream-xml-plugin` connector.\n3. Checkpoint v1 format is no longer supported. Migrate using `vstream checkpoint migrate --format v2` before upgrading.",
+  "known_issues": "- Parquet export does not yet support nested map types with nullable values. A fix is tracked in VST-5198 and expected in 3.8.1.\n- The resource quota enforcement for GPU-accelerated stages is not yet implemented; CPU and memory limits work correctly.",
+  "contributors": "Maren Solberg, Tomás Arévalo, Priya Chandrasekar, Kofi Mensah, and the Velocistream open-source community. Special thanks to Rúnar Ólafsson for the initial Parquet sink implementation and Aya Nakamura for extensive testing of the back-pressure algorithm under production-scale loads."
+}

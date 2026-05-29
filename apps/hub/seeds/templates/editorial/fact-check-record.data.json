@@ -1,0 +1,57 @@
+{
+  "article_title": "How Santiago Became the First Latin American City to Run Entirely on Renewable Energy",
+  "article_author": "Valentina Cárdenas",
+  "fact_checker": "Miriam Tsegaye",
+  "date_assigned": "February 24, 2026",
+  "date_completed": "March 1, 2026",
+  "section": "Climate & Energy",
+  "claims": [
+    {
+      "claim": "Santiago met 100% of its municipal electricity demand from renewable sources for every hour of January 2026",
+      "source_cited": "Chilean National Energy Commission (CNE) monthly generation report",
+      "verification_source": "CNE January 2026 Hourly Generation Data (publicly available dataset downloaded Feb 25). Cross-referenced with Coordinador Eléctrico Nacional real-time dispatch records",
+      "verdict": "Verified with nuance",
+      "notes": "The claim is accurate for the Metropolitan Region grid. However, 3.2% of generation was imported hydroelectric power from the Biobío region, which the CNE counts as renewable but is not generated within Santiago itself. Author added clarifying language."
+    },
+    {
+      "claim": "Chile invested $11.2 billion in solar infrastructure between 2018 and 2025",
+      "source_cited": "Bloomberg New Energy Finance (BNEF) annual investment tracker",
+      "verification_source": "BNEF Latin America Clean Energy Investment Database, accessed Feb 26. Also confirmed via Chilean Ministry of Energy cumulative investment reports",
+      "verdict": "Verified",
+      "notes": "BNEF figure is $11.18B; article rounds to $11.2B. Ministry of Energy figure is $10.9B due to different project classification methodology. Difference explained by BNEF including grid connection infrastructure"
+    },
+    {
+      "claim": "The Atacama Desert receives more solar irradiance per square meter than any other location on Earth",
+      "source_cited": "World Meteorological Organization global solar atlas",
+      "verification_source": "WMO Global Solar Atlas v2.7 and NASA POWER Data Access Viewer",
+      "verdict": "Verified",
+      "notes": "The Atacama plateau near Calama records average GHI of 2,530 kWh/m²/year, the highest sustained measurement globally. Competing claims exist for specific point measurements in the Sahara, but for sustained regional averages, the Atacama holds the record"
+    },
+    {
+      "claim": "Electricity prices for residential consumers in Santiago dropped 18% between 2022 and 2025",
+      "source_cited": "CNE regulated tariff schedule",
+      "verification_source": "CNE published tariff schedules for BT1 residential customers, Q4 2022 vs Q4 2025",
+      "verdict": "Corrected",
+      "notes": "Nominal price drop was 14.3%, not 18%. The 18% figure appears to be inflation-adjusted using CPI, which was not stated in the article. Author revised to '14% in nominal terms (18% in real terms after adjusting for inflation)'"
+    },
+    {
+      "claim": "The Cerro Dominador concentrated solar power plant can store energy for 17.5 hours of generation after sunset",
+      "source_cited": "EIG Global Energy Partners project specification",
+      "verification_source": "Cerro Dominador S.A. technical datasheet and Chilean Environmental Assessment Service (SEA) operational permit filing",
+      "verdict": "Verified",
+      "notes": "Molten salt thermal storage capacity rated at 17.5 hours at full output (110 MW). Actual dispatch records show 15–17 hours of post-sunset generation depending on seasonal demand patterns"
+    },
+    {
+      "claim": "Santiago's shift to renewables eliminated approximately 4.8 million metric tons of CO2 emissions annually",
+      "source_cited": "Santiago Metropolitan Government sustainability report 2025",
+      "verification_source": "Metropolitan Government report confirmed. Cross-checked against Global Carbon Project emissions intensity factors for Chilean grid (2019 baseline vs 2025)",
+      "verdict": "Verified with nuance",
+      "notes": "The 4.8 million metric ton figure compares 2025 grid emissions to a counterfactual 2019 grid mix. The methodology is standard for avoided emissions calculations but assumes the 2019 mix would have remained constant, which overstates the reduction slightly. Author added footnote explaining methodology"
+    }
+  ],
+  "overall_assessment": "Article is factually sound with minor corrections applied. All major claims are supported by primary source data. Two figures required precision adjustments — the electricity price drop needed inflation context and the 100% renewable claim needed geographic clarification. No claims were found to be false or misleading.",
+  "total_claims": "6",
+  "verified_count": "4",
+  "corrected_count": "1",
+  "unverifiable_count": "0"
+}

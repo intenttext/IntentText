@@ -1,0 +1,72 @@
+{
+  "spec_title": "Real-Time Collaborative Editing Engine",
+  "current_version": "1.0",
+  "version_note": "Final spec approved by architecture review board",
+  "spec_id": "SPEC-2026-ENG-0034",
+  "status": "Approved",
+  "author": "Lena Okwu",
+  "author_email": "l.okwu@meridiansoft.com",
+  "team": "Platform Infrastructure — Real-Time Systems",
+  "created_date": "February 10, 2026",
+  "target_release": "Meridian Platform 5.4 (Q2 2026)",
+  "problem_statement": "The current document editing system uses operational transformation (OT) with a centralized server relay. Under concurrent editing loads exceeding 12 users per document, the server relay becomes a bottleneck — round-trip latency for character insertions exceeds 800ms and conflict resolution accuracy degrades, producing visible flicker and occasional data loss on merge. Customer escalations related to collaborative editing have increased 3× in the past two quarters.",
+  "proposed_solution": "Replace the OT-based engine with a CRDT (Conflict-free Replicated Data Type) implementation based on the Yjs library. CRDTs eliminate the need for a central conflict resolver by encoding causality directly into the data structure. Each client maintains a local replica and synchronizes via a lightweight awareness protocol over WebSocket. A persistence layer snapshots the CRDT document state to PostgreSQL at configurable intervals for durability.",
+  "requirements": [
+    {
+      "requirement_id": "REQ-001",
+      "title": "Sub-100ms local insertion latency",
+      "priority": "P0 — Critical",
+      "category": "Performance",
+      "description": "Character insertions must appear in the local editor within 100ms of keystroke, regardless of network conditions. Synchronization to remote peers is asynchronous and must not block local rendering."
+    },
+    {
+      "requirement_id": "REQ-002",
+      "title": "Convergence guarantee for 50 concurrent editors",
+      "priority": "P0 — Critical",
+      "category": "Correctness",
+      "description": "All connected clients must converge to an identical document state within 2 seconds after the last edit, with at least 50 simultaneous editors on a single document. No edits may be silently dropped."
+    },
+    {
+      "requirement_id": "REQ-003",
+      "title": "Offline editing with automatic sync on reconnection",
+      "priority": "P1 — High",
+      "category": "Reliability",
+      "description": "Clients disconnected from the network must continue editing locally. Upon reconnection, the CRDT merge must automatically reconcile diverged states without user intervention and without data loss."
+    },
+    {
+      "requirement_id": "REQ-004",
+      "title": "Document history and point-in-time recovery",
+      "priority": "P1 — High",
+      "category": "Data Integrity",
+      "description": "The system must persist CRDT snapshots at 30-second intervals and retain at least 90 days of history. Users can restore a document to any snapshot point via an API call."
+    },
+    {
+      "requirement_id": "REQ-005",
+      "title": "Backward-compatible REST API for read-only consumers",
+      "priority": "P2 — Medium",
+      "category": "Compatibility",
+      "description": "Existing integrations that fetch document content via the REST API must continue to receive well-formed JSON responses. The API contract must not change; internally, responses are rendered from the latest CRDT snapshot."
+    },
+    {
+      "requirement_id": "REQ-006",
+      "title": "Cursor and selection presence awareness",
+      "priority": "P2 — Medium",
+      "category": "User Experience",
+      "description": "Each connected client's cursor position and text selection must be visible to all other clients with a labeled color indicator. Presence updates must propagate within 200ms."
+    }
+  ],
+  "architecture_overview": "The system has three layers:\n1. *Client Layer* — A Yjs document instance embedded in the editor iframe. Handles local CRDT operations and renders real-time cursor awareness via the y-presence module.\n2. *Sync Layer* — A horizontally scalable WebSocket gateway (Node.js, deployed on Kubernetes) that relays CRDT update messages between connected peers. Stateless; uses Redis Pub/Sub for cross-pod broadcast.\n3. *Persistence Layer* — A background worker that periodically encodes the authoritative CRDT state and writes snapshots to PostgreSQL (BYTEA column with ZSTD compression). Triggered every 30 seconds or on document close, whichever comes first.",
+  "data_model": "- *documents* table: id (UUID), workspace_id, title, created_at, updated_at\n- *crdt_snapshots* table: id (BIGSERIAL), document_id (FK), snapshot (BYTEA), vector_clock (JSONB), created_at\n- *awareness_sessions* (Redis): ephemeral hash per document_id tracking connected client IDs, cursor positions, and selection ranges\n- CRDT binary format: Yjs v2 encoding (~60% smaller than v1), average snapshot size 12KB per 10,000-word document",
+  "api_surface": "- *WebSocket* /ws/docs/{document_id} — bidirectional CRDT sync and awareness channel\n- *REST* GET /api/docs/{document_id} — rendered document content (unchanged contract)\n- *REST* GET /api/docs/{document_id}/history — list snapshots with timestamps\n- *REST* POST /api/docs/{document_id}/restore — restore to a specific snapshot ID\n- *REST* GET /api/docs/{document_id}/awareness — current connected users and cursor positions",
+  "security_considerations": "- WebSocket connections require a short-lived JWT (15-minute expiry) with document-scoped permissions. Tokens re-issued transparently via the refresh token flow.\n- CRDT update payloads are validated server-side: maximum message size 256KB, malformed Yjs updates are rejected and the connection is closed.\n- Snapshot data at rest is encrypted using AES-256-GCM with per-workspace keys stored in AWS KMS.\n- Awareness data (cursors) is ephemeral and not persisted to disk.",
+  "implementation_phases": "Phase 1 (Weeks 1–3): Core CRDT integration — embed Yjs in the editor client and WebSocket gateway. Single-pod deployment. Unit and integration tests for convergence.\nPhase 2 (Weeks 4–5): Persistence layer — snapshot worker, PostgreSQL schema migration, restore API. Load testing with 50 concurrent simulated clients.\nPhase 3 (Weeks 6–7): Horizontal scaling — Redis Pub/Sub for cross-pod sync, Kubernetes HPA configuration, chaos testing for pod eviction and reconnection.\nPhase 4 (Week 8): Presence awareness — cursor rendering, user labels, color assignment. End-to-end QA and staging rollout.",
+  "dependencies": "- Yjs 13.6+ and y-websocket 2.0+ (MIT licensed, actively maintained)\n- Redis 7.2+ for ephemeral awareness state and cross-pod Pub/Sub\n- PostgreSQL 16+ (already in production; requires schema migration adding crdt_snapshots table)\n- Editor team must expose an iframe postMessage API for embedding the CRDT-aware editor component (coordinated with Mei-Lin Chen)",
+  "testing_strategy": "- *Unit tests*: CRDT merge correctness under concurrent inserts, deletes, and formatting operations (property-based testing with fast-check)\n- *Integration tests*: WebSocket gateway with 10+ simulated clients verifying convergence within the 2-second SLA\n- *Load tests*: k6 scripts simulating 50 concurrent editors per document across 200 documents, measuring P99 sync latency and gateway memory\n- *Chaos tests*: Randomly kill gateway pods mid-edit session; verify clients reconnect and converge without data loss\n- *Regression*: Existing REST API contract tests must pass without modification",
+  "constraint_title": "Third-Party Library Licensing",
+  "constraint_body": "All third-party dependencies must be MIT, Apache 2.0, or BSD licensed. No AGPL, SSPL, or EUPL libraries are permitted in client-facing code paths. Any exceptions require written approval from the legal team before integration.",
+  "performance_targets": "- Local insertion latency: < 100ms (P99)\n- Remote peer sync latency: < 500ms (P95) on a stable broadband connection\n- Convergence time with 50 concurrent editors: < 2 seconds after last edit\n- Snapshot persistence: < 200ms write time for a 50KB CRDT state\n- WebSocket gateway memory: < 512MB per 1,000 active document sessions\n- Cold-start document load (initial CRDT hydration): < 300ms for a 100KB snapshot",
+  "open_questions": "1. Should we support CRDT-based undo/redo per-user (Yjs UndoManager), or rely on the existing application-level undo stack? Per-user undo adds ~3KB memory overhead per client.\n2. What is the retention policy for snapshots older than 90 days? Archive to S3 Glacier or purge? Awaiting input from the compliance team.\n3. Should presence awareness include a user's viewport scroll position for 'follow mode' functionality? Product has expressed interest but it is not in the current quarter's objectives.",
+  "tech_lead": "Rafael Domínguez",
+  "tech_lead_title": "Principal Engineer, Platform Infrastructure",
+  "approval_date": "2026-02-28"
+}

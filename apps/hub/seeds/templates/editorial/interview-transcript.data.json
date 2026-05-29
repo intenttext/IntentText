@@ -1,0 +1,35 @@
+{
+  "subject_name": "Dr. Amina Okafor-Reyes",
+  "subject_title": "Chief Scientific Officer",
+  "subject_organization": "Terraverde Bioengineering",
+  "subject_bio": "Dr. Amina Okafor-Reyes is a synthetic biologist who led the team that developed a crop-embedded nitrogen fixation system now licensed to seed producers in 22 countries. She holds a DPhil from Oxford in Plant Sciences and spent six years at the International Rice Research Institute in Los Baños before co-founding Terraverde in 2021.",
+  "subject_first_name": "Amina",
+  "interviewer_name": "Henrik Larsen",
+  "interviewer_title": "Senior Science Editor, The Meridian Review",
+  "interview_date": "February 18, 2026",
+  "location": "Terraverde headquarters, Research Triangle Park, North Carolina",
+  "duration": "47 minutes",
+  "qa_pairs": [
+    {
+      "question": "Your nitrogen fixation system has been called the most significant agricultural biotech advance in a decade. Can you explain what it does in plain terms?",
+      "answer": "We engineered a symbiotic relationship between cereal crops — rice, wheat, maize — and a modified strain of Gluconacetobacter diazotrophicus, a bacterium that naturally fixes atmospheric nitrogen. The bacterium colonizes the root cortex and converts nitrogen gas into ammonium the plant can use directly. In field trials, this reduced synthetic fertilizer requirements by 40 to 60 percent while maintaining or improving yield."
+    },
+    {
+      "question": "What was the breakthrough moment?",
+      "answer": "It was actually a failure. In 2023 we had a contaminated greenhouse batch where a wild-type rhizobium outcompeted our engineered strain. Instead of scrapping the batch, my postdoc Kenji Matsuda noticed that the plants in the contaminated section had higher nitrogen uptake than either strain alone. That led us to a co-inoculation strategy that became the core of our current system. The best science often comes from the experiments that go wrong."
+    },
+    {
+      "question": "Synthetic biology in food crops makes some people nervous. How do you address safety concerns?",
+      "answer": "I take those concerns seriously because I grew up in Lagos where trust in institutions is earned, not assumed. Our bacterium does not modify the plant genome — it lives alongside the roots the way mycorrhizal fungi have for 400 million years. We have completed four years of field trials across eight countries with independent monitoring by CGIAR. The European Food Safety Authority and USDA APHIS have both completed risk assessments with no adverse findings. We publish all our safety data openly — every dataset, every analysis."
+    },
+    {
+      "question": "What does this mean for smallholder farmers who cannot afford fertilizer?",
+      "answer": "That is why we started this company. A 50-kilogram bag of urea costs between 35 and 70 US dollars depending on the country and the year. For a farmer in Kaduna State growing two hectares of maize, that is a significant fraction of their annual input cost. Our seed treatment adds roughly 4 dollars per hectare and eliminates most of that fertilizer expense. We have a tiered licensing model — seed companies serving markets where per-capita income is below the World Bank threshold pay a reduced royalty. It is not charity; it is a larger market at a lower margin."
+    },
+    {
+      "question": "Where do you see this technology in five years?",
+      "answer": "We are already working on a second-generation system for legumes that enhances their natural nitrogen fixation by 30 percent. Beyond that, I want to tackle phosphorus — that is the harder problem because phosphorus does not exist in the atmosphere the way nitrogen does. We are exploring fungal partners that solubilize rock phosphate in situ. If we can reduce dependence on mined phosphorus, we address a resource bottleneck that most people outside agriculture do not even know exists."
+    }
+  ],
+  "editor_notes": "This interview has been lightly edited for length and clarity. A full unedited transcript is available in the Meridian Review digital archive. Terraverde Bioengineering is privately held; the Meridian Review has no financial relationship with the company."
+}

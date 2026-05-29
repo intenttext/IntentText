@@ -1,0 +1,25 @@
+{
+  "headline": "We Built Cities for Cars — Now the Cars Are Leaving and We Have No Idea What to Do with the Parking",
+  "byline": "Claudia Ruiz-Peña",
+  "publication_date": "March 3, 2026",
+  "opening_paragraph": "Denver just decommissioned its largest downtown parking structure, a 2,400-space concrete monolith that opened in 1987 and has operated at less than 30 percent capacity since 2024. The city plans to demolish it and build 340 units of mixed-income housing. This should be a straightforward win — except that nobody can agree on who pays for demolition, what affordability means in a neighborhood where median rent has tripled in eight years, or whether the city even has the zoning framework to allow what it wants to build.",
+  "body_paragraphs": [
+    {
+      "text": "Denver is not alone. Houston has 30 surface parking lots within a half-mile of its new light rail stations that are now worth more as development sites than as places to store cars. Minneapolis identified 14 city-owned garages operating below 40 percent occupancy. San Jose has an entire downtown quadrant that is functionally a parking desert — the cars left but the asphalt stayed."
+    },
+    {
+      "text": "The numbers are staggering. The American Planning Association estimates that US cities collectively maintain 800 million parking spaces — roughly three for every registered vehicle. As remote work, ride-sharing, and autonomous vehicle pilots reduce demand, cities face a paradox: they are land-rich and housing-poor, sitting on billions of dollars of underused real estate that requires expensive remediation before it can become anything else."
+    },
+    {
+      "text": "The obstacle is not vision. Every city planner I spoke to for this column rattled off ambitious conversion plans. The obstacle is implementation. Parking structures are engineered for vehicular loads and short floor-to-ceiling heights that make residential conversion impractical in most cases. Surface lots often have petroleum contamination from decades of oil drips that triggers EPA brownfield remediation requirements costing $800,000 to $2 million per acre."
+    }
+  ],
+  "supporting_quote": "We have this bizarre situation where the land under a parking lot is worth $4 million but the lot itself has negative value because of what it costs to clean up and rebuild. The math only works with public subsidy, and the public is tired of subsidizing downtown development.",
+  "supporting_quote_source": "Rachel Kwan, Director of Urban Land Economics, University of British Columbia",
+  "counterpoint": "Not everyone agrees that parking should disappear. The National Parking Association argues that cities are over-correcting based on pandemic-era data, and that autonomous vehicles will actually increase demand for structured parking as fleet vehicles need staging areas between rides. There is a plausible version of the future where we need more parking, not less — just different parking in different places.",
+  "counterpoint_quote": "The reports of parking's death are greatly exaggerated. What is dying is the model of every driver owning a personal space. The total vehicle throughput of urban cores is still increasing — those vehicles need to go somewhere between trips.",
+  "counterpoint_quote_source": "Marcus Trelawney, Policy Director, National Parking Association",
+  "closing_paragraph": "Here is what I think cities should actually do: stop treating this as a parking problem and start treating it as an infrastructure succession problem, the same way we handled rail yard conversions in the 1990s or waterfront industrial transitions in the 2000s. Create dedicated conversion authorities with bonding power, fast-track environmental review for parking-to-housing projects, and accept that the public sector has to absorb the remediation cost because the alternative — letting contaminated asphalt sit empty for another 20 years — is worse. The cars are leaving. The question is whether we are brave enough to imagine what comes next.",
+  "author_bio": "Claudia Ruiz-Peña is an urban policy columnist for The Meridian Review and a fellow at the Brookings Institution Metropolitan Policy Program. She previously served as Deputy Director of Planning for the City of Portland, Oregon.",
+  "author_contact": "cruizpena@meridianreview.com"
+}

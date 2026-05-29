@@ -1,0 +1,14 @@
+title: Academic Abstract
+meta: | type: template | domain: book | description: Academic paper abstract with title, authors, abstract text, and keywords | theme: minimal | version: 1.0 | author: IntentText
+---
+section: {{paper_title}}
+---
+text: {{name}} | affiliation: {{affiliation}}
+---
+section: Abstract
+---
+text: {{abstract}}
+---
+section: Keywords
+---
+text: {{keyword}}

@@ -1,0 +1,34 @@
+title: {{title}}
+meta: | type: template | domain: business | description: SLA performance report with uptime, response time, resolution metrics, and operations sign-off | theme: corporate | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+x-writer: byline | content: {{author}} | role: {{author_role}} | date: {{report_date}}
+track: | version: 1.0 | by: {{author}}
+---
+section: Service Availability
+---
+metric: Uptime | value: {{uptime}} | unit: % | target: {{uptime_target}} | trend: {{uptime_trend}} | period: {{period}}
+metric: Planned Downtime | value: {{planned_downtime}} | unit: hours | target: {{planned_downtime_target}} | trend: {{planned_downtime_trend}} | period: {{period}}
+metric: Unplanned Incidents | value: {{incidents}} | unit: incidents | target: {{incidents_target}} | trend: {{incidents_trend}} | period: {{period}}
+---
+section: Response Performance
+---
+metric: Avg Response Time (P1) | value: {{p1_response}} | unit: minutes | target: {{p1_response_target}} | trend: {{p1_response_trend}} | period: {{period}}
+metric: Avg Response Time (P2) | value: {{p2_response}} | unit: minutes | target: {{p2_response_target}} | trend: {{p2_response_trend}} | period: {{period}}
+metric: Avg Resolution Time | value: {{resolution_time}} | unit: hours | target: {{resolution_time_target}} | trend: {{resolution_time_trend}} | period: {{period}}
+---
+section: SLA Compliance
+---
+metric: SLA Breach Count | value: {{breach_count}} | unit: breaches | target: 0 | trend: {{breach_trend}} | period: {{period}}
+metric: SLA Compliance Rate | value: {{compliance_rate}} | unit: % | target: {{compliance_target}} | trend: {{compliance_trend}} | period: {{period}}
+---
+section: Notable Incidents
+---
+text: {{incident_1_summary}}
+text: *Severity:* {{incident_1_severity}}
+text: *Duration:* {{incident_1_duration}}
+text: *Root Cause:* {{incident_1_cause}}
+text: *Resolution:* {{incident_1_resolution}}
+---
+section: Approval
+---
+approve: SLA report reviewed and accepted | by: {{approver}} | role: {{approver_role}}

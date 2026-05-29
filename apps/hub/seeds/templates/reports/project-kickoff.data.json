@@ -1,0 +1,131 @@
+{
+  "project_name": "Meridian Customer Portal Redesign",
+  "project_code": "MER-2026-041",
+  "sponsor_name": "Helena Varga",
+  "project_manager": "Daniel Okonkwo",
+  "start_date": "March 17, 2026",
+  "target_completion": "August 29, 2026",
+  "budget": "$1,350,000",
+  "strategic_goals": "1. Increase self-service adoption rate from 38% to 70% within six months of launch\n2. Reduce average support ticket volume by 25% through improved knowledge base integration\n3. Deliver a mobile-first portal experience achieving 4.5+ App Store rating\n4. Consolidate three legacy portals into a single unified platform",
+  "success_criteria": "1. Self-service task completion rate exceeds 65% in first 90 days\n2. Portal page load time under 1.2 seconds at P95\n3. Customer satisfaction score (CSAT) improves by 15 points post-launch\n4. Zero critical accessibility violations against WCAG 2.2 AA\n5. Full data migration from legacy portals with less than 0.01% data loss",
+  "in_scope": "1. Customer dashboard with account overview, billing history, and usage analytics\n2. Self-service workflows for plan changes, address updates, and payment methods\n3. Integrated knowledge base with search and contextual help\n4. Real-time notification center with email and push preferences\n5. Mobile-responsive design with native-like progressive web app shell\n6. Migration of 2.3M active accounts from legacy systems",
+  "out_of_scope": "1. Internal agent-facing tools — handled by separate Operations Portal project\n2. Wholesale/partner portal — scheduled for Phase 2 in Q1 2027\n3. Payment processing infrastructure changes — current Stripe integration remains\n4. CRM replacement — Salesforce integration will use existing APIs",
+  "team_members": [
+    {
+      "name": "Daniel Okonkwo",
+      "role": "Project Manager",
+      "department": "PMO",
+      "allocation": "100%",
+      "email": "d.okonkwo@meridian.io"
+    },
+    {
+      "name": "Sanna Lindqvist",
+      "role": "Lead Frontend Engineer",
+      "department": "Engineering",
+      "allocation": "100%",
+      "email": "s.lindqvist@meridian.io"
+    },
+    {
+      "name": "Ravi Chandrasekaran",
+      "role": "Backend Architect",
+      "department": "Engineering",
+      "allocation": "80%",
+      "email": "r.chandrasekaran@meridian.io"
+    },
+    {
+      "name": "Yuki Tanaka",
+      "role": "UX Lead",
+      "department": "Design",
+      "allocation": "80%",
+      "email": "y.tanaka@meridian.io"
+    },
+    {
+      "name": "Amara Diallo",
+      "role": "QA Lead",
+      "department": "Quality",
+      "allocation": "60%",
+      "email": "a.diallo@meridian.io"
+    },
+    {
+      "name": "Ewan MacIntyre",
+      "role": "Data Migration Specialist",
+      "department": "Data Engineering",
+      "allocation": "50%",
+      "email": "e.macintyre@meridian.io"
+    }
+  ],
+  "milestones": [
+    {
+      "name": "Discovery and Requirements Finalized",
+      "target_date": "April 4, 2026",
+      "owner": "Yuki Tanaka",
+      "status": "Not Started"
+    },
+    {
+      "name": "Design System and Component Library Complete",
+      "target_date": "April 25, 2026",
+      "owner": "Yuki Tanaka",
+      "status": "Not Started"
+    },
+    {
+      "name": "Backend API v1 Ready for Integration",
+      "target_date": "May 16, 2026",
+      "owner": "Ravi Chandrasekaran",
+      "status": "Not Started"
+    },
+    {
+      "name": "Data Migration Dry Run Completed",
+      "target_date": "June 6, 2026",
+      "owner": "Ewan MacIntyre",
+      "status": "Not Started"
+    },
+    {
+      "name": "Internal Beta Launch",
+      "target_date": "July 3, 2026",
+      "owner": "Daniel Okonkwo",
+      "status": "Not Started"
+    },
+    {
+      "name": "UAT Complete and Sign-Off",
+      "target_date": "August 8, 2026",
+      "owner": "Amara Diallo",
+      "status": "Not Started"
+    },
+    {
+      "name": "Production Launch",
+      "target_date": "August 29, 2026",
+      "owner": "Daniel Okonkwo",
+      "status": "Not Started"
+    }
+  ],
+  "risks": [
+    {
+      "description": "Legacy data inconsistencies could extend migration timeline — three source systems use different schema versions",
+      "likelihood": "High",
+      "impact": "High",
+      "mitigation": "Begin data profiling in Week 1; build reconciliation checks into migration pipeline",
+      "owner": "Ewan MacIntyre"
+    },
+    {
+      "description": "Key frontend engineer availability may be reduced due to concurrent platform incident support rotation",
+      "likelihood": "Medium",
+      "impact": "Medium",
+      "mitigation": "Cross-train second frontend developer; negotiate reduced on-call rotation with Engineering Manager",
+      "owner": "Sanna Lindqvist"
+    },
+    {
+      "description": "Third-party authentication provider contract renewal pending — could affect SSO integration timeline",
+      "likelihood": "Low",
+      "impact": "High",
+      "mitigation": "Procurement to fast-track renewal; prepare fallback with built-in OAuth implementation",
+      "owner": "Daniel Okonkwo"
+    }
+  ],
+  "decisions": "1. Technology stack confirmed: Next.js frontend, Node.js BFF layer, PostgreSQL with existing Stripe integration\n2. Design will follow the Meridian Design System v3 with portal-specific extensions\n3. Migration will run in parallel with legacy systems active until 30 days post-launch\n4. Accessibility audit will be conducted by external firm TechAccess at UAT stage\n5. Go/No-Go decision gate scheduled for August 15 with steering committee",
+  "status_cadence": "Weekly on Fridays — distributed via email and Confluence",
+  "steering_cadence": "Bi-weekly on Wednesdays — 30-minute virtual sessions",
+  "standup_cadence": "Daily at 9:15 AM — 15 minutes via Teams",
+  "escalation_path": "Team Lead → Project Manager → Sponsor (Helena Varga) → CTO",
+  "sponsor_approval_date": "2026-03-14",
+  "pm_approval_date": "2026-03-14"
+}

@@ -1,0 +1,83 @@
+title: {{request_title}}
+meta: | type: template | domain: organization | description: Change management request with impact analysis, risk assessment, rollback plan, and change advisory board approval | theme: corporate | version: 1.0 | author: IntentText
+track: | version: {{current_version}} | by: {{requester}} | note: {{version_note}}
+track: | version: 0.2 | by: {{requester}} | note: Risk assessment and rollback plan added
+track: | version: 0.1 | by: {{requester}} | note: Initial submission
+---
+section: Request Summary
+---
+text: Change Request Details
+text: *Request ID:* {{request_id}}
+text: *Priority:* {{priority}}
+text: *Category:* {{category}}
+text: *Status:* {{status}}
+text: *Requested By:* {{requester}} · {{requester_email}}
+text: *Department:* {{department}}
+text: *Date Submitted:* {{date_submitted}}
+text: *Requested Implementation Date:* {{requested_date}}
+---
+section: Description of Change
+---
+text: Change Description
+text: {{change_description}}
+---
+text: Business Justification
+text: {{business_justification}}
+---
+section: Impact Analysis
+---
+text: Systems and Services Affected
+text: {{systems_affected}}
+---
+text: User Impact
+text: {{user_impact}}
+---
+text: Dependencies
+text: {{dependencies}}
+---
+section: Risk Assessment
+---
+text: Risk Analysis
+text: *Risk Level:* {{risk_level}}
+text: *Probability of Failure:* {{failure_probability}}
+text: *Impact if Failed:* {{failure_impact}}
+---
+text: Risk Factors
+text: {{risk_factors}}
+---
+section: Implementation Plan
+---
+text: Implementation Steps
+text: {{implementation_plan}}
+---
+text: Implementation Window
+text: *Start:* {{implementation_start}}
+text: *End:* {{implementation_end}}
+text: *Maintenance Window:* {{maintenance_window}}
+---
+section: Testing and Validation
+---
+text: Test Plan
+text: {{test_plan}}
+---
+section: Rollback Plan
+---
+text: Rollback Procedure
+text: {{rollback_plan}}
+---
+text: Rollback Criteria
+text: {{rollback_criteria}}
+---
+section: Communication Plan
+---
+text: Stakeholder Notifications
+text: {{communication_plan}}
+---
+section: Resource Requirements
+---
+text: Resources and Budget
+text: {{resource_requirements}}
+---
+section: Approval
+---
+approve: Approved | by: {{cab_chair}} | role: {{cab_chair_title}} | at: {{approval_date}}

@@ -1,0 +1,13 @@
+{
+  "title": "Standard Contract Definitions",
+  "summary": "Comprehensive definitions section for the Northwind–Clearwater Master Services Agreement, covering all standard legal terms used across the contract suite.",
+  "jurisdiction": "the Province of Ontario, Canada",
+  "client_name": "Clearwater Analytics Inc.",
+  "effective_date": "April 1, 2026",
+  "governing_jurisdiction": "the Province of Ontario, Canada",
+  "liability_cap": "the total fees paid under this Agreement in the twelve (12) months preceding the claim",
+  "cure_period": "thirty (30) days",
+  "provider_name": "Northwind Digital Solutions Ltd.",
+  "contract_term": "twelve (12) months",
+  "warranty_period": "Ninety (90) days"
+}

@@ -1,0 +1,87 @@
+{
+  "api_title": "Inventory Search API — v2",
+  "base_url": "https://api.cargohive.io/v2",
+  "auth_method": "Bearer token via OAuth 2.0 client credentials grant",
+  "rate_limit": "600 requests per minute per API key; burst allowance of 50 additional requests",
+  "content_type": "application/json",
+  "api_description": "The Inventory Search endpoint enables warehouse management systems to query real-time stock levels across multiple fulfillment centers. It supports full-text search on SKU descriptions, barcode lookups, and dimensional filtering. Results include bin location, last count date, and replenishment status.",
+  "method": "POST",
+  "endpoint_path": "/inventory/search",
+  "endpoint_summary": "Search inventory across fulfillment centers with filtering and pagination",
+  "auth_required": "Yes",
+  "idempotent": "Yes — identical search payloads return consistent results within the same snapshot window",
+  "parameters": [
+    {
+      "name": "X-Warehouse-Region",
+      "location": "header",
+      "type": "string",
+      "required": "Yes",
+      "description": "ISO 3166-1 alpha-2 region code limiting the search scope to fulfillment centers in that region",
+      "example": "US"
+    },
+    {
+      "name": "X-Request-Id",
+      "location": "header",
+      "type": "string (UUID v4)",
+      "required": "No",
+      "description": "Client-generated idempotency key for request deduplication within a 5-minute window",
+      "example": "a3f8c912-74b1-4e09-b6d0-9c1ae7520f83"
+    },
+    {
+      "name": "page",
+      "location": "query",
+      "type": "integer",
+      "required": "No (default: 1)",
+      "description": "Page number for paginated results. Pages are 1-indexed.",
+      "example": "1"
+    },
+    {
+      "name": "per_page",
+      "location": "query",
+      "type": "integer",
+      "required": "No (default: 50, max: 200)",
+      "description": "Number of inventory records per page",
+      "example": "50"
+    }
+  ],
+  "request_body_description": "JSON object containing search criteria. At least one of `query`, `sku`, or `barcode` must be provided.",
+  "request_body_example": "{\n  \"query\": \"lithium battery pack 48V\",\n  \"filters\": {\n    \"category\": \"electronics\",\n    \"min_quantity\": 10,\n    \"replenishment_status\": [\"adequate\", \"reorder_pending\"]\n  },\n  \"sort\": {\n    \"field\": \"quantity_on_hand\",\n    \"order\": \"desc\"\n  }\n}",
+  "response_codes": [
+    {
+      "status": "200",
+      "status_text": "OK",
+      "description": "Search completed successfully. Body contains paginated inventory results with total count, page metadata, and an array of matching inventory records."
+    },
+    {
+      "status": "400",
+      "status_text": "Bad Request",
+      "description": "Request validation failed. Common causes: missing required search field, invalid filter value, or per_page exceeding 200."
+    },
+    {
+      "status": "401",
+      "status_text": "Unauthorized",
+      "description": "Bearer token is missing, expired, or does not have the inventory:read scope."
+    },
+    {
+      "status": "403",
+      "status_text": "Forbidden",
+      "description": "Authenticated principal lacks access to the specified warehouse region."
+    },
+    {
+      "status": "429",
+      "status_text": "Too Many Requests",
+      "description": "Rate limit exceeded. Retry-After header indicates seconds until the next available request window."
+    },
+    {
+      "status": "503",
+      "status_text": "Service Unavailable",
+      "description": "Inventory index is temporarily unavailable due to a reindexing cycle. Typically resolves within 30 seconds."
+    }
+  ],
+  "success_response_example": "{\n  \"total\": 37,\n  \"page\": 1,\n  \"per_page\": 50,\n  \"results\": [\n    {\n      \"sku\": \"ELC-BATT-48V-20AH\",\n      \"description\": \"Lithium Iron Phosphate Battery Pack 48V 20Ah\",\n      \"barcode\": \"8901234567890\",\n      \"quantity_on_hand\": 184,\n      \"bin_location\": \"FC-ORD-3 / Aisle 12 / Rack B / Shelf 4\",\n      \"fulfillment_center\": \"Chicago-ORD-3\",\n      \"last_counted\": \"2026-03-04T08:15:00Z\",\n      \"replenishment_status\": \"adequate\",\n      \"unit_weight_kg\": 6.2\n    }\n  ]\n}",
+  "error_response_example": "{\n  \"error\": {\n    \"code\": \"INVALID_FILTER\",\n    \"message\": \"Filter field 'min_quantity' must be a non-negative integer.\",\n    \"request_id\": \"a3f8c912-74b1-4e09-b6d0-9c1ae7520f83\",\n    \"documentation_url\": \"https://docs.cargohive.io/errors/INVALID_FILTER\"\n  }\n}",
+  "curl_example": "curl -X POST https://api.cargohive.io/v2/inventory/search?page=1&per_page=50 \\\n  -H \"Authorization: Bearer eyJhbGciOiJSUzI1NiIs...\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-Warehouse-Region: US\" \\\n  -d '{\n    \"query\": \"lithium battery pack 48V\",\n    \"filters\": { \"category\": \"electronics\", \"min_quantity\": 10 }\n  }'",
+  "python_example": "import httpx\n\nclient = httpx.Client(base_url=\"https://api.cargohive.io/v2\")\nresponse = client.post(\n    \"/inventory/search\",\n    params={\"page\": 1, \"per_page\": 50},\n    headers={\n        \"Authorization\": \"Bearer <token>\",\n        \"X-Warehouse-Region\": \"US\",\n    },\n    json={\n        \"query\": \"lithium battery pack 48V\",\n        \"filters\": {\"category\": \"electronics\", \"min_quantity\": 10},\n    },\n)\ndata = response.json()\nfor item in data[\"results\"]:\n    print(f\"{item['sku']}  qty={item['quantity_on_hand']}  bin={item['bin_location']}\")",
+  "javascript_example": "const res = await fetch(\n  \"https://api.cargohive.io/v2/inventory/search?page=1&per_page=50\",\n  {\n    method: \"POST\",\n    headers: {\n      \"Authorization\": \"Bearer <token>\",\n      \"Content-Type\": \"application/json\",\n      \"X-Warehouse-Region\": \"US\"\n    },\n    body: JSON.stringify({\n      query: \"lithium battery pack 48V\",\n      filters: { category: \"electronics\", min_quantity: 10 }\n    })\n  }\n);\nconst data = await res.json();\nconsole.log(`Found ${data.total} items`);\ndata.results.forEach(r => console.log(`${r.sku}: ${r.quantity_on_hand} units`));",
+  "additional_notes": "Search results are computed against a near-real-time index that is refreshed every 15 seconds from the transactional inventory database. During peak warehouse operations, index lag may increase to 60 seconds. For transactions requiring exact-count guarantees (e.g., order reservation), use the /inventory/{sku}/reserve endpoint instead, which reads directly from the primary database."
+}

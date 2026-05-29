@@ -1,0 +1,6 @@
+page: | size: A4 | marginTopMm: 14 | marginBottomMm: 20
+footer: https://cdn.example.com/receipt-footer.png | fit: contain | heightMm: 16
+title: Receipt {{receipt_number}}
+text: Received from {{payer_name}}
+metric: Paid | value: {{amount}} | unit: {{currency}}
+text: {{receipt_date}}

@@ -1,0 +1,47 @@
+title: Expense Report
+meta: | type: template | domain: business | description: Employee expense claim with itemized expenses, totals, receipt tracking, and manager approval | theme: corporate | version: 1.0 | author: IntentText
+---
+section: Report Information
+---
+text: Expense Report Details
+text: *Report ID:* {{report_id}}
+text: *Employee:* {{employee_name}}
+text: *Employee ID:* {{employee_id}}
+text: *Department:* {{department}}
+text: *Reporting Period:* {{period_start}} — {{period_end}}
+text: *Submission Date:* {{submission_date}}
+text: *Cost Center:* {{cost_center}}
+text: *Purpose:* {{purpose}}
+---
+section: Expense Items
+---
+text: {{date}} — {{description}}
+text: *Category:* {{category}} · *Vendor:* {{vendor}} · *Amount:* {{amount}} · *Receipt:* {{receipt_status}}
+---
+section: Totals
+---
+text: Expense Summary
+text: *Total Claimed:* {{total_claimed}}
+text: *Company Card Charges:* {{company_card_total}}
+text: *Out-of-Pocket Amount:* {{out_of_pocket_total}}
+text: *Advance Received:* {{advance_received}}
+text: *Net Reimbursement Due:* {{net_reimbursement}}
+---
+text: Currency and Payment
+text: *Currency:* {{currency}}
+text: *Reimbursement Method:* {{reimbursement_method}}
+---
+section: Receipts
+---
+text: Receipt Summary
+text: *Total Receipts Attached:* {{receipt_count}}
+text: *Missing Receipts:* {{missing_receipts}}
+---
+section: Policy Compliance
+---
+text: Compliance Notes
+text: {{compliance_notes}}
+---
+sign: {{employee_name}} | role: Employee | at: {{employee_signed_date}} | hash: {{document_hash}}
+---
+approve: Approved | by: {{manager_name}} | role: {{manager_title}} | at: {{approval_date}}

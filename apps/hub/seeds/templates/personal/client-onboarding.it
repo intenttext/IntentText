@@ -1,0 +1,47 @@
+title: Client Onboarding Document
+meta: | type: template | domain: personal | description: Client onboarding document with welcome message, team contacts, process steps, next actions, and FAQ | theme: corporate | version: 1.0 | author: IntentText
+track: | version: 1.0 | by: Client Success
+---
+section: Welcome
+---
+text: Welcome to {{company_name}}
+text: {{welcome_message}}
+---
+text: Engagement Overview
+text: *Client:* {{client_name}}
+text: *Project:* {{project_name}}
+text: *Start Date:* {{start_date}}
+text: *Primary Contact:* {{primary_contact}} · {{primary_contact_email}}
+---
+section: Your Team
+---
+text: {{name}} — {{role}}
+text: *Email:* {{email}}
+text: *Phone:* {{phone}}
+text: *Availability:* {{availability}}
+---
+section: Onboarding Process
+---
+text: Step {{step_number}} — {{step_title}}
+text: *Timeline:* {{timeline}}
+text: {{description}}
+---
+section: Next Steps
+---
+text: Immediate Actions
+text: {{next_steps}}
+---
+text: Important Links
+text: *Client Portal:* {{portal_url}}
+text: *Shared Workspace:* {{workspace_url}}
+text: *Support Channel:* {{support_channel}}
+---
+section: Frequently Asked Questions
+---
+text: {{question}}
+text: {{answer}}
+---
+section: Contact & Escalation
+---
+text: Escalation Path
+text: {{escalation_info}}

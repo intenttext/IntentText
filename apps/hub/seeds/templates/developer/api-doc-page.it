@@ -1,0 +1,66 @@
+title: {{api_title}}
+meta: | type: template | domain: developer | description: API endpoint documentation with methods, parameters, response codes, and code examples | theme: technical | version: 1.0 | author: IntentText
+---
+section: Overview
+---
+text: API Information
+text: *Base URL:* {{base_url}}
+text: *Authentication:* {{auth_method}}
+text: *Rate Limit:* {{rate_limit}}
+text: *Content-Type:* {{content_type}}
+---
+text: Description
+text: {{api_description}}
+---
+section: Endpoint
+---
+text: {{method}} {{endpoint_path}}
+text: *Summary:* {{endpoint_summary}}
+text: *Authentication Required:* {{auth_required}}
+text: *Idempotent:* {{idempotent}}
+---
+section: Request Parameters
+---
+text: {{name}} · {{location}}
+text: *Type:* {{type}} · *Required:* {{required}}
+text: *Description:* {{description}}
+text: *Example:* {{example}}
+---
+section: Request Body
+---
+text: Body Schema
+text: {{request_body_description}}
+---
+code: ```{{request_body_example}}``` | lang: json
+---
+section: Response Codes
+---
+text: {{status}} {{status_text}}
+text: {{description}}
+---
+section: Success Response Example
+---
+code: ```{{success_response_example}}``` | lang: json
+---
+section: Error Response Example
+---
+code: ```{{error_response_example}}``` | lang: json
+---
+section: Code Examples
+---
+sub: cURL
+---
+code: ```{{curl_example}}``` | lang: bash
+---
+sub: Python
+---
+code: ```{{python_example}}``` | lang: python
+---
+sub: JavaScript
+---
+code: ```{{javascript_example}}``` | lang: javascript
+---
+section: Notes
+---
+text: Additional Information
+text: {{additional_notes}}

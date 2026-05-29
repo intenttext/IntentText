@@ -1,0 +1,63 @@
+{
+  "agreement_title": "Data Processing Agreement — Horizon Analytics Platform",
+  "controller_name": "Bergström Retail Group AB",
+  "controller_address": "Sveavägen 42, 111 34 Stockholm, Sweden",
+  "controller_registration": "SE556789012301",
+  "controller_contact": "Annika Lindqvist",
+  "controller_email": "a.lindqvist@bergstromretail.se",
+  "controller_dpo": "Lars-Erik Jansson",
+  "controller_dpo_email": "dpo@bergstromretail.se",
+  "processor_name": "Horizon Analytics Ltd.",
+  "processor_address": "85 Farringdon Road, London EC1M 3JU, United Kingdom",
+  "processor_registration": "12345678",
+  "processor_contact": "Priya Kavanagh",
+  "processor_email": "p.kavanagh@horizonanalytics.co.uk",
+  "processor_dpo": "Samantha Okereke",
+  "processor_dpo_email": "dpo@horizonanalytics.co.uk",
+  "agreement_id": "DPA-2026-BRG-HZ-041",
+  "effective_date": "April 1, 2026",
+  "duration": "Co-terminous with the Master Services Agreement (MSA-2026-BRG-HZ-015), currently effective through March 31, 2029, with automatic annual renewal thereafter unless terminated with 90 days' written notice.",
+  "nature_of_processing": "Collection, storage, structuring, analysis, pseudonymisation, and automated decision-making support related to retail transaction data and customer engagement metrics.",
+  "purpose_of_processing": "The Processor operates the Horizon Analytics Platform to provide the Controller with customer segmentation insights, purchasing trend analysis, inventory optimisation recommendations, and personalised marketing audience definitions.",
+  "data_subjects": "The data subjects include:\n• Customers of Bergström Retail Group who make purchases in-store or online\n• Members of the Bergström loyalty programme (approximately 2.4 million active members)\n• Employees of Bergström Retail Group who interact with the analytics dashboard",
+  "data_categories": "• Full name and loyalty programme identifier\n• Email address and mobile phone number\n• Postal address and delivery addresses\n• Transaction history (itemised purchases, dates, amounts, payment method category)\n• Online browsing behaviour on bergstromretail.se (page views, session duration, click paths)\n• Device identifiers and IP addresses (pseudonymised within 30 days)\n• Customer service interaction records",
+  "special_categories": "No special categories of personal data (as defined under Article 9 GDPR) are processed under this agreement. If future business requirements necessitate processing special categories, a separate impact assessment and amendment to this DPA will be required prior to any such processing.",
+  "controller_obligations": "The Controller shall:\n(a) Ensure a valid legal basis exists for all personal data provided to the Processor, including obtaining and managing consent where required;\n(b) Provide documented processing instructions and promptly notify the Processor of any changes;\n(c) Conduct and maintain a Data Protection Impact Assessment for the processing activities covered by this agreement;\n(d) Respond to data subject requests and inform the Processor of relevant obligations within 48 hours.",
+  "processor_obligations": "The Processor shall:\n(a) Process personal data solely in accordance with the Controller's documented instructions, unless required by applicable law;\n(b) Ensure that personnel authorised to process personal data are bound by written confidentiality obligations;\n(c) Implement and maintain the technical and organisational measures specified in this agreement;\n(d) Assist the Controller with data subject requests, data protection impact assessments, and supervisory authority consultations;\n(e) Not engage additional sub-processors without prior specific written authorisation from the Controller;\n(f) Make available all information necessary to demonstrate compliance and allow for audits.",
+  "security_measures": "The Processor maintains the following safeguards:\n• **Encryption:** AES-256 for data at rest; TLS 1.3 for data in transit\n• **Access Control:** Role-based access with multi-factor authentication; privileged access reviews conducted quarterly\n• **Network Security:** Web application firewall, intrusion detection and prevention systems, micro-segmented production network\n• **Data Pseudonymisation:** Customer identifiers are pseudonymised in the analytics processing layer; re-identification keys stored separately with hardware security module protection\n• **Logging and Monitoring:** Centralised SIEM with 90-day hot retention and 2-year cold storage; real-time anomaly alerting\n• **Business Continuity:** Georedundant backups across London and Frankfurt regions; tested disaster recovery with 4-hour RTO and 1-hour RPO\n• **Certifications:** ISO 27001:2022 (certificate HZ-27001-2025), SOC 2 Type II report available upon request",
+  "sub_processor_terms": "The Processor shall not engage any sub-processor without the Controller's prior specific written authorisation. The Processor shall impose data protection obligations on each sub-processor by way of a written contract that provides equivalent protections to this DPA. The Processor remains fully liable for the acts and omissions of its sub-processors.",
+  "sub_processors": [
+    {
+      "sub_processor_name": "Amazon Web Services EMEA SARL",
+      "sub_processor_location": "EU (Frankfurt, Germany — eu-central-1)",
+      "sub_processor_purpose": "Cloud infrastructure hosting for the Horizon Analytics Platform",
+      "sub_processor_data": "All categories of personal data listed in this DPA, encrypted at rest and in transit"
+    },
+    {
+      "sub_processor_name": "Mailcraft Europe B.V.",
+      "sub_processor_location": "Netherlands (Amsterdam)",
+      "sub_processor_purpose": "Transactional email delivery for analytics report distribution and loyalty programme communications",
+      "sub_processor_data": "Email addresses, customer first names, loyalty programme identifiers"
+    },
+    {
+      "sub_processor_name": "Sentinel Monitoring GmbH",
+      "sub_processor_location": "Germany (Berlin)",
+      "sub_processor_purpose": "Application performance monitoring and error tracking for the analytics platform",
+      "sub_processor_data": "Pseudonymised session identifiers, IP addresses (truncated), error stack traces (no personal data in normal operation; diagnostic mode may briefly expose user identifiers)"
+    }
+  ],
+  "transfer_safeguards": "All personal data is processed within the European Economic Area. In the event that a transfer to a third country becomes necessary, the Processor shall ensure an adequate level of protection through one of the following mechanisms: (a) an adequacy decision by the European Commission; (b) Standard Contractual Clauses (Module 3, Controller-to-Processor) as adopted by Commission Implementing Decision 2021/914; or (c) binding corporate rules approved by a competent supervisory authority. The Controller must be notified and provide written approval before any such transfer occurs.",
+  "data_subject_rights": "The Processor shall assist the Controller in fulfilling data subject rights requests under Articles 15–22 GDPR. Upon receiving a request directly from a data subject, the Processor shall redirect the individual to the Controller without undue delay and notify the Controller within 24 hours. The Processor shall provide the Controller with the technical means to extract, correct, restrict, or delete personal data within 5 business days of a request.",
+  "breach_notification": "The Processor shall notify the Controller of any personal data breach without undue delay and no later than 36 hours after becoming aware of the breach. The notification shall include: the nature of the breach, categories and approximate number of data subjects affected, likely consequences, and measures taken or proposed to mitigate the breach. The Processor shall cooperate fully with the Controller's investigation and with any supervisory authority inquiry.",
+  "audit_rights": "The Controller or its designated third-party auditor may conduct on-site or remote audits of the Processor's processing activities and security controls up to once per calendar year, with 30 days' written notice. The Processor shall provide reasonable access to facilities, systems, and personnel. Audit costs are borne by the Controller unless the audit reveals material non-compliance, in which case the Processor shall bear the costs and remediate within an agreed timeline.",
+  "data_return": "Upon termination or expiry of the Master Services Agreement, the Processor shall, at the Controller's election: (a) return all personal data in a structured, commonly used, machine-readable format (CSV or JSON); or (b) securely delete all personal data and certify destruction in writing. The Processor shall complete the return or deletion within 30 calendar days of the Controller's instruction. Copies retained in automated backup systems shall be permanently deleted within 90 days and remain subject to confidentiality obligations in the interim.",
+  "liability": "Each party's liability under this DPA is governed by the liability provisions of the Master Services Agreement. Nothing in this DPA limits either party's liability for breaches of data protection law to the extent such limitation is prohibited by applicable law.",
+  "governing_law": "This DPA is governed by the laws of Sweden. Disputes shall be resolved by the Stockholm District Court. The supervisory authority with jurisdiction over the Controller is the Swedish Authority for Privacy Protection (Integritetsskyddsmyndigheten).",
+  "controller_signatory": "Annika Lindqvist",
+  "controller_signatory_title": "Chief Privacy Officer",
+  "controller_signed_date": "2026-03-25",
+  "processor_signatory": "Priya Kavanagh",
+  "processor_signatory_title": "Managing Director",
+  "processor_signed_date": "2026-03-26",
+  "freeze_date": "2026-03-26T10:15:00Z"
+}

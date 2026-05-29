@@ -1,0 +1,8 @@
+page: | size: A4 | marginTopMm: 18 | marginBottomMm: 14
+title: Invoice {{invoice_number}}
+section: Items
+| Description | Qty | Price |
+| {{line_items.0.description}} | {{line_items.0.qty}} | {{line_items.0.price}} |
+| {{line_items.1.description}} | {{line_items.1.qty}} | {{line_items.1.price}} |
+divider:
+metric: Total | value: {{total_amount}} | unit: {{currency}}

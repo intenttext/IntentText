@@ -1,0 +1,91 @@
+{
+  "report_id": "EXP-2026-0219",
+  "employee_name": "Lina Johansson",
+  "employee_id": "EMP-3156",
+  "department": "Business Development",
+  "period_start": "February 10, 2026",
+  "period_end": "February 14, 2026",
+  "submission_date": "February 18, 2026",
+  "cost_center": "BD-4200",
+  "purpose": "Client meetings and partnership negotiations — Copenhagen and Stockholm trip",
+  "expenses": [
+    {
+      "date": "Feb 10",
+      "description": "Round-trip flight CPH–ARN (SAS SK1421)",
+      "category": "Airfare",
+      "vendor": "SAS Scandinavian Airlines",
+      "amount": "$485.00",
+      "receipt_status": "Attached"
+    },
+    {
+      "date": "Feb 10",
+      "description": "Hotel — 4 nights at Haymarket by Scandic, Stockholm",
+      "category": "Lodging",
+      "vendor": "Scandic Hotels",
+      "amount": "$1,120.00",
+      "receipt_status": "Attached"
+    },
+    {
+      "date": "Feb 11",
+      "description": "Working lunch with Klarna partnership team (4 attendees)",
+      "category": "Meals — Client",
+      "vendor": "Restaurang Gastrologik",
+      "amount": "$312.00",
+      "receipt_status": "Attached"
+    },
+    {
+      "date": "Feb 12",
+      "description": "Taxi to Ericsson campus and return",
+      "category": "Ground Transport",
+      "vendor": "Taxi Stockholm",
+      "amount": "$74.00",
+      "receipt_status": "Attached"
+    },
+    {
+      "date": "Feb 12",
+      "description": "Dinner with Ericsson procurement team (3 attendees)",
+      "category": "Meals — Client",
+      "vendor": "Oaxen Krog",
+      "amount": "$428.00",
+      "receipt_status": "Attached"
+    },
+    {
+      "date": "Feb 13",
+      "description": "Co-working day pass for proposal preparation",
+      "category": "Office/Workspace",
+      "vendor": "Convendum Stureplan",
+      "amount": "$45.00",
+      "receipt_status": "Attached"
+    },
+    {
+      "date": "Feb 13",
+      "description": "Team dinner with Stockholm office colleagues (5 attendees)",
+      "category": "Meals — Internal",
+      "vendor": "Speceriet",
+      "amount": "$195.00",
+      "receipt_status": "Attached"
+    },
+    {
+      "date": "Feb 14",
+      "description": "Airport express train — Arlanda to Central Station",
+      "category": "Ground Transport",
+      "vendor": "Arlanda Express",
+      "amount": "$32.00",
+      "receipt_status": "Digital receipt — attached"
+    }
+  ],
+  "total_claimed": "$2,691.00",
+  "company_card_total": "$1,605.00",
+  "out_of_pocket_total": "$1,086.00",
+  "advance_received": "$500.00",
+  "net_reimbursement": "$586.00",
+  "currency": "USD (converted from SEK at mid-market rate on transaction date)",
+  "reimbursement_method": "Direct deposit to payroll account on file",
+  "receipt_count": "8",
+  "missing_receipts": "None",
+  "compliance_notes": "All expenses comply with the 2026 Travel and Entertainment Policy. Client meal expenses include attendee lists as required. Per-diem lodging cap for Stockholm ($290/night) was not exceeded. International travel was pre-approved by department head on February 3, 2026 (approval ref: TA-2026-0187).",
+  "employee_signed_date": "2026-02-18",
+  "manager_name": "Henrik Sandström",
+  "manager_title": "VP of Business Development",
+  "approval_date": "2026-02-20"
+}

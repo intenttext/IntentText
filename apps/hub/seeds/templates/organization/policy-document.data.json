@@ -1,0 +1,65 @@
+{
+  "policy_title": "Acceptable Use Policy — Information Systems",
+  "policy_id": "POL-IS-2026-008",
+  "department": "Information Technology",
+  "classification": "Internal — All Employees",
+  "effective_date": "April 1, 2026",
+  "next_review_date": "March 31, 2027",
+  "supersedes": "POL-IS-2024-005 (Acceptable Use Policy v2.3, dated January 15, 2024)",
+  "current_version": "1.0",
+  "version_note": "Approved for organization-wide distribution",
+  "purpose": "This policy establishes the acceptable use standards for all information systems, networks, and digital assets owned or managed by Northwind Dynamics Ltd. It aims to protect organizational resources from unauthorized access, data loss, and security threats while enabling employees to perform their duties effectively.",
+  "scope": "This policy applies to all employees, contractors, consultants, temporary staff, and third-party users who access Northwind Dynamics information systems. It covers all company-owned and managed hardware, software, cloud services, mobile devices, email systems, and network infrastructure, regardless of physical location.",
+  "definitions": "**Information Systems:** All computing devices, servers, cloud platforms, applications, databases, and network equipment operated by or on behalf of Northwind Dynamics.\n\n**Authorized User:** Any individual granted explicit access credentials to company information systems through the IT provisioning process.\n\n**Sensitive Data:** Information classified as Confidential or Restricted under the Data Classification Standard (STD-DC-2025-001), including personal data, financial records, trade secrets, and client information.",
+  "policy_statements": [
+    {
+      "statement_title": "Authorized Use",
+      "statement_body": "Information systems shall be used primarily for legitimate business purposes. Limited personal use is permitted provided it does not interfere with job performance, consume excessive resources, or violate any provision of this policy. All usage is subject to monitoring in accordance with applicable privacy legislation."
+    },
+    {
+      "statement_title": "Account Security",
+      "statement_body": "Users must protect their authentication credentials at all times. Passwords must meet the complexity requirements defined in STD-PW-2025-003 (minimum 14 characters, multi-factor authentication required for all remote access). Sharing credentials is strictly prohibited. Users must lock workstations when unattended and report suspected credential compromise to the Security Operations Centre within one hour of discovery."
+    },
+    {
+      "statement_title": "Data Handling",
+      "statement_body": "Sensitive data must be stored, transmitted, and disposed of according to the Data Classification Standard. Encryption is mandatory for data at rest on portable devices and data in transit over public networks. Users must not store Confidential or Restricted data on personal devices or unauthorized cloud services."
+    },
+    {
+      "statement_title": "Prohibited Activities",
+      "statement_body": "The following activities are strictly prohibited: unauthorized access attempts against any system; installation of unapproved software or hardware; circumvention of security controls; distribution of malicious code; use of company resources for illegal activities, harassment, or commercial ventures unrelated to Northwind Dynamics business; unauthorized data exfiltration or bulk downloads."
+    },
+    {
+      "statement_title": "Remote Access and Mobile Devices",
+      "statement_body": "Remote access must be established exclusively through the approved VPN gateway or zero-trust network access platform. Personal devices used under the BYOD programme must be enrolled in the mobile device management system and comply with the minimum security baseline defined in STD-MDM-2025-002."
+    }
+  ],
+  "responsible_parties": [
+    {
+      "party_role": "Chief Information Security Officer",
+      "party_responsibilities": "Owns this policy and ensures alignment with regulatory requirements and industry standards. Conducts annual policy reviews, approves exceptions, and oversees enforcement actions. Reports compliance metrics to the executive leadership team quarterly."
+    },
+    {
+      "party_role": "IT Operations Team",
+      "party_responsibilities": "Implements technical controls to enforce policy requirements, monitors system usage for violations, maintains access provisioning and deprovisioning workflows, and provides security awareness training materials to Human Resources."
+    },
+    {
+      "party_role": "Department Managers",
+      "party_responsibilities": "Ensure their direct reports acknowledge and comply with this policy. Approve access requests for their team members based on the principle of least privilege. Report suspected violations to the CISO within 24 hours."
+    },
+    {
+      "party_role": "All Authorized Users",
+      "party_responsibilities": "Read, understand, and comply with this policy. Complete annual security awareness training. Report security incidents, suspicious activity, and potential vulnerabilities to the IT Service Desk immediately upon discovery."
+    }
+  ],
+  "compliance_requirements": "Compliance with this policy is mandatory. All authorized users must acknowledge this policy upon onboarding and annually thereafter through the HR compliance portal. The Information Security team will conduct periodic audits, including automated log analysis and random access reviews, to verify adherence.",
+  "enforcement": "Violations of this policy may result in disciplinary action up to and including termination of employment or contract, in accordance with the Employee Code of Conduct and applicable employment law. Severe violations involving illegal activity will be referred to law enforcement authorities. Contractors in violation may have their access revoked immediately and face contractual penalties.",
+  "exception_process": "Exceptions to this policy require written justification submitted through the GRC portal and approval from both the requesting department head and the CISO. Approved exceptions are valid for a maximum of 12 months and must include compensating controls to mitigate associated risks. All exceptions are logged in the risk register and reviewed quarterly.",
+  "related_documents": "• Data Classification Standard (STD-DC-2025-001)\n• Password and Authentication Standard (STD-PW-2025-003)\n• Mobile Device Management Baseline (STD-MDM-2025-002)\n• Incident Response Plan (PL-IR-2025-001)\n• Employee Code of Conduct (POL-HR-2024-012)\n• Privacy Notice for Employee Monitoring (PN-2025-004)",
+  "policy_owner": "Maren Hofstad",
+  "policy_owner_title": "Chief Information Security Officer",
+  "owner_approval_date": "2026-03-18",
+  "executive_sponsor": "David Akintola",
+  "executive_title": "Chief Operating Officer",
+  "executive_signed_date": "2026-03-20",
+  "freeze_date": "2026-03-20T14:00:00Z"
+}

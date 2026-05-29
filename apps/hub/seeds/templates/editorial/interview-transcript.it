@@ -1,0 +1,26 @@
+title: Interview Transcript
+meta: | type: template | domain: editorial | description: Q&A interview transcript with subject bio, questions, answers, and editorial context | theme: warm | version: 1.0 | author: IntentText | interview_date: {{interview_date}} | location: {{location}}
+---
+section: Subject Profile
+---
+text: {{subject_name}}
+text: *Title:* {{subject_title}}
+text: *Organization:* {{subject_organization}}
+text: *Bio:* {{subject_bio}}
+---
+text: Interview Context
+text: *Interviewer:* {{interviewer_name}}, {{interviewer_title}}
+text: *Date:* {{interview_date}}
+text: *Location:* {{location}}
+text: *Duration:* {{duration}}
+---
+section: Transcript
+---
+text: Q — {{question}}
+text: *{{subject_first_name}}:* {{answer}}
+---
+section: Editor Notes
+---
+text: {{editor_notes}}
+---
+text: Transcript prepared by {{interviewer_name}} · {{interview_date}}

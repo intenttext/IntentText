@@ -1,0 +1,75 @@
+{
+  "plan_name": "Extract and Reconcile Quarterly Revenue Data",
+  "agent_name": "finance-reconciler",
+  "model": "claude-3.5-sonnet",
+  "author": "Nadia Okonkwo",
+  "created_date": "March 4, 2026",
+  "goal_description": "Pull revenue figures from Stripe, QuickBooks, and the internal data warehouse, cross-reference totals per region, and flag discrepancies exceeding 2%",
+  "max_steps": "6",
+  "timeout": "15 minutes",
+  "priority": "High",
+  "context_description": "Q4 2025 revenue reconciliation is overdue. The CFO needs a validated summary before the March 10 board meeting. Three data sources must agree within a 2% tolerance band.",
+  "constraints": "Read-only access to production databases. No PII may be written to logs. All currency values normalized to USD using the ECB daily rate from December 31, 2025.",
+  "steps": [
+    {
+      "name": "Fetch Stripe settlements",
+      "tool": "stripe.list_payouts",
+      "step_timeout": "90s",
+      "description": "Retrieve all settled payouts for October–December 2025",
+      "input": "date_range: 2025-10-01..2025-12-31, status: paid",
+      "expected_output": "JSON array of payout objects with amount, currency, and arrival_date",
+      "fallback": "Retry with exponential backoff; if Stripe API is down, use cached CSV from finance-share"
+    },
+    {
+      "name": "Query QuickBooks ledger",
+      "tool": "quickbooks.report",
+      "step_timeout": "60s",
+      "description": "Pull the Profit & Loss report filtered to revenue accounts 4000–4999",
+      "input": "report_type: ProfitAndLoss, start_date: 2025-10-01, end_date: 2025-12-31",
+      "expected_output": "Tabular revenue breakdown by account and month",
+      "fallback": "Fall back to exported XLSX on the shared drive dated January 15, 2026"
+    },
+    {
+      "name": "Export warehouse totals",
+      "tool": "sql.query",
+      "step_timeout": "120s",
+      "description": "Run pre-approved SQL against the analytics warehouse to get regional revenue rollups",
+      "input": "query_id: rev_q4_2025_regional, warehouse: analytics-prod",
+      "expected_output": "Result set with columns: region, month, revenue_usd, transaction_count",
+      "fallback": "Alert data-eng on-call if warehouse is unreachable"
+    },
+    {
+      "name": "Normalize currencies",
+      "tool": "fx.convert",
+      "step_timeout": "30s",
+      "description": "Convert any non-USD amounts to USD using the ECB reference rate for December 31, 2025",
+      "input": "Payout and ledger rows where currency ≠ USD",
+      "expected_output": "Unified dataset with all amounts in USD",
+      "fallback": "Use hardcoded ECB rate snapshot if API is unavailable"
+    },
+    {
+      "name": "Cross-reference totals",
+      "tool": "reconcile.compare",
+      "step_timeout": "45s",
+      "description": "Compare Stripe vs QuickBooks vs warehouse totals per region and flag deltas above 2%",
+      "input": "Three normalized datasets keyed by region and month",
+      "expected_output": "Reconciliation matrix with match/mismatch status and delta percentages",
+      "fallback": "If one source is missing, produce a partial reconciliation and note the gap"
+    },
+    {
+      "name": "Generate summary report",
+      "tool": "render.markdown",
+      "step_timeout": "15s",
+      "description": "Produce a Markdown summary table suitable for the board deck with flagged discrepancies highlighted",
+      "input": "Reconciliation matrix from previous step",
+      "expected_output": "Formatted Markdown document with executive summary, region table, and footnotes",
+      "fallback": "Output raw JSON if rendering fails"
+    }
+  ],
+  "checkpoint_approver": "finance-ops",
+  "checkpoint_timeout": "30m",
+  "success_criteria": "All three sources reconcile within 2% per region for every month in Q4, and a board-ready summary is generated with no unresolved flags.",
+  "failure_action": "Generate a partial report noting which sources or regions failed and escalate",
+  "retry_limit": "2",
+  "escalation_contact": "Kwame Asante (VP Finance)"
+}

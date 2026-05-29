@@ -1,0 +1,144 @@
+{
+  "name": "intenttext",
+  "displayName": "IntentText (.it)",
+  "description": "Syntax highlighting, live preview, inline validation, hover docs, and auto-completion for IntentText documents",
+  "version": "1.4.7",
+  "publisher": "intenttext",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/intenttext/intenttext-vscode"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Snippets"
+  ],
+  "keywords": [
+    "intenttext",
+    ".it",
+    "workflow",
+    "agentic",
+    "structured document"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "intenttext",
+        "aliases": [
+          "IntentText",
+          "it"
+        ],
+        "extensions": [
+          ".it"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "intenttext",
+        "scopeName": "source.intenttext",
+        "path": "./syntaxes/intenttext.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "intenttext",
+        "path": "./snippets/intenttext.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "intenttext.preview",
+        "title": "IntentText: Open Preview",
+        "icon": "$(open-preview)",
+        "tooltip": "Open IntentText Preview"
+      },
+      {
+        "command": "intenttext.previewToSide",
+        "title": "IntentText: Open Preview to the Side",
+        "icon": "$(open-preview)",
+        "tooltip": "Open IntentText Preview to the Side"
+      },
+      {
+        "command": "intenttext.seal",
+        "title": "IntentText: Seal Document"
+      },
+      {
+        "command": "intenttext.verify",
+        "title": "IntentText: Verify Document"
+      },
+      {
+        "command": "intenttext.history",
+        "title": "IntentText: Show Document History"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "intenttext.preview",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "editorLangId == intenttext"
+      },
+      {
+        "command": "intenttext.previewToSide",
+        "key": "ctrl+k v",
+        "mac": "cmd+k v",
+        "when": "editorLangId == intenttext"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "intenttext.previewToSide",
+          "when": "editorLangId == intenttext",
+          "group": "navigation",
+          "tooltip": "Open IntentText Preview to the Side"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "intenttext.preview",
+          "when": "resourceExtname == .it || editorLangId == intenttext",
+          "group": "intenttext@1"
+        },
+        {
+          "command": "intenttext.previewToSide",
+          "when": "resourceExtname == .it || editorLangId == intenttext",
+          "group": "intenttext@2"
+        },
+        {
+          "command": "intenttext.seal",
+          "when": "resourceExtname == .it || editorLangId == intenttext",
+          "group": "intenttext@3"
+        },
+        {
+          "command": "intenttext.verify",
+          "when": "resourceExtname == .it || editorLangId == intenttext",
+          "group": "intenttext@4"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "watch": "npm run compile -- --watch",
+    "package": "npx vsce package",
+    "publish": "npx vsce publish"
+  },
+  "dependencies": {
+    "@intenttext/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.0.0"
+  }
+}

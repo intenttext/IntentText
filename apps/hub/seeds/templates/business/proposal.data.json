@@ -1,0 +1,77 @@
+{
+  "proposal_number": "PROP-2026-0094",
+  "date": "March 7, 2026",
+  "valid_until": "April 30, 2026",
+  "client_name": "Fiona Ashworth",
+  "client_company": "Pinnacle Health Systems",
+  "author_name": "Julian Restrepo",
+  "author_company": "Lumencraft Technologies",
+  "executive_summary": "Pinnacle Health Systems seeks to modernize its patient scheduling infrastructure across 14 regional clinics. The current system suffers from fragmented data, manual booking workflows, and a 23% no-show rate. Lumencraft Technologies proposes a unified scheduling platform with real-time availability, automated reminders, and predictive analytics — reducing administrative overhead by an estimated 40% and improving patient throughput within six months of deployment.",
+  "problem_statement": "Pinnacle's existing scheduling system relies on a patchwork of spreadsheets, legacy software, and phone-based booking across clinics. Staff spend an average of 35 minutes per day resolving scheduling conflicts. Patients frequently encounter double-bookings, long hold times, and lack of self-service options. Data silos prevent centralized reporting, making capacity planning reactive rather than strategic.",
+  "solution_overview": "Lumencraft will deliver a cloud-native scheduling platform built on a microservices architecture with HIPAA-compliant data handling. The system includes a patient-facing mobile and web portal, provider dashboard, intelligent slot optimization, two-way SMS and email reminders, and a real-time analytics module. Integration with Pinnacle's existing Epic EHR will ensure seamless data flow.",
+  "key_benefits": "1. Centralized scheduling across all 14 clinics with real-time sync\n2. Patient self-service portal reducing inbound call volume by 60%\n3. Automated reminders projected to reduce no-show rate from 23% to under 8%\n4. Predictive analytics for demand forecasting and staffing optimization\n5. HIPAA-compliant infrastructure with SOC 2 Type II certification\n6. Full Epic EHR integration — no duplicate data entry",
+  "pricing_items": [
+    {
+      "item": "Discovery and Requirements",
+      "description": "Stakeholder interviews, workflow mapping, technical assessment across 3 pilot clinics",
+      "cost": "$28,000"
+    },
+    {
+      "item": "Platform Development",
+      "description": "Core scheduling engine, patient portal, provider dashboard, notification system",
+      "cost": "$142,000"
+    },
+    {
+      "item": "EHR Integration",
+      "description": "Bidirectional Epic integration with HL7 FHIR, testing, and validation",
+      "cost": "$38,000"
+    },
+    {
+      "item": "Deployment and Migration",
+      "description": "Phased rollout to 14 clinics, data migration, staff training (on-site and virtual)",
+      "cost": "$45,000"
+    },
+    {
+      "item": "Post-Launch Support",
+      "description": "6 months of dedicated support, monitoring, bug fixes, and performance tuning",
+      "cost": "$32,000"
+    }
+  ],
+  "total_cost": "$285,000",
+  "pricing_payment_terms": "30% upon contract signing, 40% at platform delivery milestone, 30% upon final deployment acceptance.",
+  "timeline_items": [
+    {
+      "phase": "Phase 1 — Discovery",
+      "duration": "4 weeks",
+      "deliverables": "Requirements document, system architecture, project plan"
+    },
+    {
+      "phase": "Phase 2 — Development",
+      "duration": "12 weeks",
+      "deliverables": "Scheduling engine, patient portal, provider dashboard, notification service"
+    },
+    {
+      "phase": "Phase 3 — Integration",
+      "duration": "4 weeks",
+      "deliverables": "Epic EHR integration, end-to-end testing, security audit"
+    },
+    {
+      "phase": "Phase 4 — Pilot",
+      "duration": "3 weeks",
+      "deliverables": "Deployment to 3 pilot clinics, staff training, feedback collection"
+    },
+    {
+      "phase": "Phase 5 — Full Rollout",
+      "duration": "5 weeks",
+      "deliverables": "Deployment to remaining 11 clinics, data migration, go-live support"
+    }
+  ],
+  "start_date": "May 1, 2026",
+  "end_date": "November 30, 2026",
+  "qualifications": "Lumencraft Technologies has delivered scheduling and workflow platforms for 9 healthcare organizations over the past 4 years, including a 22-clinic network in the Pacific Northwest. Our team holds HIPAA Security certification and our infrastructure maintains SOC 2 Type II compliance. We bring deep expertise in Epic integration, having completed 6 successful HL7 FHIR implementations.",
+  "next_steps": "We would welcome the opportunity to present this proposal in detail and answer any questions. To proceed, we suggest a 60-minute walkthrough with your IT and operations leadership, followed by a pilot scope agreement. We are prepared to begin discovery within two weeks of contract execution.",
+  "contact_name": "Julian Restrepo",
+  "contact_title": "Director of Healthcare Solutions",
+  "contact_email": "j.restrepo@lumencraft.io",
+  "contact_phone": "+1 (503) 441-7820"
+}

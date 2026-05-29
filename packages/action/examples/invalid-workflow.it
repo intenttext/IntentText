@@ -1,0 +1,12 @@
+// This file is intentionally invalid — for testing.
+title: Broken Workflow Example
+
+section: Steps
+step: Fetch data | tool: api | output: data | id: fetch
+step: Process data | tool: transform | depends: nonexistent-step | id: process
+
+section: Approval
+gate: Missing approver gate
+
+section: Routing
+decision: Bad branch | if: data.ok | then: missing-ref | else: also-missing

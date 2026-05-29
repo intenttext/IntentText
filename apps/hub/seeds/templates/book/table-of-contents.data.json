@@ -1,0 +1,71 @@
+{
+  "book_title": "Salt, Timber, and the Adriatic Wind",
+  "subtitle": "A History of the Dalmatian Coast",
+  "author": "Lena Petrović",
+  "chapters": [
+    {
+      "number": 1,
+      "title": "The Stone Quarries of Brač",
+      "page": 1
+    },
+    {
+      "number": 2,
+      "title": "Venetian Shipyards and the Oak Forests of Lika",
+      "page": 28
+    },
+    {
+      "number": 3,
+      "title": "Salt Pans at Ston — White Gold of Ragusa",
+      "page": 57
+    },
+    {
+      "number": 4,
+      "title": "The Bora and the Architecture of Survival",
+      "page": 83
+    },
+    {
+      "number": 5,
+      "title": "Fishing Fleets of Vis and Komiža",
+      "page": 112
+    },
+    {
+      "number": 6,
+      "title": "The Earthquake of 1667 and the Rebuilding of Dubrovnik",
+      "page": 139
+    },
+    {
+      "number": 7,
+      "title": "Napoleon's Illyrian Provinces",
+      "page": 168
+    },
+    {
+      "number": 8,
+      "title": "Steam, Rail, and the End of Isolation",
+      "page": 194
+    },
+    {
+      "number": 9,
+      "title": "Tourism and the Invention of the Riviera",
+      "page": 221
+    },
+    {
+      "number": 10,
+      "title": "The Coast After the Wars",
+      "page": 248
+    }
+  ],
+  "back_matter": [
+    {
+      "title": "Acknowledgements",
+      "page": 275
+    },
+    {
+      "title": "Bibliography",
+      "page": 279
+    },
+    {
+      "title": "Index",
+      "page": 298
+    }
+  ]
+}

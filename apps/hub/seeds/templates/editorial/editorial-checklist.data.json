@@ -1,0 +1,63 @@
+{
+  "article_title": "Inside the Race to Build Europe's First Gigafactory for Solid-State Batteries",
+  "author_name": "Tobias Drexler",
+  "section": "Technology",
+  "publish_date": "March 10, 2026",
+  "editor_name": "Catherine Osei-Bonsu",
+  "checklist_items": [
+    {
+      "task": "All factual claims verified against primary sources",
+      "owner": "Nadia Kowalski",
+      "status": "Complete",
+      "notes": "32 claims checked; 2 minor corrections applied (energy density figure updated to 410 Wh/kg per manufacturer spec sheet; EU subsidy amount corrected from €1.8B to €1.6B)"
+    },
+    {
+      "task": "All named sources confirmed quotes and granted publication consent",
+      "owner": "Tobias Drexler",
+      "status": "Complete",
+      "notes": "6 named sources re-confirmed via email; CEO Katrin Brandt requested removal of one off-the-record aside — removed from final draft"
+    },
+    {
+      "task": "Photography rights cleared for all images",
+      "owner": "Lena Voss",
+      "status": "Complete",
+      "notes": "12 images licensed from Reuters and 4 from company press kit; all usage rights documented in asset manifest ref TECH-2026-0310-IMG"
+    },
+    {
+      "task": "Data visualizations reviewed for accuracy",
+      "owner": "Ravi Subramaniam",
+      "status": "Complete",
+      "notes": "3 charts verified: EU battery capacity timeline, cost-per-kWh comparison, and supply chain map. Source data attached in supplementary files"
+    },
+    {
+      "task": "Headline and subheadline reviewed for accuracy and tone",
+      "owner": "Catherine Osei-Bonsu",
+      "status": "Complete",
+      "notes": "Original headline revised from 'Europe Bets Big on Solid-State' to current version for specificity"
+    },
+    {
+      "task": "Conflict of interest disclosure checked",
+      "owner": "Tobias Drexler",
+      "status": "Complete",
+      "notes": "Author holds no financial interest in any company mentioned. Disclosure statement appended to article footer"
+    },
+    {
+      "task": "SEO metadata and social sharing text prepared",
+      "owner": "Priya Mehta",
+      "status": "Complete",
+      "notes": "Meta description, Open Graph tags, and three social post variants submitted to CMS"
+    },
+    {
+      "task": "Accessibility check — alt text for all images and chart descriptions",
+      "owner": "Lena Voss",
+      "status": "Complete",
+      "notes": "All 16 images have descriptive alt text; charts have tabular data equivalents for screen readers"
+    }
+  ],
+  "legal_reviewer": "Jonathan Hargreaves",
+  "legal_review_date": "March 8, 2026",
+  "legal_outcome": "Cleared for publication",
+  "legal_conditions": "No conditions. Reviewer noted that competitive intelligence claims are attributed and sourced; no defamation risk identified",
+  "approval_date": "March 9, 2026",
+  "freeze_reason": "Article locked for publication — all editorial checks complete, legal clearance granted, editor sign-off received"
+}

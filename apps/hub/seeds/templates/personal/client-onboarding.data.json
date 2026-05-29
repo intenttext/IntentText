@@ -1,0 +1,98 @@
+{
+  "company_name": "Solaris Brand Studio",
+  "welcome_message": "We are thrilled to begin working with you. This document outlines everything you need to know as we kick off our engagement — your dedicated team, the onboarding process, key milestones, and answers to the questions we hear most often. Our goal is to make this transition as smooth and transparent as possible, so please never hesitate to reach out if anything is unclear.",
+  "client_name": "Wren & Hale Provisions",
+  "project_name": "Brand Identity Refresh & Packaging Redesign",
+  "start_date": "March 15, 2026",
+  "primary_contact": "Jasmine Nakamura",
+  "primary_contact_email": "jasmine@solarisbrand.com",
+  "team_contacts": [
+    {
+      "name": "Jasmine Nakamura",
+      "role": "Account Director",
+      "email": "jasmine@solarisbrand.com",
+      "phone": "+1 (503) 217-4482",
+      "availability": "Monday–Friday, 9 AM – 6 PM PT"
+    },
+    {
+      "name": "Tobias Engström",
+      "role": "Lead Brand Strategist",
+      "email": "tobias@solarisbrand.com",
+      "phone": "+1 (503) 217-4490",
+      "availability": "Monday–Thursday, 10 AM – 5 PM PT"
+    },
+    {
+      "name": "Devi Chandrasekaran",
+      "role": "Senior Designer",
+      "email": "devi@solarisbrand.com",
+      "phone": "+1 (503) 217-4501",
+      "availability": "Monday–Friday, 9 AM – 5 PM PT"
+    },
+    {
+      "name": "Leah Baxter",
+      "role": "Project Coordinator",
+      "email": "leah@solarisbrand.com",
+      "phone": "+1 (503) 217-4478",
+      "availability": "Monday–Friday, 8 AM – 4 PM PT"
+    }
+  ],
+  "onboarding_steps": [
+    {
+      "step_number": "1",
+      "step_title": "Discovery Kickoff",
+      "timeline": "Week 1 (March 15–21)",
+      "description": "We will conduct a 90-minute discovery workshop with your leadership team to align on brand values, competitive positioning, target audience, and project goals. Please prepare any existing brand guidelines, customer research, and competitor examples you would like us to review."
+    },
+    {
+      "step_number": "2",
+      "step_title": "Brand Audit & Research",
+      "timeline": "Weeks 2–3 (March 22 – April 4)",
+      "description": "Our strategy team will audit your current brand touchpoints — packaging, website, social media, retail presence — and conduct stakeholder interviews with up to six members of your team. We will also review the competitive landscape and identify whitespace opportunities."
+    },
+    {
+      "step_number": "3",
+      "step_title": "Strategic Direction Presentation",
+      "timeline": "Week 4 (April 7–11)",
+      "description": "We will present two to three strategic directions rooted in our research findings. Each direction will include a brand narrative, visual mood board, typography and color explorations, and initial packaging concepts. Your team will select and refine the preferred direction."
+    },
+    {
+      "step_number": "4",
+      "step_title": "Design Development",
+      "timeline": "Weeks 5–8 (April 14 – May 9)",
+      "description": "Based on the approved strategic direction, we will develop the full brand identity system — logo suite, color palette, typography, iconography, and packaging templates for your core product line of 12 SKUs. You will receive two rounds of revisions during this phase."
+    },
+    {
+      "step_number": "5",
+      "step_title": "Final Delivery & Handoff",
+      "timeline": "Week 9 (May 12–16)",
+      "description": "We will deliver the complete brand guidelines document, all source files, print-ready packaging artwork, and digital asset library. A 60-minute walkthrough session will ensure your internal team is equipped to apply the new identity consistently."
+    }
+  ],
+  "next_steps": "1. Sign and return the project agreement by March 12.\n2. Complete the brand questionnaire shared via the client portal.\n3. Schedule the discovery workshop — Leah will send a calendar link with available times.\n4. Grant our team access to your current design files and brand assets via the shared workspace.\n5. Identify 4–6 stakeholders for interviews during the brand audit phase.",
+  "portal_url": "https://portal.solarisbrand.com/wren-hale",
+  "workspace_url": "https://solarisbrand.notion.site/wren-hale-collab",
+  "support_channel": "Slack Connect — #solaris-wrenhale",
+  "faq_items": [
+    {
+      "question": "How many rounds of revisions are included?",
+      "answer": "Your engagement includes two rounds of revisions at the design development stage and one round at the final delivery stage. Additional revision rounds can be arranged at a pre-agreed hourly rate."
+    },
+    {
+      "question": "Who should attend the discovery workshop?",
+      "answer": "We recommend including your founder or CEO, head of marketing, and one or two team members who interact with customers daily. The workshop works best with 3–6 participants."
+    },
+    {
+      "question": "What file formats will we receive?",
+      "answer": "You will receive all assets in Adobe Illustrator (.ai), PDF, SVG, and PNG formats. Packaging files will be delivered as print-ready PDFs with bleed marks and Pantone specifications. The brand guidelines document will be provided as an interactive PDF and a Figma library."
+    },
+    {
+      "question": "Can we request changes to the project timeline?",
+      "answer": "Yes. If your team needs additional time for internal reviews, let Leah know as early as possible and we will adjust the schedule. Significant timeline changes may affect the final delivery date."
+    },
+    {
+      "question": "How do we communicate day-to-day?",
+      "answer": "Our primary channel is the shared Slack Connect workspace. For formal feedback and approvals, please use the client portal. Jasmine is your main point of contact, and Leah coordinates scheduling and logistics."
+    }
+  ],
+  "escalation_info": "For day-to-day questions, reach out to Jasmine Nakamura (Account Director). If you need to escalate a concern, contact our Head of Client Services, Marcus Reilly, at marcus@solarisbrand.com or +1 (503) 217-4400."
+}

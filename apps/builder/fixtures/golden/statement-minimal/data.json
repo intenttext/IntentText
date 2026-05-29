@@ -1,0 +1,9 @@
+{
+  "statement_id": "ST-550",
+  "account_name": "Arabia Foods",
+  "period_start": "2026-02-01",
+  "period_end": "2026-02-28",
+  "opening_balance": "5000",
+  "closing_balance": "7420",
+  "currency": "SAR"
+}

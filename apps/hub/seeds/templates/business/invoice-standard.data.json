@@ -1,0 +1,47 @@
+{
+  "invoice_number": "INV-2026-0742",
+  "date": "March 6, 2026",
+  "due_date": "April 5, 2026",
+  "payment_terms": "Net 30",
+  "company_name": "Meridian Consulting Group",
+  "company_address": "1847 Harbor View Drive, Suite 300, San Francisco, CA 94107",
+  "company_email": "billing@meridiancg.com",
+  "client_name": "Lena Kowalski",
+  "client_company": "Brightpath Technologies",
+  "client_address": "240 Innovation Way, Austin, TX 78701",
+  "client_email": "lena.kowalski@brightpath.io",
+  "items": [
+    {
+      "description": "Strategic Planning Workshop — 2 days on-site",
+      "quantity": 1,
+      "unit_price": "$4,500.00",
+      "amount": "$4,500.00"
+    },
+    {
+      "description": "Market Analysis Report — Q1 2026",
+      "quantity": 1,
+      "unit_price": "$3,200.00",
+      "amount": "$3,200.00"
+    },
+    {
+      "description": "Stakeholder Interview Sessions — 6 hours",
+      "quantity": 6,
+      "unit_price": "$350.00",
+      "amount": "$2,100.00"
+    },
+    {
+      "description": "Executive Presentation Preparation",
+      "quantity": 1,
+      "unit_price": "$1,800.00",
+      "amount": "$1,800.00"
+    }
+  ],
+  "subtotal": "$11,600.00",
+  "tax_rate": "8.25%",
+  "tax_amount": "$957.00",
+  "total": "$12,557.00",
+  "payment_instructions": "Wire transfer to Meridian Consulting Group, Account 7820-4491-3356, Routing 021000021, Reference INV-2026-0742",
+  "authorized_by": "David Morales",
+  "signed_date": "2026-03-06",
+  "freeze_date": "2026-03-06T14:30:00Z"
+}

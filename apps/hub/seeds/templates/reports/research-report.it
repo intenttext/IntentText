@@ -1,0 +1,47 @@
+title: {{title}}
+meta: | type: template | domain: reports | description: Academic or market research report with figures, citations, definitions, and researcher approval | theme: warm | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+x-writer: byline | content: {{lead_author}} | role: {{author_role}} | date: {{publication_date}}
+---
+section: Abstract
+---
+paragraph: {{abstract}}
+---
+section: Definitions
+---
+def: {{term_1}} | meaning: {{term_1_meaning}}
+def: {{term_2}} | meaning: {{term_2_meaning}}
+def: {{term_3}} | meaning: {{term_3_meaning}}
+---
+section: Background
+---
+paragraph: {{background}}
+cite: {{cite_1}} | by: {{cite_1_by}} | year: {{cite_1_year}}
+cite: {{cite_2}} | by: {{cite_2_by}} | year: {{cite_2_year}}
+---
+section: Methodology
+---
+paragraph: {{methodology}}
+x-writer: figure | content: {{figure_1_caption}} | src: {{figure_1_src}} | alt: {{figure_1_alt}}
+---
+section: Findings
+---
+paragraph: {{findings_intro}}
+x-writer: figure | content: {{figure_2_caption}} | src: {{figure_2_src}} | alt: {{figure_2_alt}}
+x-writer: figure | content: {{figure_3_caption}} | src: {{figure_3_src}} | alt: {{figure_3_alt}}
+---
+metric: {{metric_1_name}} | value: {{metric_1_value}} | unit: {{metric_1_unit}} | target: {{metric_1_target}} | trend: {{metric_1_trend}}
+metric: {{metric_2_name}} | value: {{metric_2_value}} | unit: {{metric_2_unit}} | target: {{metric_2_target}} | trend: {{metric_2_trend}}
+---
+section: Conclusions
+---
+paragraph: {{conclusions}}
+---
+section: References
+---
+cite: {{cite_3}} | by: {{cite_3_by}} | year: {{cite_3_year}}
+cite: {{cite_4}} | by: {{cite_4_by}} | year: {{cite_4_year}}
+---
+section: Approval
+---
+approve: Research report approved for publication | by: {{approver}} | role: {{approver_role}}

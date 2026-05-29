@@ -1,0 +1,28 @@
+title: {{title}}
+meta: | type: template | domain: organization | description: Standalone definitions section for legal documents with 20+ standard contract terms | theme: legal | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+---
+section: Definitions
+---
+paragraph: In this Agreement, the following terms have the meanings set forth below unless the context requires otherwise.
+---
+def: Agreement | meaning: This document and all schedules, exhibits, amendments, and addenda incorporated herein by reference
+def: Affiliate | meaning: Any entity that directly or indirectly controls, is controlled by, or is under common control with a party, where control means ownership of more than 50% of voting securities
+def: Business Day | meaning: Any day other than a Saturday, Sunday, or public holiday in {{jurisdiction}}
+def: Confidential Information | meaning: All non-public information disclosed by either party, whether oral, written, electronic, or visual, that is designated as confidential or that a reasonable person would understand to be confidential | see: NDA
+def: Client | meaning: {{client_name}}, the party receiving Services under this Agreement | abbr: Client
+def: Deliverables | meaning: All work product, materials, and outputs produced by Provider in the performance of the Services, as described in Schedule A
+def: Effective Date | meaning: {{effective_date}}, the date on which this Agreement becomes binding on both parties
+def: Force Majeure | meaning: Any event beyond the reasonable control of a party including but not limited to acts of God, war, terrorism, pandemic, government action, natural disasters, or widespread infrastructure failure
+def: Governing Law | meaning: The laws of {{governing_jurisdiction}} without regard to conflict of law principles
+def: Indemnified Party | meaning: The party entitled to indemnification under Section 8 of this Agreement
+def: Intellectual Property | meaning: All patents, copyrights, trademarks, trade secrets, know-how, and other intellectual property rights, whether registered or unregistered | abbr: IP
+def: Liability Cap | meaning: The maximum aggregate liability of either party under this Agreement, equal to {{liability_cap}}
+def: Material Breach | meaning: A breach that substantially deprives the non-breaching party of the benefit it reasonably expected under this Agreement and that remains uncured after {{cure_period}} written notice
+def: Notice | meaning: A formal written communication delivered in accordance with Section 12 of this Agreement | see: Notices
+def: Provider | meaning: {{provider_name}}, the party delivering Services under this Agreement
+def: Services | meaning: The professional services described in Schedule A and any subsequent Statements of Work executed by both parties
+def: Service Level | meaning: The performance standards and metrics described in Schedule B, against which Provider's performance is measured | abbr: SLA | see: SLA Agreement
+def: Statement of Work | meaning: A document executed by both parties describing specific services, deliverables, timeline, and fees for a project phase | abbr: SOW
+def: Term | meaning: The period commencing on the Effective Date and continuing for {{contract_term}}, unless terminated earlier in accordance with this Agreement
+def: Warranty Period | meaning: {{warranty_period}} following acceptance of each Deliverable, during which Provider will correct defects at no additional cost

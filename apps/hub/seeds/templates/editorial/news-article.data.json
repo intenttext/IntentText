@@ -1,0 +1,33 @@
+{
+  "headline": "Satellite Constellation Delivers High-Speed Internet to Remote Pacific Islands for the First Time",
+  "byline": "Maren Solberg, Pacific Correspondent",
+  "dateline": "SUVA, Fiji — March 6, 2026",
+  "lede": "Residents of Rotuma, a volcanic island 465 kilometers north of Fiji with a population of 2,500, connected to broadband internet for the first time on Wednesday after Aravali Space Systems activated a low-earth orbit relay station serving 14 previously unconnected islands across the South Pacific.",
+  "body_paragraphs": [
+    {
+      "text": "The activation marks the final phase of Project Maui, a three-year partnership between Aravali Space Systems and the Pacific Islands Forum Secretariat to close the connectivity gap for the 1.2 million Pacific Islanders who lacked reliable internet access as of 2024."
+    },
+    {
+      "text": "On Rotuma, the first connection was made at the island's only secondary school, Rotuma High, where teacher Salote Finau pulled up a video call with a marine biologist in Auckland to demonstrate coral reef mapping software to her Year 12 science class."
+    },
+    {
+      "text": "Latency tests conducted by the University of the South Pacific's ICT Research Centre showed average round-trip times of 28 milliseconds — comparable to urban fiber connections in Suva — with download speeds averaging 185 megabits per second across initial test sites."
+    }
+  ],
+  "pull_quote": "My students have read about the Great Barrier Reef in textbooks for years. Today they watched a live underwater camera feed and asked the scientist questions in real time. That changes what they believe is possible for themselves.",
+  "pull_quote_attribution": "Salote Finau, Science Teacher, Rotuma High School",
+  "continued_paragraphs": [
+    {
+      "text": "Aravali CEO Priya Chandrasekaran said the company deployed 48 ground terminals across the 14 islands over the past four months, each powered by a combination of solar panels and battery storage to operate independently of the islands' limited electrical grids."
+    },
+    {
+      "text": "The Pacific Islands Forum Secretariat contributed $12.4 million to the project, with Aravali covering an additional $31 million in infrastructure costs. Monthly service fees will be subsidized for the first two years under an agreement with participating national governments, capped at 15 Fijian dollars per household."
+    },
+    {
+      "text": "Critics have raised concerns about long-term affordability once subsidies expire. Telecommunications analyst Ratu Josaia Voreqe of the Fiji Commerce Commission cautioned that without a sustainable pricing model, adoption could stall after the subsidy window closes."
+    }
+  ],
+  "closing_quote": "Connectivity is not a luxury. For island nations facing rising seas and climate displacement, real-time access to weather data, telemedicine, and distance learning is a matter of survival.",
+  "closing_quote_attribution": "Baron Waqa, Secretary General, Pacific Islands Forum Secretariat",
+  "tagline": "Reporting contributed by Tevita Rabukawaqa in Rotuma and Anish Patel in Suva."
+}

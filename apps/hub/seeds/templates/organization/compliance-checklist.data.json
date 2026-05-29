@@ -1,0 +1,63 @@
+{
+  "checklist_title": "SOC 2 Type II — Annual Compliance Verification",
+  "checklist_id": "CC-SOC2-2026-Q1",
+  "framework": "SOC 2 Type II (Trust Services Criteria — Security, Availability, Confidentiality)",
+  "reporting_period": "January 1, 2025 – December 31, 2025",
+  "business_unit": "Cloud Services Division — Pinnacle SaaS Platform",
+  "prepared_by": "Elaine Marchetti, Senior Compliance Analyst",
+  "preparation_date": "February 28, 2026",
+  "scope": "This checklist covers all trust services criteria applicable to the Pinnacle SaaS Platform infrastructure, including production environments hosted on AWS eu-west-1 and us-east-1 regions, the CI/CD pipeline, customer data stores, and supporting administrative systems. Third-party sub-processors handling customer data are included where relevant.",
+  "requirements": [
+    {
+      "requirement_id": "CC6.1",
+      "requirement_title": "Logical and Physical Access Controls",
+      "requirement_description": "Verify that logical access to production systems is restricted through role-based access control, multi-factor authentication is enforced for all privileged accounts, and quarterly access reviews are completed with documented evidence of revocations."
+    },
+    {
+      "requirement_id": "CC6.2",
+      "requirement_title": "System Access Provisioning and Deprovisioning",
+      "requirement_description": "Confirm that new user provisioning follows the approved request-and-approval workflow, access is granted on a least-privilege basis, and terminated employees are deprovisioned within 24 hours as per the offboarding SLA."
+    },
+    {
+      "requirement_id": "CC7.1",
+      "requirement_title": "Vulnerability Management",
+      "requirement_description": "Validate that automated vulnerability scans run weekly against all production assets, critical vulnerabilities are remediated within 14 days of detection, and scan results are retained for 12 months."
+    },
+    {
+      "requirement_id": "CC7.2",
+      "requirement_title": "Security Incident Detection and Response",
+      "requirement_description": "Confirm that the SIEM platform ingests logs from all in-scope systems, alerting rules cover the MITRE ATT&CK top-20 techniques, and incident response tabletop exercises were conducted at least twice during the audit period."
+    },
+    {
+      "requirement_id": "CC8.1",
+      "requirement_title": "Change Management",
+      "requirement_description": "Verify that all production deployments follow the documented change management process, including peer code review, automated test gate, staging validation, and change advisory board approval for high-risk changes."
+    },
+    {
+      "requirement_id": "A1.1",
+      "requirement_title": "System Availability and Disaster Recovery",
+      "requirement_description": "Confirm that the disaster recovery plan was tested within the past 12 months, RTO and RPO targets were met during the test, and the test results are documented and signed off by the VP of Engineering."
+    },
+    {
+      "requirement_id": "C1.1",
+      "requirement_title": "Confidentiality of Customer Data",
+      "requirement_description": "Validate that customer data is encrypted at rest using AES-256 and in transit using TLS 1.2 or higher, encryption keys are rotated annually, and data retention and deletion policies align with contractual commitments."
+    },
+    {
+      "requirement_id": "CC9.1",
+      "requirement_title": "Vendor and Sub-Processor Management",
+      "requirement_description": "Verify that all sub-processors with access to customer data have been assessed against the vendor risk framework within the past 12 months, and that their SOC 2 or equivalent reports have been reviewed and any exceptions tracked."
+    }
+  ],
+  "total_requirements": "8",
+  "compliant_count": "6",
+  "partial_count": "1",
+  "non_compliant_count": "1",
+  "na_count": "0",
+  "key_findings": "CC6.2 — Partially compliant: Two terminated contractor accounts remained active for 72 hours beyond the 24-hour SLA in August 2025. Root cause traced to a delayed notification from the external staffing agency. Corrective action implemented: automated HRIS-to-IAM termination trigger deployed in October 2025.\n\nCC9.1 — Non-compliant: Sub-processor risk assessment for DataStream Analytics (log aggregation service) was completed 45 days past the annual review deadline. The assessment is now complete and no material findings were identified, but the late completion represents a control gap.",
+  "remediation_plan": "1. **CC6.2 — Contractor Offboarding Automation:** Validate the automated HRIS-to-IAM termination trigger by running a tabletop simulation with the staffing agency by March 31, 2026. Owner: IT Operations.\n\n2. **CC9.1 — Vendor Review Calendar:** Implement automated 60-day advance reminders for annual sub-processor reviews and assign a secondary reviewer for each vendor. Owner: Compliance Team. Target: April 15, 2026.",
+  "compliance_officer": "Rupert Nakamura",
+  "compliance_officer_title": "Director of Governance, Risk and Compliance",
+  "approval_date": "2026-03-05",
+  "freeze_date": "2026-03-05T17:30:00Z"
+}

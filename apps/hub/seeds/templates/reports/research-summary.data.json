@@ -1,0 +1,74 @@
+{
+  "study_title": "Developer Onboarding Friction Points and Retention Correlation",
+  "lead_researcher": "Camille Dupont",
+  "department": "Developer Experience Research",
+  "report_date": "March 4, 2026",
+  "commissioned_by": "VP of Engineering, Kenji Watanabe",
+  "study_period": "November 2025 — February 2026",
+  "background": "Developer onboarding at Solstice has grown from a 3-day process to an average of 11.4 days over the past two years as the platform has scaled from 6 to 23 microservices. Exit interviews consistently cite onboarding complexity as a factor in early attrition. This study investigates the specific friction points in the onboarding journey and their correlation with 6-month retention rates across engineering teams.",
+  "methodology": "Mixed-methods approach combining quantitative analysis of onboarding completion telemetry with qualitative interviews. We tracked 84 new engineers hired between May 2025 and January 2026 through instrumented onboarding milestones, then conducted 30-minute semi-structured interviews with 32 participants stratified by team, seniority, and retention status. Thematic analysis was performed using two independent coders with inter-rater reliability (Cohen's κ = 0.81).",
+  "sample_size": "84 engineers (quantitative), 32 engineers (qualitative interviews)",
+  "data_collection": "Onboarding telemetry from internal DevPortal, HR systems, and semi-structured interviews",
+  "analysis_method": "Survival analysis for retention; thematic coding for qualitative data; logistic regression for friction-retention correlation",
+  "limitations": "Sample skews toward backend engineers (58%); remote-first hires underrepresented in interview pool; self-reported friction may carry recency bias for recent hires",
+  "findings": [
+    {
+      "title": "Local Development Environment Setup Is the Primary Bottleneck",
+      "detail": "73% of new hires reported spending more than two full days configuring their local development environment. The median time to first successful local build was 18.6 hours. Engineers who received a pre-configured development container completed setup in 3.2 hours on average.",
+      "data_point": "18.6 hours median time to first local build",
+      "confidence": "High (n=84, p<0.001)"
+    },
+    {
+      "title": "Documentation Staleness Correlates with Early Attrition",
+      "detail": "Engineers who encountered more than 3 outdated documentation pages in their first week were 2.4x more likely to leave within 6 months. The internal wiki has 340 onboarding-tagged pages, of which 41% have not been updated in over 12 months.",
+      "data_point": "2.4x attrition multiplier when >3 stale docs encountered",
+      "confidence": "Moderate (OR=2.4, 95% CI: 1.3–4.5)"
+    },
+    {
+      "title": "Buddy Program Participation Strongly Predicts Retention",
+      "detail": "Engineers paired with an onboarding buddy who met at least 3 times in the first two weeks had a 91% six-month retention rate, compared to 67% for those without a buddy or with fewer than 3 meetings.",
+      "data_point": "91% vs 67% six-month retention rate",
+      "confidence": "High (n=84, p=0.003)"
+    },
+    {
+      "title": "First Meaningful Contribution Timing Is Critical",
+      "detail": "Engineers who merged their first non-trivial pull request within 5 business days reported significantly higher job satisfaction scores (4.2 vs 3.1 on a 5-point scale) and were more likely to rate onboarding as effective.",
+      "data_point": "4.2 vs 3.1 satisfaction score for early contributors",
+      "confidence": "Moderate (n=32 interview subset)"
+    }
+  ],
+  "key_excerpt": "The moment I finally got the service running locally, I felt like I actually worked here. Before that, it was just reading docs and feeling lost.",
+  "excerpt_source": "Senior Backend Engineer, hired September 2025 (interview participant #14)",
+  "conclusions": "1. Local development environment complexity is the single largest onboarding friction point and has a measurable impact on new hire productivity and sentiment\n2. Documentation maintenance has fallen behind platform growth — the current wiki model does not scale\n3. The buddy program is the strongest protective factor against early attrition but participation is inconsistent (only 54% of new hires were matched)\n4. Speed to first meaningful contribution is a reliable proxy metric for onboarding effectiveness",
+  "recommendations": [
+    {
+      "title": "Standardize Development Containers for All Services",
+      "detail": "Create and maintain pre-configured development containers for each microservice, reducing local setup to a single command. Partner with Platform team to integrate with existing CI/CD container definitions.",
+      "priority": "Critical",
+      "effort": "6–8 engineering weeks",
+      "expected_impact": "Reduce median setup time from 18.6 hours to under 4 hours"
+    },
+    {
+      "title": "Implement Documentation Health Scoring",
+      "detail": "Introduce automated freshness checks on onboarding-tagged documentation. Pages not updated within 90 days should trigger review assignments to owning teams. Display staleness indicators to readers.",
+      "priority": "High",
+      "effort": "3–4 engineering weeks",
+      "expected_impact": "Reduce stale documentation encounter rate from 41% to under 10%"
+    },
+    {
+      "title": "Make Buddy Program Mandatory with Structured Check-ins",
+      "detail": "Require all new engineering hires to be assigned an onboarding buddy with a minimum of 4 scheduled meetings in the first two weeks. Provide buddies with a lightweight conversation guide covering common friction points.",
+      "priority": "High",
+      "effort": "2 weeks (process change, minimal tooling)",
+      "expected_impact": "Increase buddy participation from 54% to 100%; projected retention improvement of 8–12 percentage points"
+    },
+    {
+      "title": "Create Curated First-Contribution Issue Backlog",
+      "detail": "Maintain a rolling backlog of well-documented, self-contained issues suitable for new hires across all services. Tag with estimated complexity and required context. Review and refresh monthly.",
+      "priority": "Medium",
+      "effort": "Ongoing — 2 hours per team per month",
+      "expected_impact": "Reduce median time to first PR from 8.3 days to under 5 days"
+    }
+  ],
+  "references": "1. Begel, A. & Simon, B. (2008). Struggles of New College Graduates in Their First Software Development Job. ACM SIGCSE Bulletin, 40(1), 226–230\n2. Rastogi, A. et al. (2018). Relationship Between Geographical Distribution and Onboarding in OSS Projects. IEEE Software, 35(1)\n3. Solstice Internal HR Data — Attrition Analysis Q3 2025\n4. DevPortal Telemetry Dashboard — Onboarding Milestone Tracking (accessed February 2026)"
+}

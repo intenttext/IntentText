@@ -1,0 +1,76 @@
+title: {{runbook_title}}
+meta: | type: template | domain: developer | description: Operational runbook with service overview, on-call procedures, escalation paths, and SLA obligations | theme: technical | version: 1.0 | author: IntentText
+track: | version: {{current_version}} | by: {{maintainer}} | note: {{version_note}}
+track: | version: 0.2 | by: {{maintainer}} | note: Escalation matrix and SLA section added
+track: | version: 0.1 | by: {{maintainer}} | note: Initial runbook created from incident retrospectives
+---
+section: Service Overview
+---
+text: Service Information
+text: *Service Name:* {{service_name}}
+text: *Service ID:* {{service_id}}
+text: *Team:* {{owning_team}}
+text: *Tier:* {{service_tier}}
+text: *Repository:* {{repository_url}}
+text: *Dashboard:* {{dashboard_url}}
+text: *Alerting Channel:* {{alerting_channel}}
+---
+text: Description
+text: {{service_description}}
+---
+text: Architecture Summary
+text: {{architecture_summary}}
+---
+section: On-Call
+---
+text: On-Call Rotation
+text: *Schedule:* {{oncall_schedule}}
+text: *Primary:* {{oncall_primary}}
+text: *Secondary:* {{oncall_secondary}}
+text: *Escalation Manager:* {{escalation_manager}}
+---
+section: Standard Operating Procedures
+---
+text: {{procedure_name}}
+text: *Trigger:* {{trigger}}
+text: *Severity:* {{severity}}
+text: *Steps:*
+text: {{steps}}
+---
+section: Escalation Path
+---
+text: {{level}}
+text: *Contact:* {{contact}}
+text: *Role:* {{role}}
+text: *Response Time:* {{response_time}}
+text: *When to Escalate:* {{escalation_criteria}}
+---
+section: SLA Obligations
+---
+policy: Service Level Commitments
+text: {{sla_obligations}}
+---
+section: Dependencies
+---
+text: Upstream Dependencies
+text: {{upstream_dependencies}}
+---
+text: Downstream Consumers
+text: {{downstream_consumers}}
+---
+section: Recovery Procedures
+---
+text: Disaster Recovery
+text: {{disaster_recovery}}
+---
+text: Data Backup and Restore
+text: {{backup_restore}}
+---
+section: Maintenance
+---
+text: Routine Maintenance Tasks
+text: {{maintenance_tasks}}
+---
+text: Last Reviewed
+text: *Date:* {{last_reviewed_date}}
+text: *Reviewer:* {{reviewer}}

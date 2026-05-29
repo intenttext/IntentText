@@ -1,0 +1,7 @@
+page: | size: A4 | margin-top: 20 | margin-right: 14 | margin-bottom: 18 | margin-left: 14 | safe-area: 9
+header: https://cdn.example.com/style-header.png | fit: contain | height: 22 | position: center | enabled: true
+footer: https://cdn.example.com/style-footer.png | fit: cover | zoneHeightMm: 18 | position: center | enabled: true
+watermark: https://cdn.example.com/style-watermark.png | fit: cover | opacity: 0.25 | enabled: true
+title: Quarterly Summary {{quarter}}
+text: Account {{account_name}}
+text: Balance {{balance}} {{currency}}

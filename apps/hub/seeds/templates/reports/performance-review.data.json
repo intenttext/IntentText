@@ -1,0 +1,80 @@
+{
+  "employee_name": "Soren Ivarsson",
+  "employee_id": "ENG-4718",
+  "employee_title": "Senior Software Engineer",
+  "department": "Core Platform Engineering",
+  "manager_name": "Fatima Al-Rashidi",
+  "review_period": "March 2025 — February 2026",
+  "review_date": "March 3, 2026",
+  "goals": [
+    {
+      "goal": "Lead migration of monolithic order service to event-driven microservices",
+      "weight": "35%",
+      "target": "Complete decomposition of 4 bounded contexts with zero downtime cutover by Q4 2025",
+      "actual": "All 4 contexts migrated; cutover completed November 14, 2025 with zero customer-facing incidents",
+      "rating": "Exceeds Expectations",
+      "commentary": "Soren delivered ahead of the original December timeline despite absorbing an unplanned scope increase when the inventory context required additional event sourcing work. The migration reduced order processing latency by 62%."
+    },
+    {
+      "goal": "Improve CI/CD pipeline reliability and speed",
+      "weight": "25%",
+      "target": "Reduce build failure rate below 5% and median build time below 8 minutes",
+      "actual": "Build failure rate reduced from 14% to 3.8%; median build time reduced from 13.2 to 6.4 minutes",
+      "rating": "Exceeds Expectations",
+      "commentary": "Introduced parallelized test execution and dependency caching strategy that benefited all engineering teams. Proactively partnered with DevOps to eliminate flaky integration tests."
+    },
+    {
+      "goal": "Mentor two mid-level engineers through promotion preparation",
+      "weight": "20%",
+      "target": "Both mentees demonstrate senior-level technical design and code review skills by end of review period",
+      "actual": "One mentee promoted to Senior in January 2026; second mentee on track for Q2 promotion cycle",
+      "rating": "Meets Expectations",
+      "commentary": "Strong investment in weekly 1:1s and pair programming sessions. The promoted mentee specifically cited Soren's guidance on system design as instrumental in their growth."
+    },
+    {
+      "goal": "Contribute to platform observability improvements",
+      "weight": "20%",
+      "target": "Implement distributed tracing across 3 critical service paths with correlation to business metrics",
+      "actual": "Tracing implemented across all 3 paths plus 2 additional paths; built custom Grafana dashboard adopted by 4 teams",
+      "rating": "Exceeds Expectations",
+      "commentary": "Went beyond the original scope by creating a reusable tracing middleware library. The dashboard he built has become the default troubleshooting starting point for on-call engineers."
+    }
+  ],
+  "overall_goal_score": "4.4 / 5.0 — Exceeds Expectations",
+  "achievements": [
+    {
+      "title": "Zero-Downtime Order Service Migration",
+      "description": "Architected and executed the migration of the monolithic order service to 4 event-driven microservices serving 2.8M daily transactions. Designed the dual-write strategy and shadow traffic validation that enabled a seamless cutover without customer impact.",
+      "impact": "62% reduction in order processing latency; eliminated the primary scaling bottleneck for Black Friday traffic",
+      "quarter": "Q3–Q4 2025"
+    },
+    {
+      "title": "CI/CD Pipeline Overhaul",
+      "description": "Led a cross-team initiative to restructure the build pipeline, introducing parallelized test stages, intelligent dependency caching, and flaky test quarantine. Published an internal RFC that was adopted as the engineering-wide standard.",
+      "impact": "Saved an estimated 340 engineering hours per month across all teams; build reliability improved from 86% to 96%",
+      "quarter": "Q2 2025"
+    },
+    {
+      "title": "Production Incident Response — Black Friday 2025",
+      "description": "Served as incident commander during a Black Friday traffic surge that exceeded projections by 40%. Coordinated real-time scaling decisions and identified a connection pooling issue within 8 minutes, preventing prolonged customer impact.",
+      "impact": "Checkout availability maintained at 99.97% during peak 4-hour window",
+      "quarter": "Q4 2025"
+    }
+  ],
+  "technical_rating": "5 / 5 — Outstanding",
+  "technical_commentary": "Soren consistently demonstrates deep expertise in distributed systems, event-driven architectures, and performance optimization. His technical decisions are well-reasoned and thoroughly documented. He has become a go-to resource for architectural guidance across the engineering organization.",
+  "communication_rating": "4 / 5 — Strong",
+  "communication_commentary": "Communicates technical concepts clearly in design reviews and cross-team discussions. RFCs are thorough and well-structured. Could improve visibility of his work to non-engineering stakeholders — product and leadership teams sometimes learn about his contributions late.",
+  "leadership_rating": "4 / 5 — Strong",
+  "leadership_commentary": "Actively mentors junior and mid-level engineers and takes ownership of cross-cutting initiatives. Demonstrates strong technical leadership in incident response. Opportunity to take on more formal leadership of project streams in the coming year.",
+  "problem_solving_rating": "5 / 5 — Outstanding",
+  "problem_solving_commentary": "Exceptional diagnostic skills and systematic approach to problem decomposition. The Black Friday incident response and the dual-write migration strategy both demonstrate his ability to navigate high-stakes, ambiguous technical challenges with sound judgment.",
+  "overall_rating": "Exceeds Expectations (4.4 / 5.0)",
+  "recommendation": "Compensation adjustment to top of Senior band; begin Staff Engineer track discussion",
+  "manager_commentary": "Soren has had an exceptional year. His technical contributions have directly improved platform reliability and team velocity. The order service migration was the most complex infrastructure project we have undertaken, and he delivered it with remarkable precision. His mentorship of junior engineers reflects genuine investment in team growth. I am recommending he begin the Staff Engineer track and take on technical leadership of the Platform Reliability initiative in the coming year.",
+  "growth_areas": "1. Executive communication — practice distilling technical narratives for leadership audiences using business impact framing\n2. Cross-functional influence — engage earlier with product management on technical roadmap prioritization\n3. Written thought leadership — consider publishing internal engineering blog posts or presenting at external conferences",
+  "development_actions": "1. Enroll in the internal \"Technical Leadership Accelerator\" cohort starting April 2026\n2. Shadow VP of Engineering in two steering committee meetings to observe executive communication patterns\n3. Pair with Product Manager on Q2 roadmap planning to build cross-functional collaboration skills\n4. Submit a talk proposal to KubeCon North America 2026 on the order service migration",
+  "career_aspirations": "Soren has expressed interest in the Staff Engineer track with a focus on platform reliability and architecture. He is motivated by solving complex cross-cutting technical challenges and mentoring engineering teams. Long-term, he is open to a Principal Engineer path while remaining hands-on.",
+  "employee_sign_date": "2026-03-05",
+  "manager_sign_date": "2026-03-03"
+}

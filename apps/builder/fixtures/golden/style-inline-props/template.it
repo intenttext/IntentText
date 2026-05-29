@@ -1,0 +1,5 @@
+title: Styled Invoice | align: center | weight: 700
+section: Customer
+text: {{client_name}} | color: #0f172a | size: 14px | family: "IBM Plex Sans", sans-serif | weight: 600 | align: center | bg: #f8fafc | indent: 8px | italic: true | border: true
+text: {{client_address}} | color: #334155 | size: 12px
+metric: Total | value: {{total}} | unit: {{currency}}

@@ -1,0 +1,60 @@
+{
+  "book_title": "The Seed Vault",
+  "subtitle": "How a Mountain in the Arctic Became the Last Library on Earth",
+  "author_name": "Ingrid Haugen",
+  "overview": "The Svalbard Global Seed Vault, buried inside a mountain on a Norwegian archipelago 1,300 kilometres from the North Pole, stores over 1.2 million seed samples from every country on earth. This book tells the story of the vault from its origins in the crop diversity debates of the 1980s through its emergency use during the Syrian civil war, when scientists retrieved irreplaceable seeds after the gene bank in Aleppo was destroyed. Blending reportage, science writing, and narrative history, The Seed Vault explores what it means to build an institution designed to outlast the civilisation that created it.",
+  "target_audience": "Readers of long-form narrative nonfiction about science, climate, and human institutions. Core audience overlaps with readers of Elizabeth Kolbert, Michael Pollan, and Ed Yong. Secondary audience includes professionals in agriculture, conservation, and food policy.",
+  "comparable_titles": "The Sixth Extinction by Elizabeth Kolbert (Holt, 2014) — 500,000+ copies sold, Pulitzer Prize winner. The Botany of Desire by Michael Pollan (Random House, 2001) — long backlist performer. Entangled Life by Merlin Sheldrake (Random House, 2020) — demonstrated strong demand for accessible writing about plant and fungal science.",
+  "market_opportunity": "Climate-adjacent narrative nonfiction consistently performs well in trade publishing. No current book covers the Svalbard Seed Vault at length for a general audience. The vault appears regularly in news coverage of climate events and food security, giving the project natural media hooks. Film rights interest is expected given the dramatic setting and global cast.",
+  "chapters": [
+    {
+      "number": 1,
+      "title": "The Mountain",
+      "summary": "Introduction to Svalbard, the physical vault, and the day-to-day operations of a facility designed to survive without human intervention for centuries."
+    },
+    {
+      "number": 2,
+      "title": "The Scattering",
+      "summary": "The history of crop diversity and how the Green Revolution concentrated global agriculture into a dangerously narrow genetic base."
+    },
+    {
+      "number": 3,
+      "title": "The Argument",
+      "summary": "The political battles of the 1990s and 2000s over who owns seeds — farmers, corporations, or nations — and how the International Treaty on Plant Genetic Resources created the legal framework for the vault."
+    },
+    {
+      "number": 4,
+      "title": "The Builder",
+      "summary": "Profile of Cary Fowler, the American agronomist who spent two decades persuading governments to fund and build the vault."
+    },
+    {
+      "number": 5,
+      "title": "The Aleppo Withdrawal",
+      "summary": "The destruction of ICARDA's gene bank in Syria during the civil war and the first-ever withdrawal from the Svalbard vault to reconstitute irreplaceable seed collections in Lebanon and Morocco."
+    },
+    {
+      "number": 6,
+      "title": "The Flood",
+      "summary": "The 2017 meltwater intrusion that breached the vault's entrance tunnel during an unusually warm Arctic winter, and the engineering response."
+    },
+    {
+      "number": 7,
+      "title": "The Farmers",
+      "summary": "Profiles of seed savers and indigenous farmers in Peru, Ethiopia, and the Philippines whose collections are stored in the vault, and what institutional seed banking means for communities that have maintained crop diversity for millennia."
+    },
+    {
+      "number": 8,
+      "title": "Deep Time",
+      "summary": "What happens to the vault in 50, 500, and 5,000 years. Conversations with permafrost scientists, nuclear waste storage engineers, and long-term thinking advocates about designing for futures we cannot predict."
+    }
+  ],
+  "author_bio": "Ingrid Haugen is a Norwegian journalist and author based in Tromsø. She has reported on Arctic science and policy for NRK, The Guardian, and Hakai Magazine since 2012. Her first book, The Ice Margin (Cappelen Damm, 2020), about the retreat of Svalbard's glaciers, was longlisted for the Brage Prize and translated into six languages. She holds a master's degree in environmental history from the University of Oslo.",
+  "previous_publications": "The Ice Margin (Cappelen Damm, 2020). Work has appeared in The Guardian Long Read, Hakai Magazine, Morgenbladet, and Aftenposten.",
+  "word_count": "85,000",
+  "delivery_date": "18 months from contract",
+  "illustrations": "16 pages of colour photographs, 3 maps, 2 diagrams",
+  "format": "Hardcover with simultaneous e-book and audiobook",
+  "sample_chapter_number": 5,
+  "sample_chapter_title": "The Aleppo Withdrawal",
+  "sample_excerpt": "On a Monday morning in September 2015, Ahmed Amri drove from Beirut to the Bekaa Valley with a printout of 38,000 seed accession numbers folded in his jacket pocket. Each number corresponded to a small foil packet stored 1,300 metres inside a frozen mountain on a Norwegian island he had never visited. The packets contained seeds collected over four decades by plant scientists at ICARDA — the International Centre for Agricultural Research in the Dry Areas — from farmers' fields across Syria, Lebanon, Jordan, and Ethiopia. Many of the seeds had been gathered from varieties that no longer existed in the wild. The gene bank that housed the original collection, on the outskirts of Aleppo, had been looted and shelled during the Syrian civil war. The building still stood, but the power was gone, the cooling systems destroyed, and the germinability of the remaining samples could not be guaranteed. Amri's task was to rebuild the collection from the duplicates in Svalbard — the first withdrawal in the vault's history."
+}

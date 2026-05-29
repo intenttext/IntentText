@@ -1,0 +1,62 @@
+title: {{assessment_title}}
+meta: | type: template | domain: organization | description: Vendor and supplier assessment with evaluation criteria, risk ratings, scores, and procurement approval | theme: corporate | version: 1.0 | author: IntentText
+---
+section: Assessment Overview
+---
+text: Assessment Details
+text: *Assessment ID:* {{assessment_id}}
+text: *Vendor:* {{vendor_name}}
+text: *Vendor Contact:* {{vendor_contact}} · {{vendor_email}}
+text: *Category:* {{vendor_category}}
+text: *Assessment Date:* {{assessment_date}}
+text: *Assessor:* {{assessor}}
+text: *Assessment Method:* {{assessment_method}}
+---
+text: Purpose
+text: {{purpose}}
+---
+section: Vendor Profile
+---
+text: Company Information
+text: *Founded:* {{vendor_founded}}
+text: *Headquarters:* {{vendor_headquarters}}
+text: *Employees:* {{vendor_employees}}
+text: *Annual Revenue:* {{vendor_revenue}}
+text: *Key Certifications:* {{vendor_certifications}}
+text: *Existing Relationship:* {{existing_relationship}}
+---
+section: Evaluation Criteria
+---
+text: {{criterion_name}} — Score: {{score}}/{{max_score}}
+text: *Weight:* {{weight}} · *Risk Rating:* {{risk_rating}}
+text: {{criterion_notes}}
+---
+section: Scoring Summary
+---
+text: Overall Score
+text: *Weighted Total:* {{weighted_total}} / {{max_weighted_total}}
+text: *Overall Risk Rating:* {{overall_risk_rating}}
+text: *Rating Threshold:* {{rating_threshold}}
+---
+section: Strengths and Concerns
+---
+text: Key Strengths
+text: {{strengths}}
+---
+text: Key Concerns
+text: {{concerns}}
+---
+section: Risk Mitigation
+---
+text: Recommended Mitigations
+text: {{mitigations}}
+---
+section: Recommendation
+---
+text: Assessment Decision
+text: *Recommendation:* {{recommendation}}
+text: *Conditions:* {{conditions}}
+---
+section: Approval
+---
+approve: Approved | by: {{procurement_lead}} | role: {{procurement_lead_title}} | at: {{approval_date}}

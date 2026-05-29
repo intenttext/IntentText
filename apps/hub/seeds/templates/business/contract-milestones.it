@@ -1,0 +1,30 @@
+title: {{title}}
+meta: | type: template | domain: business | description: Contract milestone and deadline tracker with preparation tasks and progress metrics | theme: corporate | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+track: | version: 1.0 | by: {{tracker_by}}
+---
+section: Project Milestones
+---
+deadline: {{milestone_1}} | date: {{milestone_1_date}} | consequence: {{milestone_1_consequence}} | owner: {{milestone_1_owner}}
+task: {{milestone_1_prep}} | owner: {{milestone_1_owner}} | due: {{milestone_1_prep_due}} | priority: 1
+---
+deadline: {{milestone_2}} | date: {{milestone_2_date}} | consequence: {{milestone_2_consequence}} | owner: {{milestone_2_owner}}
+task: {{milestone_2_prep}} | owner: {{milestone_2_owner}} | due: {{milestone_2_prep_due}} | priority: 1
+---
+deadline: {{milestone_3}} | date: {{milestone_3_date}} | consequence: {{milestone_3_consequence}} | owner: {{milestone_3_owner}}
+task: {{milestone_3_prep}} | owner: {{milestone_3_owner}} | due: {{milestone_3_prep_due}} | priority: 2
+---
+deadline: {{milestone_4}} | date: {{milestone_4_date}} | consequence: {{milestone_4_consequence}} | owner: {{milestone_4_owner}}
+task: {{milestone_4_prep}} | owner: {{milestone_4_owner}} | due: {{milestone_4_prep_due}} | priority: 2
+---
+section: Payment Milestones
+---
+deadline: {{payment_1}} | date: {{payment_1_date}} | consequence: {{payment_1_consequence}} | owner: {{payment_1_owner}}
+deadline: {{payment_2}} | date: {{payment_2_date}} | consequence: {{payment_2_consequence}} | owner: {{payment_2_owner}}
+deadline: {{payment_3}} | date: {{payment_3_date}} | consequence: {{payment_3_consequence}} | owner: {{payment_3_owner}}
+---
+section: Progress Summary
+---
+metric: Milestones Completed | value: {{completed}} | unit: milestones | target: {{total_milestones}} | trend: {{progress_trend}}
+metric: On-Track Rate | value: {{on_track_rate}} | unit: % | target: 100 | trend: {{on_track_trend}}
+metric: Days to Next Milestone | value: {{days_to_next}} | unit: days | trend: {{days_trend}}

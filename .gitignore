@@ -1,30 +1,60 @@
-# Dependencies
+# ── Dependencies ─────────────────────────────────────────────
 node_modules/
+.pnpm-store/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Build outputs
+# ── Build outputs ────────────────────────────────────────────
 dist/
 build/
+out/
 *.tsbuildinfo
 intenttext.browser.js
 
-# Environment files
+# Next.js
+.next/
+.vercel/
+
+# Docusaurus
+.docusaurus/
+
+# Tauri / Rust
+target/
+*.rlib
+Cargo.lock.bak
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+*.dist-info/
+
+# WASM build artifacts
+*.wasm
+rust-core_bg*
+
+# ── Environment files ─────────────────────────────────────────
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
 
-# IDE files
-.vscode/
+# ── IDE files ─────────────────────────────────────────────────
 .idea/
 *.swp
 *.swo
 *~
 
-# OS generated files
+# VS Code workspace settings (keep extensions + tasks but not settings)
+.vscode/settings.json
+.vscode/launch.json
+
+# ── OS generated files ────────────────────────────────────────
 .DS_Store
 .DS_Store?
 ._*
@@ -33,31 +63,25 @@ intenttext.browser.js
 ehthumbs.db
 Thumbs.db
 
-# Logs
-logs
+# ── Logs ──────────────────────────────────────────────────────
+logs/
 *.log
-
-# Runtime data
-pids
+pids/
 *.pid
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
+# ── Coverage ──────────────────────────────────────────────────
 coverage/
 *.lcov
+.nyc_output/
 
-# nyc test coverage
-.nyc_output
-
-# Dependency directories
+# ── Misc ──────────────────────────────────────────────────────
 jspm_packages/
-
-# Optional npm cache directory
 .npm
-
-# Optional eslint cache
 .eslintcache
+.turbo/
+*.tgz
 
 # Output files (except demo files)
 *.html

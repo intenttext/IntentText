@@ -1,0 +1,38 @@
+title: {{title}}
+meta: | type: template | domain: business | description: Monthly executive dashboard with revenue, growth, pipeline, NPS, and headcount metrics | theme: corporate | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+x-writer: byline | content: {{author}} | role: {{author_role}} | date: {{report_date}}
+---
+section: Financial Performance
+---
+metric: Revenue | value: {{revenue}} | unit: USD | target: {{revenue_target}} | trend: {{revenue_trend}} | period: {{period}}
+metric: Gross Margin | value: {{gross_margin}} | unit: % | target: {{gross_margin_target}} | trend: {{gross_margin_trend}} | period: {{period}}
+metric: Operating Expenses | value: {{opex}} | unit: USD | target: {{opex_target}} | trend: {{opex_trend}} | period: {{period}}
+metric: Net Income | value: {{net_income}} | unit: USD | target: {{net_income_target}} | trend: {{net_income_trend}} | period: {{period}}
+---
+section: Growth Indicators
+---
+metric: Revenue Growth YoY | value: {{yoy_growth}} | unit: % | target: {{yoy_growth_target}} | trend: {{yoy_growth_trend}} | period: {{period}}
+metric: New Customers | value: {{new_customers}} | unit: accounts | target: {{new_customers_target}} | trend: {{new_customers_trend}} | period: {{period}}
+metric: Pipeline Value | value: {{pipeline}} | unit: USD | target: {{pipeline_target}} | trend: {{pipeline_trend}} | period: {{period}}
+---
+section: Customer Satisfaction
+---
+metric: Net Promoter Score | value: {{nps}} | unit: pts | target: {{nps_target}} | trend: {{nps_trend}} | period: {{period}}
+metric: Customer Retention | value: {{retention}} | unit: % | target: {{retention_target}} | trend: {{retention_trend}} | period: {{period}}
+metric: Support Tickets | value: {{tickets}} | unit: tickets | target: {{tickets_target}} | trend: {{tickets_trend}} | period: {{period}}
+---
+section: People
+---
+metric: Headcount | value: {{headcount}} | unit: FTEs | target: {{headcount_target}} | trend: {{headcount_trend}} | period: {{period}}
+metric: Voluntary Attrition | value: {{attrition}} | unit: % | target: {{attrition_target}} | trend: {{attrition_trend}} | period: {{period}}
+metric: Open Positions | value: {{open_positions}} | unit: roles | trend: {{open_positions_trend}} | period: {{period}}
+---
+section: Key Decisions Needed
+---
+task: {{decision_1}} | owner: {{decision_1_owner}} | due: {{decision_1_due}} | priority: 1
+task: {{decision_2}} | owner: {{decision_2_owner}} | due: {{decision_2_due}} | priority: 2
+---
+section: Approval
+---
+approve: Monthly dashboard reviewed | by: {{approver}} | role: {{approver_role}}

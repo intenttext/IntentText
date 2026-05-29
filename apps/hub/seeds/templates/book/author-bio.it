@@ -1,0 +1,23 @@
+title: Author Biography
+meta: | type: template | domain: book | description: Author biography page with name, photo credit, short and long bio, and contact information | theme: warm | version: 1.0 | author: IntentText
+---
+section: About the Author
+---
+text: *{{author_name}}*
+text: Photo: {{photo_credit}}
+---
+text: {{short_bio}}
+---
+section: Biography
+---
+text: {{long_bio_early}}
+---
+text: {{long_bio_career}}
+---
+text: {{long_bio_current}}
+---
+section: Contact
+---
+text: {{contact_website}}
+text: {{contact_email}}
+text: {{contact_social}}

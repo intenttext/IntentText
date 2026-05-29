@@ -1,0 +1,34 @@
+title: {{title}}
+meta: | type: template | domain: business | description: Annual regulatory filing calendar with deadlines, authorities, consequences, and compliance status | theme: corporate | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+track: | version: 1.0 | by: {{tracker_by}}
+---
+section: Q1 Filings
+---
+deadline: {{q1_filing_1}} | date: {{q1_filing_1_date}} | consequence: {{q1_filing_1_consequence}} | owner: {{q1_filing_1_owner}}
+deadline: {{q1_filing_2}} | date: {{q1_filing_2_date}} | consequence: {{q1_filing_2_consequence}} | owner: {{q1_filing_2_owner}}
+---
+section: Q2 Filings
+---
+deadline: {{q2_filing_1}} | date: {{q2_filing_1_date}} | consequence: {{q2_filing_1_consequence}} | owner: {{q2_filing_1_owner}}
+deadline: {{q2_filing_2}} | date: {{q2_filing_2_date}} | consequence: {{q2_filing_2_consequence}} | owner: {{q2_filing_2_owner}}
+---
+section: Q3 Filings
+---
+deadline: {{q3_filing_1}} | date: {{q3_filing_1_date}} | consequence: {{q3_filing_1_consequence}} | owner: {{q3_filing_1_owner}}
+---
+section: Q4 Filings
+---
+deadline: {{q4_filing_1}} | date: {{q4_filing_1_date}} | consequence: {{q4_filing_1_consequence}} | owner: {{q4_filing_1_owner}}
+deadline: {{q4_filing_2}} | date: {{q4_filing_2_date}} | consequence: {{q4_filing_2_consequence}} | owner: {{q4_filing_2_owner}}
+---
+section: Annual Filings
+---
+deadline: {{annual_1}} | date: {{annual_1_date}} | consequence: {{annual_1_consequence}} | owner: {{annual_1_owner}}
+deadline: {{annual_2}} | date: {{annual_2_date}} | consequence: {{annual_2_consequence}} | owner: {{annual_2_owner}}
+---
+section: Compliance Status
+---
+metric: Filings Completed | value: {{filings_completed}} | unit: filings | target: {{total_filings}} | trend: {{filings_trend}} | period: {{fiscal_year}}
+metric: Compliance Rate | value: {{compliance_rate}} | unit: % | target: 100 | trend: {{compliance_trend}} | period: {{fiscal_year}}
+metric: Days to Next Filing | value: {{days_to_next}} | unit: days | trend: {{days_trend}}

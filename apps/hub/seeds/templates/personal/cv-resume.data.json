@@ -1,0 +1,72 @@
+{
+  "full_name": "Priya Rajagopal",
+  "professional_title": "Senior Data Engineer",
+  "email": "priya.rajagopal@fastmail.com",
+  "phone": "+1 (617) 483-2290",
+  "location": "Boston, MA",
+  "linkedin_url": "https://linkedin.com/in/priya-rajagopal",
+  "portfolio_url": "https://priyaraj.dev",
+  "summary": "Data engineer with 9 years of experience designing large-scale ETL pipelines, real-time streaming architectures, and cloud-native data platforms. Led the migration of a 40TB analytics warehouse from on-premise Hadoop to Snowflake, reducing query latency by 70%. Passionate about data quality, observability, and building systems that empower analysts to move faster.",
+  "experience_items": [
+    {
+      "role": "Senior Data Engineer",
+      "company": "Canopy Health Systems",
+      "start_date": "Jan 2023",
+      "end_date": "Present",
+      "location": "Boston, MA",
+      "description": "Architected a real-time patient data integration platform processing 2.8M events daily using Apache Kafka and dbt. Built data contracts and quality gates that reduced downstream reporting errors by 45%. Mentored a team of four junior engineers through weekly design reviews."
+    },
+    {
+      "role": "Data Engineer",
+      "company": "Ridgeline Analytics",
+      "start_date": "Mar 2019",
+      "end_date": "Dec 2022",
+      "location": "Cambridge, MA",
+      "description": "Designed and maintained 120+ Airflow DAGs orchestrating data flows across S3, Redshift, and Looker. Led the migration from Redshift to Snowflake, re-engineering transformation layers and cutting monthly compute costs by 35%. Introduced Great Expectations for automated data validation across 80 critical tables."
+    },
+    {
+      "role": "Junior Data Engineer",
+      "company": "Mosaic Financial Technologies",
+      "start_date": "Jun 2017",
+      "end_date": "Feb 2019",
+      "location": "New York, NY",
+      "description": "Built Python-based ETL pipelines ingesting market data from Bloomberg and Reuters feeds. Developed reconciliation scripts that identified $1.2M in reporting discrepancies within the first quarter. Maintained PostgreSQL and MongoDB clusters handling 500GB of daily transaction data."
+    }
+  ],
+  "education_items": [
+    {
+      "degree": "M.S. Computer Science",
+      "institution": "Northeastern University",
+      "graduation_year": "2017",
+      "focus_area": "Distributed Systems and Data Management",
+      "honors": "Graduate Research Award for thesis on fault-tolerant stream processing"
+    },
+    {
+      "degree": "B.Tech Information Technology",
+      "institution": "Anna University, Chennai",
+      "graduation_year": "2015",
+      "focus_area": "Database Systems and Software Engineering",
+      "honors": "First Class with Distinction, Department Rank 4"
+    }
+  ],
+  "skills": [
+    {
+      "category": "Data Engineering",
+      "skill_list": "Apache Kafka, Apache Spark, Apache Airflow, dbt, Fivetran, Great Expectations, Delta Lake"
+    },
+    {
+      "category": "Cloud & Infrastructure",
+      "skill_list": "AWS (S3, Glue, Lambda, Redshift), Snowflake, Terraform, Docker, Kubernetes"
+    },
+    {
+      "category": "Programming Languages",
+      "skill_list": "Python, SQL, Scala, Bash, Go"
+    },
+    {
+      "category": "Databases & Storage",
+      "skill_list": "PostgreSQL, MongoDB, DynamoDB, Redis, Elasticsearch"
+    }
+  ],
+  "certifications": "AWS Certified Data Analytics – Specialty (2024) · Snowflake SnowPro Core (2023) · Databricks Certified Associate Developer for Apache Spark (2021)",
+  "languages": "English (fluent) · Tamil (native) · Hindi (conversational)"
+}

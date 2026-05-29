@@ -1,0 +1,15 @@
+{
+  "applicant_name": "Marco Vieira",
+  "applicant_email": "marco.vieira@protonmail.com",
+  "applicant_phone": "+1 (415) 729-8104",
+  "date": "March 7, 2026",
+  "hiring_manager_name": "Samira Okonkwo",
+  "hiring_manager_title": "Director of Product Engineering",
+  "company_name": "Heliotrope Labs",
+  "company_address": "580 Folsom Street, Suite 400, San Francisco, CA 94105",
+  "role": "Staff Frontend Engineer",
+  "opening_paragraph": "I am writing to express my interest in the Staff Frontend Engineer position at Heliotrope Labs. Your recent launch of the collaborative design toolkit caught my attention — the approach to real-time multi-cursor editing mirrors a problem I spent two years solving at my current company, and I would welcome the chance to bring that depth of experience to your team.",
+  "experience_paragraph": "Over the past seven years, I have specialized in building complex, performance-critical web applications. At Clearwind Software, I led the frontend architecture for a financial modeling platform used by 14,000 analysts daily, reducing initial load time from 4.2 seconds to 1.1 seconds through code splitting, virtualized rendering, and service worker caching. I also designed the component library that unified three previously separate product surfaces, cutting cross-team UI inconsistencies by 80%.",
+  "value_paragraph": "What draws me to Heliotrope is your commitment to building tools that respect the craft of design. I am particularly excited about the challenge of scaling your canvas rendering engine — my experience with WebGL-accelerated interfaces and conflict-free replicated data types for collaborative state would directly contribute to the next phase of your product roadmap. I thrive in small, high-trust teams where engineering and design decisions are made together.",
+  "closing_paragraph": "I would love the opportunity to discuss how my background in frontend performance, design systems, and real-time collaboration aligns with the goals of your engineering team. Thank you for considering my application — I look forward to hearing from you."
+}

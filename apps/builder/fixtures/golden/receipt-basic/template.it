@@ -1,0 +1,8 @@
+page: | size: A4 | marginTopMm: 16 | marginBottomMm: 14
+title: Receipt {{receipt_number}}
+section: Received From
+text: {{payer_name}}
+text: {{payer_address}}
+divider:
+metric: Amount Paid | value: {{amount_paid}} | unit: {{currency}}
+text: Date: {{receipt_date}}

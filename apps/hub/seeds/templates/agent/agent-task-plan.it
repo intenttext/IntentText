@@ -1,0 +1,43 @@
+title: {{plan_name}}
+meta: | type: template | domain: agent | description: Agent task execution plan with goal decomposition, tool selection, checkpoints, and expected outputs | theme: technical | version: 1.0 | author: IntentText
+track: | version: 1.0 | by: {{author}} | note: Plan created {{created_date}}
+---
+section: Objective
+---
+text: Goal
+text: *Agent:* {{agent_name}}
+text: *Model:* {{model}}
+text: *Goal:* {{goal_description}}
+text: *Max Steps:* {{max_steps}}
+text: *Timeout:* {{timeout}}
+text: *Priority:* {{priority}}
+---
+section: Context
+---
+text: Input Context
+text: {{context_description}}
+---
+text: Constraints
+text: {{constraints}}
+---
+section: Execution Steps
+---
+step: {{name}} | tool: {{tool}} | timeout: {{step_timeout}}
+text: *Description:* {{description}}
+text: *Input:* {{input}}
+text: *Expected Output:* {{expected_output}}
+text: *Fallback:* {{fallback}}
+---
+gate: Checkpoint — validate intermediate results | approver: {{checkpoint_approver}} | timeout: {{checkpoint_timeout}}
+---
+section: Completion Criteria
+---
+text: Success Conditions
+text: {{success_criteria}}
+---
+text: Failure Handling
+text: *On Failure:* {{failure_action}}
+text: *Retry Limit:* {{retry_limit}}
+text: *Escalation:* {{escalation_contact}}
+---
+text: Plan authored by {{author}} · {{created_date}}

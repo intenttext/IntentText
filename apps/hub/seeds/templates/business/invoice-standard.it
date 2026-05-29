@@ -1,0 +1,41 @@
+title: Standard Invoice
+meta: | type: template | domain: business | description: Standard invoice with line items and tax | theme: corporate | version: 1.0 | author: IntentText
+track: | version: 1.0 | by: Finance
+---
+section: Invoice Details
+---
+text: Invoice Information
+text: *Invoice Number:* {{invoice_number}}
+text: *Date:* {{date}}
+text: *Due Date:* {{due_date}}
+text: *Payment Terms:* {{payment_terms}}
+---
+text: From
+text: {{company_name}}
+text: {{company_address}}
+text: {{company_email}}
+---
+text: Bill To
+text: {{client_name}}
+text: {{client_company}}
+text: {{client_address}}
+text: {{client_email}}
+---
+section: Line Items
+---
+text: {{description}}
+text: *Quantity:* {{quantity}} · *Unit Price:* {{unit_price}} · *Amount:* {{amount}}
+---
+section: Totals
+---
+text: Summary
+text: *Subtotal:* {{subtotal}}
+text: *Tax ({{tax_rate}}):* {{tax_amount}}
+text: *Total Due:* {{total}}
+---
+text: Payment Instructions
+text: {{payment_instructions}}
+---
+sign: {{authorized_by}} | role: Finance Manager | at: {{signed_date}} | hash: {{document_hash}}
+---
+freeze: Invoice finalized | at: {{freeze_date}} | by: {{authorized_by}}

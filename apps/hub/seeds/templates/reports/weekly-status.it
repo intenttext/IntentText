@@ -1,0 +1,36 @@
+title: Weekly Status Report
+meta: | type: template | domain: business | description: Weekly project status update with accomplishments, blockers, and next week plan for team alignment | theme: minimal | version: 1.0 | author: IntentText
+track: | version: 1.0 | by: {{author_name}} | note: Week of {{report_week}}
+track: | version: 0.9 | by: {{author_name}} | note: Previous week status
+---
+section: Report Overview
+---
+text: Details
+text: *Project:* {{project_name}}
+text: *Team:* {{team_name}}
+text: *Reported By:* {{author_name}}
+text: *Week Of:* {{report_week}}
+text: *Sprint:* {{sprint_name}}
+text: *Overall Status:* {{overall_status}}
+---
+section: Accomplishments
+---
+done: {{description}} | owner: {{owner}} | completed: {{completed_date}}
+---
+section: Blockers
+---
+info: {{description}} | type: warning | raised_by: {{raised_by}} | severity: {{severity}} | status: {{status}}
+---
+section: Next Week Plan
+---
+task: {{description}} | owner: {{owner}} | target: {{target_date}} | priority: {{priority}}
+---
+section: Key Metrics
+---
+text: Sprint Progress
+text: *Story Points Completed:* {{points_completed}} / {{points_committed}}
+text: *Open Bugs:* {{open_bugs}}
+text: *Code Review Turnaround:* {{review_turnaround}}
+text: *Test Coverage:* {{test_coverage}}
+---
+text: Prepared by {{author_name}} · {{report_date}}

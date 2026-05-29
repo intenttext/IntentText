@@ -1,0 +1,89 @@
+{
+  "meeting_title": "Q1 Product Roadmap Alignment",
+  "meeting_date": "February 28, 2026",
+  "start_time": "10:00 AM",
+  "end_time": "11:30 AM",
+  "location": "Conference Room 4B, Northgate Tower",
+  "called_by": "Priya Ramanathan",
+  "attendees": [
+    {
+      "name": "Priya Ramanathan",
+      "role": "VP of Product",
+      "department": "Product",
+      "status": "Present"
+    },
+    {
+      "name": "Marcus Lindgren",
+      "role": "Engineering Lead",
+      "department": "Engineering",
+      "status": "Present"
+    },
+    {
+      "name": "Sofia Gutierrez",
+      "role": "Head of Design",
+      "department": "Design",
+      "status": "Present"
+    },
+    {
+      "name": "Tomoko Arai",
+      "role": "Senior Product Manager",
+      "department": "Product",
+      "status": "Present"
+    },
+    {
+      "name": "Rashid Al-Fayed",
+      "role": "QA Director",
+      "department": "Quality Assurance",
+      "status": "Remote"
+    },
+    {
+      "name": "Ingrid Haugen",
+      "role": "Customer Success Manager",
+      "department": "Customer Success",
+      "status": "Absent — sent written input"
+    }
+  ],
+  "agenda": "1. Review of Q4 delivery metrics and customer feedback\n2. Q1 feature prioritization — collaborative filtering and dashboard redesign\n3. Resource allocation for mobile platform expansion\n4. Timeline alignment with marketing launch schedule\n5. Open floor for cross-team blockers",
+  "discussion_summary": "Priya opened with Q4 metrics showing 94% on-time delivery and a 12-point NPS increase. Marcus raised concerns about the collaborative filtering timeline, noting that the data pipeline migration is two weeks behind. Sofia presented three dashboard redesign concepts; the team favored Option B with modifications to the navigation panel. Tomoko flagged that the mobile expansion requires two additional iOS engineers, which HR has approved but not yet filled. Rashid confirmed that automated regression coverage is at 78% and requested an additional sprint for edge-case testing before the March release.",
+  "decisions": "1. Collaborative filtering will shift to a phased rollout — beta in Week 10, general availability in Week 14\n2. Dashboard redesign Option B approved with Sofia's navigation revisions due by March 7\n3. Mobile platform expansion start date moved to March 17 pending hiring\n4. Marketing launch date confirmed for April 2, with a feature freeze on March 21\n5. QA will receive one additional sprint for regression hardening before release",
+  "action_items": [
+    {
+      "task": "Revise collaborative filtering timeline and share updated Gantt chart with stakeholders",
+      "assigned_to": "Marcus Lindgren",
+      "deadline": "March 3, 2026",
+      "priority": "High"
+    },
+    {
+      "task": "Finalize dashboard navigation panel wireframes and circulate for async feedback",
+      "assigned_to": "Sofia Gutierrez",
+      "deadline": "March 7, 2026",
+      "priority": "High"
+    },
+    {
+      "task": "Coordinate with HR on iOS engineer hiring timeline and provide weekly updates",
+      "assigned_to": "Tomoko Arai",
+      "deadline": "March 10, 2026",
+      "priority": "Medium"
+    },
+    {
+      "task": "Prepare regression test plan for March release and identify automation gaps",
+      "assigned_to": "Rashid Al-Fayed",
+      "deadline": "March 5, 2026",
+      "priority": "High"
+    },
+    {
+      "task": "Draft customer communication plan for phased collaborative filtering rollout",
+      "assigned_to": "Ingrid Haugen",
+      "deadline": "March 12, 2026",
+      "priority": "Medium"
+    }
+  ],
+  "next_meeting_date": "March 14, 2026",
+  "next_meeting_time": "10:00 AM",
+  "next_meeting_location": "Conference Room 4B, Northgate Tower",
+  "next_meeting_agenda": "Progress review on action items, mobile hiring update, feature freeze readiness check",
+  "prepared_by": "Tomoko Arai",
+  "prepared_date": "February 28, 2026",
+  "chair_name": "Priya Ramanathan",
+  "approved_date": "2026-03-01"
+}

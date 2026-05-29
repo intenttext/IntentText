@@ -1,0 +1,8 @@
+page: | size: A4 | marginTopMm: 16 | marginBottomMm: 16
+title: Statement {{statement_id}}
+section: Account
+text: {{account_name}}
+text: Period {{period_start}} - {{period_end}}
+divider:
+metric: Opening Balance | value: {{opening_balance}} | unit: {{currency}}
+metric: Closing Balance | value: {{closing_balance}} | unit: {{currency}}

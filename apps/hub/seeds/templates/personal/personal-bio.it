@@ -1,0 +1,38 @@
+title: Personal Biography
+meta: | type: template | domain: personal | description: Personal biography with short and long versions for speaker pages, about sections, and social profiles | theme: warm | version: 1.0 | author: IntentText
+track: | version: 1.0 | by: Communications
+---
+section: Short Bio
+---
+text: One-Paragraph Bio
+text: {{short_bio}}
+---
+section: Full Bio
+---
+text: Background
+text: {{background}}
+---
+text: Career & Expertise
+text: {{career_expertise}}
+---
+text: Current Focus
+text: {{current_focus}}
+---
+text: Personal Interests
+text: {{personal_interests}}
+---
+section: Links & Profiles
+---
+text: Online Presence
+text: *Website:* {{website}}
+text: *LinkedIn:* {{linkedin}}
+text: *Twitter / X:* {{twitter}}
+text: *GitHub:* {{github}}
+text: *Speaking Reel:* {{speaking_reel}}
+---
+section: Headshot & Usage
+---
+text: Photo & Attribution
+text: *Headshot URL:* {{headshot_url}}
+text: *Photo Credit:* {{photo_credit}}
+text: *Usage Notes:* {{usage_notes}}

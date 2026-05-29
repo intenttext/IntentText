@@ -1,0 +1,72 @@
+title: Service Agreement
+meta: | type: template | domain: business | description: Full service contract with parties, scope, payment terms, termination clauses, and dual-party signatures | theme: legal | version: 1.0 | author: IntentText
+track: | version: 1.0 | by: Legal
+track: | version: 0.9 | by: Legal | note: Internal review draft
+track: | version: 0.8 | by: Operations | note: Initial scope definition
+---
+section: Parties
+---
+text: Service Provider
+text: *Name:* {{provider_name}}
+text: *Address:* {{provider_address}}
+text: *Contact:* {{provider_contact}} · {{provider_email}}
+text: *Registration:* {{provider_registration}}
+---
+text: Client
+text: *Name:* {{client_name}}
+text: *Address:* {{client_address}}
+text: *Contact:* {{client_contact}} · {{client_email}}
+text: *Registration:* {{client_registration}}
+---
+section: Scope of Services
+---
+text: Services Description
+text: {{services_description}}
+---
+text: Deliverables
+text: {{deliverables}}
+---
+text: Service Period
+text: *Effective Date:* {{effective_date}}
+text: *Term:* {{term}}
+text: *Renewal:* {{renewal_terms}}
+---
+section: Payment Terms
+---
+text: Compensation
+text: *Total Contract Value:* {{contract_value}}
+text: *Payment Schedule:* {{payment_schedule}}
+text: *Late Payment Penalty:* {{late_penalty}}
+text: *Invoicing:* {{invoicing_terms}}
+---
+section: Confidentiality
+---
+text: Confidentiality Obligations
+text: {{confidentiality_clause}}
+---
+section: Termination
+---
+text: Termination Conditions
+text: *For Convenience:* {{termination_convenience}}
+text: *For Cause:* {{termination_cause}}
+text: *Effect of Termination:* {{termination_effect}}
+---
+section: Limitation of Liability
+---
+text: Liability Cap
+text: {{liability_clause}}
+---
+section: Governing Law
+---
+text: Jurisdiction
+text: {{governing_law}}
+---
+section: Signatures
+---
+approve: Approved | by: {{legal_reviewer}} | role: Legal Counsel | at: {{review_date}}
+---
+sign: {{provider_signatory}} | role: {{provider_signatory_title}} | on behalf of: {{provider_name}} | at: {{provider_signed_date}} | hash: {{document_hash}}
+---
+sign: {{client_signatory}} | role: {{client_signatory_title}} | on behalf of: {{client_name}} | at: {{client_signed_date}} | hash: {{document_hash}}
+---
+freeze: Agreement executed | at: {{freeze_date}} | by: {{legal_reviewer}}

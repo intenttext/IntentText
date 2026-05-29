@@ -1,0 +1,17 @@
+{
+  "invoice_number": "INV-2201",
+  "line_items": [
+    {
+      "description": "License",
+      "qty": 1,
+      "price": "5000"
+    },
+    {
+      "description": "Implementation",
+      "qty": 2,
+      "price": "3500"
+    }
+  ],
+  "total_amount": "12000",
+  "currency": "SAR"
+}

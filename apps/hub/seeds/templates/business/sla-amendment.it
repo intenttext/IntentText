@@ -1,0 +1,29 @@
+title: {{title}}
+meta: | type: template | domain: business | description: SLA amendment revising uptime targets, response times, and service level parameters | theme: corporate | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+---
+section: SLA Amendment
+---
+paragraph: This amendment revises the Service Level Agreement between {{provider_name}} and {{client_name}}, effective {{effective_date}}.
+---
+ref: {{original_sla_name}} | file: {{original_sla_path}} | rel: amends
+---
+section: Revised Metrics
+---
+paragraph: The following service level amendments have been agreed upon by both parties.
+---
+section: Impact Assessment
+---
+metric: New Uptime Target | value: {{uptime_now}} | unit: % | target: {{uptime_now}} | trend: up
+metric: New P1 Response Target | value: {{p1_now_value}} | unit: minutes | target: {{p1_now_value}} | trend: down
+metric: Estimated Annual Credit Risk | value: {{credit_risk}} | unit: USD | trend: up
+---
+section: Approval
+---
+approve: SLA amendment approved | by: {{approver}} | role: {{approver_role}}
+freeze: | status: locked | hash: {{freeze_hash}} | at: {{freeze_date}}
+amendment: Uptime target increased | section: Availability | was: {{uptime_was}} | now: {{uptime_now}} | ref: SLA Amendment #{{amendment_number}} | by: {{amendment_by}} | at: {{amendment_date}}
+amendment: P1 response time reduced | section: Response Time | was: {{p1_was}} | now: {{p1_now}} | ref: SLA Amendment #{{amendment_number}} | by: {{amendment_by}} | at: {{amendment_date}}
+amendment: Resolution time target updated | section: Resolution Time | was: {{resolution_was}} | now: {{resolution_now}} | ref: SLA Amendment #{{amendment_number}} | by: {{amendment_by}} | at: {{amendment_date}}
+sign: {{provider_signer}} | role: {{provider_role}} | hash: {{provider_hash}} | at: {{provider_sign_date}}
+sign: {{client_signer}} | role: {{client_role}} | hash: {{client_hash}} | at: {{client_sign_date}}

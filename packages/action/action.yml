@@ -1,0 +1,52 @@
+name: 'IntentText Validate'
+description: 'Validate IntentText (.it) workflow and document files'
+author: 'intenttext'
+
+branding:
+  icon: 'check-circle'
+  color: 'purple'
+
+inputs:
+  path:
+    description: 'Glob pattern for .it files to validate. Default: **/*.it'
+    required: false
+    default: '**/*.it'
+
+  strict:
+    description: 'Fail on warnings as well as errors. Default: false'
+    required: false
+    default: 'false'
+
+  ignore:
+    description: 'Comma-separated glob patterns to ignore. Default: node_modules/**'
+    required: false
+    default: 'node_modules/**'
+
+  annotate:
+    description: 'Add GitHub annotations (inline PR comments) for issues. Default: true'
+    required: false
+    default: 'true'
+
+  verify:
+    description: 'Verify sealed .it files have not been tampered with. Default: false'
+    required: false
+    default: 'false'
+
+  verify-pattern:
+    description: 'Glob pattern for files to verify (default: **/*.it)'
+    required: false
+    default: '**/*.it'
+
+outputs:
+  files_checked:
+    description: 'Number of .it files validated'
+
+  issues_found:
+    description: 'Total number of issues found across all files'
+
+  valid:
+    description: 'true if all files passed, false if any failed'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

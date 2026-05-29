@@ -1,0 +1,33 @@
+title: {{title}}
+meta: | type: template | domain: business | description: Annual report financial highlights section with metrics, figures, and detailed numbers | theme: corporate | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+x-writer: byline | content: {{author}} | role: {{author_role}} | date: {{report_date}}
+---
+section: Financial Highlights
+---
+metric: Annual Revenue | value: {{revenue}} | unit: USD | target: {{revenue_target}} | trend: {{revenue_trend}} | period: {{fiscal_year}}
+metric: Revenue Growth | value: {{revenue_growth}} | unit: % | target: {{growth_target}} | trend: {{growth_trend}} | period: {{fiscal_year}}
+metric: EBITDA | value: {{ebitda}} | unit: USD | target: {{ebitda_target}} | trend: {{ebitda_trend}} | period: {{fiscal_year}}
+metric: EBITDA Margin | value: {{ebitda_margin}} | unit: % | target: {{ebitda_margin_target}} | trend: {{margin_trend}} | period: {{fiscal_year}}
+---
+x-writer: figure | content: {{figure_1_caption}} | src: {{figure_1_src}} | alt: {{figure_1_alt}}
+---
+section: Revenue Breakdown
+---
+columns: | Segment | Revenue | Growth | Share
+row: | {{seg_1_name}} | {{seg_1_revenue}} | {{seg_1_growth}} | {{seg_1_share}}
+row: | {{seg_2_name}} | {{seg_2_revenue}} | {{seg_2_growth}} | {{seg_2_share}}
+row: | {{seg_3_name}} | {{seg_3_revenue}} | {{seg_3_growth}} | {{seg_3_share}}
+---
+x-writer: figure | content: {{figure_2_caption}} | src: {{figure_2_src}} | alt: {{figure_2_alt}}
+---
+section: Key Investments
+---
+metric: R&D Spending | value: {{rd_spending}} | unit: USD | trend: {{rd_trend}} | period: {{fiscal_year}}
+metric: Capital Expenditure | value: {{capex}} | unit: USD | trend: {{capex_trend}} | period: {{fiscal_year}}
+---
+section: Outlook
+---
+paragraph: {{outlook}}
+---
+deadline: Annual filing deadline | date: {{filing_deadline}} | consequence: Regulatory penalties apply | owner: {{cfo_name}}

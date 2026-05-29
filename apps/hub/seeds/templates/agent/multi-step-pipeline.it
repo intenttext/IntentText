@@ -1,0 +1,40 @@
+title: {{pipeline_name}}
+meta: | type: template | domain: agent | description: Multi-step agent pipeline with trigger conditions, sequential execution, error handling, and structured outputs | theme: technical | version: 1.0 | author: IntentText
+track: | version: 1.0 | by: {{author}} | note: Pipeline defined {{created_date}}
+---
+section: Pipeline Overview
+---
+text: Configuration
+text: *Pipeline ID:* {{pipeline_id}}
+text: *Owner:* {{owner}}
+text: *Model:* {{model}}
+text: *Environment:* {{environment}}
+text: *Concurrency:* {{concurrency}}
+---
+trigger: {{trigger_event}} | event: {{trigger_detail}}
+---
+section: Pipeline Steps
+---
+step: {{name}} | tool: {{tool}} | timeout: {{timeout}} | retry: {{retry_count}}
+text: *Description:* {{description}}
+text: *Depends On:* {{depends_on}}
+text: *Input:* {{input}}
+text: *On Error:* {{on_error}}
+---
+section: Error Handling
+---
+text: Global Error Strategy
+text: *Strategy:* {{error_strategy}}
+text: *Dead Letter Queue:* {{dlq_destination}}
+text: *Alert Channel:* {{alert_channel}}
+text: *Max Pipeline Retries:* {{max_retries}}
+---
+section: Outputs
+---
+x-agent: signal | content: {{output_event_success}} | phase: complete | level: success
+x-agent: signal | content: {{output_event_failure}} | phase: error | level: error
+---
+text: Output Schema
+text: {{output_schema_description}}
+---
+text: Pipeline maintained by {{author}} · Last updated {{created_date}}

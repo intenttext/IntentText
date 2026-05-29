@@ -1,0 +1,62 @@
+{
+  "working_title": "The Quiet Collapse of Community Pharmacies in Rural Appalachia",
+  "reporter_name": "Danielle Ashford",
+  "assigning_editor": "Marcus Reeves",
+  "section": "Health & Policy",
+  "pitch_date": "March 5, 2026",
+  "angle": "Since 2020, 146 independent pharmacies have closed across rural Appalachian counties in West Virginia, Kentucky, and Virginia, leaving an estimated 280,000 residents in pharmacy deserts — areas where the nearest pharmacy is more than 15 miles away. PBM reimbursement rates, not patient demand, are driving closures. This story follows three pharmacists who shut their doors in the past year and the communities navigating life without a local pharmacy, including a diabetes patient who now drives 40 minutes each way for insulin.",
+  "audience": "General readership with interest in healthcare access, rural policy, and economic inequality. Secondary audience: policymakers engaged in PBM reform legislation currently in Senate committee.",
+  "key_questions": [
+    {
+      "question": "What specific PBM reimbursement practices make independent rural pharmacies financially unviable?",
+      "relevance": "DIR fees and retroactive clawbacks are cited anecdotally but rarely quantified with real P&L data from affected pharmacies"
+    },
+    {
+      "question": "What happens to medication adherence and ER visit rates when a community loses its only pharmacy?",
+      "relevance": "CMS data may show measurable health outcome changes in counties that lost their last pharmacy — this would quantify the human cost"
+    },
+    {
+      "question": "Are mail-order pharmacy programs actually filling the gap in these communities?",
+      "relevance": "Industry claims mail-order solves access, but rural mail delivery times and cold-chain medication handling raise doubts"
+    },
+    {
+      "question": "What is the status of the Pharmacy Benefit Manager Reform Act in the Senate Commerce Committee?",
+      "relevance": "Legislation would ban spread pricing and mandate transparency — its fate determines whether the policy angle is forward-looking or retrospective"
+    }
+  ],
+  "sources": [
+    {
+      "name": "Ruth Elkins",
+      "role": "Former owner, Elkins Family Pharmacy, Marlinton, WV",
+      "affiliation": "Independent (closed November 2025 after 31 years)",
+      "contact": "Personal phone — confirmed willing to speak on record",
+      "value": "First-person account of closure economics; has kept detailed financial records showing PBM reimbursement below acquisition cost on 23% of prescriptions filled in final year"
+    },
+    {
+      "name": "Dr. Bhaskar Rao",
+      "role": "Health economist",
+      "affiliation": "West Virginia University School of Public Health",
+      "contact": "brao@hsc.wvu.edu",
+      "value": "Published 2025 study mapping pharmacy desert expansion in Appalachia; has county-level data on closure-to-health-outcome correlations"
+    },
+    {
+      "name": "Gloria Stump",
+      "role": "Patient advocate and Type 2 diabetes patient",
+      "affiliation": "Pocahontas County, WV resident",
+      "contact": "Through Ruth Elkins — verbal consent to interview given",
+      "value": "Drives 42 miles round trip for insulin since Elkins Family Pharmacy closed; represents the lived-experience dimension of the story"
+    },
+    {
+      "name": "Antonio Ciaccia",
+      "role": "CEO",
+      "affiliation": "46brooklyn Research, a drug pricing transparency nonprofit",
+      "contact": "press@46brooklyn.com",
+      "value": "National-level PBM reimbursement data and policy analysis; has testified before Congress on spread pricing"
+    }
+  ],
+  "deadline": "April 2, 2026",
+  "word_count": "3,500–4,000",
+  "multimedia_needs": "Photography of closed pharmacy storefronts and affected communities; potential map visualization of pharmacy desert expansion 2020–2026",
+  "travel": "Two trips to Pocahontas County, WV (3 days each) and one trip to Lexington, KY for pharmacy association meeting",
+  "background_context": "In January 2026, the FTC released a scathing report on PBM market concentration, finding that three companies — CVS Caremark, Express Scripts, and OptumRx — control 80% of prescription volume and routinely reimburse independent pharmacies below the cost of dispensing generic medications. The report recommended legislative action but has no enforcement mechanism. Meanwhile, the Senate Commerce Committee has held two hearings on the Pharmacy Benefit Manager Reform Act but has not scheduled a markup."
+}

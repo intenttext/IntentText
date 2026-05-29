@@ -1,0 +1,15 @@
+title: Table of Contents
+meta: | type: template | domain: book | description: Book or report table of contents generated from chapter metadata with titles and page numbers | theme: warm | version: 1.0 | author: IntentText
+---
+section: {{book_title}}
+---
+text: *{{subtitle}}*
+text: by {{author}}
+---
+section: Contents
+---
+text: {{number}}. {{title}} | page: {{page}}
+---
+section: Back Matter
+---
+text: {{title}} | page: {{page}}

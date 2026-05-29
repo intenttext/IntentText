@@ -1,0 +1,76 @@
+{
+  "project_name": "Helix Data Platform",
+  "team_name": "Platform Engineering",
+  "author_name": "Anya Korova",
+  "report_week": "March 2–6, 2026",
+  "sprint_name": "Sprint 14 — Ingestion Pipeline",
+  "overall_status": "On Track",
+  "accomplishments": [
+    {
+      "description": "Deployed streaming ingestion pipeline to staging with Kafka connector support",
+      "owner": "Luca Feretti",
+      "completed_date": "March 3, 2026"
+    },
+    {
+      "description": "Reduced P95 query latency from 420ms to 185ms on partitioned datasets",
+      "owner": "Mei-Lin Chow",
+      "completed_date": "March 4, 2026"
+    },
+    {
+      "description": "Completed schema registry migration — 47 schemas validated and promoted",
+      "owner": "Anya Korova",
+      "completed_date": "March 5, 2026"
+    },
+    {
+      "description": "Merged RBAC middleware with row-level security enforcement for multi-tenant access",
+      "owner": "Tariq Osman",
+      "completed_date": "March 6, 2026"
+    }
+  ],
+  "blockers": [
+    {
+      "description": "AWS quota limit on r6g.2xlarge instances blocking staging scale test — support ticket open since February 27",
+      "raised_by": "Luca Feretti",
+      "severity": "High",
+      "status": "Escalated to AWS TAM"
+    },
+    {
+      "description": "Third-party CDC connector drops events under sustained 50K msg/s throughput — vendor investigating",
+      "raised_by": "Mei-Lin Chow",
+      "severity": "Medium",
+      "status": "Awaiting vendor patch"
+    }
+  ],
+  "next_week": [
+    {
+      "description": "Run full-scale ingestion benchmark with 200M row synthetic dataset",
+      "owner": "Luca Feretti",
+      "target_date": "March 10, 2026",
+      "priority": "High"
+    },
+    {
+      "description": "Implement dead-letter queue alerting and replay mechanism",
+      "owner": "Mei-Lin Chow",
+      "target_date": "March 11, 2026",
+      "priority": "High"
+    },
+    {
+      "description": "Draft schema governance policy document for architecture review",
+      "owner": "Anya Korova",
+      "target_date": "March 12, 2026",
+      "priority": "Medium"
+    },
+    {
+      "description": "Begin integration testing of RBAC with customer-facing API gateway",
+      "owner": "Tariq Osman",
+      "target_date": "March 13, 2026",
+      "priority": "Medium"
+    }
+  ],
+  "points_completed": "34",
+  "points_committed": "42",
+  "open_bugs": "7",
+  "review_turnaround": "4.2 hours average",
+  "test_coverage": "83%",
+  "report_date": "March 6, 2026"
+}

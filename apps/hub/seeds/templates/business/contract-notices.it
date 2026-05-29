@@ -1,0 +1,39 @@
+title: {{title}}
+meta: | type: template | domain: business | description: Formal notices section for contracts specifying contact details for legal, billing, and technical communications | theme: legal | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+---
+ref: {{agreement_name}} | file: {{agreement_path}} | rel: relates-to
+---
+section: Notice Requirements
+---
+paragraph: All notices required or permitted under the Agreement shall be in writing and shall be deemed given when (a) delivered personally, (b) sent by certified mail, return receipt requested, or (c) sent by nationally recognized overnight courier, to the addresses set forth below.
+---
+section: Provider — For Legal Notices
+---
+contact: {{provider_legal_name}} | role: For Notices | org: {{provider_org}} | email: {{provider_legal_email}} | phone: {{provider_legal_phone}}
+paragraph: {{provider_legal_address}}
+---
+section: Provider — For Billing
+---
+contact: {{provider_billing_name}} | role: Billing Contact | org: {{provider_org}} | email: {{provider_billing_email}} | phone: {{provider_billing_phone}}
+---
+section: Provider — For Technical Issues
+---
+contact: {{provider_tech_name}} | role: Technical Contact | org: {{provider_org}} | email: {{provider_tech_email}} | phone: {{provider_tech_phone}}
+---
+section: Client — For Legal Notices
+---
+contact: {{client_legal_name}} | role: For Notices | org: {{client_org}} | email: {{client_legal_email}} | phone: {{client_legal_phone}}
+paragraph: {{client_legal_address}}
+---
+section: Client — For Billing
+---
+contact: {{client_billing_name}} | role: Billing Contact | org: {{client_org}} | email: {{client_billing_email}} | phone: {{client_billing_phone}}
+---
+section: Client — For Technical Issues
+---
+contact: {{client_tech_name}} | role: Technical Contact | org: {{client_org}} | email: {{client_tech_email}}
+---
+section: Change of Notice Address
+---
+paragraph: Either party may change its notice address by providing thirty (30) days prior written notice to the other party in accordance with this section.

@@ -1,0 +1,24 @@
+{
+  "name": "intenttext-action",
+  "version": "1.2.5",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "bundle": "ncc build src/main.ts -o dist --minify",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/glob": "^0.4.0",
+    "@intenttext/core": "^3.3.1",
+    "minimatch": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/minimatch": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@vercel/ncc": "^0.38.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}

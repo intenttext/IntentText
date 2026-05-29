@@ -1,0 +1,56 @@
+{
+  "newsletter_name": "The Wavelength",
+  "issue_label": "Issue #74 — March 2026",
+  "publish_date": "March 7, 2026",
+  "editor_name": "Suki Maehara",
+  "editor_title": "Editor-in-Chief",
+  "intro": "This month we are watching three intersecting currents: the EU's landmark vote on algorithmic accountability, the surprising resurgence of community-owned broadband cooperatives in the American Midwest, and the quiet rollout of UNESCO's updated digital literacy framework in 40 countries. Each story reflects a different facet of the same question — who gets to shape the rules of the digital commons? We have original reporting on all three, plus a conversation with the architect behind Finland's national AI transparency register.",
+  "stories": [
+    {
+      "headline": "The EU Algorithmic Accountability Act Passes — Here Is What It Actually Requires",
+      "summary": "After 14 months of negotiation, the European Parliament approved the Algorithmic Accountability Act with a 412-to-189 vote. The law requires companies deploying high-risk automated decision systems to publish impact assessments, submit to third-party audits, and maintain human override mechanisms. We break down the compliance timeline, the exemptions that industry lobbied for, and why enforcement will depend on a new agency that does not yet have a budget.",
+      "author": "Lars Bergström",
+      "read_time": "9 min"
+    },
+    {
+      "headline": "In Rural Iowa, a Fiber-Optic Cooperative Offers a Model for Community-Owned Internet",
+      "summary": "Mahaska Communications Cooperative, a member-owned utility in Oskaloosa, Iowa, now provides gigabit fiber to 8,200 households across three counties — areas that Windstream and Mediacom abandoned as unprofitable. Monthly rates start at $49 for 500 Mbps. We visited the co-op, talked to lineworkers pulling fiber through cornfields in January, and examined the financial model that makes it work without venture capital or government subsidy.",
+      "author": "Rosa Aquino",
+      "read_time": "12 min"
+    },
+    {
+      "headline": "UNESCO's Digital Literacy Framework Gets Its Biggest Update in a Decade",
+      "summary": "The updated framework adds modules on AI literacy, data sovereignty, and algorithmic media consumption — concepts that did not exist when the original framework was drafted in 2015. We spoke with lead author Dr. Nanjira Sambuli about why the hardest part was not writing the curriculum but convincing education ministries to adopt it without reducing it to a checkbox exercise.",
+      "author": "Preethi Chandran",
+      "read_time": "7 min"
+    },
+    {
+      "headline": "Finland Built a Public Register of Every Government AI System — Can Others Follow?",
+      "summary": "Since January 2025, every Finnish government agency using automated decision-making has been required to register the system in a public database that discloses its purpose, training data sources, accuracy metrics, and appeal process. The registry now lists 142 systems, from tax fraud detection to hospital bed allocation. We examine what the register reveals, what it conceals, and whether the model is portable to countries with less institutional trust.",
+      "author": "Suki Maehara",
+      "read_time": "10 min"
+    }
+  ],
+  "commentary_quote": "Transparency without enforcement is just performance. The question is never whether governments can publish a list — it is whether anyone has the power to act on what the list reveals.",
+  "commentary_attribution": "Dr. Nanjira Sambuli, Digital Policy Researcher and lead author of the UNESCO Digital Literacy Framework update",
+  "quick_links": [
+    {
+      "title": "FTC Report on Cloud Computing Market Concentration",
+      "description": "The FTC's 74-page examination of how four cloud providers control 72% of the market and the implications for smaller competitors and data portability",
+      "source": "Federal Trade Commission, February 2026"
+    },
+    {
+      "title": "Global Internet Shutdowns Tracker — 2025 Annual Report",
+      "description": "Access Now documented 87 intentional internet shutdowns across 34 countries in 2025, with Sudan, Myanmar, and India accounting for 61% of total shutdown hours",
+      "source": "Access Now, March 2026"
+    },
+    {
+      "title": "Public Domain Day 2026 — What Entered the Commons",
+      "description": "Works from 1930 entered the US public domain on January 1, including early sound films, Depression-era literature, and the first Mickey Mouse cartoons with synchronized dialogue",
+      "source": "Duke Law Center for the Public Domain"
+    }
+  ],
+  "sign_off": "That is the Wavelength for March. If one of these stories sparked a question or a pushback, reply to this email — I read every response and it shapes what we cover next. See you in April.",
+  "issue_status": "Published",
+  "track_label": "Issue #74 — March 2026"
+}

@@ -1,0 +1,50 @@
+title: Project Risk Register
+meta: | type: template | domain: business | description: Project risk register with categorized risks, likelihood and impact ratings, mitigation strategies, and version tracking | theme: corporate | version: 1.0 | author: IntentText
+track: | version: 1.0 | by: {{register_owner}} | note: {{latest_review_note}}
+track: | version: 0.9 | by: {{register_owner}} | note: Initial risk identification workshop
+---
+section: Register Information
+---
+text: Details
+text: *Project:* {{project_name}}
+text: *Project Code:* {{project_code}}
+text: *Risk Owner:* {{register_owner}}
+text: *Last Reviewed:* {{last_reviewed}}
+text: *Next Review:* {{next_review}}
+text: *Total Open Risks:* {{total_open_risks}}
+---
+section: Risk Summary
+---
+text: Risk Distribution
+text: *Critical:* {{critical_count}} · *High:* {{high_count}} · *Medium:* {{medium_count}} · *Low:* {{low_count}}
+text: *Risks Mitigated This Period:* {{mitigated_count}}
+text: *New Risks Identified:* {{new_risks_count}}
+---
+section: Risk Register
+---
+info: {{title}} | type: warning
+text: *Risk ID:* {{risk_id}} · *Category:* {{category}} · *Status:* {{status}}
+text: *Likelihood:* {{likelihood}} · *Impact:* {{impact}} · *Risk Score:* {{risk_score}}
+text: *Description:* {{description}}
+text: *Trigger:* {{trigger}}
+text: *Mitigation Strategy:* {{mitigation}}
+text: *Contingency Plan:* {{contingency}}
+text: *Owner:* {{owner}} · *Review Date:* {{review_date}}
+---
+section: Risk Matrix
+---
+text: Scoring Guide
+text: *5 — Critical:* Project failure or major strategic impact
+text: *4 — High:* Significant schedule or budget overrun
+text: *3 — Medium:* Manageable with active intervention
+text: *2 — Low:* Minor impact, unlikely to affect delivery
+text: *1 — Minimal:* Negligible impact
+---
+section: Closed Risks
+---
+text: Recently Closed
+text: {{closed_risks}}
+---
+section: Approval
+---
+approve: Approved | by: {{register_owner}} | role: Risk Owner | at: {{approval_date}}

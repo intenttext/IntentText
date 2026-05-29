@@ -1,0 +1,80 @@
+{
+  "assessment_title": "Vendor Assessment — CloudVault Storage Solutions",
+  "assessment_id": "VA-2026-017",
+  "vendor_name": "CloudVault Storage Solutions Inc.",
+  "vendor_contact": "Renata Oliveira",
+  "vendor_email": "r.oliveira@cloudvault.io",
+  "vendor_category": "Cloud Infrastructure — Object Storage and Backup Services",
+  "assessment_date": "March 3, 2026",
+  "assessor": "Henrik Dahl, Senior Procurement Analyst",
+  "assessment_method": "Document review, vendor questionnaire (148 questions), reference calls with three existing enterprise clients, on-site data centre tour (Ashburn, VA facility), and proof-of-concept evaluation over a 30-day trial period.",
+  "purpose": "Meridian Insurance Group is evaluating CloudVault Storage Solutions as a potential replacement for the current on-premises backup infrastructure. This assessment determines whether CloudVault meets Meridian's requirements for reliability, security, regulatory compliance, and cost efficiency for storing policyholder records and claims data.",
+  "vendor_founded": "2018",
+  "vendor_headquarters": "Austin, TX",
+  "vendor_employees": "Approximately 620",
+  "vendor_revenue": "Estimated $95 million (FY2025, privately held — figure based on vendor disclosure)",
+  "vendor_certifications": "SOC 2 Type II, ISO 27001:2022, HIPAA BAA available, FedRAMP Moderate (in progress, expected Q3 2026)",
+  "existing_relationship": "No prior commercial relationship. CloudVault was identified through the 2025 Gartner Magic Quadrant for Enterprise Backup and Recovery and shortlisted following an RFI process in December 2025.",
+  "assessment_criteria": [
+    {
+      "criterion_name": "Data Security and Encryption",
+      "score": "9",
+      "max_score": "10",
+      "weight": "25%",
+      "risk_rating": "Low",
+      "criterion_notes": "CloudVault provides AES-256 encryption at rest with customer-managed keys via AWS KMS and HashiCorp Vault integration. TLS 1.3 enforced for all data in transit. Zero-knowledge architecture option available for regulated workloads. Minor gap: client-side encryption SDK currently supports Java and Python only; .NET support on the roadmap for Q2 2026."
+    },
+    {
+      "criterion_name": "Regulatory Compliance",
+      "score": "7",
+      "max_score": "10",
+      "weight": "20%",
+      "risk_rating": "Medium",
+      "criterion_notes": "SOC 2 Type II and ISO 27001 certifications are current. HIPAA Business Associate Agreement template reviewed and acceptable. FedRAMP Moderate authorization is in progress but not yet granted — relevant because Meridian's government-adjacent insurance lines may require FedRAMP-authorised vendors within 18 months. State insurance data residency requirements can be met via region-pinning to US-East."
+    },
+    {
+      "criterion_name": "Service Reliability and SLA",
+      "score": "9",
+      "max_score": "10",
+      "weight": "20%",
+      "risk_rating": "Low",
+      "criterion_notes": "Published SLA guarantees 99.99% durability and 99.95% availability. Penalty structure: 10% service credit for monthly availability below 99.95%, 25% for below 99.9%, 50% for below 99.0%. Reference clients confirmed no unplanned outages in the past 18 months. Disaster recovery tested with cross-region replication (RTO 4 hours, RPO 15 minutes)."
+    },
+    {
+      "criterion_name": "Financial Stability",
+      "score": "6",
+      "max_score": "10",
+      "weight": "15%",
+      "risk_rating": "Medium",
+      "criterion_notes": "CloudVault completed a $75 million Series C round in September 2025 led by Sequoia Capital. Burn rate is manageable per disclosed metrics, and the company reports being on track for profitability by Q4 2026. However, as a privately held company with less than five years of operating history, there is inherent risk compared to established public-company vendors."
+    },
+    {
+      "criterion_name": "Technical Integration",
+      "score": "8",
+      "max_score": "10",
+      "weight": "10%",
+      "risk_rating": "Low",
+      "criterion_notes": "S3-compatible API enables straightforward integration with Meridian's existing Veeam and Commvault backup infrastructure. Proof-of-concept demonstrated successful migration of 12 TB test dataset with zero data corruption. REST API well-documented. Terraform provider available. Minor friction: webhook notification format differs from the current monitoring stack, requiring a lightweight adapter."
+    },
+    {
+      "criterion_name": "Cost Competitiveness",
+      "score": "8",
+      "max_score": "10",
+      "weight": "10%",
+      "risk_rating": "Low",
+      "criterion_notes": "Proposed pricing of $0.0042/GB/month for standard storage and $0.0008/GB/month for archive tier is 35% below current on-premises TCO (including hardware refresh, power, and personnel). Egress fees are capped at $0.01/GB, which is significantly lower than hyperscaler equivalents. Three-year commitment discount of 20% available."
+    }
+  ],
+  "weighted_total": "7.95",
+  "max_weighted_total": "10.00",
+  "overall_risk_rating": "Low-Medium",
+  "rating_threshold": "Vendors scoring 7.0 or above with no Critical risk ratings qualify for approval. Vendors scoring 6.0–6.99 require enhanced due diligence and executive sponsor approval.",
+  "strengths": "1. Strong security architecture with customer-managed encryption keys and zero-knowledge option — well-suited for regulated insurance data.\n2. Competitive pricing with transparent cost structure and capped egress fees.\n3. S3-compatible API minimises migration effort and avoids vendor lock-in.\n4. Excellent reliability track record with robust SLA commitments and credit structure.\n5. Responsive vendor engagement throughout the evaluation — technical team participated directly in proof-of-concept calls.",
+  "concerns": "1. FedRAMP Moderate authorization is not yet complete; if Meridian's government insurance lines require FedRAMP compliance before Q3 2026, an interim alternative may be needed.\n2. As a Series C startup, long-term financial viability carries more uncertainty than an established vendor. Escrow or source-code access arrangements should be explored.\n3. .NET client-side encryption SDK is not yet available, which affects two of Meridian's legacy claims processing applications.",
+  "mitigations": "1. Include a contractual clause requiring CloudVault to provide 12 months' advance notice of any material change in service or ownership, with data portability assistance at no additional cost.\n2. Negotiate a technology escrow agreement for the S3-compatible API layer to protect against vendor discontinuation.\n3. Request quarterly FedRAMP progress updates and include a contractual right to terminate without penalty if authorization is not achieved by December 31, 2026.\n4. Develop an internal adapter for the .NET encryption gap, estimated at 3 weeks of engineering effort, while awaiting CloudVault's native support.",
+  "recommendation": "Approved — Conditional",
+  "conditions": "Approval is subject to: (a) execution of a technology escrow agreement; (b) inclusion of the 12-month change-of-control notification clause in the master services agreement; (c) written confirmation from CloudVault of the FedRAMP Moderate authorization timeline; and (d) successful completion of Meridian's legal review of the proposed BAA within 30 days.",
+  "procurement_lead": "Sandra Whitfield",
+  "procurement_lead_title": "VP of Strategic Procurement",
+  "approval_date": "2026-03-10"
+}

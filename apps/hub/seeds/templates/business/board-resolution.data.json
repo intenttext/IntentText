@@ -1,0 +1,42 @@
+{
+  "corporation_name": "Crestview Holdings Inc.",
+  "resolution_number": "BR-2026-003",
+  "meeting_date": "February 20, 2026",
+  "meeting_location": "Crestview Headquarters, 500 Pacific Avenue, Suite 2200, Vancouver, BC V6Z 1T5",
+  "meeting_type": "Special Meeting",
+  "vote_result": "unanimous",
+  "recitals": "WHEREAS, the Board of Directors has reviewed the strategic acquisition proposal for Silverlake Data Systems Ltd., a British Columbia corporation specializing in cloud infrastructure management;\n\nWHEREAS, independent financial advisors from Hargrove Partners have delivered a fairness opinion dated February 12, 2026, concluding that the proposed acquisition price of CAD $47.5 million is fair from a financial standpoint to the shareholders of Crestview Holdings Inc.;\n\nWHEREAS, legal counsel from Ashworth & Mackenzie LLP has completed due diligence and confirmed no material undisclosed liabilities or regulatory impediments to the transaction;",
+  "resolved_clauses": "NOW, THEREFORE, BE IT RESOLVED, that the Board of Directors hereby approves the acquisition of 100% of the outstanding shares of Silverlake Data Systems Ltd. for a total consideration of CAD $47,500,000, subject to customary closing conditions and regulatory approvals;\n\nFURTHER RESOLVED, that the Chief Executive Officer and General Counsel are authorized to negotiate, execute, and deliver all definitive agreements, ancillary documents, and regulatory filings necessary to consummate the acquisition;\n\nFURTHER RESOLVED, that a special committee comprising the Chair, CEO, and CFO is established to oversee integration planning and report to the Board on a monthly basis until integration is substantially complete.",
+  "authorization": "The officers of the Corporation are authorized and directed to take such further actions and execute such additional documents as may be necessary or desirable to carry out the purposes and intent of the foregoing resolutions.",
+  "effective_date": "February 20, 2026",
+  "directors": [
+    {
+      "name": "Helena Vasquez",
+      "title": "Board Chair",
+      "signed_date": "2026-02-20"
+    },
+    {
+      "name": "Rajiv Chandrasekar",
+      "title": "Director",
+      "signed_date": "2026-02-20"
+    },
+    {
+      "name": "Nathalie Tremblay",
+      "title": "Director",
+      "signed_date": "2026-02-20"
+    },
+    {
+      "name": "Gunnar Eriksson",
+      "title": "Director",
+      "signed_date": "2026-02-20"
+    },
+    {
+      "name": "Diane Okafor-Williams",
+      "title": "Director",
+      "signed_date": "2026-02-20"
+    }
+  ],
+  "secretary_name": "Martin Cartwright",
+  "certification_date": "2026-02-20",
+  "freeze_date": "2026-02-20T16:45:00Z"
+}

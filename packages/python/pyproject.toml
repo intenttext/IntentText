@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "intenttext"
+version = "3.3.0"
+description = "IntentText - the semantic document format that is natively JSON"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/intenttext/IntentText"
+Repository = "https://github.com/intenttext/intenttext-python"
+Documentation = "https://itdocs.vercel.app"
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

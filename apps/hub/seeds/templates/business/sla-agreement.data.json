@@ -1,0 +1,75 @@
+{
+  "provider_name": "Stratosphere Cloud Services GmbH",
+  "provider_address": "Friedrichstraße 191, 10117 Berlin, Germany",
+  "provider_contact": "Annika Reinhardt, Head of Client Operations",
+  "provider_email": "sla@stratosphere-cloud.de",
+  "customer_name": "Lumina Health Systems Pty Ltd",
+  "customer_address": "Level 14, 200 George Street, Sydney, NSW 2000, Australia",
+  "customer_contact": "James Worthington, CTO",
+  "customer_email": "j.worthington@luminahealth.com.au",
+  "agreement_id": "SLA-2026-EU-0047",
+  "effective_date": "April 1, 2026",
+  "term": "24 months from the Effective Date",
+  "renewal_terms": "Auto-renews for successive 12-month periods unless either party provides 90 days' written notice of non-renewal",
+  "services_covered": "Managed Kubernetes hosting (Production and Staging clusters), Object storage, Managed PostgreSQL databases, CDN, and 24/7 infrastructure monitoring as specified in Service Order SO-2026-LH-003",
+  "sla_metrics": [
+    {
+      "metric_name": "Platform Availability",
+      "target": "99.95% monthly uptime",
+      "measurement_period": "Calendar month",
+      "measurement_method": "Synthetic monitoring from 5 global probe locations, measured at 60-second intervals",
+      "penalty": "Service credits per credit schedule below"
+    },
+    {
+      "metric_name": "API Response Latency (P95)",
+      "target": "< 200ms for standard API calls",
+      "measurement_period": "Rolling 7-day window",
+      "measurement_method": "Server-side latency measured at the load balancer, excluding client network time",
+      "penalty": "5% monthly service credit if exceeded for 3+ consecutive measurement periods"
+    },
+    {
+      "metric_name": "Data Durability",
+      "target": "99.999999999% (11 nines) annual object durability",
+      "measurement_period": "Annual",
+      "measurement_method": "Object integrity verification via checksums across replicated storage nodes",
+      "penalty": "Full remediation and data recovery at Provider's expense; liability per Master Agreement"
+    },
+    {
+      "metric_name": "Backup Completion",
+      "target": "100% of scheduled daily backups completed successfully",
+      "measurement_period": "Calendar month",
+      "measurement_method": "Automated backup verification with integrity check and restore test sampling",
+      "penalty": "2% monthly service credit per missed backup exceeding 2 in a calendar month"
+    },
+    {
+      "metric_name": "Incident Communication",
+      "target": "Status page update within 15 minutes of confirmed Severity 1 incident",
+      "measurement_period": "Per incident",
+      "measurement_method": "Timestamp of first public status page update vs. incident confirmation timestamp",
+      "penalty": "1% monthly service credit per occurrence exceeding 15-minute threshold"
+    }
+  ],
+  "uptime_target": "99.95%",
+  "maintenance_window": "Tuesdays 02:00–06:00 UTC",
+  "maintenance_notice": "Minimum 72 hours advance notice for scheduled maintenance; 5 business days for maintenance expected to exceed 30 minutes",
+  "uptime_exclusions": "Scheduled maintenance windows, force majeure events, Customer-initiated configuration changes, and third-party DNS or network provider outages outside Provider's control",
+  "sev1_response": "15 minutes",
+  "sev1_resolution": "4 hours",
+  "sev2_response": "30 minutes",
+  "sev2_resolution": "8 hours",
+  "sev3_response": "4 business hours",
+  "sev3_resolution": "3 business days",
+  "sev4_response": "1 business day",
+  "sev4_resolution": "10 business days",
+  "escalation_procedure": "Tier 1: On-call engineer (immediate)\nTier 2: Senior infrastructure engineer (after 30 minutes without resolution)\nTier 3: Engineering Manager and Head of Client Operations (after 2 hours without resolution for Severity 1)\nTier 4: VP of Engineering and customer executive sponsor (after 4 hours without resolution for Severity 1)\nAll escalations logged in the shared incident management portal with real-time updates.",
+  "credit_schedule": "Monthly uptime 99.90%–99.95%: 5% service credit\nMonthly uptime 99.00%–99.89%: 15% service credit\nMonthly uptime 95.00%–98.99%: 25% service credit\nMonthly uptime below 95.00%: 40% service credit and Customer may terminate without penalty",
+  "credit_limitations": "Service credits are capped at 40% of the monthly service fees for the affected service. Credits are applied to the next billing cycle and are not redeemable for cash. Customer must request credits in writing within 30 days of the applicable monthly reporting period. Credits do not carry over beyond 6 months.",
+  "reporting_terms": "Provider will deliver a monthly Service Level Report within 10 business days of each calendar month-end. Reports will include: uptime percentage, incident summary with root cause analysis for any Severity 1 or 2 incidents, latency percentile data, backup completion status, and credit calculations. Reports are accessible via the customer portal and optionally delivered by email to designated recipients.",
+  "review_terms": "The parties will conduct a quarterly SLA review meeting to discuss performance trends, upcoming infrastructure changes, and potential SLA adjustments. Either party may propose amendments to this SLA with 60 days' written notice; amendments require mutual written agreement. Material service changes by Provider require SLA review within 30 days.",
+  "provider_signatory": "Annika Reinhardt",
+  "provider_signatory_title": "Head of Client Operations",
+  "provider_signed_date": "2026-03-15",
+  "customer_signatory": "James Worthington",
+  "customer_signatory_title": "Chief Technology Officer",
+  "customer_signed_date": "2026-03-18"
+}

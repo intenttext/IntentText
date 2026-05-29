@@ -1,0 +1,8 @@
+{
+  "fixtures": [
+    "canonical-noop",
+    "legacy-camelcase-keys",
+    "missing-all-versions",
+    "partial-missing-versions"
+  ]
+}

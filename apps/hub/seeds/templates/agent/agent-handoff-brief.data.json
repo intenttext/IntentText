@@ -1,0 +1,57 @@
+{
+  "brief_title": "Handoff: Vendor Risk Assessment — Research to Compliance Review",
+  "source_agent": "research-analyst-agent",
+  "target_agent": "compliance-review-agent",
+  "handoff_reason": "Research phase complete — vendor profiles, financial health checks, and preliminary risk scores are compiled. Handing off to compliance-review-agent for regulatory alignment verification and final risk rating.",
+  "urgency": "High — procurement decision deadline is March 14, 2026",
+  "session_id": "sess-vendor-eval-2026-0307-a4f2",
+  "handoff_timestamp": "March 7, 2026 at 14:32 UTC",
+  "context_label": "Vendor Evaluation Background",
+  "context_body": "The infrastructure team is evaluating three cloud storage vendors (Backblaze B2, Wasabi, Cloudflare R2) to replace the expiring Rackspace contract. The research agent has completed market analysis, pricing comparison, and preliminary security posture review. Total annual contract value is approximately $340,000. The winning vendor must meet SOC 2 Type II, GDPR Article 28, and the company's internal data residency policy requiring EU-based primary storage.",
+  "current_phase": "Research Complete — Awaiting Compliance Review",
+  "progress_summary": "3 of 5 evaluation phases complete: market scan (done), pricing analysis (done), preliminary security review (done), compliance verification (pending), final scoring and recommendation (pending)",
+  "last_action": "Generated preliminary risk score matrix — Backblaze B2: 72/100, Wasabi: 68/100, Cloudflare R2: 81/100 based on publicly available compliance certifications and published SLAs",
+  "working_data_location": "Google Drive: /Procurement/2026-Q1/Cloud-Storage-Eval/ — contains vendor_profiles.json, pricing_comparison.xlsx, and preliminary_risk_matrix.md",
+  "pending_tasks": [
+    {
+      "task_name": "Verify SOC 2 Type II reports",
+      "priority": "critical",
+      "deadline": "March 10, 2026",
+      "description": "Request and review the most recent SOC 2 Type II audit reports from all three vendors. Confirm the audit period covers at least the last 12 months and that no critical findings are unresolved.",
+      "acceptance_criteria": "Each vendor's SOC 2 report is obtained, reviewed, and summarized with a pass/fail determination and a list of any noted exceptions",
+      "dependencies": "Vendor contact emails are in vendor_profiles.json; NDA is already signed with all three vendors",
+      "notes": "Backblaze publishes their SOC 2 summary publicly but the full report requires an NDA request — email was sent March 5, awaiting response"
+    },
+    {
+      "task_name": "Validate GDPR Article 28 compliance",
+      "priority": "high",
+      "deadline": "March 11, 2026",
+      "description": "Review each vendor's Data Processing Agreement (DPA) against GDPR Article 28 requirements. Check for sub-processor disclosure, data breach notification timelines, and deletion obligations.",
+      "acceptance_criteria": "Compliance matrix showing each Article 28 requirement mapped to the vendor's DPA clause with a compliant/non-compliant/partial status",
+      "dependencies": "DPAs downloaded and stored in the working data folder; legal team pre-approved the evaluation framework",
+      "notes": "Cloudflare R2's DPA was updated February 2026 — use the latest version from their trust portal, not the cached copy from January"
+    },
+    {
+      "task_name": "Confirm EU data residency options",
+      "priority": "high",
+      "deadline": "March 11, 2026",
+      "description": "Verify that each vendor offers primary storage in EU data centers (specifically EU-West region) and that data-at-rest does not replicate outside the EU without explicit configuration.",
+      "acceptance_criteria": "Written confirmation or documentation from each vendor specifying available EU regions and default replication behavior",
+      "dependencies": "None — can be verified from public documentation and confirmed via vendor sales contacts",
+      "notes": "Wasabi's EU region is Amsterdam (eu-central-1); confirm this satisfies the internal policy which specifies 'EU member state' — Netherlands qualifies"
+    },
+    {
+      "task_name": "Produce final risk rating",
+      "priority": "medium",
+      "deadline": "March 12, 2026",
+      "description": "Combine the preliminary risk scores from the research phase with compliance review findings to produce a final weighted risk rating for each vendor on a 100-point scale",
+      "acceptance_criteria": "Final risk rating document with scoring breakdown, compliance findings summary, and a ranked recommendation with justification",
+      "dependencies": "All three preceding tasks must be complete",
+      "notes": "Use the standard procurement risk rubric from the compliance playbook (v3.2) — weighting: security 40%, compliance 30%, reliability 20%, cost 10%"
+    }
+  ],
+  "execution_instructions": "Begin by requesting SOC 2 reports — this has the longest lead time due to vendor response delays. While waiting, the GDPR and data residency checks can proceed in parallel using publicly available documentation. Use the preliminary_risk_matrix.md as the baseline and update scores as compliance findings come in. Flag any vendor that fails a critical compliance check immediately rather than waiting for the full review to complete.",
+  "constraints": "Do not contact vendors directly for pricing renegotiation — that is handled by the procurement team. All compliance documents must be stored in the designated Google Drive folder, not in local agent storage. Do not share vendor SOC 2 reports outside the evaluation team — they are covered under NDA.",
+  "known_risks": "Backblaze's SOC 2 report request has been pending for 2 days and may not arrive before the March 10 deadline — prepare a contingency assessment based on their public trust page if the full report is delayed. Wasabi had a brief service disruption in EU-central-1 on February 18, 2026 — factor this into the reliability scoring.",
+  "handoff_event": "agent.handoff.vendor_eval.research_to_compliance"
+}

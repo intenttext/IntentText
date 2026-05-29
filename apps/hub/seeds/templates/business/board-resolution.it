@@ -1,0 +1,47 @@
+title: Board Resolution
+meta: | type: template | domain: business | description: Corporate board resolution with recitals, resolved clauses, and director signature lines | theme: legal | version: 1.0 | author: IntentText
+---
+section: Resolution Header
+---
+text: Corporate Resolution
+text: *Corporation:* {{corporation_name}}
+text: *Resolution Number:* {{resolution_number}}
+text: *Date of Meeting:* {{meeting_date}}
+text: *Location:* {{meeting_location}}
+text: *Type:* {{meeting_type}}
+---
+section: Quorum Confirmation
+---
+text: Quorum Statement
+text: A quorum of the Board of Directors of {{corporation_name}} being present, the following resolution was duly proposed, seconded, and adopted by {{vote_result}} vote of the directors present.
+---
+section: Recitals
+---
+text: Recitals
+text: {{recitals}}
+---
+section: Resolved Clauses
+---
+text: Resolution
+text: {{resolved_clauses}}
+---
+section: Authorization
+---
+text: Authorization and Delegation
+text: {{authorization}}
+---
+section: Effective Date
+---
+text: Effectiveness
+text: This resolution shall become effective as of {{effective_date}} and shall remain in full force until amended or revoked by subsequent action of the Board.
+---
+section: Director Signatures
+---
+sign: {{name}} | role: {{title}} | at: {{signed_date}} | hash: {{document_hash}}
+---
+text: Corporate Secretary Certification
+text: I, {{secretary_name}}, Corporate Secretary of {{corporation_name}}, hereby certify that the foregoing is a true and correct copy of the resolution duly adopted at the {{meeting_type}} of the Board of Directors held on {{meeting_date}}.
+---
+sign: {{secretary_name}} | role: Corporate Secretary | at: {{certification_date}} | hash: {{document_hash}}
+---
+freeze: Resolution adopted | at: {{freeze_date}} | by: {{secretary_name}}

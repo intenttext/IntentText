@@ -1,0 +1,9 @@
+page: | size: A4 | marginTopMm: 22 | marginBottomMm: 18 | safeAreaMm: 10
+watermark: https://cdn.example.com/letterhead.png | fit: cover | opacity: 0.2
+title: Statement {{statement_number}}
+section: Account
+text: {{account_name}}
+text: {{account_address}}
+divider:
+text: Period: {{period_start}} to {{period_end}}
+metric: Balance | value: {{balance}} | unit: {{currency}}

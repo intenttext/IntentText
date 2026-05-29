@@ -1,0 +1,8 @@
+title: Glossary
+meta: | type: template | domain: book | description: Glossary of terms with definitions, alphabetically sortable via data ordering | theme: minimal | version: 1.0 | author: IntentText
+---
+section: Glossary of Terms
+---
+text: *{{book_title}}*
+---
+text: *{{term}}* — {{definition}}

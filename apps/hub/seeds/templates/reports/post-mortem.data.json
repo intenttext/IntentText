@@ -1,0 +1,122 @@
+{
+  "incident_id": "INC-2026-0187",
+  "incident_title": "Payment Processing Service Outage — EU Region",
+  "severity": "SEV-1",
+  "incident_date": "February 19, 2026",
+  "duration": "2 hours 37 minutes",
+  "status": "Resolved",
+  "incident_commander": "Nadia Petrov",
+  "executive_summary": "On February 19, 2026, the payment processing service in the EU-West region experienced a complete outage lasting 2 hours and 37 minutes. The root cause was a misconfigured connection pool limit deployed in release v4.12.0, which caused cascading database connection exhaustion under peak traffic. Approximately 18,400 transactions failed, and 142,000 customers experienced checkout errors. The issue was mitigated by rolling back to v4.11.3 and resolved permanently with a patched release v4.12.1.",
+  "timeline_events": [
+    {
+      "timestamp": "14:02 UTC",
+      "event": "Release v4.12.0 deployed to EU-West payment cluster via automated pipeline",
+      "actor": "CI/CD Pipeline",
+      "system": "Payment Service"
+    },
+    {
+      "timestamp": "14:18 UTC",
+      "event": "Connection pool utilization crosses 85% threshold — no alert configured for this metric",
+      "actor": "System",
+      "system": "PostgreSQL Cluster"
+    },
+    {
+      "timestamp": "14:31 UTC",
+      "event": "First customer-facing errors — HTTP 503 responses from checkout API",
+      "actor": "System",
+      "system": "API Gateway"
+    },
+    {
+      "timestamp": "14:34 UTC",
+      "event": "PagerDuty alert fires on 5xx error rate exceeding 5%",
+      "actor": "PagerDuty",
+      "system": "Monitoring"
+    },
+    {
+      "timestamp": "14:38 UTC",
+      "event": "Nadia Petrov acknowledges alert and opens incident channel",
+      "actor": "Nadia Petrov",
+      "system": "Slack"
+    },
+    {
+      "timestamp": "14:52 UTC",
+      "event": "Database team identifies connection pool exhaustion as proximate cause",
+      "actor": "Amir Hassani",
+      "system": "PostgreSQL Cluster"
+    },
+    {
+      "timestamp": "15:10 UTC",
+      "event": "Decision to rollback v4.12.0 — rollback initiated",
+      "actor": "Nadia Petrov",
+      "system": "Payment Service"
+    },
+    {
+      "timestamp": "15:24 UTC",
+      "event": "Rollback to v4.11.3 complete — error rates returning to baseline",
+      "actor": "CI/CD Pipeline",
+      "system": "Payment Service"
+    },
+    {
+      "timestamp": "16:39 UTC",
+      "event": "All queued transactions reprocessed — incident declared resolved",
+      "actor": "Nadia Petrov",
+      "system": "Payment Service"
+    }
+  ],
+  "users_affected": "142,000 customers across EU-West region",
+  "regions_affected": "EU-West (Frankfurt, Dublin)",
+  "revenue_impact": "Estimated €94,000 in delayed transactions; €12,000 in abandoned carts",
+  "sla_breach": "Yes — 99.95% monthly uptime SLA breached by 0.08%",
+  "services_degraded": "Payment Processing, Checkout API, Order Confirmation, Webhook Delivery",
+  "error_rate_peak": "43% of requests returning 503 at peak (14:45 UTC)",
+  "requests_failed": "Approximately 18,400 payment transactions",
+  "root_cause": "Release v4.12.0 introduced a configuration change that reduced the database connection pool maximum from 200 to 50 connections per service instance. This value was intended for the staging environment but was incorrectly promoted to the production configuration file. Under normal EU afternoon peak traffic (~3,200 concurrent checkouts), the reduced pool size caused connection starvation within 16 minutes of deployment.",
+  "contributing_factors": "1. Environment-specific configuration was stored in the same file as application config, without separation or validation\n2. The staging-to-production promotion script did not diff configuration values against production baselines\n3. No alert existed for connection pool utilization — only connection timeout errors were monitored\n4. Canary deployment was configured but the canary instance received insufficient traffic to trigger the connection limit",
+  "detected_by": "Automated 5xx error rate alert via PagerDuty",
+  "time_to_detect": "16 minutes from first customer error (13 minutes from deployment)",
+  "alert_fired": "Yes — at 14:34 UTC when 5xx rate exceeded 5% threshold",
+  "time_to_mitigate": "50 minutes from alert to rollback completion",
+  "time_to_resolve": "2 hours 37 minutes from first error to full transaction reprocessing",
+  "rollback_performed": "Yes — automated rollback to v4.11.3",
+  "action_items": [
+    {
+      "description": "Separate environment-specific configuration into dedicated files with schema validation on promotion",
+      "owner": "Amir Hassani",
+      "priority": "Critical",
+      "deadline": "March 5, 2026",
+      "action_type": "Prevention"
+    },
+    {
+      "description": "Add connection pool utilization alerts at 70% and 90% thresholds across all database clusters",
+      "owner": "Katrin Weiss",
+      "priority": "Critical",
+      "deadline": "February 26, 2026",
+      "action_type": "Detection"
+    },
+    {
+      "description": "Increase canary traffic allocation from 2% to 10% and add synthetic transaction testing during canary phase",
+      "owner": "Nadia Petrov",
+      "priority": "High",
+      "deadline": "March 12, 2026",
+      "action_type": "Prevention"
+    },
+    {
+      "description": "Implement automated configuration diff check in CI/CD pipeline before production deployment",
+      "owner": "Jorge Medina",
+      "priority": "High",
+      "deadline": "March 10, 2026",
+      "action_type": "Prevention"
+    },
+    {
+      "description": "Create runbook for payment service connection exhaustion scenario with step-by-step diagnosis",
+      "owner": "Amir Hassani",
+      "priority": "Medium",
+      "deadline": "March 14, 2026",
+      "action_type": "Process"
+    }
+  ],
+  "went_well": "1. PagerDuty alert fired within 3 minutes of customer-visible errors\n2. Incident commander was on-call and acknowledged within 4 minutes\n3. Rollback procedure executed cleanly with no secondary failures\n4. Cross-team communication in incident channel was clear and focused\n5. All failed transactions were successfully requeued and processed after recovery",
+  "went_poorly": "1. Configuration change was not caught in code review despite modifying a production-critical value\n2. No connection pool monitoring existed — this was a known gap on the backlog but never prioritized\n3. Canary deployment provided false confidence due to low traffic allocation\n4. Customer support was not notified until 22 minutes into the incident, leading to inconsistent messaging",
+  "engineering_lead": "Nadia Petrov",
+  "approved_date": "2026-02-24"
+}

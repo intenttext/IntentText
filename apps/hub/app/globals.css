@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #1a1d28;
+  --surface: #252a38;
+  --surface-2: #1f2330;
+  --border: #363d52;
+  --text: #e8ecf4;
+  --text-muted: #8b93ab;
+  --purple: #a78bfa;
+  --blue: #60a5fa;
+  --green: #4ade80;
+  --orange: #fb923c;
+  --red: #fb7185;
+  --yellow: #fbbf24;
+  --glow: rgba(167, 139, 250, 0.06);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ItSourceViewer syntax highlighting */
+.it-source {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  font-family: "JetBrains Mono", "GeistMono", monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-x: auto;
+  color: var(--text);
+}
+.it-kw {
+  color: #a78bfa;
+  font-weight: 600;
+}
+.it-prop {
+  color: #60a5fa;
+}
+.it-var {
+  color: #fb923c;
+}
+.it-comment {
+  color: #717b96;
+  font-style: italic;
+}
+.it-divider {
+  color: var(--border);
+}
+.it-bold {
+  color: #fbbf24;
+}

@@ -1,0 +1,102 @@
+{
+  "report_title": "Security Incident Report — Credential Stuffing Attack on Customer Portal",
+  "incident_id": "INC-2026-0042",
+  "severity": "High (Severity 2)",
+  "status": "Closed",
+  "date_detected": "February 14, 2026, 03:27 UTC",
+  "date_reported": "February 14, 2026, 03:45 UTC",
+  "date_resolved": "February 15, 2026, 18:30 UTC",
+  "reported_by": "Automated SIEM Alert (Rule: AUTH-BRUTE-014)",
+  "incident_commander": "Katarina Vogt, Senior Security Engineer",
+  "executive_summary": "On February 14, 2026, the Security Operations Centre detected an automated credential stuffing attack targeting the Lakeshore Financial Services customer portal. Approximately 1.2 million login attempts were made over a 6-hour window using credential pairs sourced from a third-party breach. Of these, 3,847 accounts were successfully authenticated. No funds were transferred, and no sensitive financial data was exfiltrated. The attack was contained by deploying adaptive rate limiting and forcing password resets on compromised accounts.",
+  "timeline_events": [
+    {
+      "timestamp": "2026-02-14 03:27 UTC",
+      "event_title": "SIEM alert triggered",
+      "event_description": "Anomalous login volume detected on the customer portal authentication endpoint. Alert rule AUTH-BRUTE-014 fired after 15,000 failed login attempts within a 10-minute window, originating from 340 distinct IP addresses across residential proxy networks."
+    },
+    {
+      "timestamp": "2026-02-14 03:45 UTC",
+      "event_title": "SOC analyst confirms attack",
+      "event_description": "SOC analyst Tomás Reyes triaged the alert, confirmed credential stuffing pattern (high failure rate with periodic successes), and escalated to the incident commander. Incident ticket INC-2026-0042 created in the ITSM platform."
+    },
+    {
+      "timestamp": "2026-02-14 04:10 UTC",
+      "event_title": "Adaptive rate limiting deployed",
+      "event_description": "WAF rules updated to enforce progressive rate limiting on the /auth/login endpoint: 5 failed attempts per IP per minute, escalating to a 15-minute block. CAPTCHA challenge enabled for all login attempts from unrecognised devices."
+    },
+    {
+      "timestamp": "2026-02-14 04:30 UTC",
+      "event_title": "IP block list applied",
+      "event_description": "Threat intelligence feed cross-referenced with source IPs. 278 IP ranges associated with known residential proxy services added to the WAF deny list. Attack volume dropped by 94% within 20 minutes."
+    },
+    {
+      "timestamp": "2026-02-14 06:00 UTC",
+      "event_title": "Compromised accounts identified",
+      "event_description": "Authentication logs analysed to identify 3,847 accounts where credential stuffing attempts succeeded. Session tokens for all affected accounts invalidated. No post-login lateral activity (fund transfers, profile changes, data exports) detected in application audit logs."
+    },
+    {
+      "timestamp": "2026-02-14 08:00 UTC",
+      "event_title": "Customer notification initiated",
+      "event_description": "Affected customers notified via email and SMS with instructions to reset passwords. Temporary account lock applied until password reset completed. Customer support team briefed with incident FAQ."
+    },
+    {
+      "timestamp": "2026-02-15 14:00 UTC",
+      "event_title": "Mandatory MFA rollout accelerated",
+      "event_description": "Decision made to accelerate the mandatory multi-factor authentication rollout (originally scheduled for Q3 2026) to all customer portal accounts by March 15, 2026."
+    },
+    {
+      "timestamp": "2026-02-15 18:30 UTC",
+      "event_title": "Incident closed",
+      "event_description": "All compromised accounts reset. Monitoring confirmed no residual attack traffic. Post-incident review scheduled. Incident status changed to Closed."
+    }
+  ],
+  "affected_systems": "• **Customer Portal (portal.lakeshorefinancial.com):** Primary target — authentication endpoint /auth/login\n• **Identity Provider (Okta tenant lfs-prod):** Processed the authentication requests; no compromise of the IdP itself\n• **WAF / CDN (Cloudflare zone lfs-portal):** Handled traffic filtering and rate limiting during containment\n• **SIEM (Splunk Cloud, index: auth_events):** Detection and investigation source\n• **ITSM Platform (ServiceNow, instance: lfs-prod):** Incident tracking and communications",
+  "data_compromised": "No financial data, personally identifiable information beyond login credentials, or sensitive documents were accessed or exfiltrated. The 3,847 compromised accounts had successful authentication but no post-login activity indicative of data access.",
+  "users_affected": "3,847 customer accounts (0.8% of the 481,000 active portal users)",
+  "service_downtime": "No service outage. Rate limiting caused brief (2–5 second) delays for legitimate users during the peak containment window (04:10–05:30 UTC).",
+  "financial_impact": "Direct costs estimated at $18,500 (incident response overtime, accelerated MFA vendor licensing, customer communication credits). No customer financial losses. No regulatory fines anticipated given prompt notification and containment.",
+  "regulatory_implications": "Lakeshore Financial Services is subject to GLBA Safeguards Rule and state data breach notification statutes. The incident was reported to the primary federal regulator (OCC) within 36 hours as required. Because no sensitive financial data was accessed, state breach notification thresholds were not met; however, voluntary notification was provided to affected customers as a precautionary measure.",
+  "root_cause": "The credential pairs used in the attack originated from a breach of an unrelated third-party fitness platform (disclosed publicly on February 10, 2026). Customers who reused passwords across services were vulnerable. The customer portal did not enforce multi-factor authentication for standard accounts, and rate limiting on the authentication endpoint was configured at a static threshold of 100 requests per IP per minute — insufficient to block distributed stuffing attacks using residential proxy networks.",
+  "containment_actions": "1. Deployed adaptive rate limiting and CAPTCHA on the authentication endpoint\n2. Blocked 278 residential proxy IP ranges at the WAF layer\n3. Invalidated all active sessions for the 3,847 compromised accounts\n4. Applied temporary account locks requiring password reset via verified email link\n5. Enabled enhanced logging on the authentication service to capture device fingerprints",
+  "recovery_actions": "1. Affected customers completed password resets — 3,691 of 3,847 (95.9%) within 48 hours\n2. Remaining 156 accounts reached via phone outreach and unlocked after identity verification\n3. Authentication endpoint monitoring sensitivity increased from P90 to P99 anomaly threshold\n4. Credential screening service (Have I Been Pwned Passwords API) integrated into the password reset flow to prevent reuse of known-breached passwords",
+  "lessons_learned": "1. **MFA is not optional:** The absence of mandatory multi-factor authentication for customer accounts was the single largest contributing factor. Voluntary MFA adoption was only 12% of the customer base at the time of the incident.\n\n2. **Rate limiting must be adaptive:** Static per-IP rate limits are ineffective against distributed attacks using residential proxy pools. Behavioural analysis and device fingerprinting should supplement IP-based controls.\n\n3. **Credential screening adds defence in depth:** Proactively checking passwords against known breach databases during account creation and password changes would have prevented many affected accounts from being vulnerable.\n\n4. **Incident communication templates saved time:** Pre-drafted customer notification templates and a support FAQ reduced the time-to-notify from hours to 45 minutes.",
+  "action_items": [
+    {
+      "action_id": "AI-001",
+      "action_title": "Mandatory MFA for all customer accounts",
+      "action_owner": "Identity and Access Management Team",
+      "action_priority": "Critical",
+      "action_due_date": "March 15, 2026",
+      "action_description": "Accelerate the mandatory MFA rollout to all customer portal accounts. Support TOTP authenticator apps and SMS as a fallback. Implement a 30-day grace period with increasing enforcement prompts."
+    },
+    {
+      "action_id": "AI-002",
+      "action_title": "Deploy adaptive rate limiting with behavioural analysis",
+      "action_owner": "Platform Security Team",
+      "action_priority": "High",
+      "action_due_date": "March 31, 2026",
+      "action_description": "Replace static rate limiting with an adaptive system that considers login velocity, device fingerprint, geolocation anomalies, and credential failure patterns. Evaluate Cloudflare Bot Management or a dedicated bot mitigation vendor."
+    },
+    {
+      "action_id": "AI-003",
+      "action_title": "Integrate breached password detection",
+      "action_owner": "Application Development Team",
+      "action_priority": "High",
+      "action_due_date": "April 15, 2026",
+      "action_description": "Integrate the Have I Been Pwned Passwords API (k-anonymity model) into account registration and password change flows. Block passwords found in known breach datasets and prompt users to choose an alternative."
+    },
+    {
+      "action_id": "AI-004",
+      "action_title": "Quarterly credential stuffing simulation",
+      "action_owner": "Red Team",
+      "action_priority": "Medium",
+      "action_due_date": "June 1, 2026",
+      "action_description": "Establish a quarterly adversary simulation exercise specifically targeting authentication endpoints with credential stuffing techniques. Validate detection, alerting, and response timelines against established SLAs."
+    }
+  ],
+  "ciso_name": "Franklin Osei-Mensah",
+  "ciso_title": "Chief Information Security Officer",
+  "approval_date": "2026-02-20",
+  "freeze_date": "2026-02-20T16:00:00Z"
+}

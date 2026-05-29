@@ -1,0 +1,61 @@
+title: {{title}}
+meta: | type: template | domain: organization | description: Print-ready contract with digital signatures, physical signature lines, and professional print layout | theme: legal | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+x-layout: font | content: {{font_family}} | size: {{font_size}} | leading: {{leading}} | heading: {{heading_font}}
+page: {{page_size}} | margins: {{margins}} | numbering: arabic
+header: | left: {{header_left}} | right: {{header_right}}
+footer: | center: Page {{page_num}} of {{total_pages}} | right: {{footer_right}}
+---
+section: Parties
+---
+paragraph: This Agreement ("Agreement") is entered into as of {{effective_date}} by and between:
+---
+text: Provider
+text: *{{provider_name}}*
+text: {{provider_address}}
+text: Registration: {{provider_registration}}
+---
+text: Client
+text: *{{client_name}}*
+text: {{client_address}}
+text: Registration: {{client_registration}}
+---
+section: Definitions
+---
+def: Agreement | meaning: This document and all schedules and amendments hereto
+def: Services | meaning: {{services_description}}
+def: Term | meaning: {{contract_term}}
+---
+section: Scope of Services
+---
+paragraph: {{scope_description}}
+---
+section: Payment Terms
+---
+paragraph: {{payment_terms}}
+---
+section: Confidentiality
+---
+paragraph: {{confidentiality_clause}}
+---
+section: Limitation of Liability
+---
+paragraph: {{liability_clause}}
+---
+section: Termination
+---
+paragraph: {{termination_clause}}
+---
+section: Digital Signatures
+---
+sign: {{provider_signer}} | role: {{provider_role}} | hash: {{provider_hash}} | at: {{provider_sign_date}}
+sign: {{client_signer}} | role: {{client_role}} | hash: {{client_hash}} | at: {{client_sign_date}}
+---
+section: Physical Signatures
+---
+paragraph: IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+break: | before: section
+---
+signline: Provider Signature | name: {{provider_signer}} | role: {{provider_role}} | date: true
+signline: Client Signature | name: {{client_signer}} | role: {{client_role}} | date: true
+freeze: | status: locked | hash: {{freeze_hash}} | at: {{freeze_date}}

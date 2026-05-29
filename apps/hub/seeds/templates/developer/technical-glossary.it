@@ -1,0 +1,31 @@
+title: {{title}}
+meta: | type: template | domain: developer | description: Technical glossary for a software project covering APIs, data types, processes, and architecture terms | theme: technical | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+---
+section: Architecture
+---
+def: API Gateway | meaning: The single entry point that routes all external HTTP requests to internal microservices, handles authentication, rate limiting, and request transformation | abbr: APIGW
+def: Event Bus | meaning: Asynchronous message broker that decouples services by routing domain events between producers and consumers using topic-based subscriptions
+def: Service Mesh | meaning: Infrastructure layer that manages service-to-service communication, providing load balancing, encryption, observability, and circuit breaking
+def: CDC | meaning: Change Data Capture — a pattern that tracks row-level changes in a database and streams them to downstream consumers in near real-time | abbr: CDC
+---
+section: Data Types
+---
+def: DTO | meaning: Data Transfer Object — a plain object used to carry data between processes or service boundaries without business logic | abbr: DTO
+def: Aggregate | meaning: A cluster of domain objects treated as a single unit for data changes, with one entity serving as the aggregate root
+def: Event Payload | meaning: The JSON body of a domain event, conforming to the CloudEvents v1.0 specification with required fields: type, source, id, time, data
+def: Idempotency Key | meaning: A unique client-generated string (UUID v4) sent with mutation requests to ensure exactly-once processing even if the request is retried
+---
+section: Processes
+---
+def: Blue-Green Deployment | meaning: A release strategy that maintains two identical production environments, routing traffic to the active (green) while deploying to the idle (blue), then switching
+def: Circuit Breaker | meaning: A fault-tolerance pattern that stops calling a failing service after a threshold of errors, returning a fallback response until the service recovers
+def: Saga | meaning: A distributed transaction pattern where each service executes a local transaction and publishes an event to trigger the next step, with compensating transactions for rollback
+def: Backpressure | meaning: A flow-control mechanism where a consumer signals to a producer to slow down when it cannot process messages fast enough
+---
+section: Observability
+---
+def: SLI | meaning: Service Level Indicator — a quantitative measure of some aspect of the service, such as request latency, error rate, or throughput | abbr: SLI | see: SLO
+def: SLO | meaning: Service Level Objective — a target value or range for an SLI over a defined time window, such as 99.9% availability per month | abbr: SLO | see: SLA
+def: Trace | meaning: A distributed trace that follows a single request across multiple services, consisting of spans with timing, metadata, and parent-child relationships
+def: Span | meaning: A single unit of work within a trace, recording the service name, operation, duration, status, and any error information | see: Trace

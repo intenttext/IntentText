@@ -1,0 +1,14 @@
+title: Deploy Notification Workflow
+summary: Sends alerts after a deploy completes
+
+section: Setup
+step: Check deploy status | tool: deploy-api | output: status | id: check
+gate: Approve release | approver: team-lead | timeout: 24h | id: approve
+
+section: Notify
+decision: Route by status | if: status == success | then: notify-ok | else: notify-fail
+step: Send success notification | tool: slack | input: Deploy succeeded | depends: approve | id: notify-ok
+step: Send failure alert | tool: pagerduty | input: Deploy failed | depends: check | id: notify-fail
+
+section: Wrap-up
+result: Deployment complete | depends: notify-ok

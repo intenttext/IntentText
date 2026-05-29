@@ -1,0 +1,25 @@
+title: {{title}}
+meta: | type: template | domain: organization | description: Standalone signature page for multi-document agreements with multiple signatory lines | theme: legal | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+x-layout: font | content: {{font_family}} | size: {{font_size}} | heading: {{heading_font}}
+page: {{page_size}} | margins: {{margins}}
+---
+section: Agreement Reference
+---
+ref: {{agreement_name}} | file: {{agreement_path}} | rel: relates-to
+paragraph: This Signature Page is an integral part of the {{agreement_full_name}} dated {{agreement_date}}.
+---
+section: Provider Signatories
+---
+signline: Authorized Signatory | name: {{provider_signer_1}} | role: {{provider_role_1}} | date: true
+signline: Witness | name: {{provider_witness}} | role: {{provider_witness_role}} | date: true
+---
+section: Client Signatories
+---
+signline: Authorized Signatory | name: {{client_signer_1}} | role: {{client_role_1}} | date: true
+signline: Authorized Signatory | name: {{client_signer_2}} | role: {{client_role_2}} | date: true
+signline: Witness | name: {{client_witness}} | role: {{client_witness_role}} | date: true
+---
+section: Execution
+---
+paragraph: By signing above, each signatory represents that they have the authority to bind their respective organization to the terms of the Agreement.

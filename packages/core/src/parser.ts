@@ -719,7 +719,7 @@ function parseLine(
       const { content: cleanContent, inline } = ctx.parseInline(trimmed);
       return {
         id: nextId(),
-        type: "body-text",
+        type: "text",
         content: cleanContent,
         originalContent: trimmed,
         inline,
@@ -1069,13 +1069,13 @@ function parseLine(
     };
   }
 
-  // Default to body-text
+  // Default to text (implicit text block — bare prose without a keyword prefix)
   const unescaped = unescapeIntentText(trimmed);
   const { content: cleanContent, inline } = ctx.parseInline(unescaped);
 
   return {
     id: nextId(),
-    type: "body-text",
+    type: "text",
     content: cleanContent,
     originalContent: unescaped,
     inline,
@@ -1230,8 +1230,8 @@ export function parseIntentText(
     if (
       !previousLineWasBlank &&
       last &&
-      last.type === "body-text" &&
-      block.type === "body-text"
+      (last.type === "text" || last.type === "body-text") &&
+      (block.type === "text" || block.type === "body-text")
     ) {
       const mergedOriginal = `${last.originalContent || last.content} ${block.originalContent || block.content}`;
       const parsed = parseInline(mergedOriginal);
@@ -1682,6 +1682,7 @@ export function parseIntentText(
       block.type === "code" ||
       block.type === "table" ||
       block.type === "body-text" ||
+      block.type === "text" ||
       block.type === "page" ||
       block.type === "break" ||
       block.type === "toc" ||

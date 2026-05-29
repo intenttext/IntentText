@@ -1,0 +1,24 @@
+title: Book Chapter
+meta: | type: template | domain: book | description: Book chapter with chapter number, title, epigraph, body sections, and notes | theme: warm | version: 1.0 | author: IntentText
+---
+section: Chapter {{chapter_number}}
+---
+text: *{{chapter_title}}*
+---
+quote: {{epigraph}} | by: {{epigraph_attribution}}
+---
+section: {{opening_section_title}}
+---
+text: {{text}}
+---
+section: {{middle_section_title}}
+---
+text: {{text}}
+---
+quote: {{midpoint_quote}} | by: {{midpoint_quote_attribution}}
+---
+section: {{closing_section_title}}
+---
+text: {{text}}
+---
+text: *{{chapter_closing_line}}*

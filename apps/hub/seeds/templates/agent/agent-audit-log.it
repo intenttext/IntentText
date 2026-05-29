@@ -1,0 +1,46 @@
+title: {{log_title}}
+meta: | type: template | domain: agent | description: Agent execution audit log capturing session metadata, step-by-step actions, tool invocations, and immutable session history | theme: technical | version: 1.0 | author: IntentText
+track: | version: {{log_version}} | by: {{recorded_by}} | note: Session {{session_id}} recorded
+---
+section: Session Metadata
+---
+text: Session Details
+text: *Session ID:* {{session_id}}
+text: *Agent:* {{agent_name}}
+text: *Model:* {{model}}
+text: *Started:* {{session_start}}
+text: *Ended:* {{session_end}}
+text: *Duration:* {{session_duration}}
+text: *Status:* {{session_status}}
+text: *Trigger:* {{trigger_event}}
+---
+section: Execution Log
+---
+text: Step {{step_number}} — {{action}}
+text: *Timestamp:* {{timestamp}}
+text: *Tool:* {{tool_used}}
+text: *Input Summary:* {{input_summary}}
+text: *Output Summary:* {{output_summary}}
+text: *Latency:* {{latency}}
+text: *Tokens:* {{token_count}}
+text: *Status:* {{status}}
+---
+section: Resource Usage
+---
+text: Consumption Summary
+text: *Total Steps:* {{total_steps}}
+text: *Total Tokens:* {{total_tokens}}
+text: *Total Latency:* {{total_latency}}
+text: *Estimated Cost:* {{estimated_cost}}
+text: *Tools Invoked:* {{tools_invoked}}
+---
+section: Outcome
+---
+text: Result
+text: {{outcome_summary}}
+---
+text: Recorded by {{recorded_by}} · {{record_date}}
+---
+sign: {{recorded_by}} | role: Agent Recorder | at: {{record_date}} | hash: {{document_hash}}
+---
+freeze: Session {{session_id}} complete — audit log sealed

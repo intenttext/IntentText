@@ -1,0 +1,17 @@
+{
+  "name": "legacy-camelcase-keys",
+  "input": {
+    "template": "title: Legacy",
+    "templateVersion": "template-v1",
+    "rendererVersion": "renderer-v1",
+    "themeVersion": "theme-v1"
+  },
+  "expected": {
+    "template_version": "template-v1",
+    "renderer_version": "renderer-v1",
+    "theme_version": "theme-v1",
+    "applied_hooks": [
+      "artifact-version-camelcase-to-snakecase-v1"
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+title: Cover Letter
+meta: | type: template | domain: personal | description: Professional job application cover letter with addressee, opening, body, and closing | theme: corporate | version: 1.0 | author: IntentText
+track: | version: 1.0 | by: Career Services
+---
+section: Header
+---
+text: Applicant
+text: *Name:* {{applicant_name}}
+text: *Email:* {{applicant_email}}
+text: *Phone:* {{applicant_phone}}
+text: *Date:* {{date}}
+---
+text: Addressee
+text: {{hiring_manager_name}}
+text: {{hiring_manager_title}}
+text: {{company_name}}
+text: {{company_address}}
+---
+section: Letter
+---
+text: Salutation
+text: Dear {{hiring_manager_name}},
+---
+text: Opening
+text: {{opening_paragraph}}
+---
+text: Relevant Experience
+text: {{experience_paragraph}}
+---
+text: Value Proposition
+text: {{value_paragraph}}
+---
+text: Closing
+text: {{closing_paragraph}}
+---
+text: Sign-Off
+text: Sincerely,
+text: {{applicant_name}}

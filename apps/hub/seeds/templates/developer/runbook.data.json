@@ -1,0 +1,83 @@
+{
+  "runbook_title": "Payment Gateway Service — Operational Runbook",
+  "current_version": "1.3",
+  "version_note": "Added PCI DSS compliance notes and updated escalation contacts for Q1 2026",
+  "maintainer": "Signe Berglund",
+  "service_name": "Payment Gateway Service",
+  "service_id": "SVC-PAY-001",
+  "owning_team": "Payments Platform — Fintech Engineering",
+  "service_tier": "Tier 0 — Business Critical (revenue-generating)",
+  "repository_url": "https://github.com/nordpay/payment-gateway",
+  "dashboard_url": "https://grafana.internal.nordpay.io/d/pay-gw-overview",
+  "alerting_channel": "#payments-alerts on Slack; PagerDuty service: payment-gateway-prod",
+  "service_description": "The Payment Gateway Service processes all customer-initiated payment transactions including credit card charges, refunds, 3D Secure authentication callbacks, and settlement file generation. It interfaces with three acquiring banks (Nordea, SEB, DNB) and two card network tokenization services. Average throughput is 1,200 transactions per minute with peaks of 4,500 during flash sales.",
+  "architecture_summary": "Three-tier architecture running on Kubernetes (EKS):\n- *API Layer*: Go-based HTTP/gRPC gateway behind an AWS NLB. 6 pod minimum, HPA scales to 30.\n- *Processing Layer*: Asynchronous transaction processor consuming from Kafka topics (payment.initiated, payment.authorized, payment.settled). 12 consumer pods with exactly-once semantics.\n- *Data Layer*: PostgreSQL 16 (RDS Multi-AZ) for transaction records, Redis 7 cluster for idempotency keys and rate limiting, S3 for settlement file archival.\nAll inter-service communication uses mTLS. PCI DSS Level 1 compliant — cardholder data is tokenized at the edge and never stored in plaintext.",
+  "oncall_schedule": "Weekly rotation, Monday 09:00 CET to Monday 09:00 CET. Handoff via the #payments-oncall Slack channel.",
+  "oncall_primary": "Rotates — see PagerDuty schedule 'Payment Gateway Primary'",
+  "oncall_secondary": "Rotates — see PagerDuty schedule 'Payment Gateway Secondary'",
+  "escalation_manager": "Signe Berglund, Engineering Manager (signe.berglund@nordpay.io, +46 70 123 4567)",
+  "procedures": [
+    {
+      "procedure_name": "High Transaction Failure Rate",
+      "trigger": "Alert: payment_failure_rate > 5% over a 5-minute window",
+      "severity": "SEV-1",
+      "steps": "1. Check Grafana dashboard for failure breakdown by acquiring bank and error code.\n2. Verify connectivity to acquiring bank APIs using `kubectl exec` into the gateway pod and running the health-check script: `/opt/pay-gw/scripts/bank-health.sh`.\n3. If a single bank is failing, enable the circuit breaker via feature flag `cb.{bank_code}.open=true` in LaunchDarkly. Transactions will route to the backup acquirer.\n4. If all banks are failing, check the pod logs for TLS certificate errors: `kubectl logs -l app=pay-gateway --since=10m | grep -i 'tls\\|certificate'`. Certificates are rotated monthly; check if the rotation job failed.\n5. If pod CPU > 90%, manually scale: `kubectl scale deploy pay-gateway --replicas=20`.\n6. Notify #payments-alerts with a status update within 15 minutes. Page the secondary on-call if not resolved in 20 minutes."
+    },
+    {
+      "procedure_name": "Kafka Consumer Lag Spike",
+      "trigger": "Alert: kafka_consumer_lag for group 'pay-processor' exceeds 50,000 messages",
+      "severity": "SEV-2",
+      "steps": "1. Check the consumer group status: `kafka-consumer-groups.sh --bootstrap-server kafka.internal:9092 --describe --group pay-processor`.\n2. Identify if specific partitions are stalled. A single stalled partition usually indicates a poison-pill message.\n3. For a poison-pill: inspect the message at the stuck offset using `kafka-console-consumer` with `--offset` flag. If the message is malformed, skip it by producing a tombstone to the dead-letter topic and advancing the offset.\n4. If lag is uniform across partitions, check processor pod memory. The payment enrichment step caches merchant metadata — if the cache exceeds 2GB, restart pods in a rolling fashion: `kubectl rollout restart deploy pay-processor`.\n5. Monitor lag recovery on the Kafka dashboard. Lag should decrease at ≥ 2,000 messages/sec per pod."
+    },
+    {
+      "procedure_name": "Settlement File Generation Failure",
+      "trigger": "Alert: settlement_file_job did not complete by 04:00 CET",
+      "severity": "SEV-2",
+      "steps": "1. Check the CronJob status: `kubectl get cronjob settlement-generator -o yaml`.\n2. Inspect the latest job pod logs: `kubectl logs job/settlement-generator-$(date +%Y%m%d)`.\n3. Common failure: PostgreSQL connection timeout during the large aggregation query. Verify RDS CPU and connection count on the AWS console.\n4. If the RDS instance is overloaded, cancel any long-running analytical queries from other services and re-trigger the job: `kubectl create job --from=cronjob/settlement-generator settlement-manual-$(date +%s)`.\n5. The acquiring banks expect settlement files by 06:00 CET. If delivery will be delayed, email settlements@nordea.com and settlements@seb.se with the expected delivery time.\n6. After successful generation, verify file integrity: row counts must match the transaction ledger totals for the settlement window."
+    },
+    {
+      "procedure_name": "Redis Cluster Node Failure",
+      "trigger": "Alert: redis_cluster_state != 'ok' or redis_connected_slaves < expected",
+      "severity": "SEV-2",
+      "steps": "1. Run `redis-cli -h redis.internal -p 6379 cluster info` to assess cluster health.\n2. Identify the failed node: `redis-cli cluster nodes | grep fail`.\n3. If a replica failed, the cluster self-heals. Monitor for 5 minutes. If the replica does not rejoin, manually trigger a failover of the shard if it was the last replica.\n4. If a primary failed, Redis Cluster performs automatic failover to a replica. Verify the new primary is accepting writes.\n5. Check the Payment Gateway logs for idempotency cache misses — a brief spike is expected during failover but should normalize within 60 seconds.\n6. Open an infrastructure ticket to replace the failed node hardware within 24 hours."
+    }
+  ],
+  "escalation_path": [
+    {
+      "level": "Level 1 — On-Call Engineer",
+      "contact": "PagerDuty primary schedule",
+      "role": "First responder; triage and initial mitigation",
+      "response_time": "Acknowledge within 5 minutes",
+      "escalation_criteria": "Escalate to Level 2 if the issue is not mitigated within 20 minutes, or if it is a confirmed data integrity issue"
+    },
+    {
+      "level": "Level 2 — Senior Engineer / Secondary On-Call",
+      "contact": "PagerDuty secondary schedule",
+      "role": "Deep diagnosis; coordinates with infrastructure or acquiring bank contacts",
+      "response_time": "Acknowledge within 10 minutes",
+      "escalation_criteria": "Escalate to Level 3 if the issue is customer-impacting for more than 45 minutes, or requires database-level intervention"
+    },
+    {
+      "level": "Level 3 — Engineering Manager",
+      "contact": "Signe Berglund (signe.berglund@nordpay.io, +46 70 123 4567)",
+      "role": "Incident commander; manages stakeholder communication and resource allocation",
+      "response_time": "Acknowledge within 15 minutes",
+      "escalation_criteria": "Escalate to Level 4 if revenue impact exceeds €50,000 or the outage duration exceeds 1 hour"
+    },
+    {
+      "level": "Level 4 — VP of Engineering + Head of Payments",
+      "contact": "Erik Halvorsen (erik.halvorsen@nordpay.io) and Amira Rashid (amira.rashid@nordpay.io)",
+      "role": "Executive incident management; external communication to partners and regulators if required",
+      "response_time": "Acknowledge within 30 minutes",
+      "escalation_criteria": "Final escalation tier. Engages CEO and legal counsel if a regulatory notification threshold is breached."
+    }
+  ],
+  "sla_obligations": "The Payment Gateway must maintain 99.99% monthly availability for transaction processing endpoints. Planned maintenance must be coordinated with acquiring bank maintenance windows and must not exceed 15 minutes of downtime per month. Transaction processing latency (P99) must remain below 1,200ms. Settlement files must be delivered to acquiring banks by 06:00 CET daily. Any SLA breach must be documented in a post-incident review within 5 business days and reported to the Head of Payments.",
+  "upstream_dependencies": "- *Acquiring Bank APIs*: Nordea Connect, SEB Transaction Gateway, DNB Pay API. Each has independent maintenance windows published monthly.\n- *Card Network Tokenization*: Visa Token Service (VTS) and Mastercard Digital Enablement Service (MDES).\n- *Internal: Identity Service* (SVC-AUTH-001) for merchant authentication and JWT validation.\n- *Internal: Merchant Configuration Service* (SVC-MERCH-002) for routing rules and fee schedules.",
+  "downstream_consumers": "- *Order Service* (SVC-ORD-003): consumes payment.authorized events to confirm order fulfillment.\n- *Accounting Ledger* (SVC-LEDG-004): consumes payment.settled events for revenue recognition.\n- *Merchant Portal* (SVC-PORTAL-005): queries transaction history via the Gateway's REST API.\n- *Fraud Detection Engine* (SVC-FRAUD-006): receives real-time transaction streams for scoring.",
+  "disaster_recovery": "- *RPO*: 0 (synchronous replication to RDS standby in a second AZ)\n- *RTO*: 15 minutes (automated RDS failover + Kubernetes pod rescheduling)\n- *Full region failover*: Manual process documented in DR Playbook DR-PAY-001. Target RTO for region failover: 2 hours. Requires DNS CNAME update and restoring the Kafka MirrorMaker lag.\n- DR drill conducted quarterly; last drill completed on January 18, 2026 with an actual RTO of 22 minutes (single-AZ) and 1 hour 48 minutes (cross-region).",
+  "backup_restore": "- PostgreSQL: Automated daily snapshots retained for 35 days, point-in-time recovery with 5-minute granularity via WAL archiving to S3.\n- Redis: AOF persistence with fsync every second. RDB snapshots every 6 hours archived to S3.\n- Kafka: Topic retention set to 7 days for transaction topics, 30 days for dead-letter topics.\n- Settlement files: Archived to S3 with 7-year retention for regulatory compliance (PCI DSS and local financial regulations).",
+  "maintenance_tasks": "1. *Weekly*: Review PagerDuty alert volume and tune noisy alerts. Update the on-call runbook if new failure modes were encountered.\n2. *Monthly*: Rotate mTLS certificates for acquiring bank connections using the cert-manager renewal job. Verify rotation via `openssl s_client` checks.\n3. *Monthly*: Review and prune expired idempotency keys from Redis (automated, but verify the TTL sweep job ran).\n4. *Quarterly*: Conduct a disaster recovery drill. Update this runbook with any procedural changes discovered during the drill.\n5. *Quarterly*: Review Kafka partition counts and consumer group sizing against traffic growth projections.",
+  "last_reviewed_date": "March 1, 2026",
+  "reviewer": "Signe Berglund"
+}

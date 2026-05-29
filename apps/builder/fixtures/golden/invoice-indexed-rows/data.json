@@ -1,0 +1,17 @@
+{
+  "invoice_number": "INV-3012",
+  "line_items": [
+    {
+      "description": "Consulting",
+      "qty": 5,
+      "price": "800"
+    },
+    {
+      "description": "Support",
+      "qty": 2,
+      "price": "600"
+    }
+  ],
+  "total_amount": "5200",
+  "currency": "SAR"
+}

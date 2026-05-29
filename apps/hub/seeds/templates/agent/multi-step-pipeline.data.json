@@ -1,0 +1,81 @@
+{
+  "pipeline_name": "Customer Onboarding Automation Pipeline",
+  "pipeline_id": "pipe-onboard-v3",
+  "author": "Ravi Shankar",
+  "created_date": "March 5, 2026",
+  "owner": "growth-engineering",
+  "model": "gpt-4o",
+  "environment": "production",
+  "concurrency": "5 parallel sessions",
+  "trigger_event": "webhook",
+  "trigger_detail": "customer.signup_completed",
+  "pipeline_steps": [
+    {
+      "name": "Enrich company profile",
+      "tool": "clearbit.enrich",
+      "timeout": "30s",
+      "retry_count": "2",
+      "description": "Look up the new customer's domain to pull firmographic data — industry, employee count, funding stage",
+      "depends_on": "trigger",
+      "input": "customer.email_domain from signup payload",
+      "on_error": "skip enrichment, tag account as needs-manual-review"
+    },
+    {
+      "name": "Provision workspace",
+      "tool": "platform.create_workspace",
+      "timeout": "45s",
+      "retry_count": "3",
+      "description": "Create the customer's tenant workspace with default settings based on their plan tier",
+      "depends_on": "Enrich company profile",
+      "input": "plan_tier, company_name, admin_email from enrichment result",
+      "on_error": "halt pipeline, alert infra-oncall"
+    },
+    {
+      "name": "Generate welcome sequence",
+      "tool": "content.generate",
+      "timeout": "20s",
+      "retry_count": "1",
+      "description": "Use the LLM to draft a personalized 5-email welcome sequence based on industry and company size",
+      "depends_on": "Enrich company profile",
+      "input": "industry, employee_count, plan_tier, contact_first_name",
+      "on_error": "fall back to generic welcome template set"
+    },
+    {
+      "name": "Schedule onboarding call",
+      "tool": "calendly.create_event",
+      "timeout": "15s",
+      "retry_count": "2",
+      "description": "Book a 30-minute onboarding call with the assigned CSM within the next 3 business days",
+      "depends_on": "Provision workspace",
+      "input": "csm_calendar_id, customer_email, customer_timezone",
+      "on_error": "send fallback email with self-serve booking link"
+    },
+    {
+      "name": "Sync to CRM",
+      "tool": "salesforce.upsert",
+      "timeout": "20s",
+      "retry_count": "2",
+      "description": "Create or update the Account and Contact records in Salesforce with enriched data and workspace ID",
+      "depends_on": "Provision workspace, Enrich company profile",
+      "input": "enriched profile, workspace_id, signup metadata",
+      "on_error": "queue for manual CRM entry, log to dead letter"
+    },
+    {
+      "name": "Send welcome email",
+      "tool": "email.send",
+      "timeout": "10s",
+      "retry_count": "3",
+      "description": "Dispatch the first email of the welcome sequence with login credentials and onboarding call details",
+      "depends_on": "Generate welcome sequence, Schedule onboarding call",
+      "input": "welcome_email_html, onboarding_call_link, workspace_url",
+      "on_error": "retry with backup SMTP provider"
+    }
+  ],
+  "error_strategy": "Fail-forward with compensation — each step defines its own fallback; pipeline continues unless a critical step (Provision workspace) fails",
+  "dlq_destination": "sqs://onboarding-dlq-prod",
+  "alert_channel": "#growth-eng-alerts (Slack)",
+  "max_retries": "1",
+  "output_event_success": "onboarding.pipeline.completed",
+  "output_event_failure": "onboarding.pipeline.failed",
+  "output_schema_description": "On success: { customer_id, workspace_id, csm_name, onboarding_call_utc, emails_scheduled: 5, crm_synced: true }. On failure: { customer_id, failed_step, error_message, compensation_actions_taken }."
+}

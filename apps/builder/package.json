@@ -1,0 +1,34 @@
+{
+  "name": "intenttext-builder",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "api": "node server/render-api.mjs",
+    "dev:all": "npm run api & npm run dev",
+    "parity:check": "node scripts/parity-check.mjs",
+    "font-policy:check": "node scripts/font-policy-check.mjs",
+    "core-style:check": "node scripts/core-style-check.mjs",
+    "determinism:check": "node scripts/determinism-check.mjs",
+    "replay:check": "node scripts/replay-check.mjs",
+    "erp-contract:check": "node scripts/erp-contract-check.mjs",
+    "migration:check": "node scripts/migration-check.mjs",
+    "runtime-error:check": "node scripts/runtime-error-check.mjs",
+    "pdf-runtime:build": "npm --prefix packages/pdf-runtime run build",
+    "pdf:smoke": "node scripts/pdf-smoke.mjs",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.0"
+  }
+}

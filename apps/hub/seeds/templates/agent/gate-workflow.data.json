@@ -1,0 +1,70 @@
+{
+  "workflow_name": "Production Database Migration Approval Workflow",
+  "workflow_id": "wf-db-migrate-prod-041",
+  "author": "Carlos Gutierrez",
+  "created_date": "March 7, 2026",
+  "owner": "platform-infrastructure",
+  "environment": "production",
+  "sla": "Complete within 4 hours of initiation, including all gate approvals",
+  "escalation_policy": "If any gate is not approved within its timeout, escalate to the VP of Engineering and pause all downstream stages",
+  "stages": [
+    {
+      "stage_name": "Generate migration scripts",
+      "tool": "schema-diff.generate",
+      "timeout": "10m",
+      "description": "Compare the staging schema snapshot against the production schema and generate forward and rollback migration SQL",
+      "input": "Staging schema hash from latest successful CI build (commit abc3f91)",
+      "output": "Pair of SQL files: migrate-forward-041.sql and migrate-rollback-041.sql",
+      "on_failure": "Abort workflow and notify #data-platform Slack channel",
+      "gate_label": "Schema Review Gate",
+      "approver": "database-admins",
+      "gate_timeout": "45m",
+      "approval_criteria": "DBA confirms no destructive column drops, verifies index impact estimates, and signs off on rollback safety"
+    },
+    {
+      "stage_name": "Run migration on shadow replica",
+      "tool": "db.execute_migration",
+      "timeout": "20m",
+      "description": "Execute the forward migration against the shadow read-replica to validate execution time and catch runtime errors without touching production",
+      "input": "migrate-forward-041.sql applied to shadow-replica-us-east-1",
+      "output": "Execution log with timing per statement (target: under 90 seconds total)",
+      "on_failure": "Capture error log, run rollback on shadow, and halt pipeline",
+      "gate_label": "Shadow Validation Gate",
+      "approver": "senior-sre",
+      "gate_timeout": "30m",
+      "approval_criteria": "Shadow migration completed in under 90 seconds with zero errors and no lock contention detected in pg_stat_activity"
+    },
+    {
+      "stage_name": "Enable maintenance window",
+      "tool": "statuspage.create_maintenance",
+      "timeout": "5m",
+      "description": "Post a scheduled maintenance notice on the public status page and activate the in-app banner for affected regions",
+      "input": "Maintenance window: 02:00–02:30 UTC, affected services: API, Dashboard",
+      "output": "Status page incident ID and confirmation of banner activation",
+      "on_failure": "Retry once; if still failing, proceed without banner but alert comms-team",
+      "gate_label": "Comms Confirmation Gate",
+      "approver": "customer-comms",
+      "gate_timeout": "20m",
+      "approval_criteria": "Customer communications team confirms status page copy is accurate and enterprise account managers have been notified via email"
+    },
+    {
+      "stage_name": "Execute production migration",
+      "tool": "db.execute_migration",
+      "timeout": "5m",
+      "description": "Apply the forward migration to the primary production database during the maintenance window",
+      "input": "migrate-forward-041.sql applied to prod-primary-us-east-1",
+      "output": "Execution log confirming all statements succeeded and total duration",
+      "on_failure": "Immediately execute migrate-rollback-041.sql and page database-admins and senior-sre",
+      "gate_label": "Post-Migration Health Gate",
+      "approver": "senior-sre",
+      "gate_timeout": "15m",
+      "approval_criteria": "Application health checks pass for 10 consecutive minutes, error rate stays below 0.1%, and p99 latency does not exceed pre-migration baseline by more than 15%"
+    }
+  ],
+  "final_gate_label": "Release Sign-Off Gate",
+  "final_approver": "engineering-director",
+  "final_gate_timeout": "60m",
+  "final_approval_criteria": "Engineering director reviews migration summary, confirms monitoring dashboards are clean, and authorizes closing the maintenance window",
+  "deliverable": "Migrated production database at schema version 041 with verified rollback capability and updated runbook",
+  "completion_notification": "Post summary to #platform-infrastructure and #engineering-leads Slack channels, close status page incident, and update the migration registry in Confluence"
+}

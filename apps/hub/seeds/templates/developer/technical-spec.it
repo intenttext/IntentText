@@ -1,0 +1,71 @@
+title: {{spec_title}}
+meta: | type: template | domain: developer | description: Technical specification with requirements, design decisions, implementation plan, and approval workflow | theme: technical | version: 1.0 | author: IntentText
+track: | version: {{current_version}} | by: {{author}} | note: {{version_note}}
+track: | version: 0.2 | by: {{author}} | note: Design section and requirements finalized after review
+track: | version: 0.1 | by: {{author}} | note: Initial draft circulated for feedback
+---
+section: Overview
+---
+text: Document Information
+text: *Spec ID:* {{spec_id}}
+text: *Status:* {{status}}
+text: *Author:* {{author}} · {{author_email}}
+text: *Team:* {{team}}
+text: *Created:* {{created_date}}
+text: *Target Release:* {{target_release}}
+---
+text: Problem Statement
+text: {{problem_statement}}
+---
+text: Proposed Solution
+text: {{proposed_solution}}
+---
+section: Requirements
+---
+text: {{requirement_id}} — {{title}}
+text: *Priority:* {{priority}} · *Category:* {{category}}
+text: {{description}}
+---
+section: Design
+---
+text: Architecture Overview
+text: {{architecture_overview}}
+---
+text: Data Model
+text: {{data_model}}
+---
+text: API Surface
+text: {{api_surface}}
+---
+text: Security Considerations
+text: {{security_considerations}}
+---
+section: Implementation Plan
+---
+text: Phases
+text: {{implementation_phases}}
+---
+text: Dependencies
+text: {{dependencies}}
+---
+text: Testing Strategy
+text: {{testing_strategy}}
+---
+section: Constraints
+---
+policy: {{constraint_title}}
+text: {{constraint_body}}
+---
+section: Performance Targets
+---
+text: Benchmarks
+text: {{performance_targets}}
+---
+section: Open Questions
+---
+text: Unresolved Items
+text: {{open_questions}}
+---
+section: Approval
+---
+approve: Approved | by: {{tech_lead}} | role: {{tech_lead_title}} | at: {{approval_date}}

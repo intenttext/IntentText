@@ -1,0 +1,320 @@
+{
+  "Title + Summary": {
+    "prefix": "doc",
+    "body": [
+      "title: ${1:Document Title}",
+      "summary: ${2:Brief description}",
+      "",
+      "$0"
+    ],
+    "description": "IntentText document header"
+  },
+  "Section": {
+    "prefix": "section",
+    "body": [
+      "section: ${1:Section Name}",
+      "$0"
+    ],
+    "description": "Section heading"
+  },
+  "Task": {
+    "prefix": "task",
+    "body": [
+      "task: ${1:Task description} | owner: ${2:person} | due: ${3:date}"
+    ],
+    "description": "Task with owner and due date"
+  },
+  "Step": {
+    "prefix": "step",
+    "body": [
+      "step: ${1:Step description} | tool: ${2:tool-name} | id: ${3:step-id}"
+    ],
+    "description": "Workflow step"
+  },
+  "Decision": {
+    "prefix": "decision",
+    "body": [
+      "decision: ${1:Condition check} | if: ${2:condition} | then: ${3:step-id} | else: ${4:step-id}"
+    ],
+    "description": "Conditional branch"
+  },
+  "Gate": {
+    "prefix": "gate",
+    "body": [
+      "gate: ${1:Approval name} | approver: ${2:person-or-team}"
+    ],
+    "description": "Human approval gate"
+  },
+  "Note": {
+    "prefix": "note",
+    "body": [
+      "note: ${1:Note content}"
+    ],
+    "description": "Note callout (alias for text)"
+  },
+  "Text": {
+    "prefix": "text",
+    "body": [
+      "text: ${1:Content}"
+    ],
+    "description": "Text content block"
+  },
+  "Danger": {
+    "prefix": "danger",
+    "body": [
+      "danger: ${1:Critical warning}"
+    ],
+    "description": "Danger callout"
+  },
+  "Cite": {
+    "prefix": "cite",
+    "body": [
+      "cite: ${1:Source reference}"
+    ],
+    "description": "Citation reference"
+  },
+  "Warning": {
+    "prefix": "warning",
+    "body": [
+      "warning: ${1:Warning content}"
+    ],
+    "description": "Warning callout"
+  },
+  "Code Block": {
+    "prefix": "code",
+    "body": [
+      "code: ```$2``` | lang: ${1:js}"
+    ],
+    "description": "Inline code block with language"
+  },
+  "Code Block (Multi-line)": {
+    "prefix": "codeblock",
+    "body": [
+      "code: ```",
+      "$0",
+      "``` | lang: ${1:js}"
+    ],
+    "description": "Multi-line code block"
+  },
+  "Parallel": {
+    "prefix": "parallel",
+    "body": [
+      "parallel: ${1:Parallel group} | steps: ${2:step-a,step-b}"
+    ],
+    "description": "Parallel execution block"
+  },
+  "Workflow Template": {
+    "prefix": "workflow",
+    "body": [
+      "title: ${1:Workflow Name}",
+      "summary: ${2:Description}",
+      "",
+      "section: Steps",
+      "step: ${3:First step} | tool: ${4:tool} | id: step-1",
+      "step: ${5:Second step} | tool: ${6:tool} | id: step-2 | depends: step-1",
+      "",
+      "section: Approval",
+      "gate: ${7:Review} | approver: ${8:team}",
+      "",
+      "result: ${9:Final output}"
+    ],
+    "description": "Complete workflow template"
+  },
+  "Signal": {
+    "prefix": "signal",
+    "body": [
+      "signal: ${1:Event description} | event: ${2:event-name}"
+    ],
+    "description": "Emit an event or status update"
+  },
+  "Columns": {
+    "prefix": "columns",
+    "body": [
+      "columns: ${1:Col 1} | ${2:Col 2} | ${3:Col 3}"
+    ],
+    "description": "Table column headers"
+  },
+  "Input": {
+    "prefix": "input",
+    "body": [
+      "input: ${1:Field label} | type: ${2|text,number,email,date,url|} | required: ${3|true,false|}"
+    ],
+    "description": "Form input field"
+  },
+  "Output": {
+    "prefix": "output",
+    "body": [
+      "output: ${1:Result data}"
+    ],
+    "description": "Output variable or result"
+  },
+  "Assert": {
+    "prefix": "assert",
+    "body": [
+      "assert: ${1:Condition description} | expect: ${2:expected}"
+    ],
+    "description": "Workflow assertion"
+  },
+  "Secret": {
+    "prefix": "secret",
+    "body": [
+      "secret: ${1:Secret name} | env: ${2:ENV_VAR}"
+    ],
+    "description": "Secret or credential reference"
+  },
+  "Memory": {
+    "prefix": "memory",
+    "body": [
+      "memory: ${1:Description} | key: ${2:key} | value: ${3:value}"
+    ],
+    "description": "Agent memory store"
+  },
+  "Prompt": {
+    "prefix": "prompt",
+    "body": [
+      "prompt: ${1:Instruction for the agent}"
+    ],
+    "description": "Agent prompt instruction"
+  },
+  "Tool": {
+    "prefix": "tool",
+    "body": [
+      "tool: ${1:Tool name} | input: ${2:data} | output: ${3:var}"
+    ],
+    "description": "Declare an agent tool"
+  },
+  "Template Variable": {
+    "prefix": "var",
+    "body": [
+      "{{${1:variable}}}"
+    ],
+    "description": "Template variable placeholder"
+  },
+  "Print Layout": {
+    "prefix": "print",
+    "body": [
+      "font: ${1:Georgia} | size: ${2:12pt} | leading: ${3:1.6}",
+      "page: ${4:A4} | margins: ${5:2.5cm}"
+    ],
+    "description": "Print layout settings"
+  },
+  "IntentText Track": {
+    "prefix": "track",
+    "body": [
+      "track: | version: 1.0 | by: ${1:name}"
+    ],
+    "description": "Enable document history tracking"
+  },
+  "IntentText Sign": {
+    "prefix": "sign",
+    "body": [
+      "sign: ${1:Full Name} | role: ${2:Role} | at: ${3:timestamp} | hash: ${4:hash}"
+    ],
+    "description": "Cryptographic document signature"
+  },
+  "IntentText Approve": {
+    "prefix": "approve",
+    "body": [
+      "approve: ${1:description} | by: ${2:name} | role: ${3:role} | at: ${4:timestamp}"
+    ],
+    "description": "Workflow approval stamp"
+  },
+  "Ref": {
+    "prefix": "ref",
+    "body": [
+      "ref: ${1:Document name} | file: ${2:./path/to/file.it} | rel: ${3|supersedes,amends,governed-by,payment,basis,continuation,relates-to,source|}"
+    ],
+    "description": "Cross-document reference with relationship"
+  },
+  "Definition": {
+    "prefix": "def",
+    "body": [
+      "def: ${1:Term} | meaning: ${2:Definition text}"
+    ],
+    "description": "Term definition / glossary entry"
+  },
+  "Metric": {
+    "prefix": "metric",
+    "body": [
+      "metric: ${1:Metric name} | value: ${2:0} | unit: ${3:unit} | target: ${4:0} | trend: ${5|up,down,stable,at-risk|}"
+    ],
+    "description": "Measurable value with target and trend"
+  },
+  "Amendment": {
+    "prefix": "amendment",
+    "body": [
+      "amendment: ${1:Description} | section: ${2:Section} | was: ${3:old value} | now: ${4:new value} | ref: ${5:Amendment #1} | by: ${6:name} | at: ${7:date}"
+    ],
+    "description": "Formal change to a frozen document"
+  },
+  "Figure": {
+    "prefix": "figure",
+    "body": [
+      "figure: ${1:Caption} | src: ${2:image-url} | alt: ${3:Alt text}"
+    ],
+    "description": "Numbered captioned visual"
+  },
+  "Signline": {
+    "prefix": "signline",
+    "body": [
+      "signline: ${1:Signature label} | name: ${2:Full Name} | role: ${3:Role}"
+    ],
+    "description": "Physical signature placeholder for print"
+  },
+  "Contact": {
+    "prefix": "contact",
+    "body": [
+      "contact: ${1:Full Name} | role: ${2:Role} | org: ${3:Organization} | email: ${4:email@example.com} | phone: ${5:+1-555-0100}"
+    ],
+    "description": "Structured contact information"
+  },
+  "Deadline": {
+    "prefix": "deadline",
+    "body": [
+      "deadline: ${1:Milestone name} | date: ${2:2026-12-31} | owner: ${3:person} | consequence: ${4:What happens if missed}"
+    ],
+    "description": "Temporal commitment with consequence"
+  },
+  "Freeze": {
+    "prefix": "freeze",
+    "body": [
+      "freeze: | at: ${1:timestamp} | hash: ${2:hash} | status: locked"
+    ],
+    "description": "Seal/lock a document"
+  },
+  "Revision": {
+    "prefix": "revision",
+    "body": [
+      "revision: ${1:Description of change} | by: ${2:name} | at: ${3:date}"
+    ],
+    "description": "Revision history entry"
+  },
+  "Meta": {
+    "prefix": "meta",
+    "body": [
+      "meta: | ${1:key}: ${2:value}"
+    ],
+    "description": "Document metadata properties"
+  },
+  "Header": {
+    "prefix": "header",
+    "body": [
+      "header: ${1:Header text}"
+    ],
+    "description": "Print layout header"
+  },
+  "Footer": {
+    "prefix": "footer",
+    "body": [
+      "footer: ${1:Page {{page}}}"
+    ],
+    "description": "Print layout footer"
+  },
+  "Watermark": {
+    "prefix": "watermark",
+    "body": [
+      "watermark: ${1:DRAFT} | opacity: ${2:0.1}"
+    ],
+    "description": "Print layout watermark"
+  }
+}

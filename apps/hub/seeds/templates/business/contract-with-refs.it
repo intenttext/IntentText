@@ -1,0 +1,43 @@
+title: {{contract_title}}
+meta: | type: template | domain: business | description: Service agreement with cross-document references to payment receipts, amendments, and governing master agreement | theme: legal | version: 1.0 | author: IntentText | since: 2.11
+summary: {{contract_summary}}
+track: | version: 1.0 | by: Legal
+---
+section: Document References
+---
+ref: {{master_agreement_name}} | file: {{master_agreement_path}} | rel: governed-by
+ref: {{original_contract_name}} | file: {{original_contract_path}} | rel: continuation
+ref: {{payment_receipt_name}} | url: {{payment_receipt_url}} | rel: payment
+---
+section: Parties
+---
+text: Provider
+text: *Name:* {{provider_name}}
+text: *Address:* {{provider_address}}
+text: *Contact:* {{provider_email}}
+---
+text: Client
+text: *Name:* {{client_name}}
+text: *Address:* {{client_address}}
+text: *Contact:* {{client_email}}
+---
+section: Definitions
+---
+def: Agreement | meaning: This Service Agreement and all schedules, exhibits, and amendments hereto
+def: Effective Date | meaning: {{effective_date}}
+def: Services | meaning: {{services_description}}
+def: Term | meaning: {{contract_term}}
+---
+section: Scope of Services
+---
+paragraph: {{scope_description}}
+---
+section: Payment Terms
+---
+paragraph: {{payment_terms}}
+deadline: First payment due | date: {{first_payment_date}} | consequence: Late fee of {{late_fee}} applies | owner: {{client_name}}
+---
+section: Signatures
+---
+sign: {{provider_signer}} | role: {{provider_role}} | hash: {{provider_hash}} | at: {{provider_sign_date}}
+sign: {{client_signer}} | role: {{client_role}} | hash: {{client_hash}} | at: {{client_sign_date}}

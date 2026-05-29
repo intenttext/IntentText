@@ -1,0 +1,35 @@
+title: {{title}}
+meta: | type: template | domain: organization | description: Formal amendment to an existing contract with cross-references, amendment blocks, and approval chain | theme: legal | version: 1.0 | author: IntentText | since: 2.11
+summary: {{summary}}
+---
+section: Amendment Details
+---
+paragraph: This Amendment ("Amendment") is entered into as of {{amendment_date}} by and between {{provider_name}} ("Provider") and {{client_name}} ("Client") to amend that certain {{original_contract_name}} dated {{original_date}} (the "Original Agreement").
+---
+ref: {{original_contract_name}} | file: {{original_contract_path}} | rel: amends
+ref: {{master_agreement_name}} | file: {{master_agreement_path}} | rel: governed-by
+---
+section: Recitals
+---
+paragraph: WHEREAS, the parties entered into the Original Agreement for {{original_purpose}};
+paragraph: WHEREAS, the parties desire to amend certain terms and conditions of the Original Agreement as set forth herein;
+paragraph: NOW, THEREFORE, in consideration of the mutual covenants contained herein, the parties agree as follows:
+---
+section: Amendments
+---
+paragraph: The following amendments are made to the Original Agreement:
+---
+section: General Provisions
+---
+paragraph: Except as expressly amended hereby, all terms and conditions of the Original Agreement remain in full force and effect.
+paragraph: This Amendment may be executed in counterparts, each of which shall be deemed an original.
+---
+section: Approval and Execution
+---
+approve: Amendment reviewed by legal | by: {{legal_reviewer}} | role: Legal Counsel
+freeze: | status: locked | hash: {{freeze_hash}} | at: {{freeze_date}}
+amendment: {{amendment_1_description}} | section: {{amendment_1_section}} | was: {{amendment_1_was}} | now: {{amendment_1_now}} | ref: Amendment #1 | by: {{amendment_by}} | at: {{amendment_date}}
+amendment: {{amendment_2_description}} | section: {{amendment_2_section}} | was: {{amendment_2_was}} | now: {{amendment_2_now}} | ref: Amendment #1 | by: {{amendment_by}} | at: {{amendment_date}}
+amendment: {{amendment_3_description}} | section: {{amendment_3_section}} | now: {{amendment_3_now}} | ref: Amendment #1 | by: {{amendment_by}} | at: {{amendment_date}}
+sign: {{provider_signer}} | role: {{provider_role}} | hash: {{provider_hash}} | at: {{provider_sign_date}}
+sign: {{client_signer}} | role: {{client_role}} | hash: {{client_hash}} | at: {{client_sign_date}}

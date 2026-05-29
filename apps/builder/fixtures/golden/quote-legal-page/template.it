@@ -1,0 +1,9 @@
+page: | size: Legal | marginTopMm: 18 | marginBottomMm: 16 | safeAreaMm: 8
+title: Quote {{quote_id}}
+section: Scope
+text: {{scope}}
+section: Pricing
+| Item | Value |
+| Duration | {{duration}} |
+| Price | {{price}} {{currency}} |
+text: Expires: {{expires_at}}

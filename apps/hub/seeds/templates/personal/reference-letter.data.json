@@ -1,0 +1,19 @@
+{
+  "referee_name": "Catherine Lindström",
+  "referee_title": "VP of Engineering",
+  "referee_organization": "Northvane Systems",
+  "referee_email": "c.lindstrom@northvane.com",
+  "referee_phone": "+1 (206) 514-7738",
+  "date": "March 7, 2026",
+  "subject_name": "Rafael Mendes",
+  "relationship": "Direct manager for three years across two product teams",
+  "relationship_duration": "January 2022 – February 2025",
+  "opening": "I am pleased to provide this reference for Rafael Mendes, whom I had the privilege of managing during his tenure at Northvane Systems. Rafael reported directly to me first as a backend engineer on our payments infrastructure team, and later as the technical lead for our platform reliability group.",
+  "professional_context": "Northvane Systems builds enterprise treasury management software serving mid-market and Fortune 500 clients. Rafael joined during a period of rapid growth, when our engineering organization doubled from 40 to 85 people in 18 months. He was consistently among the engineers I relied on most to navigate the complexity that growth introduced — not only in our codebase but in our processes and team dynamics.",
+  "key_strengths": "Rafael's greatest strengths lie in his systems thinking and his ability to communicate technical decisions clearly to non-technical stakeholders. He has a rare talent for translating ambiguous product requirements into well-scoped technical plans. His code reviews are thorough and constructive — several engineers on my team have cited his feedback as the most valuable part of their onboarding experience.",
+  "accomplishments": "Rafael led the redesign of our payment reconciliation pipeline, which had been a persistent source of production incidents. His architecture reduced reconciliation failures from an average of 12 per month to fewer than 1, and the design document he wrote has since become a reference template for our broader engineering organization. He also spearheaded the adoption of structured incident reviews, creating a blameless post-mortem process that is now standard practice across all teams at Northvane.",
+  "character": "Beyond his technical capabilities, Rafael is someone who makes the people around him better. He is patient, direct, and unfailingly respectful. He volunteered to mentor two interns in consecutive summers, both of whom received and accepted full-time offers. In high-pressure situations — and treasury software has more than its share — he remains calm and focused, which has a steadying effect on the entire team.",
+  "recommendation": "I recommend Rafael without reservation. He would be an asset to any engineering organization that values thoughtful architecture, team-oriented leadership, and a genuine commitment to craft. I am confident he will excel in a senior or staff-level role, and I would welcome the opportunity to work with him again. Please do not hesitate to contact me if you have any further questions.",
+  "signed_date": "2026-03-07",
+  "freeze_date": "2026-03-07T09:15:00Z"
+}

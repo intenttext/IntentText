@@ -1,0 +1,50 @@
+title: Purchase Order
+meta: | type: template | domain: business | description: Purchase order with vendor details, ship-to address, line items, delivery terms, and purchasing approval | theme: corporate | version: 1.0 | author: IntentText
+---
+section: Purchase Order Details
+---
+text: Order Information
+text: *PO Number:* {{po_number}}
+text: *Date:* {{date}}
+text: *Required Delivery Date:* {{delivery_date}}
+text: *Payment Terms:* {{payment_terms}}
+---
+text: Vendor
+text: {{vendor_name}}
+text: {{vendor_address}}
+text: *Contact:* {{vendor_contact}} · {{vendor_email}}
+text: *Vendor ID:* {{vendor_id}}
+---
+text: Ship To
+text: {{ship_to_name}}
+text: {{ship_to_address}}
+text: *Attention:* {{ship_to_attention}}
+text: *Dock/Bay:* {{ship_to_dock}}
+---
+section: Line Items
+---
+text: {{part_number}} — {{description}}
+text: *Quantity:* {{quantity}} · *Unit:* {{unit}} · *Unit Price:* {{unit_price}} · *Amount:* {{amount}}
+---
+section: Totals
+---
+text: Order Summary
+text: *Subtotal:* {{subtotal}}
+text: *Shipping:* {{shipping}}
+text: *Total:* {{total}}
+---
+section: Delivery Terms
+---
+text: Shipping and Handling
+text: *Shipping Method:* {{shipping_method}}
+text: *Incoterms:* {{incoterms}}
+text: *Special Instructions:* {{special_instructions}}
+---
+section: Terms and Conditions
+---
+text: Standard Terms
+text: {{terms}}
+---
+section: Approval
+---
+approve: Approved | by: {{approver}} | role: Purchasing Manager | at: {{approval_date}}

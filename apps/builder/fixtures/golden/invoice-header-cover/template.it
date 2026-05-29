@@ -1,0 +1,9 @@
+page: | size: A4 | marginTopMm: 24 | marginBottomMm: 16 | marginLeftMm: 12 | marginRightMm: 12
+header: https://cdn.example.com/invoice-header.png | fit: cover | heightMm: 26
+title: Invoice {{invoice_number}}
+section: Customer
+text: {{client_name}}
+text: {{client_address}}
+divider:
+metric: Subtotal | value: {{subtotal}} | unit: {{currency}}
+metric: Total | value: {{total}} | unit: {{currency}}

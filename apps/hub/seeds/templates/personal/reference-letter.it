@@ -1,0 +1,46 @@
+title: Professional Reference Letter
+meta: | type: template | domain: personal | description: Professional reference letter with referee details, relationship context, and recommendation | theme: corporate | version: 1.0 | author: IntentText
+track: | version: 1.0 | by: HR Services
+---
+section: Referee Information
+---
+text: From
+text: *Name:* {{referee_name}}
+text: *Title:* {{referee_title}}
+text: *Organization:* {{referee_organization}}
+text: *Email:* {{referee_email}}
+text: *Phone:* {{referee_phone}}
+text: *Date:* {{date}}
+---
+section: Subject
+---
+text: Regarding
+text: *Candidate:* {{subject_name}}
+text: *Relationship:* {{relationship}}
+text: *Duration:* {{relationship_duration}}
+---
+section: Letter
+---
+text: Opening
+text: {{opening}}
+---
+text: Professional Context
+text: {{professional_context}}
+---
+text: Key Strengths
+text: {{key_strengths}}
+---
+text: Specific Accomplishments
+text: {{accomplishments}}
+---
+text: Character & Work Ethic
+text: {{character}}
+---
+text: Recommendation
+text: {{recommendation}}
+---
+section: Authorization
+---
+sign: {{referee_name}} | role: {{referee_title}} | organization: {{referee_organization}} | at: {{signed_date}} | hash: {{document_hash}}
+---
+freeze: Reference letter issued | at: {{freeze_date}} | by: {{referee_name}}

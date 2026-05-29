@@ -1,0 +1,74 @@
+{
+  "invoice_number": "INV-2026-1385",
+  "date": "March 7, 2026",
+  "due_date": "April 6, 2026",
+  "payment_terms": "Net 30",
+  "currency": "USD",
+  "company_name": "Helix Supply Co.",
+  "company_address": "590 Commerce Boulevard, Suite 210, Portland, OR 97204",
+  "company_tax_id": "93-4281776",
+  "company_email": "invoices@helixsupply.com",
+  "client_name": "Mariana Delgado",
+  "client_company": "Cascadia Fabrication Labs",
+  "client_address": "1120 Industrial Parkway, Tacoma, WA 98402",
+  "client_tax_id": "91-6037284",
+  "client_email": "ap@cascadiafab.com",
+  "items": [
+    {
+      "description": "CNC Precision Bearings — Grade 7, 50mm",
+      "quantity": 200,
+      "unit_price": "$18.50",
+      "tax_category": "Standard",
+      "amount": "$3,700.00"
+    },
+    {
+      "description": "Hardened Steel Shaft — 25mm x 600mm",
+      "quantity": 50,
+      "unit_price": "$42.00",
+      "tax_category": "Standard",
+      "amount": "$2,100.00"
+    },
+    {
+      "description": "Hydraulic Seal Kit — Series H400",
+      "quantity": 30,
+      "unit_price": "$67.00",
+      "tax_category": "Standard",
+      "amount": "$2,010.00"
+    },
+    {
+      "description": "Calibration Service — On-site, 4 hours",
+      "quantity": 1,
+      "unit_price": "$1,200.00",
+      "tax_category": "Service",
+      "amount": "$1,200.00"
+    },
+    {
+      "description": "Expedited Freight — Portland to Tacoma",
+      "quantity": 1,
+      "unit_price": "$385.00",
+      "tax_category": "Service",
+      "amount": "$385.00"
+    }
+  ],
+  "tax_lines": [
+    {
+      "tax_name": "State Sales Tax",
+      "tax_rate": "6.5%",
+      "taxable_amount": "$7,810.00",
+      "tax_amount": "$507.65"
+    },
+    {
+      "tax_name": "County Surcharge",
+      "tax_rate": "1.8%",
+      "taxable_amount": "$7,810.00",
+      "tax_amount": "$140.58"
+    }
+  ],
+  "subtotal": "$9,395.00",
+  "total_tax": "$648.23",
+  "total": "$10,043.23",
+  "payment_instructions": "ACH transfer to Helix Supply Co., First Pacific Bank, Account 3302-8817-4450, Routing 125000024, Reference INV-2026-1385",
+  "authorized_by": "Rachel Okonkwo",
+  "signed_date": "2026-03-07",
+  "freeze_date": "2026-03-07T09:15:00Z"
+}

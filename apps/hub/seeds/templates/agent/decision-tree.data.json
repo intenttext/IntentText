@@ -1,0 +1,59 @@
+{
+  "tree_name": "Incoming Support Ticket Router",
+  "agent_name": "ticket-triage-agent",
+  "model": "claude-3.5-sonnet",
+  "author": "Priya Mehta",
+  "created_date": "March 7, 2026",
+  "objective": "Classify incoming support tickets by urgency and route them to the correct specialist queue within 30 seconds of receipt",
+  "input_signal": "New ticket payload from Zendesk webhook — includes subject, body, customer tier, and sentiment score",
+  "confidence_threshold": "0.85",
+  "evaluation_criteria": "Tickets are scored on three axes: customer impact (revenue tier × active users), technical severity (service degradation level), and sentiment polarity. A composite score determines the routing path.",
+  "decision_nodes": [
+    {
+      "label": "Service outage detected",
+      "condition": "body contains keywords 'down', 'outage', '500 error' AND customer tier ∈ {enterprise, growth}",
+      "weight": "0.95",
+      "description": "Check whether the ticket describes a full or partial service outage for a high-value account",
+      "outcome_true": "Route to P0 incident queue and page on-call SRE immediately",
+      "outcome_false": "Proceed to billing check",
+      "data_source": "Zendesk ticket payload + PagerDuty active incidents feed",
+      "confidence": "0.97"
+    },
+    {
+      "label": "Billing dispute flagged",
+      "condition": "subject matches billing|invoice|charge|refund AND sentiment_score < -0.3",
+      "weight": "0.80",
+      "description": "Detect billing-related complaints with negative sentiment that need urgent finance team review",
+      "outcome_true": "Route to billing-escalations queue with churn-risk tag",
+      "outcome_false": "Proceed to feature request check",
+      "data_source": "Ticket subject line + Stripe payment history for customer",
+      "confidence": "0.91"
+    },
+    {
+      "label": "Feature request identified",
+      "condition": "body matches 'would be nice|feature request|can you add|wish there was' AND sentiment_score > 0.1",
+      "weight": "0.60",
+      "description": "Identify constructive feature requests that should be logged in the product backlog rather than handled as support",
+      "outcome_true": "Auto-tag as feature-request, log to Productboard, send acknowledgment template",
+      "outcome_false": "Proceed to general technical support",
+      "data_source": "Ticket body NLP classification",
+      "confidence": "0.88"
+    },
+    {
+      "label": "Integration configuration issue",
+      "condition": "body references API|webhook|OAuth|integration AND customer has active API keys",
+      "weight": "0.75",
+      "description": "Detect technical integration issues that require developer-level support",
+      "outcome_true": "Route to integrations-specialist queue with customer's API usage summary attached",
+      "outcome_false": "Route to general-support queue",
+      "data_source": "Ticket body + internal API key registry",
+      "confidence": "0.86"
+    }
+  ],
+  "fallback_action": "Route to general-support queue with normal priority and auto-assign to next available agent",
+  "fallback_trigger": "No decision node exceeds the 0.85 confidence threshold or all conditions evaluate to false",
+  "fallback_notification": "Post summary to #support-triage Slack channel for human review within 2 hours",
+  "log_destination": "Elasticsearch cluster support-decisions-prod",
+  "log_retention": "90 days",
+  "include_reasoning": "Yes — full decision path with per-node confidence scores and matched keywords"
+}

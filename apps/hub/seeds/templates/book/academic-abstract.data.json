@@ -1,0 +1,44 @@
+{
+  "paper_title": "Permafrost Thaw and Methane Flux in Discontinuous Zones of Central Yakutia, 2019–2025",
+  "authors": [
+    {
+      "name": "Ayaan Sharma",
+      "affiliation": "Institute of Arctic Biology, University of Alaska Fairbanks"
+    },
+    {
+      "name": "Sardana Vasilieva",
+      "affiliation": "Melnikov Permafrost Institute, Yakutsk"
+    },
+    {
+      "name": "Nils Eriksson",
+      "affiliation": "Department of Earth Sciences, Uppsala University"
+    }
+  ],
+  "abstract": "We present a six-year record of methane (CH₄) emissions from thermokarst landscapes in the Lena-Aldan interfluve of central Yakutia, a region characterised by discontinuous permafrost underlain by ice-rich Yedoma deposits. Eddy covariance measurements at four sites, supplemented by chamber flux surveys across 112 sampling points, reveal a 34% increase in mean growing-season CH₄ flux between 2019 and 2025, driven primarily by the lateral expansion of thermokarst lakes and the activation of previously frozen organic carbon. Isotopic analysis (δ¹³C-CH₄) indicates that the additional methane is predominantly biogenic, originating from microbial decomposition of Pleistocene-age organic matter exposed by active-layer deepening. Satellite-derived surface water extent from Sentinel-2 imagery shows a 19% increase in thermokarst lake area over the study period, consistent with borehole records showing active-layer depths exceeding 2.4 metres at all four monitoring sites by 2024. These findings suggest that current Earth system models underestimate the positive feedback between permafrost degradation and atmospheric methane loading in continental Siberian settings.",
+  "keywords": [
+    {
+      "keyword": "permafrost thaw"
+    },
+    {
+      "keyword": "methane emissions"
+    },
+    {
+      "keyword": "thermokarst"
+    },
+    {
+      "keyword": "Yakutia"
+    },
+    {
+      "keyword": "Yedoma"
+    },
+    {
+      "keyword": "eddy covariance"
+    },
+    {
+      "keyword": "active-layer deepening"
+    },
+    {
+      "keyword": "climate feedback"
+    }
+  ]
+}

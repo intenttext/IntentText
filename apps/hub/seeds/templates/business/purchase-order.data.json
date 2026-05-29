@@ -1,0 +1,66 @@
+{
+  "po_number": "PO-2026-04821",
+  "date": "March 7, 2026",
+  "delivery_date": "March 28, 2026",
+  "payment_terms": "Net 45",
+  "vendor_name": "Atlas Industrial Components",
+  "vendor_address": "2780 Foundry Road, Unit 6, Detroit, MI 48207",
+  "vendor_contact": "Diane Huerta",
+  "vendor_email": "d.huerta@atlascomponents.com",
+  "vendor_id": "VND-3091",
+  "ship_to_name": "Redwood Assembly Plant",
+  "ship_to_address": "4500 Redwood Industrial Parkway, Building C, Fremont, CA 94538",
+  "ship_to_attention": "Marcus Lindgren, Receiving",
+  "ship_to_dock": "Dock 7, Bay B",
+  "items": [
+    {
+      "part_number": "AIC-4420",
+      "description": "Stainless Steel Mounting Bracket — 304 Grade",
+      "quantity": 500,
+      "unit": "ea",
+      "unit_price": "$7.80",
+      "amount": "$3,900.00"
+    },
+    {
+      "part_number": "AIC-4421",
+      "description": "Vibration Dampening Washer — 12mm",
+      "quantity": 2000,
+      "unit": "ea",
+      "unit_price": "$0.45",
+      "amount": "$900.00"
+    },
+    {
+      "part_number": "AIC-6100",
+      "description": "Pneumatic Cylinder — 80mm Bore, 200mm Stroke",
+      "quantity": 24,
+      "unit": "ea",
+      "unit_price": "$186.00",
+      "amount": "$4,464.00"
+    },
+    {
+      "part_number": "AIC-6205",
+      "description": "Linear Guide Rail — 500mm, Carbon Steel",
+      "quantity": 40,
+      "unit": "ea",
+      "unit_price": "$94.50",
+      "amount": "$3,780.00"
+    },
+    {
+      "part_number": "AIC-7003",
+      "description": "Industrial Adhesive — High-Temp Epoxy, 300ml",
+      "quantity": 60,
+      "unit": "tube",
+      "unit_price": "$22.00",
+      "amount": "$1,320.00"
+    }
+  ],
+  "subtotal": "$14,364.00",
+  "shipping": "$620.00",
+  "total": "$14,984.00",
+  "shipping_method": "LTL Freight — enclosed trailer",
+  "incoterms": "DAP Fremont, CA",
+  "special_instructions": "Palletize by part number. Include packing slip inside each carton. Notify receiving 24 hours before delivery.",
+  "terms": "Goods must conform to specifications referenced in this PO. Buyer reserves the right to inspect and reject non-conforming goods within 10 business days of receipt. Vendor shall replace defective items at no additional charge. This PO is governed by the laws of the State of California.",
+  "approver": "Janet Reeves",
+  "approval_date": "2026-03-07"
+}

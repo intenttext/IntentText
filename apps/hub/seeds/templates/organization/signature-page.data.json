@@ -1,0 +1,23 @@
+{
+  "title": "Signature Page — Master Services Agreement",
+  "summary": "Signature page for the Northwind–Clearwater Master Services Agreement with dual signatory lines for both parties and witnesses.",
+  "font_family": "Georgia",
+  "font_size": "11pt",
+  "heading_font": "Helvetica Neue",
+  "page_size": "Letter",
+  "margins": "3cm",
+  "agreement_name": "Master Services Agreement 2024",
+  "agreement_path": "../agreements/msa-2024-001.it",
+  "agreement_full_name": "Master Services Agreement",
+  "agreement_date": "January 15, 2024",
+  "provider_signer_1": "Amir Hassani",
+  "provider_role_1": "Chief Executive Officer",
+  "provider_witness": "Diana Kowalski",
+  "provider_witness_role": "Chief Financial Officer",
+  "client_signer_1": "Sandra Eriksen",
+  "client_role_1": "Vice President of Engineering",
+  "client_signer_2": "Robert Chen",
+  "client_role_2": "General Counsel",
+  "client_witness": "Katherine Moore",
+  "client_witness_role": "Director of Procurement"
+}

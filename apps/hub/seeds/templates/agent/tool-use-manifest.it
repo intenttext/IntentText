@@ -1,0 +1,39 @@
+title: {{manifest_name}}
+meta: | type: template | domain: agent | description: Tool registry manifest for an agent with capability declarations, input/output schemas, and usage policies | theme: technical | version: 1.0 | author: IntentText
+track: | version: 1.0 | by: {{author}} | note: Manifest created {{created_date}}
+---
+section: Agent Configuration
+---
+text: Agent Details
+text: *Agent:* {{agent_name}}
+text: *Model:* {{model}}
+text: *Owner:* {{owner}}
+text: *Environment:* {{environment}}
+text: *Max Concurrent Tool Calls:* {{max_concurrent}}
+---
+section: Registered Tools
+---
+text: {{name}}
+text: *Description:* {{description}}
+text: *Endpoint:* {{endpoint}}
+text: *Auth:* {{auth_method}}
+text: *Inputs:* {{inputs}}
+text: *Outputs:* {{outputs}}
+text: *Rate Limit:* {{rate_limit}}
+text: *Timeout:* {{timeout}}
+---
+section: Usage Policies
+---
+policy: Data classification | always: respect_field_level_pii_tags | never: log_raw_credentials
+policy: Rate limiting | if: calls_per_minute > {{global_rpm_limit}} | action: throttle
+policy: Cost ceiling | if: estimated_cost_usd > {{cost_ceiling}} | action: pause_and_confirm
+policy: Fallback order | always: prefer_cached_result_if_fresh | never: retry_more_than_{{max_retries}}_times
+---
+section: Permissions Boundary
+---
+text: Access Controls
+text: *Read Scopes:* {{read_scopes}}
+text: *Write Scopes:* {{write_scopes}}
+text: *Denied Operations:* {{denied_operations}}
+---
+text: Manifest maintained by {{author}} · {{created_date}}

@@ -1,0 +1,78 @@
+{
+  "manifest_name": "Deployment Orchestrator Tool Registry",
+  "agent_name": "deploy-orchestrator",
+  "model": "claude-3.5-sonnet",
+  "author": "Suki Tanaka",
+  "created_date": "March 6, 2026",
+  "owner": "platform-team",
+  "environment": "production",
+  "max_concurrent": "3",
+  "tools": [
+    {
+      "name": "github.create_pull_request",
+      "description": "Opens a pull request against the target branch with auto-generated changelog body",
+      "endpoint": "https://api.github.com/repos/{owner}/{repo}/pulls",
+      "auth_method": "GitHub App installation token (repo scope)",
+      "inputs": "base_branch: string, head_branch: string, title: string, body: markdown",
+      "outputs": "{ pr_number: int, html_url: string, mergeable: bool }",
+      "rate_limit": "30 req/min",
+      "timeout": "15s"
+    },
+    {
+      "name": "ci.trigger_build",
+      "description": "Kicks off a CI pipeline run for the specified commit SHA and returns a build ID for polling",
+      "endpoint": "https://ci.internal.acme.dev/api/v2/builds",
+      "auth_method": "Service account JWT (ci:trigger scope)",
+      "inputs": "repo: string, commit_sha: string, config_override: object | null",
+      "outputs": "{ build_id: string, status: pending, estimated_duration_s: int }",
+      "rate_limit": "10 req/min",
+      "timeout": "20s"
+    },
+    {
+      "name": "k8s.rolling_deploy",
+      "description": "Initiates a rolling deployment of the given image tag to the specified Kubernetes namespace",
+      "endpoint": "https://k8s-api.internal.acme.dev/apis/apps/v1/namespaces/{ns}/deployments/{name}",
+      "auth_method": "Kubernetes service account with deploy role",
+      "inputs": "namespace: string, deployment_name: string, image_tag: string, replicas: int",
+      "outputs": "{ rollout_status: string, ready_replicas: int, updated_replicas: int }",
+      "rate_limit": "5 req/min",
+      "timeout": "120s"
+    },
+    {
+      "name": "slack.post_message",
+      "description": "Sends a formatted notification to a Slack channel with optional thread reply",
+      "endpoint": "https://slack.com/api/chat.postMessage",
+      "auth_method": "Bot OAuth token (chat:write scope)",
+      "inputs": "channel: string, text: string, blocks: array | null, thread_ts: string | null",
+      "outputs": "{ ok: bool, ts: string, channel: string }",
+      "rate_limit": "60 req/min",
+      "timeout": "5s"
+    },
+    {
+      "name": "datadog.create_monitor",
+      "description": "Creates a synthetic or metric monitor to watch the newly deployed service for anomalies",
+      "endpoint": "https://api.datadoghq.com/api/v1/monitor",
+      "auth_method": "Datadog API key + Application key",
+      "inputs": "name: string, type: metric alert | synthetic, query: string, thresholds: object",
+      "outputs": "{ id: int, name: string, overall_state: string }",
+      "rate_limit": "20 req/min",
+      "timeout": "10s"
+    },
+    {
+      "name": "vault.read_secret",
+      "description": "Fetches a secret from HashiCorp Vault for use as deployment environment variables",
+      "endpoint": "https://vault.internal.acme.dev/v1/secret/data/{path}",
+      "auth_method": "AppRole with scoped policy (read-only)",
+      "inputs": "secret_path: string, version: int | null",
+      "outputs": "{ data: object, metadata: { version: int, created_time: string } }",
+      "rate_limit": "100 req/min",
+      "timeout": "5s"
+    }
+  ],
+  "global_rpm_limit": "200",
+  "cost_ceiling": "5.00",
+  "max_retries": "3",
+  "read_scopes": "repositories, CI build logs, Kubernetes pod status, Vault secrets (deploy/* path only), Datadog monitors",
+  "write_scopes": "Pull requests, CI trigger, Kubernetes deployments (staging + production), Slack messages, Datadog monitors",
+  "denied_operations": "Delete repositories, drop databases, modify IAM policies, access Vault paths outside deploy/*, force-push to main"
+}

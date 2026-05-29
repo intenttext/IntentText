@@ -1,0 +1,15 @@
+packages:
+  # Publishable packages (npm)
+  - 'packages/core'
+  - 'packages/mcp'
+  - 'packages/vscode'
+  - 'packages/action'
+  # Applications (deployed / distributed)
+  - 'apps/docs'
+  - 'apps/editor'
+  - 'apps/builder'
+  - 'apps/desktop'
+  - 'apps/hub'
+  # Non-JS packages (python, rust) — listed so pnpm knows to ignore them
+  # packages/python  → managed by pip / pyproject.toml
+  # packages/rust    → managed by cargo / Cargo.toml

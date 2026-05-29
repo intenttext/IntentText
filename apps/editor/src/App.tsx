@@ -1,0 +1,275 @@
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Toolbar } from "./toolbar/Toolbar";
+import { StatusBar } from "./status/StatusBar";
+import { MonacoEditor } from "./editor/MonacoEditor";
+import { VisualEditor } from "./visual/VisualEditor";
+import { PrintBar } from "./panels/PrintBar";
+import { SealModal } from "./modals/SealModal";
+import { VerifyModal } from "./modals/VerifyModal";
+import { HistoryModal } from "./modals/HistoryModal";
+import { AmendModal } from "./modals/AmendModal";
+import { ConvertModal } from "./modals/ConvertModal";
+import { HelpOverlay } from "./modals/HelpOverlay";
+import { useWorkspace } from "./hooks/useWorkspace";
+import { useFile } from "./hooks/useFile";
+import { useAutoSave } from "./hooks/useAutoSave";
+import { useDocument } from "./hooks/useDocument";
+import { useDocumentMeta } from "./hooks/useDocumentMeta";
+import { useTrustState } from "./hooks/useTrustState";
+import type { EditorMode } from "./visual/types";
+import type * as monaco from "monaco-editor";
+import {
+  DEMO_DOCS,
+  DEFAULT_DEMO_DOC_ID,
+  getDemoDocById,
+  type DemoDoc,
+} from "./showcase/demoVault";
+
+const WELCOME = `title: My First Document
+summary: A document written in Dotit
+
+section: Getting Started
+text: Dotit uses a frozen canonical keyword contract in core.
+text: The preview on the right updates as you type.
+info: Try changing the theme using the Theme picker above. | type: tip
+
+section: Learn More
+link: Documentation | to: https://itdocs.vercel.app
+link: Browse Templates | to: https://intenttext-hub.vercel.app
+link: GitHub | to: https://github.com/intenttext/IntentText
+`;
+
+export type ModalType =
+  | "seal"
+  | "verify"
+  | "history"
+  | "amend"
+  | "convert"
+  | "help"
+  | null;
+
+export default function App() {
+  const workspace = useWorkspace();
+  const { content, setContent, filename, setFilename, isUnsaved, markSaved } =
+    workspace;
+
+  const docState = useDocument(content);
+  const { openFile, saveFile, newFile } = useFile(workspace);
+  const { hasRestore, restore, dismiss } = useAutoSave(content, setContent);
+  const docMeta = useDocumentMeta(content, setContent);
+  const trustState = useTrustState(content, setContent);
+
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("it-editor-theme") || "corporate",
+  );
+  const [uiTheme, setUiTheme] = useState<"light" | "dark">(
+    () =>
+      (localStorage.getItem("it-editor-color") as "light" | "dark") || "light",
+  );
+  const [modal, setModal] = useState<ModalType>(null);
+  const [editorMode, setEditorMode] = useState<EditorMode>(
+    () => (localStorage.getItem("it-editor-mode") as EditorMode) || "visual",
+  );
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem("it-editor-theme", theme);
+  }, [theme]);
+  useEffect(() => {
+    localStorage.setItem("it-editor-color", uiTheme);
+    document.documentElement.setAttribute("data-theme", uiTheme);
+  }, [uiTheme]);
+  useEffect(() => {
+    localStorage.setItem("it-editor-mode", editorMode);
+  }, [editorMode]);
+
+  // Load from URL ?source= parameter (hub "Open in Editor")
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get("source");
+    if (source) {
+      setContent(source);
+      markSaved();
+      // Clean the URL so a refresh doesn't reload from param
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+    if (!content && !hasRestore) {
+      const defaultDoc = getDemoDocById(DEFAULT_DEMO_DOC_ID);
+      setContent(defaultDoc?.source || WELCOME);
+      setFilename(defaultDoc ? `${defaultDoc.id}.it` : "untitled.it");
+      markSaved();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadDemoDoc = useCallback(
+    (doc: DemoDoc) => {
+      setContent(doc.source);
+      setFilename(`${doc.id}.it`);
+      markSaved();
+    },
+    [setContent, setFilename, markSaved],
+  );
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (mod && e.key === "s") {
+        e.preventDefault();
+        saveFile();
+      } else if (mod && e.key === "o") {
+        e.preventDefault();
+        openFile();
+      } else if (mod && e.key === "n") {
+        e.preventDefault();
+        newFile(WELCOME);
+      } else if (mod && e.shiftKey && e.key === "V") {
+        e.preventDefault();
+        setModal("verify");
+      } else if (e.key === "Escape") {
+        setModal(null);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [saveFile, openFile, newFile]);
+
+  // Drag and drop files
+  useEffect(() => {
+    const handler = (e: DragEvent) => {
+      e.preventDefault();
+      const file = e.dataTransfer?.files[0];
+      if (!file) return;
+      if (file.name.endsWith(".it") || file.name.endsWith(".json")) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result as string;
+          if (file.name.endsWith(".json")) {
+            // JSON merge — not implemented inline, open convert modal
+            setModal("convert");
+          } else {
+            setContent(text);
+            setFilename(file.name);
+            markSaved();
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    const prevent = (e: DragEvent) => e.preventDefault();
+    window.addEventListener("drop", handler);
+    window.addEventListener("dragover", prevent);
+    return () => {
+      window.removeEventListener("drop", handler);
+      window.removeEventListener("dragover", prevent);
+    };
+  }, [setContent, setFilename, markSaved]);
+
+  return (
+    <>
+      {hasRestore && (
+        <div className="restore-toast">
+          <span>Restore unsaved work?</span>
+          <button className="restore-toast-btn restore-yes" onClick={restore}>
+            Restore
+          </button>
+          <button className="restore-toast-btn restore-no" onClick={dismiss}>
+            ✕
+          </button>
+        </div>
+      )}
+
+      <div className="app-shell">
+        <Toolbar
+          filename={filename}
+          onFilenameChange={setFilename}
+          editorMode={editorMode}
+          onEditorModeChange={setEditorMode}
+          theme={theme}
+          onThemeChange={setTheme}
+          onNew={() => newFile(WELCOME)}
+          onOpen={openFile}
+          onSave={saveFile}
+          onModal={setModal}
+          isSealed={trustState.trust.isSealed}
+        />
+
+        <div className="panels" style={{ flex: 1 }}>
+          <div className="panel-editor" style={{ flex: 1 }}>
+            {editorMode === "source" ? (
+              <MonacoEditor
+                value={content}
+                onChange={setContent}
+                editorRef={editorRef}
+              />
+            ) : (
+              <VisualEditor
+                value={content}
+                onChange={setContent}
+                theme={theme}
+              />
+            )}
+          </div>
+        </div>
+
+        <PrintBar content={content} theme={theme} onThemeChange={setTheme} />
+
+        <StatusBar
+          blocks={docState.blocks}
+          lines={docState.lines}
+          keywords={docState.keywords}
+          words={docState.words}
+          errors={docState.errorCount}
+          theme={theme}
+          uiTheme={uiTheme}
+          isUnsaved={isUnsaved}
+          onToggleUiTheme={() =>
+            setUiTheme((t) => (t === "dark" ? "light" : "dark"))
+          }
+          onErrorClick={() => {
+            if (docState.firstErrorLine && editorRef.current) {
+              editorRef.current.revealLineInCenter(docState.firstErrorLine);
+              editorRef.current.setPosition({
+                lineNumber: docState.firstErrorLine,
+                column: 1,
+              });
+            }
+          }}
+        />
+      </div>
+
+      {/* Modals */}
+      {modal === "seal" && (
+        <SealModal
+          content={content}
+          onApply={setContent}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal === "verify" && (
+        <VerifyModal content={content} onClose={() => setModal(null)} />
+      )}
+      {modal === "history" && (
+        <HistoryModal content={content} onClose={() => setModal(null)} />
+      )}
+      {modal === "amend" && (
+        <AmendModal
+          content={content}
+          onApply={setContent}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal === "convert" && (
+        <ConvertModal
+          onApply={(text) => {
+            setContent(text);
+            setModal(null);
+          }}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal === "help" && <HelpOverlay onClose={() => setModal(null)} />}
+    </>
+  );
+}
