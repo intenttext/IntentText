@@ -15,6 +15,7 @@
     "size:report": "node scripts/report-package-size.cjs",
     "size:check": "node scripts/check-package-size.cjs",
     "pack:check": "node scripts/check-pack-footprint.cjs",
+    "keywords:check": "node scripts/check-keyword-consistency.cjs",
     "parser:coupling:check": "node scripts/check-no-parser-runtime-coupling.cjs",
     "shim:parser": "node scripts/shim-parser-runtime.cjs",
     "dev": "tsc --watch"
