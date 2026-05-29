@@ -1,0 +1,519 @@
+# msm-agent — IntentText (.it) Format Reference for LLMs
+
+This file teaches you how to generate valid `.it` agent definition files for msm-agent.
+An `.it` file is parsed by `loadAgent()` and compiled into an `AgentDefinition` object
+that drives the agent runtime. The format is IntentText — a structured, pipe-delimited
+key-value format where every line is `keyword: value | property: value | ...`.
+
+---
+
+## Syntax Rules
+
+- Every line: `keyword: content | property1: value1 | property2: value2`
+- `keyword:` is the block type. `content` is the primary value. Everything after `|` is named properties.
+- Section headers: `section: SectionName` — groups the blocks that follow.
+- Top-level metadata: `title:` and `summary:` appear before any section.
+- Properties are case-insensitive. Content is preserved as written.
+- Environment variables in values: `${ENV_VAR_NAME}` — not expanded by the parser, resolved at runtime.
+- Blank lines are allowed and ignored.
+- There is no indentation syntax. All lines are flat within a section.
+
+---
+
+## Top-Level Metadata
+
+```
+title: Agent Name
+summary: One-line description of what this agent does
+```
+
+- `title:` → `AgentDefinition.name`
+- `summary:` → `AgentDefinition.domain`
+
+---
+
+## Sections Reference
+
+Sections are case-insensitive. Accepted aliases are listed for each.
+
+---
+
+### section: Persona
+
+Aliases: `Identity`
+
+Defines who the agent is — name, language, and communication style.
+
+**Blocks:**
+
+```
+prompt: AgentName | style: warm, direct, solution-focused | language: Arabic, English
+```
+
+- `prompt:` content → agent display name
+- `style:` property → communication style (free text)
+- `language:` property → comma-separated list of languages the agent uses
+
+**Alternative — context block for domain and language:**
+
+```
+context: domain = "e-commerce" | language = "ar, en"
+```
+
+- Use `context:` to declare `domain` and `language` as key=value pairs.
+- `language` in context uses short codes (ar, en) or full names.
+
+**Example:**
+
+```
+section: Persona
+prompt: Nour | style: warm, direct, solution-focused | language: Arabic, English
+```
+
+---
+
+### section: Capabilities
+
+What the agent can do. Each `tool:` line is one capability.
+
+**Blocks:**
+
+```
+tool: describe the capability in plain language
+tool: escalate to human agent | to: human
+```
+
+- `tool:` content → capability description (shown to the LLM in every prompt)
+- `to:` property → escalation target (optional, appended as "→ target" in the capability)
+
+**Example:**
+
+```
+section: Capabilities
+tool: answer product questions
+tool: check order status
+tool: create support tickets
+tool: process refund requests
+tool: escalate billing disputes | to: human
+```
+
+---
+
+### section: Brain
+
+Selects the LLM provider and model.
+
+**Blocks:**
+
+```
+model: model-name | provider: openai | language: arabic
+```
+
+- `model:` content → model identifier (e.g. `gpt-4o-mini`, `claude-3-5-haiku`, `phi4-mini`)
+- `provider:` property → `openai` | `anthropic` | `ollama` (default: `custom`)
+- `endpoint:` property → custom endpoint URL (optional, for Ollama or Azure)
+- `language:` property → `arabic` | `ar` | `auto` — activates Arabic routing brain
+
+Aliases for this section: `LLM`, `Model`
+
+**Examples:**
+
+```
+section: Brain
+model: gpt-4o-mini | provider: openai
+```
+
+```
+section: Brain
+model: phi4-mini | provider: ollama | endpoint: http://ollama:11434 | language: arabic
+```
+
+```
+section: Brain
+model: claude-3-5-haiku-20241022 | provider: anthropic
+```
+
+---
+
+### section: Rules
+
+Behavioural constraints and policies the agent must follow.
+
+**Blocks:**
+
+```
+policy: rule description in plain language
+policy: escalate when unsure | when: confidence < 0.7
+```
+
+- `policy:` content → the rule (injected verbatim into the system prompt)
+- `when:` property → condition clause, appended as "when {condition}"
+
+**Example:**
+
+```
+section: Rules
+policy: never fabricate order details or prices
+policy: always respond in the same language as the user
+policy: escalate when confidence is low | when: confidence < 0.7
+policy: never share personal data between customers
+```
+
+---
+
+### section: Limits
+
+Hard limits on the agent's execution loop.
+
+**Blocks:**
+
+```
+info: label for this limit | max: 6
+info: confidence threshold | confidence: 0.7
+info: cost cap per task | cost: 0.05
+```
+
+- `info:` content → human-readable label (used only for clarity, not parsed as logic)
+- `max:` property → sets iteration limit if label does NOT contain "tool", otherwise sets tool call limit
+- `confidence:` property → sets `confidenceThreshold` (0–1, agent clarifies below this)
+- `cost:` property → sets `costCapPerTask` in USD (agent stops if exceeded)
+
+**Label rules for `max:`:**
+- Label contains "tool" → `limits.toolCalls`
+- Any other label → `limits.iterations` (max loop iterations before force-respond)
+
+**Example:**
+
+```
+section: Limits
+info: max iterations | max: 8
+info: max tool calls per task | max: 20
+info: confidence threshold | confidence: 0.65
+info: cost cap | cost: 0.10
+```
+
+---
+
+### section: Hours
+
+Business hours gate — returns a closed message outside these hours with zero LLM cost.
+
+**Blocks:**
+
+```
+hours: Timezone/Name | Mon-Fri: 09:00-18:00 | Sat: 10:00-14:00
+text: Closed message in English
+text: رسالة الإغلاق بالعربية | lang: ar
+```
+
+- `hours:` content → IANA timezone (e.g. `Asia/Qatar`, `Africa/Cairo`, `Europe/London`, `UTC`)
+- Day range properties: `Mon-Fri`, `Sat`, `Sun`, `Mon-Thu`, `Mon-Sat`, etc. → `HH:MM-HH:MM`
+- `text:` → closed message (English by default)
+- `text:` with `lang: ar` property → Arabic closed message
+
+Day abbreviations accepted: `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`, `Sun`
+Ranges: `Mon-Fri` means Monday through Friday inclusive.
+
+Section aliases: `Business Hours`, `Working Hours`, `Opening Hours`
+
+**Example:**
+
+```
+section: Hours
+hours: Asia/Qatar | Mon-Fri: 09:00-18:00 | Sat: 10:00-14:00
+text: We are currently closed. Our team will respond when we open.
+text: نحن مغلقون حالياً. سيرد فريقنا عند فتح الدوام. | lang: ar
+```
+
+---
+
+### section: Skills
+
+Named in-process tool bundles registered via `SkillRegistry`. No credentials needed.
+
+**Blocks:**
+
+```
+skill: skill-name
+```
+
+- `skill:` content → name of a registered skill (e.g. `booking`, `payments`, `knowledge`)
+- Skills must be registered in code via `SkillRegistry.register("name", factory)` before use.
+
+**Example:**
+
+```
+section: Skills
+skill: booking
+skill: payments
+skill: knowledge
+```
+
+---
+
+### section: Equipment
+
+External API connectors with credentials.
+
+**Blocks:**
+
+```
+connector: connector-type | operations: op1,op2,op3 | access: read | endpoint: ${URL} | key: ${API_KEY}
+connector: connector-type | operations: op1,op2 | access: readwrite | endpoint: ${URL} | token: ${TOKEN}
+```
+
+Followed optionally by a dedicated tools declaration:
+
+```
+connector: fresha | operations: bookings.list,bookings.create | access: readwrite | endpoint: ${FRESHA_URL} | token: ${FRESHA_TOKEN} | dedicatedTools: generate_quote,escalate_to_human
+```
+
+**`connector:` properties:**
+
+| Property | Values | Description |
+|---|---|---|
+| `operations:` | comma-separated list | API operations this connector exposes (e.g. `orders.list,orders.get`) |
+| `access:` | `read` \| `readwrite` | Permission level |
+| `endpoint:` or `url:` | URL string | API base URL (use `${ENV_VAR}` for secrets) |
+| `key:` or `apikey:` | string | API key credential value |
+| `token:` | string | Bearer token credential value |
+| `password:` | string | Basic auth password credential value |
+| `header:` or `headername:` | string | Custom header name for the credential |
+| `credentials:` | `api_key` \| `bearer` \| `basic` | Explicit credential type (auto-detected from which key is used) |
+| `dedicatedTools:` or `tools:` | comma-separated list | Extra tool names available alongside this connector |
+
+**Credential type auto-detection:**
+- If `token:` is used → `bearer`
+- If `password:` is used → `basic`
+- If `key:` or `apikey:` is used → `api_key` (default)
+
+**Alternative — separate credential block (attaches to the last connector):**
+
+```
+connector: shopify | operations: orders.list,customers.get | access: read | endpoint: ${SHOPIFY_ENDPOINT}
+credential: api_key | value: ${SHOPIFY_API_KEY} | header: X-Shopify-Access-Token
+```
+
+**Example:**
+
+```
+section: Equipment
+connector: shopify | operations: orders.list,orders.get,customers.get | access: read | endpoint: ${SHOPIFY_ENDPOINT} | key: ${SHOPIFY_API_KEY}
+connector: fresha | operations: bookings.list,bookings.create,bookings.update | access: readwrite | endpoint: ${FRESHA_ENDPOINT} | token: ${FRESHA_TOKEN} | dedicatedTools: generate_quote,escalate_to_human
+```
+
+---
+
+### section: Memory
+
+Topics or categories the agent should remember across sessions.
+
+**Blocks:**
+
+```
+memory: topic or category to retain
+```
+
+**Example:**
+
+```
+section: Memory
+memory: customer preferences
+memory: past order issues
+memory: previous escalations
+```
+
+---
+
+## Complete Example — E-commerce Support Agent
+
+```
+title: Support Agent
+summary: E-commerce customer support for Gulf region
+
+section: Persona
+prompt: Nour | style: warm, direct, solution-focused | language: Arabic, English
+
+section: Capabilities
+tool: answer product questions
+tool: check order status
+tool: create support tickets
+tool: process return requests
+tool: escalate billing disputes | to: human
+tool: escalate complex cases | to: human
+
+section: Brain
+model: gpt-4o-mini | provider: openai
+
+section: Rules
+policy: never fabricate order details or delivery dates
+policy: always respond in the same language as the user
+policy: do not share one customer's data with another customer
+policy: escalate immediately if the user mentions legal action
+
+section: Limits
+info: max iterations | max: 8
+info: confidence threshold | confidence: 0.65
+info: cost cap | cost: 0.05
+
+section: Hours
+hours: Asia/Qatar | Mon-Fri: 09:00-18:00 | Sat: 10:00-14:00
+text: We are currently closed. We will respond first thing when we open.
+text: نحن مغلقون حالياً. سيتواصل معك فريقنا فور فتح الدوام. | lang: ar
+
+section: Skills
+skill: knowledge
+
+section: Equipment
+connector: shopify | operations: orders.list,orders.get,customers.get,refunds.create | access: readwrite | endpoint: ${SHOPIFY_ENDPOINT} | key: ${SHOPIFY_API_KEY}
+
+section: Memory
+memory: customer preferences
+memory: previous complaints
+```
+
+---
+
+## Complete Example — Government Inquiry Agent (Sovereign / Ollama)
+
+```
+title: Citizen Services Agent
+summary: Answers public service inquiries in Arabic and English
+
+section: Persona
+prompt: Maha | style: formal, clear, patient | language: Arabic, English
+
+section: Capabilities
+tool: answer public service inquiries
+tool: explain application procedures and requirements
+tool: look up office locations and contact details
+tool: escalate complex cases | to: human officer
+
+section: Brain
+model: phi4-mini | provider: ollama | endpoint: http://ollama:11434 | language: arabic
+
+section: Rules
+policy: never fabricate policy details or legal requirements
+policy: respond in the same language as the user
+policy: escalate when the query requires a human decision
+policy: do not provide legal advice
+
+section: Limits
+info: max iterations | max: 6
+info: confidence threshold | confidence: 0.70
+
+section: Hours
+hours: Asia/Riyadh | Sun-Thu: 08:00-16:00
+text: Government offices are closed. Please call back during working hours Sun–Thu 8am–4pm.
+text: الدوائر الحكومية مغلقة. يرجى التواصل خلال أوقات الدوام الأحد-الخميس 8 صباحاً-4 مساءً. | lang: ar
+```
+
+---
+
+## Complete Example — Booking Agent (Skills + Equipment)
+
+```
+title: Salon Booking Agent
+summary: Handles appointment bookings and customer queries for a beauty salon chain
+
+section: Persona
+prompt: Layla | style: friendly, efficient | language: Arabic, English
+
+section: Capabilities
+tool: check available appointment slots
+tool: book an appointment
+tool: cancel or reschedule an appointment
+tool: answer questions about services and pricing
+tool: escalate complaints | to: human
+
+section: Brain
+model: gpt-4o-mini | provider: openai
+
+section: Rules
+policy: confirm all details before booking — service, date, time, stylist
+policy: never double-book a slot
+policy: respond in the user's language
+
+section: Limits
+info: max iterations | max: 10
+info: confidence threshold | confidence: 0.6
+
+section: Hours
+hours: Asia/Dubai | Mon-Sat: 09:00-21:00 | Sun: 10:00-18:00
+text: We are closed right now. Book online or message us — we'll confirm first thing when we open!
+
+section: Skills
+skill: booking
+skill: payments
+
+section: Equipment
+connector: fresha | operations: bookings.list,bookings.create,bookings.update,bookings.cancel,services.list | access: readwrite | endpoint: ${FRESHA_ENDPOINT} | token: ${FRESHA_TOKEN}
+```
+
+---
+
+## Section Aliases (case-insensitive)
+
+| Write this | Treated as |
+|---|---|
+| `Identity` | `Persona` |
+| `Can Do` | `Capabilities` |
+| `Constraints` | `Rules` |
+| `Behaviour` / `Behavior` | `Rules` |
+| `LLM` | `Brain` |
+| `Model` | `Brain` |
+| `Business Hours` | `Hours` |
+| `Working Hours` | `Hours` |
+| `Opening Hours` | `Hours` |
+
+---
+
+## What NOT to do
+
+- Do not nest blocks — all lines are flat within a section.
+- Do not use YAML syntax (`-` list items) — use one `tool:` / `skill:` / `policy:` line per item.
+- Do not put credentials directly in the file — always use `${ENV_VAR}` references.
+- Do not omit `section:` headers — blocks outside sections are ignored.
+- Do not use markdown headers (`##`) — this is not a Markdown file.
+- The `model:` section alias (treated as `Brain`) means you cannot name a custom section "model".
+
+---
+
+## Minimal Valid File
+
+```
+title: My Agent
+
+section: Persona
+prompt: Alex | style: helpful
+
+section: Brain
+model: gpt-4o-mini | provider: openai
+```
+
+All sections except `title` and at least one section are optional.
+The agent will load and run with only a brain configured.
+
+---
+
+## Runtime Behaviour Mapping
+
+| .it construct | AgentDefinition field | Effect |
+|---|---|---|
+| `title:` | `name` | Agent identity in logs and health endpoint |
+| `summary:` | `domain` | Injected into system prompt as domain context |
+| `prompt: Name` | `persona.name` | Agent's name in persona prompt |
+| `style:` property | `persona.style` | Communication style in persona prompt |
+| `language:` property | `persona.language[]` | Languages listed in persona prompt |
+| `tool:` line | `capabilities[]` | Tool/capability listed in every brain call |
+| `model:` line | `brain.model` + `brain.provider` | LLM used for reasoning |
+| `language: arabic` on brain | `brain.language` | Activates Arabic routing brain |
+| `policy:` line | `rules[]` | Rules injected verbatim into system prompt |
+| `info: ... | max:` | `limits.iterations` or `limits.toolCalls` | Hard loop/tool budget |
+| `info: ... | confidence:` | `limits.confidenceThreshold` | Confidence gate threshold |
+| `info: ... | cost:` | `limits.costCapPerTask` | Cost hard limit in USD |
+| `hours:` block | `hours.timezone` + `hours.schedule[]` | Business hours gate |
+| `text:` in Hours | `hours.closedMessage` / `closedMessageAr` | Gate response message |
+| `skill:` line | `skills[]` | Skill names for SkillRegistry lookup |
+| `connector:` line | `equipment.connectors[]` | External API connector |
+| `memory:` line | `memory.retain[]` | Topics to retain in semantic memory |
