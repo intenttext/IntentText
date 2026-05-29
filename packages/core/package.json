@@ -1,6 +1,6 @@
 {
   "name": "@intenttext/core",
-  "version": "3.3.2",
+  "version": "3.4.0",
   "description": "IntentText Parser, HTML Renderer, and Converters",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,8 +9,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc && npm run copy:wasm && npm run shim:parser",
-    "copy:wasm": "mkdir -p dist/rust-wasm && cp src/rust-wasm/* dist/rust-wasm/",
+    "build": "rm -rf dist && tsc",
     "test": "vitest run",
     "telemetry:report": "node scripts/report-fallback-telemetry.cjs",
     "size:report": "node scripts/report-package-size.cjs",

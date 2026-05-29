@@ -32,18 +32,6 @@ jobs:
       - name: Test core
         run: pnpm --filter @intenttext/core test
 
-      - name: Emit Rust Core Fallback Telemetry
-        run: node packages/core/scripts/report-fallback-telemetry.cjs > core-fallback-telemetry.json
-
-      - name: Enforce Rust Theme Fallback Zero
-        run: node -e "const fs=require('node:fs');const p='core-fallback-telemetry.json';const raw=fs.readFileSync(p,'utf8');const data=JSON.parse(raw);const t=data.rustCoreFallbackTelemetry||{};const v=Number(t.renderer_theme_fallback_to_ts||0);if(v>0){console.error('renderer_theme_fallback_to_ts must be 0, got '+v);process.exit(1)};console.log('renderer_theme_fallback_to_ts=0 (pass)');"
-
-      - name: Upload Fallback Telemetry Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: core-fallback-telemetry
-          path: core-fallback-telemetry.json
-
       - name: Emit Core Package Size Report
         run: node packages/core/scripts/report-package-size.cjs > core-package-size.json
 

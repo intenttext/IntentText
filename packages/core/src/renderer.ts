@@ -6,9 +6,14 @@ export interface RenderOptions {
   theme?: string | IntentTheme;
 }
 
-function resolveThemeSync(ref: string | IntentTheme): IntentTheme | undefined {
-  if (typeof ref === "object") return ref;
-  return getBuiltinTheme(ref);
+function resolveThemeSync(ref: string | IntentTheme | undefined): IntentTheme {
+  if (ref && typeof ref === "object") return ref;
+  if (typeof ref === "string") {
+    const found = getBuiltinTheme(ref);
+    if (found) return found;
+  }
+  // Fall back to corporate theme when none is given or the name is unknown.
+  return getBuiltinTheme("corporate") as IntentTheme;
 }
 
 // v2.9: Paper size to CSS @page size mapping
@@ -1205,11 +1210,11 @@ export function renderHTML(
 
   const html = bodyHtml + footnotesHtml;
 
-  // v2.10: Resolve theme — from options, from meta, or none
+  // v2.10: Resolve theme — from options, from meta, or fall back to corporate
   const themeRef =
     options?.theme ?? document.metadata?.meta?.theme ?? undefined;
-  const theme = themeRef ? resolveThemeSync(themeRef) : undefined;
-  const themeCSS = theme ? generateThemeCSS(theme, "web") : "";
+  const theme = resolveThemeSync(themeRef);
+  const themeCSS = generateThemeCSS(theme, "web");
 
   // Wrap in a container
   const direction =
@@ -1555,10 +1560,10 @@ export function renderPrint(
   const direction =
     doc.metadata?.language === "rtl" ? 'dir="rtl"' : 'dir="ltr"';
 
-  // v2.10: Resolve theme
+  // v2.10: Resolve theme — fall back to corporate
   const themeRef = options?.theme ?? doc.metadata?.meta?.theme ?? undefined;
-  const theme = themeRef ? resolveThemeSync(themeRef) : undefined;
-  const themeCSS = theme ? generateThemeCSS(theme, "print") : "";
+  const theme = resolveThemeSync(themeRef);
+  const themeCSS = generateThemeCSS(theme, "print");
 
   // v2.9: Collect print layout
   const layout = collectPrintLayout(doc);
