@@ -1,0 +1,29 @@
+// Invoice template. Store this once (e.g. a row in your DB); merge any data row
+// into it to produce a finished, queryable, signable invoice — no template engine,
+// no PDF library, no extra dependencies. Just @intenttext/core.
+
+font: | family: Inter, Helvetica, sans-serif | size: 11pt | leading: 1.5
+page: | size: A4 | footer: {{invoice.number}} · Page {{page}}
+
+title: Invoice {{invoice.number}}
+summary: {{seller.name}} → {{client.name}}
+meta: | date: {{invoice.date}} | due: {{invoice.dueDate}} | status: {{invoice.status}}
+
+section: From
+contact: {{seller.name}} | email: {{seller.email}} | vat: {{seller.vat}}
+
+section: Bill To
+contact: {{client.name}} | email: {{client.email}}
+
+section: Line Items
+| Description | Qty | Unit Price | Total | each: items |
+| {{item.description}} | {{item.qty}} | {{item.unitPrice}} | {{item.total}} |
+
+section: Totals
+metric: Subtotal | value: {{totals.subtotal}}
+metric: Tax ({{totals.taxRate}}%) | value: {{totals.tax}}
+metric: Total Due | value: {{totals.due}}
+
+section: Payment
+text: Bank {{payment.bank}} · IBAN {{payment.iban}}
+deadline: Payment due | date: {{invoice.dueDate}} | consequence: {{invoice.lateRate}}% monthly interest
