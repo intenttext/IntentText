@@ -40,10 +40,23 @@ every unique property at once, and it has buyers today. Win it before expanding.
    processor: rich editing, native PDF generation, minimal dependencies, and lossless
    round-trip to clean `.it`.
 
+## npm publish status
+
+`@intenttext/core` is **publish-ready** (v4.1.0): release gate green (build + 869
+tests + keyword + parity + pack), README fixed, tarball healthy (56 files, 70.9 kB),
+major bump correctly reflects the breaking Rust-API removal. Remaining is **process**,
+owner's call: merge this branch to `main`, push a `v4.1.0` tag, with `NPM_TOKEN`
+configured. `release.yml` then publishes core via pnpm. (Publishing is irreversible —
+not done without explicit go-ahead.)
+
 ## Active work queue
 
-- [ ] **Cleanup pass** — inventory dead files/code/docs, remove with sign-off. _(next)_
-- [ ] **Demo 1** — template+merge+sign+query, runnable, documented.
+- [x] **Cleanup pass** — done.
+- [x] **Demo 1** — template+merge+sign+query, runnable (`pnpm demo:invoice`).
+- [ ] **Demo 2** — folder/desktop query-by-parameter (index-builder + query). _(next)_
+- [ ] **Show Demo 1 inside the editor** — a built-in way to load/run the
+  template→merge→sign→query invoice demo from the web editor. Pairs with editor
+  readiness + npm publish; this is what makes Demo 1 "perfect." _(feeds Demo 3)_
 - [ ] Trust sidebar in the editor (seal/sign/freeze/history + Verify). _(feeds Demo 3)_
 - [ ] Lossless visual ↔ `.it` round-trip in the editor. _(feeds Demo 3)_
 - [ ] SPEC §4: precise **canonicalization** subsection so sealing/verifying is
