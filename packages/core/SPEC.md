@@ -87,7 +87,14 @@ keywords remain recognized but are not part of any tier.
   [`ARCHITECTURE.md`](../../ARCHITECTURE.md)). No other language re-implements the
   grammar.
 
-## 6. Governance
+## 6. Indexing & folder query
+
+Documents are made queryable across a folder tree by a per-folder, shallow `.it-index`
+cache (the `.it` files remain the source of truth). Recursive search composes per-folder
+indexes explicitly; the index is kept fresh by lazy self-healing on query. Full model:
+[INDEXING.md](./INDEXING.md).
+
+## 7. Governance
 
 Changing the keyword contract means editing `LANGUAGE_REGISTRY` and nothing else by
 hand. The CI gates (`keywords:check`, `parity:check`) fail the build if the

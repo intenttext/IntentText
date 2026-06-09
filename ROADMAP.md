@@ -88,6 +88,11 @@ not done without explicit go-ahead.)
 - [ ] Public "how sign/seal works" doc (tamper-evidence today; notary service = the
   paid path).
 - [ ] Native PDF generation path with minimal dependencies. _(feeds Demo 3)_
+- [ ] **Wire incremental indexing** — make the CLI `index` use
+  `checkStaleness`/`updateIndex` (currently full rebuild) and `query` self-heal stale
+  entries before querying. See [packages/core/INDEXING.md](packages/core/INDEXING.md).
+  Model is decided: shallow per-folder `.it-index` cache, lazy self-healing default,
+  on-save in the editor, never cron.
 
 ## Done (this engagement)
 
