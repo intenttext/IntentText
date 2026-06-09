@@ -103,3 +103,6 @@ apps/builder/artifacts/
 
 # Keep GitHub Pages site files
 !docs/**/*.html
+
+# Demo generated outputs
+demo/**/out.*
