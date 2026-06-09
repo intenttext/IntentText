@@ -75,7 +75,9 @@ not done without explicit go-ahead.)
 
 - [x] **Cleanup pass** — done.
 - [x] **Demo 1** — template+merge+sign+query, runnable (`pnpm demo:invoice`).
-- [ ] **Demo 2** — folder/desktop query-by-parameter (index-builder + query). _(next)_
+- [x] **Demo 2** — folder query-by-parameter, runnable (`pnpm demo:search`).
+- [ ] **Demo 3** — word-processor-grade editor: rich editing, native PDF, lossless
+  round-trip. _(next major effort; see editor items below)_
 - [ ] **Show Demo 1 inside the editor** — a built-in way to load/run the
   template→merge→sign→query invoice demo from the web editor. Pairs with editor
   readiness + npm publish; this is what makes Demo 1 "perfect." _(feeds Demo 3)_
