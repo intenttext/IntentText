@@ -501,14 +501,15 @@ export function docToSource(doc: JSONContent): string {
 
 /** Convert a single TipTap node to one or more IT source lines. */
 function nodeToLines(node: JSONContent): string[] {
-  // Lists → flatten each item to a separate text: line
+  // Lists → canonical `.it` bullet syntax so they round-trip as list-items, not
+  // text. `- item` parses back to a list-item; `N. item` to a step-item.
   if (node.type === "bulletList" && node.content) {
     return node.content.flatMap((item) => {
       if (!item.content) return [];
       return item.content.map((child) => {
         const t = extractText(child);
         const mp = extractMarksAsProps(child);
-        return `text: • ${t}${formatProps(mp)}`;
+        return `- ${t}${formatProps(mp)}`;
       });
     });
   }
@@ -519,7 +520,7 @@ function nodeToLines(node: JSONContent): string[] {
       return item.content.map((child) => {
         const t = extractText(child);
         const mp = extractMarksAsProps(child);
-        return `text: ${idx++}. ${t}${formatProps(mp)}`;
+        return `${idx++}. ${t}${formatProps(mp)}`;
       });
     });
   }
