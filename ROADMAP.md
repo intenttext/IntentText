@@ -71,28 +71,48 @@ owner's call: merge this branch to `main`, push a `v4.1.0` tag, with `NPM_TOKEN`
 configured. `release.yml` then publishes core via pnpm. (Publishing is irreversible —
 not done without explicit go-ahead.)
 
-## Active work queue
+## Demo 3 — the editor (in progress)
 
-- [x] **Cleanup pass** — done.
-- [x] **Demo 1** — template+merge+sign+query, runnable (`pnpm demo:invoice`).
-- [x] **Demo 2** — folder query-by-parameter, runnable (`pnpm demo:search`).
-- [ ] **Demo 3** — word-processor-grade editor: rich editing, native PDF, lossless
-  round-trip. _(next major effort; see editor items below)_
-- [ ] **Show Demo 1 inside the editor** — a built-in way to load/run the
-  template→merge→sign→query invoice demo from the web editor. Pairs with editor
-  readiness + npm publish; this is what makes Demo 1 "perfect." _(feeds Demo 3)_
-- [ ] Trust sidebar in the editor (seal/sign/freeze/history + Verify). _(feeds Demo 3)_
-- [ ] Lossless visual ↔ `.it` round-trip in the editor. _(feeds Demo 3)_
+The editor already has Monaco + a TipTap visual editor + bridge, trust panel & modals,
+preview, print bar, theme picker, and a showcase system. Demo 3 is assess-and-polish,
+phased:
+
+- [ ] **A. Round-trip fidelity** _(in progress)_ — the visual editor has its own
+  serializer (`visual/serializer.ts`) separate from core's `documentToSource` (same
+  drift risk we killed for Rust/Python). Route visual serialization through core (or a
+  parity gate) so visual edits produce clean, canonical `.it` losslessly.
+- [ ] **B. Trust sidebar** — polish TrustPanel into a simple seal/sign/freeze/history
+  view + one-click Verify.
+- [ ] **C. Embed Demo 1** — plug the invoice template→merge→sign→query flow into the
+  existing showcase system. Makes Demo 1 "perfect."
+- [ ] **D. Native PDF** — assess the print-bar PDF path, minimize dependencies.
+- [ ] On-save index update inside the editor (optimization on top of lazy self-heal).
+
+## Other saved items (do not lose)
+
+- [ ] **Publish `@intenttext/core` to npm** — publish-ready (see status above). Process:
+  merge branch → tag `v4.1.0` → `NPM_TOKEN`. Owner triggers; not done unilaterally.
+- [ ] **VSCode extension: stop flagging template variables as errors.** Template files
+  (pre-merge) legitimately contain unresolved `{{invoice.number}}` — the extension
+  currently surfaces "Unresolved variable …" as a warning. Suppress for templates
+  (e.g. files with unresolved vars, or a `template`/`type:` hint), or downgrade to a
+  hint. Don't warn on intentional template placeholders.
+- [ ] **Enterprise-grade visuals — show it.** Demonstrate that `.it` can render
+  documents an enterprise would actually use (contract, invoice, letter). Builds on
+  the styling plan (themes as document classes + scoped `style:` block). Deliverable:
+  enrich a couple of themes to enterprise quality + a side-by-side "same `.it`, three
+  themes" showcase. (See "Styling & visual fidelity" above.)
+
+## Done (this engagement)
+
+- [x] **Cleanup pass.**
+- [x] **Demo 1** — template+merge+sign+query (`pnpm demo:invoice`).
+- [x] **Demo 2** — folder query-by-parameter (`pnpm demo:search`).
+- [x] **Incremental, self-healing indexing** — CLI `index`/`query`, no init step.
+  See [packages/core/INDEXING.md](packages/core/INDEXING.md).
 - [ ] SPEC §4: precise **canonicalization** subsection so sealing/verifying is
-  reproducible by anyone.
-- [ ] Public "how sign/seal works" doc (tamper-evidence today; notary service = the
-  paid path).
-- [ ] Native PDF generation path with minimal dependencies. _(feeds Demo 3)_
-- [x] **Wire incremental indexing** — CLI `index` refreshes only changed entries;
-  `query` self-heals each folder index before composing. Shallow per-folder
-  `.it-index` cache, lazy self-healing, no init step. See
-  [packages/core/INDEXING.md](packages/core/INDEXING.md).
-- [ ] On-save index update inside the editor (optimization on top of lazy). _(feeds Demo 3)_
+  reproducible by anyone. _(pending)_
+- [ ] Public "how sign/seal works" doc (tamper-evidence today; notary = paid path). _(pending)_
 
 ## Done (this engagement)
 
