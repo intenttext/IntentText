@@ -1,0 +1,18 @@
+title: Master Services Agreement — Acme
+meta: | type: contract | status: active | client: Acme Corporation
+
+section: Parties
+contact: Dalil Technology LLC | role: Provider | email: legal@dalil.ai
+contact: Acme Corporation | role: Client | email: legal@acme.com
+
+section: Milestones
+deadline: Phase 1 delivery | date: 2026-04-15 | consequence: Service credit
+deadline: Final acceptance | date: 2026-06-30 | consequence: Holdback released
+
+section: Obligations
+task: Deliver platform MVP | owner: Dalil | priority: high | due: 2026-04-15
+task: Provide test data | owner: Acme | priority: medium | due: 2026-03-25
+
+section: Execution
+sign: Sarah Chen | role: Provider Counsel | at: 2026-03-06T14:32:00Z | hash: sha256:ab12
+sign: John Park | role: Client Counsel | at: 2026-03-06T15:10:00Z | hash: sha256:cd34

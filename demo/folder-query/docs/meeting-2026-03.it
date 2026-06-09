@@ -1,0 +1,11 @@
+title: Sprint Planning — March 2026
+meta: | type: meeting | status: closed | facilitator: Sarah
+
+section: Decisions
+decision: Prioritise performance over features for Q2 | by: Ahmed
+
+section: Action Items
+task: Index builder | owner: Ahmed | priority: high | due: 2026-03-08
+task: Theme system | owner: Sarah | priority: high | due: 2026-03-12
+task: Trust audit | owner: Mike | priority: medium | due: 2026-03-20
+done: OAuth flow shipped | time: 2026-02-28

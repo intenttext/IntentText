@@ -285,6 +285,16 @@ describe("v2.10 index builder — buildIndexEntry", () => {
     expect(entry.metadata.domain).toBe("business");
   });
 
+  it("captures all meta fields so document-level attributes are queryable", () => {
+    const { doc, source } = makeParsed(
+      "meta: | type: invoice | status: Unpaid | client: Acme\ntitle: INV-1",
+    );
+    const entry = buildIndexEntry(doc, source, "2025-01-01T00:00:00Z");
+    expect(entry.metadata.type).toBe("invoice");
+    expect(entry.metadata.status).toBe("Unpaid");
+    expect(entry.metadata.client).toBe("Acme");
+  });
+
   it("produces a hash for invalidation", () => {
     const { doc, source } = makeParsed("title: Test");
     const entry = buildIndexEntry(doc, source, "2025-01-01T00:00:00Z");

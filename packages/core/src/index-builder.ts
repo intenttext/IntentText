@@ -70,8 +70,11 @@ export function buildIndexEntry(
   const meta: IndexFileEntry["metadata"] = {};
   if (doc.metadata?.title) meta.title = doc.metadata.title;
   if (doc.metadata?.meta) {
-    if (doc.metadata.meta.type) meta.type = doc.metadata.meta.type;
-    if (doc.metadata.meta.domain) meta.domain = doc.metadata.meta.domain;
+    // Capture every field from the document's `meta:` block so document-level
+    // attributes (type, status, client, domain, …) are queryable across a folder.
+    for (const [k, v] of Object.entries(doc.metadata.meta)) {
+      if (v !== undefined && v !== "") meta[k] = v;
+    }
   }
   if (doc.metadata?.tracking) {
     meta.track = {};

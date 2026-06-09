@@ -1,0 +1,11 @@
+title: Invoice INV-2026-0039
+meta: | type: invoice | status: Paid | client: Globex Inc
+
+section: From
+contact: Dalil Technology LLC | email: billing@dalil.ai
+
+section: Totals
+metric: Total Due | value: 8,400 QAR
+
+section: Payment
+deadline: Payment due | date: 2026-02-28 | consequence: 1.5% monthly interest

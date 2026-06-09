@@ -1,0 +1,11 @@
+title: Invoice INV-2026-0042
+meta: | type: invoice | status: Unpaid | client: Acme Corporation
+
+section: From
+contact: Dalil Technology LLC | email: billing@dalil.ai
+
+section: Totals
+metric: Total Due | value: 17,325 QAR
+
+section: Payment
+deadline: Payment due | date: 2026-03-20 | consequence: 1.5% monthly interest
