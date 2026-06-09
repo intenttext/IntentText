@@ -1,30 +1,33 @@
 import { useEffect, useState } from "react";
-import { parseHistorySection } from "@intenttext/core";
+import { parseIntentText } from "@intenttext/core";
+import type { RevisionEntry } from "@intenttext/core";
 
 interface Props {
   content: string;
   onClose: () => void;
 }
 
-interface Revision {
-  version?: string;
-  date?: string;
-  author?: string;
-  section?: string;
-  was?: string;
-  now?: string;
-  ref?: string;
-  note?: string;
-}
+const CHANGE_COLOR: Record<RevisionEntry["change"], string> = {
+  added: "#22c55e",
+  removed: "#ef4444",
+  modified: "#f59e0b",
+  moved: "#3b82f6",
+};
 
 export function HistoryModal({ content, onClose }: Props) {
-  const [revisions, setRevisions] = useState<Revision[]>([]);
+  const [revisions, setRevisions] = useState<RevisionEntry[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
     try {
-      const history = parseHistorySection(content);
-      setRevisions(Array.isArray(history) ? history : []);
+      // Parse with the history section attached, then read its revisions.
+      // parseHistorySection expects only the raw below-boundary text, so going
+      // through the parser (which finds the boundary) is the correct path.
+      const doc = parseIntentText(content, { includeHistorySection: true });
+      const revs = doc.history?.revisions ?? [];
+      // Newest first.
+      setRevisions([...revs].reverse());
+      setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -68,7 +71,7 @@ export function HistoryModal({ content, onClose }: Props) {
           >
             {revisions.map((rev, i) => (
               <div
-                key={i}
+                key={`${rev.id}-${i}`}
                 style={{
                   padding: 12,
                   borderRadius: 8,
@@ -80,19 +83,41 @@ export function HistoryModal({ content, onClose }: Props) {
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
+                    alignItems: "center",
                     marginBottom: 8,
+                    gap: 8,
                   }}
                 >
-                  <strong style={{ fontSize: 13 }}>
-                    {rev.version || `Revision ${revisions.length - i}`}
-                  </strong>
-                  {rev.date && (
+                  <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        textTransform: "uppercase",
+                        letterSpacing: 0.4,
+                        padding: "2px 6px",
+                        borderRadius: 4,
+                        color: "#fff",
+                        background: CHANGE_COLOR[rev.change] ?? "#6b7280",
+                      }}
+                    >
+                      {rev.change}
+                    </span>
+                    <strong style={{ fontSize: 13 }}>
+                      {rev.version ? `v${rev.version}` : `Revision ${i + 1}`}
+                    </strong>
+                    {rev.block && (
+                      <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                        {rev.block}
+                      </span>
+                    )}
+                  </span>
+                  {rev.at && (
                     <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                      {rev.date}
+                      {rev.at}
                     </span>
                   )}
                 </div>
-                {rev.author && (
+                {rev.by && (
                   <p
                     style={{
                       fontSize: 12,
@@ -100,12 +125,17 @@ export function HistoryModal({ content, onClose }: Props) {
                       margin: "0 0 4px",
                     }}
                   >
-                    By {rev.author}
+                    By {rev.by}
                   </p>
                 )}
                 {rev.section && (
                   <p style={{ fontSize: 12, margin: "0 0 4px" }}>
                     <strong>Section:</strong> {rev.section}
+                  </p>
+                )}
+                {rev.wasSection && rev.nowSection && (
+                  <p style={{ fontSize: 12, margin: "0 0 4px" }}>
+                    <strong>Moved:</strong> {rev.wasSection} → {rev.nowSection}
                   </p>
                 )}
                 {rev.was && (
@@ -129,29 +159,6 @@ export function HistoryModal({ content, onClose }: Props) {
                     }}
                   >
                     {rev.now}
-                  </p>
-                )}
-                {rev.ref && (
-                  <p
-                    style={{
-                      fontSize: 11,
-                      color: "var(--text-muted)",
-                      margin: "4px 0 0",
-                    }}
-                  >
-                    Ref: {rev.ref}
-                  </p>
-                )}
-                {rev.note && (
-                  <p
-                    style={{
-                      fontSize: 12,
-                      color: "var(--text-muted)",
-                      margin: "4px 0 0",
-                      fontStyle: "italic",
-                    }}
-                  >
-                    {rev.note}
                   </p>
                 )}
               </div>
