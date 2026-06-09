@@ -37,6 +37,8 @@ const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
 
+const CORE_VERSION = require("./packages/core/package.json").version;
+
 const RUST_ELIGIBLE_SUBCOMMANDS = new Set([
   "validate",
   "query",
@@ -271,22 +273,34 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
     const formatIdx = args.indexOf("--format");
     const fmt = formatIdx >= 0 ? args[formatIdx + 1] : "table";
 
-    // Resolve files
     const itFiles = resolveItFiles(target);
     if (itFiles.length === 0) {
       console.log("No .it files found.");
       return;
     }
 
-    // Try to use indexes, fall back to direct parse
     const composed = [];
-    for (const filePath of itFiles) {
-      const source = fs.readFileSync(filePath, "utf-8");
-      const doc = parseIntentText(source);
-      const relPath = path.relative(process.cwd(), filePath);
-      const entry = buildIndexEntry(doc, source, new Date().toISOString());
-      for (const block of entry.blocks) {
-        composed.push({ file: relPath, block });
+    const resolvedTarget = path.resolve(target);
+    const isDir =
+      fs.existsSync(resolvedTarget) &&
+      fs.statSync(resolvedTarget).isDirectory();
+
+    if (isDir) {
+      // Index-backed: each folder owns a self-healing .it-index. Refresh only the
+      // changed files, then compose the (sub)folder indexes and query.
+      const folders = [...new Set(itFiles.map((f) => path.dirname(f)))];
+      const indexes = folders.map((f) => loadOrRefreshFolderIndex(f).index);
+      composed.push(...composeIndexes(indexes, "."));
+    } else {
+      // Single file or glob — parse directly (no index to persist for a one-off).
+      for (const filePath of itFiles) {
+        const source = fs.readFileSync(filePath, "utf-8");
+        const doc = parseIntentText(source);
+        const relPath = path.relative(process.cwd(), filePath);
+        const entry = buildIndexEntry(doc, source, new Date().toISOString());
+        for (const block of entry.blocks) {
+          composed.push({ file: relPath, block });
+        }
       }
     }
 
@@ -831,33 +845,106 @@ function walkDir(dir) {
   return results;
 }
 
-function buildIndexForFolder(folder) {
+/** Read every .it file directly in `folder` (non-recursive) → parsed file data. */
+function readFolderItFiles(folder) {
   const entries = fs.readdirSync(folder, { withFileTypes: true });
-  const itFiles = entries.filter((e) => e.isFile() && e.name.endsWith(".it"));
-
-  if (itFiles.length === 0) {
-    console.log(`No .it files in ${folder}`);
-    return;
-  }
-
   const filesData = {};
-  for (const entry of itFiles) {
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith(".it")) continue;
     const filePath = path.join(folder, entry.name);
     const source = fs.readFileSync(filePath, "utf-8");
-    const stat = fs.statSync(filePath);
-    const doc = parseIntentText(source);
     filesData[entry.name] = {
       source,
-      doc,
-      modifiedAt: stat.mtime.toISOString(),
+      doc: parseIntentText(source),
+      modifiedAt: fs.statSync(filePath).mtime.toISOString(),
+    };
+  }
+  return filesData;
+}
+
+/**
+ * Lazy self-healing index for one folder. Loads the existing .it-index, refreshes
+ * only the changed/added/removed entries (incremental), and writes it back. Builds
+ * from scratch if absent. The .it-index is a cache — never a source of truth.
+ * Returns { index, stats: { added, stale, removed, unchanged, full } }.
+ */
+function loadOrRefreshFolderIndex(folder, { write = true } = {}) {
+  const indexPath = path.join(folder, ".it-index");
+  const relFolder = path.relative(process.cwd(), folder) || ".";
+  const filesData = readFolderItFiles(folder);
+
+  let existing = null;
+  if (fs.existsSync(indexPath)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
+      if (parsed && parsed.scope === "shallow") existing = parsed;
+    } catch {
+      existing = null; // corrupt cache — rebuild
+    }
+  }
+
+  let index;
+  let stats;
+  if (!existing) {
+    index = buildShallowIndex(relFolder, filesData, CORE_VERSION);
+    stats = {
+      added: Object.keys(filesData).length,
+      stale: 0,
+      removed: 0,
+      unchanged: 0,
+      full: true,
+    };
+  } else {
+    const forStaleness = Object.fromEntries(
+      Object.entries(filesData).map(([n, d]) => [
+        n,
+        { source: d.source, modifiedAt: d.modifiedAt },
+      ]),
+    );
+    const { stale, added, removed, unchanged } = checkStaleness(
+      existing,
+      forStaleness,
+    );
+    if (stale.length || added.length || removed.length) {
+      const updates = {};
+      for (const n of [...stale, ...added]) updates[n] = filesData[n];
+      index = updateIndex(existing, updates, removed);
+    } else {
+      index = existing;
+    }
+    stats = {
+      added: added.length,
+      stale: stale.length,
+      removed: removed.length,
+      unchanged: unchanged.length,
+      full: false,
     };
   }
 
-  const relFolder = path.relative(process.cwd(), folder);
-  const index = buildShallowIndex(relFolder || ".", filesData, "2.10.0");
+  const changed = stats.full || stats.added || stats.stale || stats.removed;
+  if (write && changed) {
+    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
+  }
+  return { index, stats, changed: Boolean(changed) };
+}
+
+function buildIndexForFolder(folder) {
+  const { index, stats } = loadOrRefreshFolderIndex(folder);
+  const fileCount = Object.keys(index.files).length;
+  if (fileCount === 0) {
+    console.log(`No .it files in ${folder}`);
+    return;
+  }
   const indexPath = path.join(folder, ".it-index");
-  fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
-  console.log(`✅ Index built: ${indexPath} (${itFiles.length} files)`);
+  if (stats.full) {
+    console.log(`✅ Index built: ${indexPath} (${fileCount} files)`);
+  } else if (stats.added || stats.stale || stats.removed) {
+    console.log(
+      `✅ Index refreshed: ${indexPath} (+${stats.added} ~${stats.stale} -${stats.removed}, ${stats.unchanged} unchanged)`,
+    );
+  } else {
+    console.log(`✓ Index up to date: ${indexPath} (${fileCount} files)`);
+  }
 }
 
 function buildIndexRecursive(rootDir) {

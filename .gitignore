@@ -106,3 +106,6 @@ apps/builder/artifacts/
 
 # Demo generated outputs
 demo/**/out.*
+
+# Folder index cache (derived from .it files; safe to delete/regenerate)
+.it-index
