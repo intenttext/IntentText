@@ -27,6 +27,28 @@ every unique property at once, and it has buyers today. Win it before expanding.
 | "Arbitrary CSS per line" idea | **Rejected.** It re-presentationalizes the format and kills the queryable-by-meaning moat. Styling belongs in **themes** + a small validated style vocabulary, or in the rendered HTML — never raw CSS in the `.it` body. |
 | Sign/seal model | Today = SHA-256 **tamper-evidence** (not PKI identity). Keep the canonicalization **open & spec'd** so anyone can verify. The paid moat is a **notary/timestamp authority** (open algorithm, paid trust). Optional v2: real Web Crypto keypair signatures for identity. |
 
+## Styling & visual fidelity (reconciled 2026-06-10)
+
+Documents must look enterprise-grade (contracts, invoices, letters, quotations,
+drafts). The way to get that **without** poisoning the query moat is to keep style
+**separate from content** — exactly how HTML+CSS works (CSS lives in a stylesheet,
+not inline on every tag). Three layers, none of which put presentation in the
+semantic body:
+
+1. **Themes = document classes (primary).** `theme: legal | corporate | letter`.
+   Owns typography, margins, table styling, section headers, signature-block layout.
+   8 themes exist today → enrich them to enterprise quality.
+2. **Scoped `style:` block ("CSS done right").** A designated style region mapping
+   block types / named classes to CSS-like rules, kept OUT of the content body. Full
+   visual control; content stays clean and queryable. _(to design/build)_
+3. **Small semantic inline vocabulary (exists).** `| align: right`, `| variant: …` —
+   constrained, validated, not arbitrary CSS.
+
+Rejected: arbitrary CSS inline on content lines (re-presentationalizes the format,
+kills queryable-by-meaning). The body says *what*; the style layer says *how*.
+We are not competing with HTML/docx — visuals just need to be decent and enterprise-
+credible. (Deep theme/style work is scheduled after the demos.)
+
 ## Demo sequence (the path to "undeniable")
 
 1. **Demo 1 — template + merge + sign + query.** A runnable demo: a template (as if
