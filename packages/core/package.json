@@ -1,6 +1,6 @@
 {
   "name": "@intenttext/core",
-  "version": "3.5.0",
+  "version": "4.1.0",
   "description": "IntentText Parser, HTML Renderer, and Converters",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,13 +11,12 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "test": "vitest run",
-    "telemetry:report": "node scripts/report-fallback-telemetry.cjs",
     "size:report": "node scripts/report-package-size.cjs",
     "size:check": "node scripts/check-package-size.cjs",
     "pack:check": "node scripts/check-pack-footprint.cjs",
     "keywords:check": "node scripts/check-keyword-consistency.cjs",
-    "parser:coupling:check": "node scripts/check-no-parser-runtime-coupling.cjs",
-    "shim:parser": "node scripts/shim-parser-runtime.cjs",
+    "parity:check": "node scripts/check-consumer-parity.cjs",
+    "check": "pnpm build && pnpm test && pnpm keywords:check && pnpm parity:check",
     "dev": "tsc --watch"
   },
   "keywords": [

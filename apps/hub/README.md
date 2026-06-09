@@ -1,5 +1,8 @@
 # IntentText Hub
 
+
+> **Experimental** — not part of the supported IntentText v4 release surface. The canonical implementation is `@intenttext/core`. This app builds against the core but carries no stability or support promise.
+
 The curated registry for `.it` templates — browse agent definitions, workflow patterns, and document templates.
 
 Built with Next.js 14, MongoDB, and Tailwind CSS.

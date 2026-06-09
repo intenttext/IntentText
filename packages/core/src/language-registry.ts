@@ -588,6 +588,66 @@ export const PUBLIC_KEYWORDS: KeywordDefinition[] = LANGUAGE_REGISTRY.filter(
   (k) => k.status === "stable",
 );
 
+// ═══════════════════════════════════════════════════════════════════════════
+// KEYWORD TIERS (v4.1)
+//
+// Tiers classify the canonical keywords so tools and docs can present a small
+// everyday "core" set with opt-in profiles, instead of one flat list of ~37.
+// Tiering is presentation/contract metadata only — the parser still recognizes
+// every keyword regardless of tier. A document opts into a profile to signal
+// intent; keywords outside any active profile still parse (or, in a future
+// strict mode, fall through to `custom` passthrough — never an error).
+// ═══════════════════════════════════════════════════════════════════════════
+
+export type KeywordTier = "core" | "agent" | "contract" | "data" | "print";
+
+/** Default tier for each keyword category. */
+const CATEGORY_TIER: Record<KeywordCategory, KeywordTier> = {
+  identity: "core",
+  structure: "core",
+  content: "core",
+  agent: "agent",
+  data: "data",
+  trust: "contract",
+  layout: "print",
+};
+
+/** Per-keyword overrides where a keyword belongs to a different tier than its category default. */
+const TIER_OVERRIDES: Record<string, KeywordTier> = {
+  // Universally useful — promoted into the everyday core set.
+  task: "core",
+  done: "core",
+  divider: "core",
+  // Reclassified to the profile they actually belong to.
+  context: "agent",
+  toc: "print",
+  cite: "contract",
+};
+
+/** Resolve the tier of a single keyword definition. */
+export function tierOf(def: KeywordDefinition): KeywordTier {
+  return TIER_OVERRIDES[def.canonical] ?? CATEGORY_TIER[def.category];
+}
+
+/** Canonical keywords grouped by tier (stable status only). */
+export const KEYWORD_TIERS: Record<KeywordTier, string[]> = (() => {
+  const tiers: Record<KeywordTier, string[]> = {
+    core: [],
+    agent: [],
+    contract: [],
+    data: [],
+    print: [],
+  };
+  for (const def of LANGUAGE_REGISTRY) {
+    if (def.status !== "stable") continue;
+    tiers[tierOf(def)].push(def.canonical);
+  }
+  return tiers;
+})();
+
+/** The everyday core keyword set — all a plain `.it` document needs. */
+export const CORE_KEYWORDS: string[] = KEYWORD_TIERS.core;
+
 /**
  * Callout alias → callout variant type.
  * When these aliases resolve to 'info', the parser injects properties.type

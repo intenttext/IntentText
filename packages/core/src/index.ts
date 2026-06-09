@@ -7,11 +7,15 @@ export {
   COMPAT_ONLY_ALIASES,
   BOUNDARY_KEYWORDS,
   PUBLIC_KEYWORDS,
+  KEYWORD_TIERS,
+  CORE_KEYWORDS,
+  tierOf,
 } from "./language-registry";
 export type {
   KeywordDefinition,
   KeywordCategory,
   KeywordStatus,
+  KeywordTier,
 } from "./language-registry";
 export {
   getBuiltinTheme,
@@ -27,24 +31,13 @@ export type {
 } from "./theme";
 export type { RenderOptions } from "./renderer";
 export {
-  initRustCore,
-  isRustCoreInitialized,
-  getRustCoreRuntimeMode,
-  setRustCoreRuntimeMode,
   parseIntentText,
   _resetIdCounter,
   parseIntentTextSafe,
-  renderHTML,
-  validateDocumentSemantic,
-  documentToSource,
-  getRustCoreFallbackTelemetry,
-  resetRustCoreFallbackTelemetry,
-} from "./rust-core";
-export type {
-  RustCoreFallbackTelemetry,
-  RustCoreInitOptions,
-  RustCoreRuntimeMode,
-} from "./rust-core";
+} from "./parser";
+export { renderHTML } from "./renderer";
+export { validateDocumentSemantic } from "./validate";
+export { documentToSource } from "./source";
 export type {
   SafeParseOptions,
   SafeParseResult,

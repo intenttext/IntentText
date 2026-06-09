@@ -1,21 +1,13 @@
-# IntentText Python
+# IntentText for Python
 
 [![PyPI](https://img.shields.io/pypi/v/intenttext)](https://pypi.org/project/intenttext/)
 
-Python API for IntentText with Rust-core parsing by default.
+> **Experimental.** Not part of the supported IntentText v4 release surface. The
+> canonical implementation is the TypeScript `@intenttext/core`.
 
-The package uses `@intenttext/core` (Rust-backed) for parser parity and keeps Python-native rendering/query/validation helpers for Python workflows and AI stacks.
-
-Engine controls:
-
-- `INTENTTEXT_PY_ENGINE=rust` (default) to use Rust core through Node.
-- `INTENTTEXT_PY_ENGINE=py` to force legacy Python parser.
-- `INTENTTEXT_PY_FALLBACK=0` to disable automatic fallback to Python parser when Rust core is unavailable.
-- `INTENTTEXT_PY_VALIDATE_ENGINE=rust` to use Rust semantic validation through Node (default); set `py` to force Python compatibility mode.
-- `INTENTTEXT_PY_QUERY_ENGINE=rust` to use Rust-backed query execution (`py` by default for compatibility with regex property filters).
-- `INTENTTEXT_PY_RENDER_ENGINE=rust` to use Rust-backed HTML rendering (`py` by default for compatibility).
-- `INTENTTEXT_PY_SOURCE_ENGINE=rust` to use Rust-backed `to_source` conversion (`py` by default for compatibility).
-- `INTENTTEXT_PY_TRUST_ENGINE=rust` to use Rust-backed trust helpers (`py` by default for compatibility).
+A thin Python client over the canonical IntentText core. It does **not** re-implement
+the grammar — parsing is delegated to the core CLI and mapped into Python dataclasses,
+so Python results can never drift from the JS parser.
 
 ## Install
 
@@ -23,83 +15,44 @@ Engine controls:
 pip install intenttext
 ```
 
-## Quick Start
+You also need the IntentText core CLI reachable (see *Configuring the core* below).
+
+## Quick start
 
 ```python
-from intenttext import parse, render_html, merge_data, validate, query
+from intenttext import parse
 
-# Parse a document
-source = """
+doc = parse("""
 title: Sprint Planning
-section: Tasks
-task: Write tests | owner: Ahmed | due: Friday
-task: Deploy to staging | owner: Sarah | due: Monday
-gate: Final approval | approver: Lead | timeout: 24h
-""".strip()
+task: Ship auth | owner: Ada | priority: high
+""")
 
-doc = parse(source)
-
-# Query for tasks
-tasks = query(doc, type="task")
-for task in tasks:
-    print(f"{task.content} -> {task.properties.get('owner', 'unassigned')}")
-
-# Validate workflow semantics
-result = validate(doc)
-if not result.valid:
-    for issue in result.issues:
-        print(f"[{issue.type.upper()}] {issue.message}")
-
-# Render to HTML
-html = render_html(doc)
+print(doc.metadata.title)            # "Sprint Planning"
+for block in doc.blocks:
+    print(block.type, block.content, block.properties)
 ```
 
-## API
+`parse_safe(source)` returns a `ParseResult` wrapping the same document.
 
-- `parse(source: str) -> IntentDocument`
-- `parse_safe(source: str, ...) -> ParseResult`
-- `render_html(doc: IntentDocument, include_css: bool = True) -> str`
-- `render_print(doc: IntentDocument) -> str`
-- `render_markdown(doc: IntentDocument) -> str`
-- `merge_data(template: IntentDocument, data: dict) -> IntentDocument`
-- `parse_and_merge(template_source: str, data: dict) -> IntentDocument`
-- `validate(doc: IntentDocument) -> ValidationResult`
-- `query(doc: IntentDocument, ...) -> list[IntentBlock]`
-- `to_source(doc: IntentDocument) -> str`
+## Configuring the core
 
-## Development
+The client locates the core CLI in this order:
+
+1. `INTENTTEXT_CLI` — path to `cli.js` (or any executable that accepts
+   `<file.it>` and prints the document JSON to stdout).
+2. `cli.js` discovered by walking up from the package (monorepo checkout).
+3. `intenttext` on `PATH` (a globally installed core CLI).
+
+If none is found, `parse()` raises `IntentTextCoreNotFound`.
 
 ```bash
-pip install -e .[dev]
-pytest
+export INTENTTEXT_CLI=/path/to/intenttext/cli.js
 ```
 
-## Release (PyPI)
+## What changed in 4.0
 
-```bash
-# 1) Ensure tests pass
-python3 -m pytest -q
-
-# 2) Build source + wheel
-python3 -m pip install -U hatch twine
-hatch build
-
-# 3) Validate package metadata and long description
-twine check dist/*
-
-# 4) Upload (interactive)
-twine upload dist/*
-```
-
-Tag-based release flow:
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-GitHub Action publish workflow uses `PYPI_API_TOKEN` for automated release on `v*` tags.
-
-## License
-
-MIT
+The Python package used to ship its own parser, renderer, validator, query engine,
+and trust helpers (and a Rust bridge). Those duplicated the grammar and could drift.
+They were removed. Python now exposes only `parse` / `parse_safe` over the canonical
+core. For rendering, validation, query, and trust, use `@intenttext/core` (Node) or
+the core CLI directly.

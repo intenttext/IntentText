@@ -253,7 +253,7 @@
       }
     },
     "keyword-agentic": {
-      "match": "^(step|decision|trigger|loop|checkpoint|audit|error|import|export|progress|context|result|handoff|wait|parallel|retry|gate|call|emit|signal|memory|prompt|tool|assert|secret)(:)\\s*(.*)",
+      "match": "^(step|decision|trigger|loop|checkpoint|audit|error|import|export|progress|context|result|handoff|wait|parallel|retry|gate|call|emit|signal|memory|prompt|tool|assert|secret|policy)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "entity.name.function.agentic.intenttext"
@@ -329,7 +329,7 @@
       }
     },
     "keyword-docgen": {
-      "match": "^(font|page|break|byline|epigraph|caption|footnote|toc|dedication|signline|signature-line|sign-here|sig)(:)\\s*(.*)",
+      "match": "^(font|page|break|byline|epigraph|caption|footnote|toc|dedication|header|footer|watermark|signline|signature-line|sign-here|sig)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "storage.type.docgen.intenttext"

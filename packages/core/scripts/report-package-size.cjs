@@ -49,11 +49,6 @@ const report = {
     totalMB: Number((totalBytes / (1024 * 1024)).toFixed(3)),
     largestFiles: topFiles.slice(0, 10),
   },
-  wasm: {
-    path: path.relative(root, wasmFile),
-    bytes: wasmBytes,
-    kb: Number((wasmBytes / 1024).toFixed(2)),
-  },
 };
 
 process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);

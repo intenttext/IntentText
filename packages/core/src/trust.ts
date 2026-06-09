@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { IntentDocument, RegistryEntry } from "./types";
-import { parseIntentText } from "./rust-core";
+import { parseIntentText } from "./parser";
 
 // ─── Hash Computation ───────────────────────────────────────────────────────
 

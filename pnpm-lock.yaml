@@ -178,6 +178,9 @@ importers:
       '@intenttext/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@tiptap/core':
+        specifier: ^3.20.1
+        version: 3.23.6(@tiptap/pm@3.23.6)
       '@tiptap/extension-color':
         specifier: ^3.20.1
         version: 3.23.6(@tiptap/extension-text-style@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6)))
@@ -305,7 +308,7 @@ importers:
         version: 0.4.0
       '@intenttext/core':
         specifier: ^3.3.1
-        version: link:../core
+        version: 3.5.0
       minimatch:
         specifier: ^9.0.0
         version: 9.0.9
@@ -353,6 +356,9 @@ importers:
       express:
         specifier: ^4.19.2
         version: 4.22.2
+      zod:
+        specifier: ^4.0.0
+        version: 4.4.3
     devDependencies:
       '@types/express':
         specifier: ^4.17.21
@@ -1826,6 +1832,9 @@ packages:
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
+
+  '@intenttext/core@3.5.0':
+    resolution: {integrity: sha512-fpCQsZCPjrRNdRsD6MmN2WqQM2Ji+o6z/yeQ6gZieOESkUJ9zrLIeM/Gs0kjLaHEFv3DLQlavrsxIDKt46asqQ==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -10338,6 +10347,10 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/object-schema@2.0.3': {}
+
+  '@intenttext/core@3.5.0':
+    dependencies:
+      node-html-parser: 7.1.0
 
   '@isaacs/cliui@8.0.2':
     dependencies:

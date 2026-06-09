@@ -6,6 +6,47 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-06-10
+
+The finalization release: one canonical implementation, a tiered format, and a
+focused supported surface.
+
+### Removed
+
+- **Rust/WASM core deleted.** `packages/rust` and the `rust-core` compatibility
+  shim are gone; the TypeScript parser is the single source of truth. Internal
+  callers now import `parseIntentText` directly from `./parser`. The no-op
+  `initRustCore`/`setRustCoreRuntimeMode`/fallback-telemetry API was removed from
+  the public surface.
+- **Python duplicate parser deleted.** The Python package no longer re-implements
+  the grammar. It is now a thin client (`parse`/`parse_safe`) that delegates to the
+  canonical core CLI, so Python results can never drift. Bumped to 4.0.0.
+- Removed the dead `prepare:wasm` build step and stale `public/rust-wasm/` assets
+  from the editor and desktop apps, and obsolete core scripts
+  (`report-fallback-telemetry`, `check-no-parser-runtime-coupling`).
+
+### Added
+
+- **Keyword tiers.** Canonical keywords are now grouped into a small everyday
+  `core` set (13) plus opt-in `agent`, `contract`, `data`, and `print` profiles.
+  Exposed as `KEYWORD_TIERS`, `CORE_KEYWORDS`, `tierOf`, and `KeywordTier`.
+- **Consumer parity gate** (`parity:check`) — fails the build if the VSCode grammar
+  drifts from the canonical `LANGUAGE_REGISTRY`.
+- Canonical [`SPEC.md`](packages/core/SPEC.md) and root
+  [`ARCHITECTURE.md`](ARCHITECTURE.md).
+
+### Changed
+
+- Scope focused: **core, mcp, vscode, editor** are the supported surface; hub,
+  desktop, docs, builder, and the Python client are marked experimental.
+- CI now runs the keyword + parity gates and builds the full supported surface.
+
+### Notes
+
+- **No breaking grammar changes.** Documents that parsed under v3.x parse
+  identically. Tiering is contract metadata; every keyword is still recognized, and
+  unknown keywords still pass through as `custom`.
+
 ## [3.1.0] - 2026-03-09
 
 ### Changed

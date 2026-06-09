@@ -13,7 +13,7 @@ import {
   findHistoryBoundaryInSource,
   BlockSnapshot,
 } from "./trust";
-import { parseIntentText } from "./rust-core";
+import { parseIntentText } from "./parser";
 
 // ─── History Section Parsing ─────────────────────────────────────────────────
 

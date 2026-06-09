@@ -10,6 +10,5 @@ packages:
   - 'apps/builder'
   - 'apps/desktop'
   - 'apps/hub'
-  # Non-JS packages (python, rust) — listed so pnpm knows to ignore them
+  # Non-JS package (python) — managed by pip / pyproject.toml, not pnpm
   # packages/python  → managed by pip / pyproject.toml
-  # packages/rust    → managed by cargo / Cargo.toml

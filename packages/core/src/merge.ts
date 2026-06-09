@@ -1,5 +1,5 @@
 import { IntentDocument, IntentBlock } from "./types";
-import { parseIntentText } from "./rust-core";
+import { parseIntentText } from "./parser";
 
 // Runtime page variables that should NOT be resolved by mergeData
 const RUNTIME_VARIABLES = new Set(["page", "pages"]);

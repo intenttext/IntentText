@@ -1,12 +1,5 @@
 // Browser entry point — exports what runs in the browser.
-export {
-  initRustCore,
-  isRustCoreInitialized,
-  getRustCoreRuntimeMode,
-  setRustCoreRuntimeMode,
-  parseIntentText,
-  parseIntentTextSafe,
-} from "./rust-core";
+export { parseIntentText, parseIntentTextSafe } from "./parser";
 export { renderHTML, renderPrint } from "./renderer";
 export { mergeData, parseAndMerge } from "./merge";
 export { convertMarkdownToIntentText } from "./markdown";
@@ -37,4 +30,3 @@ export type {
   AgenticStatus,
   IntentDocumentMetadata,
 } from "./types";
-export type { RustCoreInitOptions, RustCoreRuntimeMode } from "./rust-core";

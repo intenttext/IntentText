@@ -1,5 +1,8 @@
 # intenttext-builder
 
+
+> **Experimental** — not part of the supported IntentText v4 release surface. The canonical implementation is `@intenttext/core`. This app builds against the core but carries no stability or support promise.
+
 Online template builder shell for the IntentText PDF product track.
 
 ## Scope (current)

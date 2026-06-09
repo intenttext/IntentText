@@ -153,14 +153,21 @@ pip install intenttext
 
 ## Ecosystem
 
+The TypeScript core is the single canonical implementation of the format (see
+[ARCHITECTURE.md](ARCHITECTURE.md) and the [spec](packages/core/SPEC.md)).
+
+**Supported**
+
 | Package               | Description                                                           |
 | --------------------- | --------------------------------------------------------------------- |
-| **@intenttext/core**  | TypeScript parser, renderer, query engine, and CLI                    |
-| **intenttext**        | Python package (PyPI)                                                 |
+| **@intenttext/core**  | TypeScript parser, renderer, query engine, and CLI — the format       |
 | **intenttext-mcp**    | MCP server — AI agents and LLM clients read and write `.it`           |
 | **intenttext-vscode** | VS Code extension — syntax highlighting, snippets, diagnostics        |
-| **Hub**               | Template and theme registry — 76 curated templates, 8 built-in themes |
 | **Editor**            | Web editor with live preview and theme picker                         |
+
+**Experimental** — build against the core but carry no stability/support promise:
+Hub (registry), Desktop (Tauri), Docs site, Builder, and the Python client
+(`intenttext` on PyPI — a thin wrapper over the core CLI).
 
 ---
 

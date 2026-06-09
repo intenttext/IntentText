@@ -26,25 +26,42 @@ jobs:
       - name: Install
         run: pnpm install
 
+      # ── Core: build, test, and contract gates ──────────────────────────────
       - name: Build core
         run: pnpm --filter @intenttext/core build
 
       - name: Test core
         run: pnpm --filter @intenttext/core test
 
-      - name: Emit Core Package Size Report
+      - name: Keyword consistency gate (registry <-> BlockType)
+        run: pnpm --filter @intenttext/core keywords:check
+
+      - name: Consumer parity gate (registry <-> VSCode grammar)
+        run: pnpm --filter @intenttext/core parity:check
+
+      - name: Emit core package size report
         run: node packages/core/scripts/report-package-size.cjs > core-package-size.json
 
-      - name: Enforce Core Package Size Gate
+      - name: Enforce core package size gate
         run: node packages/core/scripts/check-package-size.cjs core-package-size.json
 
-      - name: Enforce Core NPM Pack Footprint
+      - name: Enforce core npm pack footprint
         run: node packages/core/scripts/check-pack-footprint.cjs
 
-      - name: Enforce No Parser Runtime Coupling In Core Entrypoints
-        run: node packages/core/scripts/check-no-parser-runtime-coupling.cjs
+      # ── Supported downstream surface (build only — must compile against core) ─
+      - name: Build MCP server
+        run: pnpm --filter @intenttext/mcp-server build
 
-      - name: Upload Core Package Size Artifact
+      - name: Test MCP server
+        run: pnpm --filter @intenttext/mcp-server test
+
+      - name: Build VSCode extension
+        run: pnpm --filter intenttext compile
+
+      - name: Build editor app
+        run: pnpm --filter intenttext-editor build
+
+      - name: Upload core package size artifact
         uses: actions/upload-artifact@v4
         with:
           name: core-package-size

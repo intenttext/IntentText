@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "intenttext"
-version = "3.3.0"
-description = "IntentText - the semantic document format that is natively JSON"
+version = "4.0.0"
+description = "IntentText for Python — thin client over the canonical TS core (experimental)"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"

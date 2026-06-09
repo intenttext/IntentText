@@ -4,10 +4,9 @@
   "version": "1.0.1",
   "type": "module",
   "scripts": {
-    "prepare:wasm": "node scripts/copy-core-wasm.mjs",
-    "dev": "npm run prepare:wasm && vite",
-    "build": "npm run prepare:wasm && tsc && vite build",
-    "preview": "npm run prepare:wasm && vite preview",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
     "icons:sync": "node scripts/sync-icons.mjs",
     "tauri": "tauri",
     "tauri:dev": "npm run icons:sync && tauri dev",

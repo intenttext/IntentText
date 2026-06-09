@@ -18,13 +18,11 @@ if (!reportPath) {
 
 const LIMITS = {
   distTotalBytes: 950000,
-  wasmBytes: 600000,
   mapFileCount: 0,
 };
 
 const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
 const distTotal = Number(report?.dist?.totalBytes || 0);
-const wasmBytes = Number(report?.wasm?.bytes || 0);
 const mapFileCount = Number(report?.dist?.mapFileCount || 0);
 
 const failures = [];
@@ -32,9 +30,6 @@ if (distTotal > LIMITS.distTotalBytes) {
   failures.push(
     `dist.totalBytes ${distTotal} exceeds limit ${LIMITS.distTotalBytes}`,
   );
-}
-if (wasmBytes > LIMITS.wasmBytes) {
-  failures.push(`wasm.bytes ${wasmBytes} exceeds limit ${LIMITS.wasmBytes}`);
 }
 if (mapFileCount > LIMITS.mapFileCount) {
   failures.push(
@@ -49,5 +44,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `Core package size check passed (dist=${distTotal}, wasm=${wasmBytes}, maps=${mapFileCount})`,
+  `Core package size check passed (dist=${distTotal}, maps=${mapFileCount})`,
 );
