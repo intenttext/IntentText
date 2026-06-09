@@ -33,15 +33,11 @@ console.log(doc.blocks.length); // 8
 const html = renderHTML(doc); // Styled HTML output
 ```
 
+> Pure TypeScript — no native or WASM dependency. Runs unchanged in Node and the
+> browser. (The earlier Rust/WASM engine was removed in v4; the TS parser is the
+> single canonical implementation. See [SPEC.md](./SPEC.md).)
+
 ## API
-
-### Engine Selection (v3)
-
-`@intenttext/core` defaults to the Rust/WASM path for core operations.
-
-- `INTENTTEXT_CORE_ENGINE=ts` forces TypeScript engine mode in Node runtimes.
-- `globalThis.__INTENTTEXT_CORE_ENGINE = "ts"` forces TypeScript engine mode in browser-like runtimes.
-- `INTENTTEXT_CORE_ENGINE=rust` and `globalThis.__INTENTTEXT_CORE_ENGINE = "rust"` explicitly force Rust mode.
 
 ### Parsing
 
@@ -98,6 +94,22 @@ import { queryBlocks } from "@intenttext/core";
 const result = queryBlocks(doc, "type:task owner:Ahmed sort:due:asc limit:5");
 console.log(result.blocks); // Filtered & sorted blocks
 ```
+
+### Trust — sign, seal, verify
+
+`.it` documents are tamper-evident. `sealDocument` records a signer and freezes the
+content with a SHA-256 hash; `verifyDocument` recomputes it and reports integrity.
+
+```typescript
+import { sealDocument, verifyDocument } from "@intenttext/core";
+
+const sealed = sealDocument(source, { signer: "Sarah Chen", role: "Legal" });
+const result = verifyDocument(sealed.source);
+console.log(result.intact); // true — false if a single character changed
+```
+
+The hashing rules are open and documented in [SPEC.md](./SPEC.md), so anyone with the
+library can verify independently.
 
 ### Converters
 
@@ -176,10 +188,11 @@ node cli.js template.it --data data.json --pdf out.pdf  # PDF via Puppeteer
 
 ## Test Suite
 
-426 tests across 12 test files covering parser, renderer, query engine, converters, agentic blocks, document generation, and production APIs.
+869 tests covering parser, renderer, query engine, converters, agentic blocks,
+document generation, trust/seal, and round-trip serialization.
 
 ```bash
-npm test
+pnpm test
 ```
 
 ## Links
