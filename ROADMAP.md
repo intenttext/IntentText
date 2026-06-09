@@ -88,11 +88,11 @@ not done without explicit go-ahead.)
 - [ ] Public "how sign/seal works" doc (tamper-evidence today; notary service = the
   paid path).
 - [ ] Native PDF generation path with minimal dependencies. _(feeds Demo 3)_
-- [ ] **Wire incremental indexing** — make the CLI `index` use
-  `checkStaleness`/`updateIndex` (currently full rebuild) and `query` self-heal stale
-  entries before querying. See [packages/core/INDEXING.md](packages/core/INDEXING.md).
-  Model is decided: shallow per-folder `.it-index` cache, lazy self-healing default,
-  on-save in the editor, never cron.
+- [x] **Wire incremental indexing** — CLI `index` refreshes only changed entries;
+  `query` self-heals each folder index before composing. Shallow per-folder
+  `.it-index` cache, lazy self-healing, no init step. See
+  [packages/core/INDEXING.md](packages/core/INDEXING.md).
+- [ ] On-save index update inside the editor (optimization on top of lazy). _(feeds Demo 3)_
 
 ## Done (this engagement)
 

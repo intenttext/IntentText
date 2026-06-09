@@ -109,6 +109,11 @@ Either is fine, because it's derived:
 - ✅ Core engine: `buildShallowIndex`, `buildIndexEntry`, `checkStaleness`,
   `updateIndex`, `composeIndexes`, `queryComposed`.
 - ✅ CLI: `intenttext index <dir> [--recursive]`, `intenttext query <dir> "<q>"`.
-- ⏳ **To wire:** make `index` use `checkStaleness`/`updateIndex` for incremental
-  refresh (currently full rebuild), and make `query` self-heal stale entries before
-  querying. The building blocks exist; only the CLI plumbing is pending.
+- ✅ **Incremental + self-healing wired in.** `index` loads the existing `.it-index`
+  and refreshes only changed/added/removed entries (full build only when absent);
+  `query` on a directory refreshes each folder's index before composing. Reports
+  e.g. `Index refreshed (+1 ~1 -0, 4 unchanged)`. A missing or corrupt cache rebuilds
+  automatically — no init step, ever.
+
+There is **no `git init` equivalent.** Searchability is implicit: any folder with
+`.it` files is queryable, and the `.it-index` is created/refreshed on first use.
