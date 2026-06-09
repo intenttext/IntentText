@@ -17,26 +17,59 @@ describe("documentToSource — round-trip guarantee", () => {
     expect(result).toBe(src);
   });
 
-  it("serializes unordered list items as list-item: keyword form", () => {
+  it("round-trips unordered list items as `- ` bullets", () => {
     const src = "- Buy milk\n- Call dentist";
     const doc = parseIntentText(src);
     expect(doc.blocks.length).toBe(2);
     expect(doc.blocks[0].type).toBe("list-item");
     expect(doc.blocks[0].content).toBe("Buy milk");
     const result = documentToSource(doc);
-    expect(result).toContain("list-item: Buy milk");
-    expect(result).toContain("list-item: Call dentist");
+    expect(result).toContain("- Buy milk");
+    expect(result).toContain("- Call dentist");
+    // Real round-trip: reparse yields the same block types.
+    const reparsed = parseIntentText(result);
+    expect(reparsed.blocks.map((b) => b.type)).toEqual([
+      "list-item",
+      "list-item",
+    ]);
   });
 
-  it("serializes ordered list items as step-item: keyword form", () => {
+  it("round-trips ordered list items as `1.` bullets", () => {
     const src = "1. First step\n2. Second step";
     const doc = parseIntentText(src);
     expect(doc.blocks.length).toBe(2);
     expect(doc.blocks[0].type).toBe("step-item");
     expect(doc.blocks[0].content).toBe("First step");
     const result = documentToSource(doc);
-    expect(result).toContain("step-item: First step");
-    expect(result).toContain("step-item: Second step");
+    expect(result).toContain("1. First step");
+    expect(result).toContain("Second step");
+    const reparsed = parseIntentText(result);
+    expect(reparsed.blocks.map((b) => b.type)).toEqual([
+      "step-item",
+      "step-item",
+    ]);
+  });
+
+  it("round-trips a list bullet that wraps a keyword (`- task:`)", () => {
+    const src = "- task: Buy groceries";
+    const doc = parseIntentText(src);
+    const result = documentToSource(doc);
+    expect(result).toContain("- task: Buy groceries");
+    const reparsed = parseIntentText(result);
+    expect(reparsed.blocks.length).toBe(doc.blocks.length);
+    expect(reparsed.blocks[0].type).toBe("list-item");
+    expect(reparsed.blocks[0].children?.[0].type).toBe("task");
+  });
+
+  it("round-trips a custom keyword block with its original keyword", () => {
+    const src = "computer: MacBook | cpu: M3 | ram: 64GB";
+    const doc = parseIntentText(src);
+    expect(doc.blocks[0].type).toBe("custom");
+    const result = documentToSource(doc);
+    expect(result).toContain("computer: MacBook");
+    const reparsed = parseIntentText(result);
+    expect(reparsed.blocks[0].type).toBe("custom");
+    expect(reparsed.blocks[0].properties?.keyword).toBe("computer");
   });
 
   it("serializes text blocks with text: prefix", () => {

@@ -219,13 +219,7 @@ describe("document_to_source", () => {
     expect(source).toContain("text:");
   });
 
-  // KNOWN ISSUE (pre-existing, tracked): documentToSource does not round-trip a
-  // list bullet that wraps a keyword (`- task: ...`). The list-item block carries
-  // the task as a child; the serializer emits both the `list-item:` line and the
-  // child `task:` line, so reparsing yields an extra block. This is a core
-  // serializer (source.ts) bug, not an MCP bug. Re-enable once round-trip
-  // fidelity for nested list-item+keyword is fixed. See FINALIZATION.md.
-  it.skip("round-trips parse → source → parse (KNOWN: nested list-item serializer bug)", () => {
+  it("round-trips parse → source → parse", () => {
     const original = "# Title\n- task: Buy groceries\n  owner: Ahmed";
     const doc = parseIntentText(original);
     const source = documentToSource(doc);

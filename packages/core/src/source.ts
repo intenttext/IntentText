@@ -115,18 +115,32 @@ export function documentToSource(doc: IntentDocument): string {
 
   // Emit content blocks
   for (const block of contentBlocks) {
-    const serialized = serializeBlock(block);
-    lines.push(serialized);
-
-    // Emit children (for sections)
-    if (block.children && block.children.length > 0) {
-      for (const child of block.children) {
-        lines.push(serializeBlock(child));
-      }
-    }
+    emitBlock(block, lines);
   }
 
   return lines.join("\n");
+}
+
+/**
+ * Emit a block and, for container blocks, its children as following lines.
+ *
+ * `list-item` / `step-item` are bullets: their single child carries the real
+ * block (e.g. a `task`), and serializeBlock renders it inline (`- task: ...`),
+ * so they must NOT re-emit their child as a separate line. Container blocks
+ * (sections, etc.) emit children as following lines, recursively.
+ */
+function emitBlock(block: IntentBlock, lines: string[]): void {
+  lines.push(serializeBlock(block));
+  if (
+    block.children &&
+    block.children.length > 0 &&
+    block.type !== "list-item" &&
+    block.type !== "step-item"
+  ) {
+    for (const child of block.children) {
+      emitBlock(child, lines);
+    }
+  }
 }
 
 function serializeBlock(block: IntentBlock): string {
@@ -156,6 +170,32 @@ function serializeBlock(block: IntentBlock): string {
     return "```" + lang + "\n" + block.content + "\n```";
   }
 
+  // Custom (user-defined) keyword passthrough — emit with the original keyword,
+  // not the internal "custom" type. The keyword is stored in properties.keyword.
+  if (type === "custom") {
+    const keyword = block.properties?.keyword
+      ? String(block.properties.keyword)
+      : "";
+    const content = block.originalContent ?? block.content ?? "";
+    const propStr = serializeProperties(block, ["keyword"]);
+    const head = keyword ? `${keyword}: ${content}` : content;
+    return propStr ? `${head} | ${propStr}` : head;
+  }
+
+  // List bullet `- ...`. The single child carries the real block (task/text/…),
+  // rendered inline so `- task: Buy groceries` round-trips.
+  if (type === "list-item") {
+    const child = block.children?.[0];
+    return `- ${child ? serializeBulletInner(child) : block.originalContent ?? block.content ?? ""}`;
+  }
+
+  // Numbered list bullet `1. ...`. (The ordinal is not preserved by the parser;
+  // a constant `1.` still reparses as a step-item.)
+  if (type === "step-item") {
+    const child = block.children?.[0];
+    return `1. ${child ? serializeBulletInner(child) : block.originalContent ?? block.content ?? ""}`;
+  }
+
   // Special case: table — reconstruct pipe table
   if (type === "table" && block.table) {
     return serializeTable(block);
@@ -172,12 +212,27 @@ function serializeBlock(block: IntentBlock): string {
   return content ? `${type}: ${content}` : `${type}:`;
 }
 
-function serializeProperties(block: IntentBlock): string {
+/**
+ * Render the inside of a list bullet — either `keyword: content | props`
+ * (for a typed child like `task`) or plain `content` (for a `text` child).
+ */
+function serializeBulletInner(child: IntentBlock): string {
+  if (child.type === "text") {
+    const content = child.originalContent ?? child.content ?? "";
+    const propStr = serializeProperties(child);
+    return propStr ? `${content} | ${propStr}` : content;
+  }
+  return serializeBlock(child);
+}
+
+function serializeProperties(block: IntentBlock, exclude: string[] = []): string {
   const props = block.properties;
   if (!props) return "";
 
+  const excludeSet = new Set(exclude);
   const keys = Object.keys(props).filter((k) => {
     if (SKIP_INTERNAL.has(k)) return false;
+    if (excludeSet.has(k)) return false;
     // Skip status if it's the default "pending"
     if (k === "status" && props[k] === "pending") return false;
     return true;

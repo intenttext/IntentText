@@ -144,18 +144,19 @@ Phase 1 ──▶ Phase 2 ──▶ Phase 3 ──▶ Phase 4
 4. Supported surface = core + mcp + vscode + editor; experimental clearly separated.
 5. README, SPEC, ARCHITECTURE, CHANGELOG all describe the shipped reality.
 
-## Known issues uncovered during finalization (tracked follow-ups)
+## Known issues uncovered during finalization
 
-These are **pre-existing** bugs exposed by actually building/testing the supported
-surface (they were previously masked by missing dependencies and a broken
-`prepare:wasm` step). None are regressions from this work.
+These were **pre-existing** bugs exposed by actually building/testing the supported
+surface (previously masked by missing dependencies and a broken `prepare:wasm`
+step). None were regressions from this work.
 
-1. **Serializer round-trip for nested list-item + keyword.** `documentToSource`
-   does not round-trip `- task: ...` (a list bullet wrapping a keyword): the
-   list-item carries the keyword as a child and the serializer emits both lines,
-   so reparsing yields an extra block. Core `source.ts` bug. The MCP round-trip
-   test is `it.skip`-ed with a pointer here. Ties to the "round-trip fidelity"
-   improvement — fix under a dedicated serializer pass.
+1. **Serializer round-trip for nested list-item + keyword — FIXED.**
+   `documentToSource` now renders list/step bullets as `- …` / `1. …` (with a
+   typed child rendered inline, e.g. `- task: Buy groceries`) and custom blocks
+   with their original keyword (e.g. `computer: …`), instead of the internal
+   `list-item:`/`step-item:`/`custom:` forms that never reparsed. The MCP
+   round-trip test is re-enabled; two `source.test.ts` tests that had codified the
+   broken output were rewritten to assert real reparse round-trips.
 
 ### Dependency/build fixes applied (were latent breakages)
 
