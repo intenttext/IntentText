@@ -204,10 +204,11 @@ function serializeBlock(block: IntentBlock): string {
   // Get content text — prefer originalContent to preserve inline formatting
   const content = block.originalContent ?? block.content ?? "";
 
-  // Build the line
+  // Build the line. When content is empty but properties exist, use the canonical
+  // `type: | props` form (e.g. `font: | family: Inter`) — not `type:  | props`.
   const propStr = serializeProperties(block);
   if (propStr) {
-    return `${type}: ${content} | ${propStr}`;
+    return content ? `${type}: ${content} | ${propStr}` : `${type}: | ${propStr}`;
   }
   return content ? `${type}: ${content}` : `${type}:`;
 }
