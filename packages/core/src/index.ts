@@ -37,7 +37,7 @@ export {
 } from "./parser";
 export { renderHTML } from "./renderer";
 export { validateDocumentSemantic } from "./validate";
-export { documentToSource } from "./source";
+export { documentToSource, blockToSource } from "./source";
 export type {
   SafeParseOptions,
   SafeParseResult,

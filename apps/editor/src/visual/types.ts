@@ -1,13 +1,5 @@
 // Shared types for the visual editor
 
-export interface VisualBlock {
-  id: string;
-  type: string; // canonical keyword from core
-  content: string; // main text content
-  properties: Record<string, string>; // pipe properties
-  originalLine?: string; // raw line for round-trip fidelity
-}
-
 export type EditorMode = "source" | "visual";
 
 // Category metadata for UI grouping

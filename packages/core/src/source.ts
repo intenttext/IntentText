@@ -143,6 +143,18 @@ function emitBlock(block: IntentBlock, lines: string[]): void {
   }
 }
 
+/**
+ * Serialize a single block to its canonical `.it` line(s) — the same logic
+ * `documentToSource` uses per block. Exposed so other surfaces (e.g. the visual
+ * editor) can reuse the canonical serializer instead of reimplementing it and
+ * drifting from the grammar. Does NOT emit a block's section-children as
+ * following lines (that's `documentToSource`'s job); list/step bullets still
+ * render their inline child.
+ */
+export function blockToSource(block: IntentBlock): string {
+  return serializeBlock(block);
+}
+
 function serializeBlock(block: IntentBlock): string {
   const type = block.type;
 
