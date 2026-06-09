@@ -371,14 +371,6 @@ function buildSnapshots(
   return result;
 }
 
-function getSectionForBlock(blocks: IntentBlock[], index: number): string {
-  let section = "root";
-  for (let i = 0; i <= index; i++) {
-    if (blocks[i].type === "section") section = blocks[i].content;
-  }
-  return section;
-}
-
 function buildUpdatedRegistry(
   existing: RegistryEntry[],
   current: BlockSnapshot[],

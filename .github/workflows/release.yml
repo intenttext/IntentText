@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   publish-npm:
@@ -20,15 +21,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
-          cache: npm
 
       - name: Install
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Verify tag matches @intenttext/core version
         run: |
@@ -39,14 +44,11 @@ jobs:
             exit 1
           fi
 
-      - name: Build
-        run: npm run build
-
-      - name: Test
-        run: npm test
+      - name: Build + test + contract gates
+        run: pnpm --filter @intenttext/core check
 
       - name: Publish @intenttext/core
-        run: npm publish -w packages/core --access public --provenance
+        run: pnpm publish --filter @intenttext/core --access public --no-git-checks --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
