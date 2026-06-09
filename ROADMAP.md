@@ -77,10 +77,19 @@ The editor already has Monaco + a TipTap visual editor + bridge, trust panel & m
 preview, print bar, theme picker, and a showcase system. Demo 3 is assess-and-polish,
 phased:
 
-- [ ] **A. Round-trip fidelity** _(in progress)_ — the visual editor has its own
-  serializer (`visual/serializer.ts`) separate from core's `documentToSource` (same
-  drift risk we killed for Rust/Python). Route visual serialization through core (or a
-  parity gate) so visual edits produce clean, canonical `.it` losslessly.
+- [~] **A. Round-trip fidelity** _(in progress — wedge proven, one gap left)_
+  - Removed a dead second serializer (flat VisualBlock model — no callers).
+  - core now exports `blockToSource` (canonical per-block serializer).
+  - Fixed list serialization (`text: •` → `- ` / `N.`).
+  - Added a fidelity harness (`pnpm --filter intenttext-editor roundtrip:check`):
+    **all 5 business documents round-trip losslessly.**
+  - **Remaining gap (precise):** in `visual/bridge.ts`, `sourceToDoc`'s line-walker
+    processes lines one at a time and never groups consecutive `- ` / `N.` lines into
+    TipTap `bulletList` / `orderedList` nodes; `blockToNode` has no `list-item` /
+    `step-item` case, so list lines fall through to `itGenericBlock` and get mangled.
+    Fix: group runs of bullet/ordered lines into list nodes on the source→doc side
+    (docToSource already emits `- `/`N.` correctly). Verify with `roundtrip:check`
+    (target: simple.it + meeting-notes.it pass → 7/7).
 - [ ] **B. Trust sidebar** — polish TrustPanel into a simple seal/sign/freeze/history
   view + one-click Verify.
 - [ ] **C. Embed Demo 1** — plug the invoice template→merge→sign→query flow into the
