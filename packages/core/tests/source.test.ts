@@ -61,6 +61,18 @@ describe("documentToSource — round-trip guarantee", () => {
     expect(reparsed.blocks[0].children?.[0].type).toBe("task");
   });
 
+  it("serializes empty-content blocks with props as `type: | props` (no double space)", () => {
+    const src = "font: | family: Inter | size: 11pt";
+    const doc = parseIntentText(src);
+    const result = documentToSource(doc);
+    expect(result).not.toContain("font:  |");
+    expect(result).toContain("font: | ");
+    // Round-trips.
+    const reparsed = parseIntentText(result);
+    expect(reparsed.blocks[0].type).toBe("font");
+    expect(reparsed.blocks[0].properties?.family).toBe("Inter");
+  });
+
   it("round-trips a custom keyword block with its original keyword", () => {
     const src = "computer: MacBook | cpu: M3 | ram: 64GB";
     const doc = parseIntentText(src);
