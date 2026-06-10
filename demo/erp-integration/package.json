@@ -1,0 +1,13 @@
+{
+  "name": "intenttext-erp-demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Jadwal-style ERP print integration — template (.it) + data → HTML/PDF",
+  "scripts": {
+    "start": "node run.mjs"
+  },
+  "dependencies": {
+    "@intenttext/core": "workspace:*"
+  }
+}

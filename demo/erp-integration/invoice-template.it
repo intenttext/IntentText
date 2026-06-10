@@ -1,0 +1,25 @@
+font: | family: Inter, Helvetica, sans-serif | size: 11pt | leading: 1.5
+page: | size: A4 | footer: {{invoice.number}} · {{company.name}} · Page {{page}}
+
+title: Invoice {{invoice.number}}
+summary: {{company.name}} → {{customer.name}}
+meta: | date: {{invoice.date}} | due: {{invoice.dueDate}} | status: {{invoice.status}}
+
+section: From
+contact: {{company.name}} | email: {{company.email}} | vat: {{company.vat}}
+
+section: Bill To
+contact: {{customer.name}} | email: {{customer.email}}
+
+section: Line Items
+| Description | Qty | Unit Price | Total | each: items |
+| {{item.description}} | {{item.qty}} | {{item.unitPrice}} | {{item.total}} |
+
+section: Totals
+metric: Subtotal | value: {{totals.subtotal}}
+metric: Tax ({{totals.taxRate}}%) | value: {{totals.tax}}
+metric: Total Due | value: {{totals.due}}
+
+section: Payment
+text: Bank {{payment.bank}} · IBAN {{payment.iban}}
+deadline: Payment due | date: {{invoice.dueDate}} | consequence: late fees may apply

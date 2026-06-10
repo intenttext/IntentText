@@ -25,6 +25,7 @@
     "demo:invoice": "node demo/business-doc/pipeline.mjs",
     "demo:search": "node demo/folder-query/search.mjs",
     "demo:themes": "node demo/enterprise-themes/showcase.mjs",
+    "demo:erp": "pnpm --filter intenttext-erp-demo start",
     "check:examples": "node scripts/check-examples.mjs",
     "parse": "node cli.js",
     "parse:html": "node cli.js examples/sample.it --html",

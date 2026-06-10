@@ -298,6 +298,12 @@ importers:
         specifier: ^5
         version: 5.9.3
 
+  demo/erp-integration:
+    dependencies:
+      '@intenttext/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+
   packages/action:
     dependencies:
       '@actions/core':
