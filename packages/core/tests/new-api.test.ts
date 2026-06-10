@@ -314,11 +314,25 @@ describe("validateDocumentSemantic", () => {
     expect(result.valid).toBe(true);
   });
 
-  it("{{unresolved}} variable returns UNRESOLVED_VARIABLE warning", () => {
-    const doc = parseIntentText("title: Test\nnote: Hello {{name}}");
+  it("undeclared variable warns when a context IS declared", () => {
+    // A declared context means the doc is data-aware; an undeclared {{var}} is a typo.
+    const doc = parseIntentText(
+      "context: | greeting: hi\ntitle: Test\ntext: Hello {{name}}",
+    );
     const result = validateDocumentSemantic(doc);
     expect(result.issues.some((i) => i.code === "UNRESOLVED_VARIABLE")).toBe(
       true,
+    );
+  });
+
+  it("template placeholders are NOT flagged when no context is declared", () => {
+    // A template being authored (placeholders, no context:) — filled at merge time.
+    const doc = parseIntentText(
+      "title: Invoice {{invoice.number}}\ntext: Due {{invoice.dueDate}}",
+    );
+    const result = validateDocumentSemantic(doc);
+    expect(result.issues.some((i) => i.code === "UNRESOLVED_VARIABLE")).toBe(
+      false,
     );
   });
 

@@ -73,10 +73,20 @@ export function validateDocumentSemantic(
     }
   }
 
-  // Detect template documents — skip per-block variable warnings for templates
+  // Detect template documents — skip per-block variable warnings for templates.
+  // A document that uses {{...}} placeholders but declares NO context (no context:
+  // block, no metadata context, no step outputs) is a template being authored: its
+  // placeholders are filled at merge time, so they are not "unresolved" errors.
+  // When a context IS declared, undeclared {{vars}} remain genuine warnings (typos).
+  const hasMergePlaceholders = allBlocks.some(
+    (b) =>
+      /\{\{/.test(b.originalContent || b.content || "") ||
+      Object.values(b.properties || {}).some((v) => /\{\{/.test(String(v))),
+  );
   const isTemplate =
     doc.metadata?.meta?.type === "template" ||
-    allBlocks.some((b) => b.type === "input");
+    allBlocks.some((b) => b.type === "input") ||
+    (declaredVars.size === 0 && hasMergePlaceholders);
 
   // Track sections for structural checks
   let lastSection: IntentBlock | null = null;
