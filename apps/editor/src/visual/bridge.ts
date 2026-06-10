@@ -4,6 +4,13 @@
 import { parseIntentText } from "@intenttext/core";
 import type { JSONContent } from "@tiptap/core";
 
+/** A TipTap mark on a text node. */
+type Mark = {
+  type: string;
+  attrs?: Record<string, unknown>;
+  [k: string]: unknown;
+};
+
 // IT keywords that map to dedicated TipTap nodes
 const CALLOUT_TYPES = new Set(["tip", "info", "warning", "danger", "success"]);
 // Document-level metadata / layout keywords — shown as a chip, not body content.
@@ -39,16 +46,24 @@ const KEYWORD_ALIASES: Record<string, string> = {
 
 // Style keys managed through TipTap marks/attributes.
 // These are extracted FROM marks on doc→source, and applied AS marks on source→doc.
+// Canonical keys match core's STYLE_PROPERTIES (family/bg/italic), so styling done
+// in the editor renders identically through core. Legacy editor keys (style/font/
+// bgcolor) are kept so older documents still round-trip.
 const MARK_STYLE_KEYS = new Set([
   "weight",
-  "style",
+  "italic",
   "underline",
   "strike",
   "color",
-  "font",
+  "family",
   "size",
-  "bgcolor",
+  "bg",
+  "valign",
   "align",
+  // legacy aliases
+  "style",
+  "font",
+  "bgcolor",
 ]);
 
 /* ── Helpers ─────────────────────────────────────────────────── */
@@ -92,6 +107,95 @@ function textToContent(text: string): JSONContent[] {
   return result;
 }
 
+/** A core inline AST node (subset we map to TipTap marks). */
+type InlineNode = {
+  type: string;
+  value?: string;
+  href?: string;
+  props?: Record<string, string>;
+};
+
+/** Map one core inline node to the TipTap marks it should carry (or null = plain). */
+function inlineNodeMarks(node: InlineNode): Mark[] | null {
+  switch (node.type) {
+    case "bold":
+      return [{ type: "bold" }];
+    case "italic":
+      return [{ type: "italic" }];
+    case "strike":
+      return [{ type: "strike" }];
+    case "code":
+      return [{ type: "code" }];
+    case "highlight":
+      return [{ type: "highlight" }];
+    case "styled": {
+      const p = node.props || {};
+      const marks: Mark[] = [];
+      const ts: Record<string, string> = {};
+      if (p.weight && p.weight !== "normal") marks.push({ type: "bold" });
+      if (p.italic === "true") marks.push({ type: "italic" });
+      if (p.underline === "true") marks.push({ type: "underline" });
+      if (p.strike === "true") marks.push({ type: "strike" });
+      if (p.color) ts.color = p.color;
+      if (p.family) ts.fontFamily = p.family;
+      if (p.size) ts.fontSize = p.size;
+      if (Object.keys(ts).length) marks.push({ type: "textStyle", attrs: ts });
+      if (p.bg) marks.push({ type: "highlight", attrs: { color: p.bg } });
+      if (p.valign === "sub") marks.push({ type: "subscript" });
+      if (p.valign === "super") marks.push({ type: "superscript" });
+      return marks.length ? marks : null;
+    }
+    default:
+      return null; // text, mention, tag, date, label, link → plain text
+  }
+}
+
+// Inline node types that map cleanly to TipTap marks (and thus round-trip exactly).
+// Other node types (label, mention, tag, date, link, note, quote, code, footnote)
+// carry delimiters that can't be reconstructed from the AST alone, so a line
+// containing any of them is kept literal (textToContent) — preserving the source.
+const MAPPABLE_INLINE = new Set([
+  "text",
+  "bold",
+  "italic",
+  "strike",
+  "highlight",
+  "styled",
+]);
+
+/**
+ * Build TipTap content from core's inline AST, so inline marks AND styled spans
+ * (`[text]{…}`) become real TipTap marks (partial styling survives the round-trip).
+ * If the line mixes in delimiter-bearing nodes (mentions, tags, links, code, …) or
+ * has nothing to mark, keep it literal so those tokens round-trip unchanged.
+ */
+function inlineToContent(
+  inline: InlineNode[] | undefined,
+  fallbackText: string,
+): JSONContent[] {
+  if (
+    !inline ||
+    inline.length === 0 ||
+    inline.every((n) => n.type === "text") ||
+    !inline.every((n) => MAPPABLE_INLINE.has(n.type))
+  ) {
+    return textToContent(fallbackText);
+  }
+  const result: JSONContent[] = [];
+  for (const node of inline) {
+    const marks = inlineNodeMarks(node);
+    const value = node.value ?? "";
+    // Preserve literal \n as hardBreaks even inside styled runs.
+    const parts = value.split("\\n");
+    parts.forEach((part, i) => {
+      if (part)
+        result.push(marks ? { type: "text", text: part, marks } : { type: "text", text: part });
+      if (i < parts.length - 1) result.push({ type: "hardBreak" });
+    });
+  }
+  return result.length ? result : textToContent(fallbackText);
+}
+
 /**
  * Apply IT properties as TipTap marks on text content nodes.
  * E.g. weight:bold → bold mark, color:#f00 → textStyle{color}, etc.
@@ -102,26 +206,25 @@ function applyPropsAsMarks(
 ): JSONContent[] {
   if (!properties || content.length === 0) return content;
 
-  type Mark = {
-    type: string;
-    attrs?: Record<string, unknown>;
-    [k: string]: unknown;
-  };
   const marks: Mark[] = [];
   const tsAttrs: Record<string, string> = {};
 
   const p = properties;
+  // Canonical core keys (family/bg/italic), with legacy editor keys as fallback.
+  const family = p.family ?? p.font;
+  const bg = p.bg ?? p.bgcolor;
   if (String(p.weight || "").toLowerCase() === "bold")
     marks.push({ type: "bold" });
-  if (String(p.style || "").toLowerCase() === "italic")
+  if (String(p.italic || "") === "true" || String(p.style || "").toLowerCase() === "italic")
     marks.push({ type: "italic" });
   if (String(p.underline || "") === "true") marks.push({ type: "underline" });
   if (String(p.strike || "") === "true") marks.push({ type: "strike" });
+  if (String(p.valign || "") === "sub") marks.push({ type: "subscript" });
+  if (String(p.valign || "") === "super") marks.push({ type: "superscript" });
   if (p.color) tsAttrs.color = String(p.color);
-  if (p.font) tsAttrs.fontFamily = String(p.font);
+  if (family) tsAttrs.fontFamily = String(family);
   if (p.size) tsAttrs.fontSize = String(p.size);
-  if (p.bgcolor)
-    marks.push({ type: "highlight", attrs: { color: String(p.bgcolor) } });
+  if (bg) marks.push({ type: "highlight", attrs: { color: String(bg) } });
 
   if (Object.keys(tsAttrs).length > 0)
     marks.push({ type: "textStyle", attrs: tsAttrs });
@@ -135,53 +238,157 @@ function applyPropsAsMarks(
   );
 }
 
-/**
- * Extract TipTap marks from a block node's content as IT property pairs.
- * Also reads textAlign from node attrs.
- */
-function extractMarksAsProps(node: JSONContent): Record<string, string> {
+/** One text run's marks → the IT style props they map to (line-level vocabulary). */
+function marksToProps(marks: Mark[] | undefined): Record<string, string> {
   const props: Record<string, string> = {};
-  if (!node.content) return props;
-
-  for (const child of node.content) {
-    if (child.type !== "text" || !child.marks) continue;
-    for (const mark of child.marks) {
-      switch (mark.type) {
-        case "bold":
-          props.weight = "bold";
-          break;
-        case "italic":
-          props.style = "italic";
-          break;
-        case "underline":
-          props.underline = "true";
-          break;
-        case "strike":
-          props.strike = "true";
-          break;
-        case "textStyle":
-          if (mark.attrs?.color) props.color = mark.attrs.color;
-          if (mark.attrs?.fontFamily) props.font = mark.attrs.fontFamily;
-          if (mark.attrs?.fontSize) props.size = mark.attrs.fontSize;
-          break;
-        case "highlight":
-          if (mark.attrs?.color) props.bgcolor = mark.attrs.color;
-          break;
-      }
+  for (const mark of marks || []) {
+    switch (mark.type) {
+      case "bold":
+        props.weight = "bold";
+        break;
+      case "italic":
+        props.italic = "true";
+        break;
+      case "underline":
+        props.underline = "true";
+        break;
+      case "strike":
+        props.strike = "true";
+        break;
+      case "textStyle":
+        if (mark.attrs?.color) props.color = String(mark.attrs.color);
+        if (mark.attrs?.fontFamily) props.family = String(mark.attrs.fontFamily);
+        if (mark.attrs?.fontSize) props.size = String(mark.attrs.fontSize);
+        break;
+      case "highlight":
+        if (mark.attrs?.color) props.bg = String(mark.attrs.color);
+        break;
+      case "subscript":
+        props.valign = "sub";
+        break;
+      case "superscript":
+        props.valign = "super";
+        break;
     }
   }
-
-  // TextAlign from node attributes (set by TextAlign extension)
-  if (node.attrs?.textAlign && node.attrs.textAlign !== "left") {
-    props.align = node.attrs.textAlign;
-  }
-
   return props;
 }
 
 /**
- * Extract text content from a TipTap node.
- * HardBreak nodes become literal \n (backslash-n).
+ * Serialize ONE text run (with its marks) to .it inline syntax:
+ *  - no marks → raw text
+ *  - a single semantic mark → the mark char (*bold* _italic_ ~strike~ `code` ^hl^)
+ *  - link → [text](href)
+ *  - color/font/size, or combined marks → a styled span [text]{ k: v; k: v }
+ * This is what lets partial styling round-trip (vs. flattening to the whole line).
+ */
+function runToInlineText(child: JSONContent): string {
+  if (child.type === "hardBreak") return "\\n";
+  if (child.type !== "text") return extractText(child);
+  const t = child.text || "";
+  if (!t) return "";
+  const marks = (child.marks || []) as Mark[];
+  if (!marks.length) return t;
+
+  const types = new Set(marks.map((m) => m.type));
+  const link = marks.find((m) => m.type === "link");
+  if (link?.attrs?.href) return `[${t}](${link.attrs.href})`;
+
+  const ts = marks.find((m) => m.type === "textStyle")?.attrs || {};
+  const hl = marks.find((m) => m.type === "highlight")?.attrs || {};
+  const hasColorFont = !!(ts.color || ts.fontFamily || ts.fontSize || hl.color);
+  const semanticCount = ["bold", "italic", "strike", "underline", "code"].filter(
+    (k) => types.has(k),
+  ).length;
+
+  // Single semantic mark with no color/font and no combining → tidy mark char.
+  if (!hasColorFont && semanticCount === 1 && !types.has("underline")) {
+    if (types.has("bold")) return `*${t}*`;
+    if (types.has("italic")) return `_${t}_`;
+    if (types.has("strike")) return `~${t}~`;
+    if (types.has("code")) return `\`${t}\``;
+  }
+  if (!hasColorFont && semanticCount === 0 && types.has("highlight") && !hl.color)
+    return `^${t}^`;
+
+  // Everything else (color/font/size, combined marks, underline) → styled span.
+  const props = marksToProps(marks);
+  const out: string[] = [];
+  if (props.color) out.push(`color: ${props.color}`);
+  if (props.family) out.push(`family: ${props.family}`);
+  if (props.size) out.push(`size: ${props.size}`);
+  if (props.weight) out.push(`weight: ${props.weight}`);
+  if (props.italic === "true") out.push(`italic: true`);
+  if (props.underline) out.push(`underline: true`);
+  if (props.strike) out.push(`strike: true`);
+  if (props.bg) out.push(`bg: ${props.bg}`);
+  if (props.valign) out.push(`valign: ${props.valign}`);
+  return out.length ? `[${t}]{ ${out.join("; ")} }` : t;
+}
+
+/**
+ * Serialize a block's inline content to .it text, plus any block-level style props.
+ * Whole-line case (a single uniformly-styled text run) → clean line-level props;
+ * partial styling (multiple runs / mixed marks) → inline marks + styled spans.
+ * `align` is always block-level.
+ */
+/** Mark types the serializer can faithfully represent in `.it` (→ core-renderable). */
+const SUPPORTED_MARKS = new Set([
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "code",
+  "highlight",
+  "textStyle",
+  "link",
+  "subscript",
+  "superscript",
+]);
+
+/**
+ * Fidelity guard: walk a TipTap doc for mark types the serializer can't represent
+ * in `.it` (so they'd be lost on save and wouldn't print through core). Returns the
+ * sorted unique unsupported mark types. Normally empty — every toolbar mark is
+ * supported and TipTap drops unregistered marks on paste — so this catches
+ * regressions (a new mark added without a serializer) rather than everyday use.
+ */
+export function detectUnsupportedStyling(node: JSONContent): string[] {
+  const found = new Set<string>();
+  const walk = (n: JSONContent) => {
+    for (const m of (n.marks || []) as { type: string }[]) {
+      if (!SUPPORTED_MARKS.has(m.type)) found.add(m.type);
+    }
+    for (const c of n.content || []) walk(c);
+  };
+  walk(node);
+  return [...found].sort();
+}
+
+function inlineToSource(node: JSONContent): {
+  text: string;
+  props: Record<string, string>;
+} {
+  const children = node.content || [];
+  const align: Record<string, string> =
+    node.attrs?.textAlign && node.attrs.textAlign !== "left"
+      ? { align: String(node.attrs.textAlign) }
+      : {};
+
+  // Whole-line: exactly one text run → keep its style as line-level props.
+  if (children.length === 1 && children[0].type === "text") {
+    return {
+      text: children[0].text || "",
+      props: { ...marksToProps(children[0].marks as Mark[]), ...align },
+    };
+  }
+  // Partial styling → marks/spans inline, no block-level style props.
+  return { text: children.map(runToInlineText).join(""), props: { ...align } };
+}
+
+/**
+ * Extract plain text content from a TipTap node (no marks).
+ * HardBreak nodes become literal \n (backslash-n). Used for code blocks.
  */
 function extractText(node: JSONContent): string {
   if (!node.content) return "";
@@ -272,6 +479,7 @@ function fallbackLineToBlock(trimmedLine: string): {
   type: string;
   content?: string;
   properties?: Record<string, string>;
+  inline?: InlineNode[];
 } | null {
   if (trimmedLine === "---") return { type: "divider" };
   const m = trimmedLine.match(/^([a-zA-Z][\w-]*):\s*(.*)$/);
@@ -280,7 +488,16 @@ function fallbackLineToBlock(trimmedLine: string): {
   const type = normalizeKeyword(m[1]);
   const rest = m[2] || "";
   const { content, properties } = parseInlineProps(rest);
-  return { type, content, properties };
+  // Parse the content's inline marks/spans (*bold*, [text]{…}) via core so they
+  // become TipTap marks. Core preserves {{vars}}, so templates are unaffected.
+  let inline: InlineNode[] | undefined;
+  try {
+    inline = parseIntentText(`text: ${content}`).blocks[0]
+      ?.inline as InlineNode[] | undefined;
+  } catch {
+    inline = undefined;
+  }
+  return { type, content, properties, inline };
 }
 
 /* ── Source → Doc ─────────────────────────────────────────── */
@@ -494,12 +711,14 @@ function blockToNode(block: {
   type: string;
   content?: string;
   properties?: Record<string, string | number>;
+  inline?: InlineNode[];
 }): JSONContent | null {
-  const { type, content, properties } = block;
+  const { type, content, properties, inline } = block;
   const text = content || "";
 
-  // Build text content with hardBreak support, then apply marks from properties
-  let textContent = textToContent(text);
+  // Build content from the inline AST (so *bold*, [text]{…} spans → real marks),
+  // then layer any line-level style props (whole-line styling) as marks on top.
+  let textContent = inlineToContent(inline, text);
   textContent = applyPropsAsMarks(textContent, properties);
 
   // Serialize all props to JSON string for TipTap attrs (used by extensions.ts buildStyle)
@@ -629,8 +848,7 @@ function nodeToLines(node: JSONContent): string[] {
     return node.content.flatMap((item) => {
       if (!item.content) return [];
       return item.content.map((child) => {
-        const t = extractText(child);
-        const mp = extractMarksAsProps(child);
+        const { text: t, props: mp } = inlineToSource(child);
         return `- ${t}${formatProps(mp)}`;
       });
     });
@@ -640,8 +858,7 @@ function nodeToLines(node: JSONContent): string[] {
     return node.content.flatMap((item) => {
       if (!item.content) return [];
       return item.content.map((child) => {
-        const t = extractText(child);
-        const mp = extractMarksAsProps(child);
+        const { text: t, props: mp } = inlineToSource(child);
         return `${idx++}. ${t}${formatProps(mp)}`;
       });
     });
@@ -652,8 +869,7 @@ function nodeToLines(node: JSONContent): string[] {
 }
 
 function nodeToLine(node: JSONContent): string | null {
-  const text = extractText(node);
-  const markProps = extractMarksAsProps(node);
+  const { text, props: markProps } = inlineToSource(node);
 
   switch (node.type) {
     case "itTitle": {
@@ -701,7 +917,8 @@ function nodeToLine(node: JSONContent): string | null {
 
     case "itCode": {
       const lang = node.attrs?.lang || "";
-      return `\`\`\`${lang}\n${text}\n\`\`\``;
+      // Code is literal — never apply inline marks/spans.
+      return `\`\`\`${lang}\n${extractText(node)}\n\`\`\``;
     }
 
     case "itDivider":

@@ -19,7 +19,7 @@ import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import { FontSize } from "./font-size";
 import { Pagination } from "./pagination";
-import { sourceToDoc, docToSource } from "./bridge";
+import { sourceToDoc, docToSource, detectUnsupportedStyling } from "./bridge";
 import {
   ITTitle,
   ITSummary,
@@ -54,6 +54,8 @@ export function VisualEditor({ value, onChange, theme }: Props) {
   const lastSourceRef = useRef<string>("");
   const isInternalUpdate = useRef(false);
   const isHydrating = useRef(true);
+  // Styling that can't be saved to .it / won't print through core (regression guard).
+  const [unsupported, setUnsupported] = useState<string[]>([]);
   // Current header/footer text for the page-break spacers (read live by the plugin).
   const layoutMetaRef = useRef<{ header: string; footer: string }>({
     header: "",
@@ -116,9 +118,12 @@ export function VisualEditor({ value, onChange, theme }: Props) {
     onUpdate: ({ editor: ed }) => {
       // Avoid rewriting source while editor is still hydrating initial content.
       if (isHydrating.current) return;
-      const source = docToSource(ed.getJSON());
+      const json = ed.getJSON();
+      const source = docToSource(json);
       lastSourceRef.current = source;
       isInternalUpdate.current = true;
+      // Fidelity guard: flag any styling that won't survive to .it / core print.
+      setUnsupported(detectUnsupportedStyling(json));
       onChange(source);
     },
     editorProps: {
@@ -376,6 +381,13 @@ export function VisualEditor({ value, onChange, theme }: Props) {
         isRtl={docLayoutMeta.dir === "rtl"}
         onToggleRtl={toggleRtl}
       />
+      {unsupported.length > 0 && (
+        <div className="docs-fidelity-warning" role="status">
+          ⚠ Some formatting ({unsupported.join(", ")}) can’t be saved to{" "}
+          <code>.it</code> and won’t appear when printed through the template —
+          remove it or use the toolbar’s color/size/style controls instead.
+        </div>
+      )}
       <div className="docs-canvas" ref={canvasRef}>
         <div
           className="docs-page-scaler"
