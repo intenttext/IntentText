@@ -266,6 +266,79 @@ export const ITDivider = Node.create({
   },
 });
 
+// ── Metadata chip ─────────────────────────────────────────────
+// Document-level metadata/layout lines (page:, meta:, font:, header:, …) shown as
+// a subtle preserved chip instead of raw body text. `raw` holds the exact source
+// line for round-trip.
+export const ITMeta = Node.create({
+  name: "itMeta",
+  group: "block",
+  atom: true,
+
+  addAttributes() {
+    return {
+      raw: {
+        default: "",
+        parseHTML: (el) => el.getAttribute("data-raw") || "",
+        renderHTML: (attrs) => ({ "data-raw": attrs.raw }),
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "div[data-it-meta]" }];
+  },
+  renderHTML({ HTMLAttributes, node }) {
+    const raw = String(node.attrs.raw || "").replace(/\s*\|\s*/g, " · ");
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, { "data-it-meta": "", class: "it-doc-meta" }),
+      `⚙ ${raw}`,
+    ];
+  },
+});
+
+// ── Table ─────────────────────────────────────────────────────
+// Read-only display of a pipe table. `rows` is a JSON string of string[][]
+// (first row = headers). Editing the data is done in source mode for now; this
+// node ensures the table renders instead of vanishing in the visual editor.
+export const ITTable = Node.create({
+  name: "itTable",
+  group: "block",
+  atom: true,
+
+  addAttributes() {
+    return {
+      rows: {
+        default: "[]",
+        parseHTML: (el) => el.getAttribute("data-rows") || "[]",
+        renderHTML: (attrs) => ({ "data-rows": attrs.rows }),
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "table[data-it-table]" }];
+  },
+  renderHTML({ HTMLAttributes, node }) {
+    let rows: string[][] = [];
+    try {
+      rows = JSON.parse(node.attrs.rows || "[]");
+    } catch {
+      rows = [];
+    }
+    const head = rows[0] || [];
+    const body = rows.slice(1);
+    return [
+      "table",
+      mergeAttributes(HTMLAttributes, {
+        "data-it-table": "",
+        class: "it-doc-table",
+      }),
+      ["thead", ["tr", ...head.map((c) => ["th", String(c)])]],
+      ["tbody", ...body.map((r) => ["tr", ...r.map((c) => ["td", String(c)])])],
+    ];
+  },
+});
+
 // ── Page Break ────────────────────────────────────────────────
 export const ITBreak = Node.create({
   name: "itBreak",

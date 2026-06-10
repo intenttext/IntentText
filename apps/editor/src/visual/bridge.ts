@@ -6,6 +6,15 @@ import type { JSONContent } from "@tiptap/core";
 
 // IT keywords that map to dedicated TipTap nodes
 const CALLOUT_TYPES = new Set(["tip", "info", "warning", "danger", "success"]);
+// Document-level metadata / layout keywords — shown as a chip, not body content.
+const META_KEYWORDS = new Set([
+  "page",
+  "meta",
+  "font",
+  "header",
+  "footer",
+  "watermark",
+]);
 const HEADING_MAP: Record<string, string> = {
   title: "itTitle",
   section: "itSection",
@@ -315,6 +324,20 @@ export function sourceToDoc(source: string): JSONContent {
     // Skip empty lines
     if (!trimmed) continue;
 
+    // Document-level metadata / layout blocks (page:, meta:, font:, header:,
+    // footer:, watermark:) are not body content. Render them as a subtle preserved
+    // chip (not raw "| size: A4" text) and keep the exact source line for
+    // round-trip. Consume the matching parsed block to keep the stream aligned.
+    {
+      const mkw = lineKeyword(trimmed);
+      if (mkw && META_KEYWORDS.has(mkw)) {
+        result.push({ type: "itMeta", attrs: { raw: trimmed } });
+        const pType = doc.blocks[blockIdx]?.type;
+        if (pType && keywordsMatch(mkw, parsedBlockKeyword(pType))) blockIdx++;
+        continue;
+      }
+    }
+
     // Group a run of bullet/ordered list lines into one TipTap list node, so
     // lists round-trip as list-items (not generic blocks). docToSource emits
     // `- item` / `N. item` for these.
@@ -339,6 +362,33 @@ export function sourceToDoc(source: string): JSONContent {
         content: items,
       });
       li = lj - 1; // -1: the for-loop will increment
+      continue;
+    }
+
+    // Group a run of `| a | b | c |` pipe-table lines into one itTable node, so
+    // tables render instead of vanishing. The table is a section child (not a
+    // top-level block), so we do NOT touch blockIdx. docToSource emits the
+    // `| ... |` lines back.
+    if (
+      trimmed.startsWith("|") &&
+      trimmed.endsWith("|") &&
+      (trimmed.match(/\|/g) || []).length >= 3
+    ) {
+      const rows: string[][] = [];
+      let lj = li;
+      while (lj < lines.length) {
+        const t = lines[lj].trim();
+        if (!(t.startsWith("|") && t.endsWith("|"))) break;
+        rows.push(
+          t
+            .slice(1, -1)
+            .split("|")
+            .map((c) => c.trim()),
+        );
+        lj++;
+      }
+      result.push({ type: "itTable", attrs: { rows: JSON.stringify(rows) } });
+      li = lj - 1;
       continue;
     }
 
@@ -631,6 +681,19 @@ function nodeToLine(node: JSONContent): string | null {
 
     case "itDivider":
       return "divider:";
+
+    case "itTable": {
+      let rows: string[][] = [];
+      try {
+        rows = JSON.parse(node.attrs?.rows || "[]");
+      } catch {
+        rows = [];
+      }
+      return rows.map((r) => `| ${r.join(" | ")} |`).join("\n");
+    }
+
+    case "itMeta":
+      return node.attrs?.raw || "";
 
     case "itBreak":
       return "break:";
