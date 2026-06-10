@@ -64,12 +64,16 @@ credible. (Deep theme/style work is scheduled after the demos.)
 
 ## npm publish status
 
-`@intenttext/core` is **publish-ready** (v4.1.0): release gate green (build + 869
-tests + keyword + parity + pack), README fixed, tarball healthy (56 files, 70.9 kB),
-major bump correctly reflects the breaking Rust-API removal. Remaining is **process**,
-owner's call: merge this branch to `main`, push a `v4.1.0` tag, with `NPM_TOKEN`
-configured. `release.yml` then publishes core via pnpm. (Publishing is irreversible —
-not done without explicit go-ahead.)
+**`@intenttext/core@4.1.0` is PUBLISHED** to npm (2026-06-10, tag `latest`, public,
+56 files / 71 kB) — published directly from the authenticated account after the
+release gate passed (build + 872 tests + keyword + parity + pack). Was 3.5.0.
+
+Editor + vscode reference `workspace:*` and bundle core at build time, so they use the
+local 4.1.0 directly — both rebuilt against it for testing.
+
+Remaining git hygiene (owner's call): merge `chore/v4.1.0-finalization` → `main` and
+push a `v4.1.0` tag so the GitHub release + provenance match the npm release. (npm is
+already published; this is just to keep git/GitHub in sync.)
 
 ## Demo 3 — the editor (in progress)
 
