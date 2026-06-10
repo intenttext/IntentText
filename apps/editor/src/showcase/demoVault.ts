@@ -1,11 +1,51 @@
 export interface DemoDoc {
   id: string;
   title: string;
-  section: "contracts" | "projects" | "workflows" | "hr";
+  section: "invoices" | "contracts" | "projects" | "workflows" | "hr";
   source: string;
 }
 
 export const DEMO_DOCS: DemoDoc[] = [
+  {
+    id: "invoice-demo",
+    title: "Invoice — Dalil → Acme (signed)",
+    section: "invoices",
+    // Demo 1, as a finished document: the result of merging a data row into the
+    // invoice template, then sealing it. Renders as a clean invoice (corporate
+    // theme), the Trust panel shows the seal + signature, and it stays queryable
+    // (deadline, metrics, contacts). See demo/business-doc for the live pipeline.
+    source: `font: | family: Inter, Helvetica, sans-serif | size: 11pt | leading: 1.5
+page: | size: A4 | footer: INV-2026-0042 · Page {{page}}
+
+title: Invoice INV-2026-0042
+summary: Dalil Technology LLC → Acme Corporation
+meta: | type: invoice | status: Unpaid | client: Acme Corporation | theme: corporate
+
+section: From
+contact: Dalil Technology LLC | email: billing@dalil.ai | vat: VAT-300123456700003
+
+section: Bill To
+contact: Acme Corporation | email: ap@acme.com
+
+section: Line Items
+| Description | Qty | Unit Price | Total |
+| Platform Development — March | 1 | 12,000 QAR | 12,000 QAR |
+| UX Design Services | 8 hrs | 450 QAR | 3,600 QAR |
+| Hosting & Infrastructure | 1 month | 900 QAR | 900 QAR |
+
+section: Totals
+metric: Subtotal | value: 16,500 QAR
+metric: Tax (5%) | value: 825 QAR
+metric: Total Due | value: 17,325 QAR
+
+section: Payment
+text: Bank Qatar National Bank · IBAN QA57QNBA000000000123456789001
+deadline: Payment due | date: 2026-03-20 | consequence: 1.5% monthly interest
+
+section: Authorization
+sign: Dalil Billing | role: Finance | at: 2026-03-06T14:32:00Z | hash: sha256:3dc7b4a1ec39471778501a0c6457ff1aa2596117bad9b4e9a031195a3a15e74a
+freeze: | at: 2026-03-06T14:32:00Z | hash: sha256:3dc7b4a1ec39471778501a0c6457ff1aa2596117bad9b4e9a031195a3a15e74a | status: locked`,
+  },
   {
     id: "service-agreement",
     title: "Service Agreement — Atlas Corp",
@@ -101,7 +141,7 @@ task: Create system accounts | owner: IT | due: 01/04/2026
   },
 ];
 
-export const DEFAULT_DEMO_DOC_ID = "service-agreement";
+export const DEFAULT_DEMO_DOC_ID = "invoice-demo";
 
 export function getDemoDocById(id: string): DemoDoc | undefined {
   return DEMO_DOCS.find((d) => d.id === id);

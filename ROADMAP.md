@@ -96,8 +96,15 @@ phased:
     `sign:` block added during sealing.
   - Verify result now lists per-signer validity (signed-this-version vs an earlier
     version) from `VerifyResult.signers` — the "show seal/sign clearly" ask.
-- [ ] **C. Embed Demo 1** — plug the invoice template→merge→sign→query flow into the
-  existing showcase system. Makes Demo 1 "perfect."
+- [~] **C. Embed Demo 1 — partly done.** Added the signed invoice (Demo 1's finished
+  output) as a loadable sample and made it the **default document**, so the editor
+  opens on a clean enterprise invoice that renders nicely, lights up the Trust panel
+  (seal + signature), and stays queryable. Wired a **Samples** dropdown into the live
+  Toolbar (the demo-doc machinery existed but was dead/unwired).
+  - Follow-up: an interactive **merge-from-data** UI (template + JSON → filled doc) to
+    show the full pipeline live, not just the output. (core already has `parseAndMerge`.)
+  - Note: 4 showcase panels (Search/Trust/Workflow/FirstRun, ~970 LOC) are dead/unwired
+    — decide revive vs delete.
 - [ ] **D. Native PDF** — assess the print-bar PDF path, minimize dependencies.
 - [ ] On-save index update inside the editor (optimization on top of lazy self-heal).
 

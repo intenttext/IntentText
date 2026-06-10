@@ -15,6 +15,8 @@ interface Props {
   onSave: () => void;
   onModal: (m: ModalType) => void;
   isSealed?: boolean;
+  samples?: { id: string; title: string }[];
+  onLoadSample?: (id: string) => void;
 }
 
 export function Toolbar({
@@ -29,6 +31,8 @@ export function Toolbar({
   onSave,
   onModal,
   isSealed,
+  samples,
+  onLoadSample,
 }: Props) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -149,6 +153,30 @@ export function Toolbar({
           />
         )}
       </div>
+
+      {samples && samples.length > 0 && onLoadSample && (
+        <div className="dropdown">
+          <button className="tbtn" onClick={() => toggle("samples")}>
+            Samples ▾
+          </button>
+          {openMenu === "samples" && (
+            <div className="dropdown-menu">
+              {samples.map((s) => (
+                <button
+                  key={s.id}
+                  className="dropdown-item"
+                  onClick={() => {
+                    onLoadSample(s.id);
+                    setOpenMenu(null);
+                  }}
+                >
+                  {s.title}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <button
         className="tbtn"
