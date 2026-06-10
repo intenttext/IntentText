@@ -206,6 +206,7 @@ const STYLE_PROPERTIES: Record<string, string> = {
   border: "border",
   underline: "text-decoration",
   strike: "text-decoration",
+  valign: "vertical-align",
 };
 
 function extractInlineStyles(
