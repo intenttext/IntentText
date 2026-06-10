@@ -8,26 +8,60 @@ for the format, [packages/core/SPEC.md](packages/core/SPEC.md)._
 
 # ▶ RESUME HERE — where we are
 
-**Shipped & stable:** `@intenttext/core@4.1.2` on npm; `main` tagged v4.1.0–v4.1.2.
-The wedge works end-to-end (`pnpm demo:invoice`, `pnpm demo:search`, `pnpm demo:themes`).
-The editor is functional: round-trip fidelity (7/7), native page breaks (no hidden
-content), table rendering, hidden metadata, **WYSIWYG PDF** (prints the editor's own DOM
-— PDF == on-screen view), styled trust chips + invoice-grade totals, and the **Trust**
-toolbar button (sign/seal/verify/history). Examples + demos guarded by
-`pnpm check:examples` in CI.
+_Snapshot: 2026-06-10. `@intenttext/core@4.2.0` live on npm; `main` tagged through
+v4.2.0. The project is production-usable for the wedge (template + merge + sign + query)
+and for embedding as a print/report engine in another app._
 
-**✅ The 5 open points are all DONE (2026-06-10)** — see the (struck-through) list below
-for what each entailed. Editor-only changes shipped on `main` (no npm republish needed;
-core was unchanged). **Next candidates** when work resumes: the scoped `style:` block
-("Styling & visual fidelity" below), folder-workspace + on-save indexing in the editor
-(point 5a, deferred), or the managed trust tiers (timestamp/PKI) from the trust docs.
+## What's achieved (status)
+
+**Core (`@intenttext/core@4.2.0`, on npm):** one canonical TypeScript parser; 37 tiered
+keywords; `parseAndMerge` (templates + `each:` loops); `renderHTML` / `renderPrint`
+(shared `DOCUMENT_CSS`, `@page` layout, running header/footer); tamper-evidence trust
+(`sealDocument`/`verifyDocument`, SHA-256, canonicalization spec'd in SPEC §4.1 and
+verified reproducible); folder indexing/query. **New in 4.2.0:** inline **styled spans**
+`[text]{ color: …; weight: … }` for partial-line styling, rendered identically by every
+consumer; `underline`/`strike`/`valign` style keys.
+
+**Editor (apps/editor):** visual (TipTap) + source (Monaco), faithful round-trip (7/7).
+**WYSIWYG PDF** (prints the editor's own DOM → PDF == on-screen). Native page breaks (no
+hidden content), table rendering, hidden metadata chips, **styled trust chips** + invoice
+-grade **metric/totals**, **Trust** toolbar (sign/seal/verify/history). Inline styling is
+faithful end-to-end (per-run marks/spans, unified on core's style keys, fidelity guard).
+
+**Demos / integration:** `pnpm demo:invoice` (template→merge→sign→query),
+`pnpm demo:search` (folder query), `pnpm demo:themes` (one `.it`, three themes),
+`pnpm demo:erp` (the **ERP/app integration kit** — store `.it` as text, merge, print;
+see `ecosystem/erp-integration` docs). Examples + demos guarded by `pnpm check:examples`.
+
+**Docs:** SPEC (incl. §4.1 canonicalization), `reference/style-properties` (incl. spans),
+`guide/trust-and-signing` (what sealing does/doesn't prove), `ecosystem/erp-integration`,
+CHANGELOG through 4.2.0.
+
+## Possible next stages (pick up here)
+
+Nothing is mid-flight — these are fresh, independent options, roughly by leverage:
+
+1. **Scoped `style:` block** ("Styling & visual fidelity" below) — a designated theme/
+   style region so a document can carry house styling without per-line props. The natural
+   next step after inline spans. Lowest-risk, high polish.
+2. **Editor folder-workspace + on-save indexing** (deferred point 5a) — open a directory
+   (File System Access API), maintain `.it-index`, update on save. Turns the single-file
+   editor into a real workspace; unlocks in-editor query.
+3. **Managed trust tiers** (from the trust docs) — RFC-3161 timestamp / PKI signature over
+   the same canonical hash. The paid path; only if a customer needs legal-grade signing.
+4. **ERP kit hardening** — a second template type (report/statement), and optionally
+   publish the kit as a tiny npm package (`@intenttext/print`) instead of copy-paste.
+5. **VSCode `.vsix` refresh** — rebuild/republish the extension against core 4.2.0 if
+   distributing a new build (the extension esbuild-bundles core).
 
 **Editor dev note:** the editor bundles core at build time — after any core change,
-**restart `pnpm --filter intenttext-editor dev`** (vite won't re-bundle a workspace
-dep on dist change). Several "it didn't work" moments were stale dev servers. Verify the
-editor by screenshotting the *running* editor (headless Chrome + CDP), not by theorizing.
+**restart `pnpm --filter intenttext-editor dev`** (vite won't re-bundle a workspace dep on
+dist change). Several "it didn't work" moments were stale dev servers. Verify the editor by
+screenshotting the *running* editor (headless Chrome + CDP), not by theorizing. New TipTap
+atom nodes must be added to BOTH the import list AND the `extensions: [...]` array in
+`VisualEditor.tsx`.
 
-## The 5 open points — ✅ all resolved 2026-06-10 (history below)
+## History — the 5 roadmap points + 4.2.0 styling work (all ✅ done 2026-06-10)
 
 1. ~~**WYSIWYG — make the PDF match the visual editor.**~~ ✅ **DONE** (2026-06-10).
    Instead of reconciling two stylesheets, the PDF/HTML export now **prints the editor's
@@ -86,6 +120,18 @@ editor by screenshotting the *running* editor (headless Chrome + CDP), not by th
    index, so there's nothing to optimize here. On-save/lazy indexing is correctly a
    CLI/desktop concern (core's `updateIndex`/`checkStaleness` self-heal on query). If a
    folder workspace is ever added to the editor, revisit then.
+
+6. ~~**Inline styling + ERP integration**~~ ✅ **DONE** (2026-06-10, core **4.2.0**).
+   Triggered by embedding `.it` in a host ERP (Jadwal). (a) Added the inline **styled
+   span** `[text]{ color: …; weight: … }` to core (parser + renderer + `styled` node),
+   `;`-separated, same keys as block props, plus `underline`/`strike`/`valign`. (b) Fixed
+   the editor: it flattened partial styling to whole-line props and used non-core keys
+   (`style`/`font`/`bgcolor` ≠ core's `italic`/`family`/`bg`) so whole-line styling never
+   printed via core — now per-run marks/spans, built back from core's inline AST, unified
+   on core's keys, with a fidelity guard. (c) Shipped the **ERP kit** (`demo/erp-
+   integration/`, `pnpm demo:erp`) + the `ecosystem/erp-integration` guide. Published
+   `@intenttext/core@4.2.0`, tag v4.2.0. Full notes in `CHANGELOG.md` and memory
+   `intenttext-inline-styling-model`.
 
 **Testing the editor headlessly** (how I've been verifying): start dev, then
 `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu
