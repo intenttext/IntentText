@@ -78,10 +78,27 @@ describe("documentToSource — round-trip guarantee", () => {
     const doc = parseIntentText(src);
     expect(doc.blocks[0].type).toBe("custom");
     const result = documentToSource(doc);
-    expect(result).toContain("computer: MacBook");
+    // Exact line — must NOT duplicate the keyword (regression: was using
+    // originalContent, which already includes the `computer:` prefix).
+    expect(result).toBe("computer: MacBook | cpu: M3 | ram: 64GB");
     const reparsed = parseIntentText(result);
     expect(reparsed.blocks[0].type).toBe("custom");
+    expect(reparsed.blocks[0].content).toBe("MacBook");
     expect(reparsed.blocks[0].properties?.keyword).toBe("computer");
+  });
+
+  it("round-trips a bullet that wraps a custom keyword without duplicating it", () => {
+    const src = "- Ahmed: Index builder + Query optimizations";
+    const doc = parseIntentText(src);
+    const result = documentToSource(doc);
+    // The bullet's child is a custom block; the line must not become
+    // `- ahmed: Ahmed: …` (keyword duplicated).
+    expect(result).not.toMatch(/Ahmed: Ahmed/i);
+    const reparsed = parseIntentText(result);
+    expect(reparsed.blocks[0].type).toBe("list-item");
+    expect(reparsed.blocks[0].children?.[0].content).toBe(
+      "Index builder + Query optimizations",
+    );
   });
 
   it("serializes text blocks with text: prefix", () => {

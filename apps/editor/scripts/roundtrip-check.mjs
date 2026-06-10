@@ -18,7 +18,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseIntentText } from "@intenttext/core";
+import { parseIntentText, documentToSource } from "@intenttext/core";
 // bridge.ts is type-only on @tiptap/core, so Node's type-stripping runs it directly.
 import { sourceToDoc, docToSource } from "../src/visual/bridge.ts";
 
@@ -52,9 +52,11 @@ let pass = 0;
 const failures = [];
 for (const file of corpus) {
   const source = readFileSync(file, "utf8");
-  const roundTripped = docToSource(sourceToDoc(source));
-  const a = sig(source);
-  const b = sig(roundTripped);
+  // Baseline = core's own canonical round-trip (core is the source of truth and
+  // normalizes some non-semantic input, e.g. a labeled divider → `---`). The visual
+  // editor is faithful if it produces the SAME canonical result as core.
+  const a = sig(documentToSource(parseIntentText(source)));
+  const b = sig(docToSource(sourceToDoc(source)));
   const ok = a.length === b.length && a.every((x, i) => x === b[i]);
   const name = file.split("/").slice(-1)[0];
   if (ok) {

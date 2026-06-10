@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -60,6 +60,9 @@ jobs:
 
       - name: Build editor app
         run: pnpm --filter intenttext-editor build
+
+      - name: Editor visual round-trip fidelity
+        run: pnpm --filter intenttext-editor roundtrip:check
 
       - name: Upload core package size artifact
         uses: actions/upload-artifact@v4
