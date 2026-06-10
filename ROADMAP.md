@@ -46,11 +46,14 @@ dep on dist change). Several "it didn't work" moments were stale dev servers.
    `renderHTML`/`renderPrint` already style `.it-metric` as KPI cards in `DOCUMENT_CSS`
    — the earlier "unstyled in print" note was inaccurate; no core change needed.)
 
-3. **Enterprise-visuals showcase.** "Same `.it`, three themes" side-by-side, proving
-   `.it` renders enterprise-credible documents (contract / invoice / letter). Ties to
-   the styling plan (themes as document classes + a scoped `style:` block — see
-   "Styling & visual fidelity" below). Likely a new `demo/` entry + theme enrichment in
-   `packages/core/src/themes/`.
+3. ~~**Enterprise-visuals showcase.**~~ ✅ **DONE** (2026-06-10). New `demo/enterprise-
+   themes/` (`pnpm demo:themes`): one Master Services Agreement (`contract.it`) rendered
+   in three themes — corporate / legal / editorial — side by side in isolated iframes
+   (`showcase.mjs` → `out.themes.html`). Proves the same `.it` re-themes with zero
+   content edits and renders enterprise-credible. The `check:examples` guard now also
+   scans `demo/`, so showcase docs stay clean (22 `.it` files, all pass). Existing
+   themes were sufficient — no new theme files needed. (The scoped `style:` block idea
+   under "Styling & visual fidelity" remains a future option, not required here.)
 
 4. **Two trust docs.** (a) SPEC §4 **canonicalization** subsection in
    `packages/core/SPEC.md` — exact bytes that get hashed (already partly there; make it

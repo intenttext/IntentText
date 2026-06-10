@@ -15,16 +15,18 @@ import {
 } from "../packages/core/dist/index.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const examplesDir = join(root, "examples");
 
 const files = [];
-(function walk(d) {
+function walk(d) {
   for (const name of readdirSync(d)) {
     const p = join(d, name);
     if (statSync(p).isDirectory()) walk(p);
     else if (name.endsWith(".it")) files.push(p);
   }
-})(examplesDir);
+}
+// Scan shipped example + demo docs — both are user-facing and must stay clean.
+walk(join(root, "examples"));
+walk(join(root, "demo"));
 
 // Codes that are informational, not problems.
 const ALLOW = new Set(["TEMPLATE_HAS_UNRESOLVED"]);
