@@ -131,7 +131,7 @@ All flags are ANDed — `--type deadline --status pending` finds blocks that are
 ## Programmatic queries
 
 ```javascript
-import { parseIntentText, queryDocument } from "intenttext";
+import { parseIntentText, queryDocument } from "@intenttext/core";
 
 const doc = parseIntentText(source);
 const deadlines = queryDocument(doc, {
