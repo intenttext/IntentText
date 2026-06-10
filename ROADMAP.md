@@ -117,17 +117,30 @@ phased:
   watermarks, page breaks. Removed the divergent `buildPrintCss`.
 - [ ] On-save index update inside the editor (optimization on top of lazy self-heal).
 
-## Tomorrow — FIRST THING: verify the dev-server restart
+## Tomorrow — TWO confirmed real bugs (not staleness; incognito reproduced both)
 
-The PDF "no style" + on-screen "rows hidden around a divider" were traced to a **stale
-`pnpm dev` process** serving the old bundled core (vite doesn't re-bundle a workspace
-dep when its dist changes). The stale process was killed, vite cache cleared, core
-rebuilt at 4.1.2. **Step 1 tomorrow:** `pnpm --filter intenttext-editor dev`, then
-re-test the PDF button (should match `/tmp/actual.pdf`, which headless Chrome proved is
-fully styled) and the on-screen rows.
-- If PDF is styled but rows still hide around a divider on FRESH code → real bug in the
-  TipTap visual editor's divider handling (`apps/editor/src/visual/bridge.ts`), fix
-  directly. (Not the stale bundle.)
+The `renderPrint` OUTPUT is verified styled — headless Chrome of the exact editor
+output → `/tmp/actual.pdf` is a fully-styled invoice. So core is correct; the bugs are
+in the editor's print mechanism + the visual editor.
+
+**BUG 1 — PDF button prints unstyled.** There are TWO PDF buttons:
+- `apps/editor/src/panels/PrintBar.tsx` exportPDF — uses `renderPrint` (correct CSS),
+  BUT prints via a **zero-size iframe** (`width:0;height:0`). Chrome can print a
+  zero-dimension iframe blank/unstyled — suspect #1.
+- `apps/editor/src/toolbar/ExportMenu.tsx` exportPDF (lines 80-86, the toolbar
+  "Export ▾ → Export as PDF") — does NOT render anything; it just calls
+  `document.querySelector('.panel-preview iframe').contentWindow.print()`. The editor
+  shows the **TipTap VisualEditor, not a `.panel-preview iframe`**, so this prints the
+  wrong/none element → unstyled. **This is very likely the button being clicked.**
+  FIX: make ExportMenu.exportPDF build a `renderPrint(doc,{theme})` document and print
+  it in a properly-sized hidden iframe (or `window.open` + print), exactly like a fixed
+  PrintBar. Give BOTH a robust print helper (real iframe dimensions, wait for load).
+
+**BUG 2 — divider hides rows in the visual editor.** In the TipTap editor, typing after
+a divider: you can't see what you're typing until ~6 Enters. Real visual-editor bug:
+the `itDivider` node (see `apps/editor/src/visual/extensions.ts` + `keyword-styles.ts`)
+likely has CSS/positioning that overlays following content, or the editor doesn't
+scroll the caret into view. Investigate the itDivider node + editor caret/scroll.
 
 ## Tomorrow — PDF / print visual polish (started in 4.1.2)
 
