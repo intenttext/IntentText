@@ -281,9 +281,24 @@ export function TrustPanel({
               <div
                 className={`trust-verify-result ${verifyResult.intact ? "pass" : "fail"}`}
               >
-                {verifyResult.intact
-                  ? "✓ Seal is valid — document has not been modified"
-                  : "✗ Seal verification failed — document may have been modified"}
+                <div>
+                  {verifyResult.intact
+                    ? "✓ Seal is valid — document has not been modified"
+                    : "✗ Seal verification failed — document may have been modified"}
+                </div>
+                {verifyResult.signers && verifyResult.signers.length > 0 && (
+                  <ul className="trust-verify-signers">
+                    {verifyResult.signers.map((s, i) => (
+                      <li key={`${s.signer}-${i}`}>
+                        {s.signedCurrentVersion ? "✓" : "⚠"} {s.signer}
+                        {s.role ? ` (${s.role})` : ""} —{" "}
+                        {s.signedCurrentVersion
+                          ? "signed this version"
+                          : "signed an earlier version"}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
 

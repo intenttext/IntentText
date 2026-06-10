@@ -89,8 +89,13 @@ phased:
   - Fidelity harness `pnpm --filter intenttext-editor roundtrip:check` (no deps; Node
     type-stripping) compares the visual round-trip to core's canonical round-trip:
     **7/7 documents pass.** Wired into CI (Node bumped 20→22).
-- [ ] **B. Trust sidebar** — polish TrustPanel into a simple seal/sign/freeze/history
-  view + one-click Verify.
+- [x] **B. Trust sidebar — DONE.** The TrustPanel already had the full lifecycle
+  (Tracked→Approved→Signed→Sealed), seal card, one-click Verify, and all actions.
+  - Fixed a real bug: `sealedBy` read from `freeze.by` (freeze blocks carry only
+    at/hash/status), so the sealed card showed a blank sealer. Now derived from the
+    `sign:` block added during sealing.
+  - Verify result now lists per-signer validity (signed-this-version vs an earlier
+    version) from `VerifyResult.signers` — the "show seal/sign clearly" ask.
 - [ ] **C. Embed Demo 1** — plug the invoice template→merge→sign→query flow into the
   existing showcase system. Makes Demo 1 "perfect."
 - [ ] **D. Native PDF** — assess the print-bar PDF path, minimize dependencies.
