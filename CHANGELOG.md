@@ -6,6 +6,25 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [4.1.2] - 2026-06-10
+
+### Fixed
+
+- **Print/PDF was unstyled ("primitive").** `renderPrint` only carried a sparse base
+  stylesheet, so the line-items table, contacts, and most elements rendered unstyled.
+  The full `.intent-*`/`.it-*` element CSS is now shared between `renderHTML` (screen)
+  and `renderPrint` (print) via a single `DOCUMENT_CSS` module, so PDFs are styled the
+  same as the on-screen document (themes layer colors/fonts on top).
+- **Table rows clipped at page breaks.** Rows that straddled a page boundary were
+  hidden behind the running footer/header. Added `break-inside: avoid` on rows, repeat
+  the table header per page (`thead{display:table-header-group}`), and let sections
+  flow across pages while keeping headings with their content.
+
+### Notes
+
+- Remaining for a visual polish pass: `.intent-metric` styling in print, page margins,
+  and overall enterprise invoice/contract layout refinement.
+
 ## [4.1.1] - 2026-06-10
 
 ### Fixed

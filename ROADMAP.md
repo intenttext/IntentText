@@ -117,6 +117,22 @@ phased:
   watermarks, page breaks. Removed the divergent `buildPrintCss`.
 - [ ] On-save index update inside the editor (optimization on top of lazy self-heal).
 
+## Tomorrow — PDF / print visual polish (started in 4.1.2)
+
+4.1.2 made print share the full element CSS (no longer "primitive") and fixed table
+rows being clipped at page breaks. Remaining visual work, needs iteration with the
+rendered output open:
+
+- [ ] `.intent-metric` (and any other elements) not yet styled in print — audit the
+  full `DOCUMENT_CSS` element list against a real invoice/contract PDF.
+- [ ] Page margins & header/footer spacing — make sure body content never collides
+  with running header/footer; tune `@page` margins per page size.
+- [ ] Enterprise invoice/contract layout polish (totals block alignment, table
+  zebra/borders, signature block, spacing) — the "enterprise visuals" deliverable.
+- [ ] Consider a dedicated print theme per document class (invoice/contract/letter).
+- [ ] `.vsix` built: `packages/vscode/intenttext-1.4.8.vsix` (bundles core 4.1.2) —
+  ready to upload to the VSCode Marketplace.
+
 ## Other saved items (do not lose)
 
 - [ ] **Publish `@intenttext/core` to npm** — publish-ready (see status above). Process:

@@ -109,3 +109,6 @@ demo/**/out.*
 
 # Folder index cache (derived from .it files; safe to delete/regenerate)
 .it-index
+
+# VSCode extension package (build artifact)
+*.vsix
