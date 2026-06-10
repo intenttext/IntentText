@@ -105,7 +105,12 @@ phased:
     show the full pipeline live, not just the output. (core already has `parseAndMerge`.)
   - Note: 4 showcase panels (Search/Trust/Workflow/FirstRun, ~970 LOC) are dead/unwired
     — decide revive vs delete.
-- [ ] **D. Native PDF** — assess the print-bar PDF path, minimize dependencies.
+- [x] **D. Native PDF — DONE.** Export is browser print-to-PDF via an iframe — **zero
+  PDF dependencies** (the goal). Fixed a real gap: `exportPDF`/`exportHTML` used
+  `renderHTML` + a hardcoded `@page { size: A4 }` that ignored the document's print
+  layout. Now they use core's `renderPrint`, which honors `font:`/`page:`/`header:`/
+  `footer:` blocks — page size, margins, running headers/footers **with page numbers**,
+  watermarks, page breaks. Removed the divergent `buildPrintCss`.
 - [ ] On-save index update inside the editor (optimization on top of lazy self-heal).
 
 ## Other saved items (do not lose)
