@@ -55,11 +55,15 @@ dep on dist change). Several "it didn't work" moments were stale dev servers.
    themes were sufficient — no new theme files needed. (The scoped `style:` block idea
    under "Styling & visual fidelity" remains a future option, not required here.)
 
-4. **Two trust docs.** (a) SPEC §4 **canonicalization** subsection in
-   `packages/core/SPEC.md` — exact bytes that get hashed (already partly there; make it
-   reproducible by anyone). (b) A public **"how sign/seal works"** page — tamper-
-   evidence today (SHA-256), with the notary/timestamp service as the paid path
-   (see memory `intenttext-strategy-decisions`).
+4. ~~**Two trust docs.**~~ ✅ **DONE** (2026-06-10). (a) Added SPEC **§4.1
+   Canonicalization** — the exact 4-step algorithm (cut at `history:` → drop
+   sign/freeze/amendment → join with LF + trim → SHA-256), with UTF-8/LF determinism
+   notes; **verified byte-accurate** by an independent reimplementation that reproduces
+   the core hash. (b) Extended the public `guide/trust-and-signing.md` with "What exactly
+   gets hashed" (reproducible-by-anyone) and "What sealing does — and doesn't — prove"
+   (tamper-evidence vs PKI/non-repudiation, honest ❌s, and the trust-tier ladder:
+   tamper-evidence free today → trusted timestamp / identity binding as managed paid
+   tiers attesting the same canonical hash).
 
 5. **Minor cleanups.** (a) On-save index update inside the editor (optimization on the
    lazy self-heal — `apps/editor/src/hooks/useWorkspace.ts`). (b) Cosmetic version-label
