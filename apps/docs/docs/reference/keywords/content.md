@@ -59,7 +59,7 @@ info: content | type: variant
 ### Examples
 
 ```intenttext
-info: This document uses IntentText v2.14 format.
+info: This document uses IntentText v4.1 format.
 info: This contract expires in 14 days. Renewal required. | type: warning
 info: Deleting this record is irreversible. | type: danger
 info: Use intenttext query to find all deadlines across your folder. | type: tip
