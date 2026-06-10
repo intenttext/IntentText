@@ -20,15 +20,19 @@ dep on dist change). Several "it didn't work" moments were stale dev servers.
 
 ## The 5 open points (next session, in priority order)
 
-1. **WYSIWYG — make the PDF match the visual editor.** _(highest value; the one real
-   editor gap)._ The visual editor renders via **TipTap** CSS (`apps/editor/src/styles/
-   global.css` `.docs-page .tiptap .it-doc-*` + `visual/extensions.ts` node renderHTML),
-   while the PDF renders via core **`renderPrint`** (`packages/core/src/renderer.ts` +
-   shared `DOCUMENT_CSS`). Different class names + stylesheets → they don't match.
-   **Approach:** drive both from one stylesheet — e.g. make the TipTap nodes emit the
-   same `.intent-*` classes as core (or import `DOCUMENT_CSS` into the editor and map
-   node classes to it). Verify by screenshotting editor vs `renderPrint` output of the
-   same doc (headless Chrome — see below).
+1. ~~**WYSIWYG — make the PDF match the visual editor.**~~ ✅ **DONE** (2026-06-10).
+   Instead of reconciling two stylesheets, the PDF/HTML export now **prints the editor's
+   own rendered DOM with its own stylesheets** (`apps/editor/src/panels/PrintBar.tsx`
+   `buildWysiwygPrint`): it clones `.docs-page .tiptap`, strips the page-break spacers,
+   copies every `<style>`/`<link>` from the document, and adds `@page` (size/margins +
+   running header/footer from the doc's `page:`/`header:`/`footer:` blocks) plus print
+   overrides that strip on-screen chrome (sheet shadow, grey canvas). Falls back to core
+   `renderPrint` in source mode. Verified: editor view and the generated PDF are pixel-
+   faithful (headless Chrome + CDP). **Also fixed in passing:** sign/seal/approve/freeze/
+   amendment blocks were leaking raw `| at: …` props in the visual editor (and therefore
+   the PDF). Added an `ITTrust` atom node (`visual/extensions.ts`) + bridge handling that
+   renders them as styled trust chips and preserves the exact source line verbatim for
+   hash-safe round-trip.
 
 2. **PDF / print visual polish.** `.intent-metric` (totals) is unstyled in print
    (`DOCUMENT_CSS` lacks a rule); tune `@page` margins so body never collides with the
