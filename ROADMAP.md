@@ -121,11 +121,11 @@ phased:
 
 - [ ] **Publish `@intenttext/core` to npm** — publish-ready (see status above). Process:
   merge branch → tag `v4.1.0` → `NPM_TOKEN`. Owner triggers; not done unilaterally.
-- [ ] **VSCode extension: stop flagging template variables as errors.** Template files
-  (pre-merge) legitimately contain unresolved `{{invoice.number}}` — the extension
-  currently surfaces "Unresolved variable …" as a warning. Suppress for templates
-  (e.g. files with unresolved vars, or a `template`/`type:` hint), or downgrade to a
-  hint. Don't warn on intentional template placeholders.
+- [x] **Template-variable warning fixed (4.1.1).** The "Unresolved variable {{…}}"
+  warning originated in core's `validate.ts` (surfaced by both editor and VSCode). A
+  document with `{{…}}` placeholders but no declared context is now treated as a
+  template (placeholders resolve at merge); undeclared vars still warn when a context
+  IS declared. Published `@intenttext/core@4.1.1`; editor + vscode rebuilt against it.
 - [ ] **Enterprise-grade visuals — show it.** Demonstrate that `.it` can render
   documents an enterprise would actually use (contract, invoice, letter). Builds on
   the styling plan (themes as document classes + scoped `style:` block). Deliverable:
