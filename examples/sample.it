@@ -18,12 +18,12 @@ question: Who has the _Master Key_ for the server room?
 note: Surveillance footage is saved at `/logs/cam1`.
 
 section: Setup Script
-code:
+```bash
 #!/bin/bash
 apt-get update && apt-get install -y nginx
-end:
+```
 
 divider: End of Technical Sections
 
 link: *Full Documentation* | to: https://dalil.ai/docs | title: Dalil Docs
-image: *Launch Banner* | at: placeholder.svg | caption: Project Dalil launch artwork
+image: *Launch Banner* | src: placeholder.svg | caption: Project Dalil launch artwork
