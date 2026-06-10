@@ -9,16 +9,25 @@ for the format, [packages/core/SPEC.md](packages/core/SPEC.md)._
 # ▶ RESUME HERE — where we are
 
 **Shipped & stable:** `@intenttext/core@4.1.2` on npm; `main` tagged v4.1.0–v4.1.2.
-The wedge works end-to-end (`pnpm demo:invoice`, `pnpm demo:search`). The editor is
-functional: round-trip fidelity (7/7), native page breaks (no hidden content), table
-rendering, hidden metadata, native PDF, and the **Trust** toolbar button (sign/seal/
-verify/history). Examples are guarded by `pnpm check:examples` in CI.
+The wedge works end-to-end (`pnpm demo:invoice`, `pnpm demo:search`, `pnpm demo:themes`).
+The editor is functional: round-trip fidelity (7/7), native page breaks (no hidden
+content), table rendering, hidden metadata, **WYSIWYG PDF** (prints the editor's own DOM
+— PDF == on-screen view), styled trust chips + invoice-grade totals, and the **Trust**
+toolbar button (sign/seal/verify/history). Examples + demos guarded by
+`pnpm check:examples` in CI.
+
+**✅ The 5 open points are all DONE (2026-06-10)** — see the (struck-through) list below
+for what each entailed. Editor-only changes shipped on `main` (no npm republish needed;
+core was unchanged). **Next candidates** when work resumes: the scoped `style:` block
+("Styling & visual fidelity" below), folder-workspace + on-save indexing in the editor
+(point 5a, deferred), or the managed trust tiers (timestamp/PKI) from the trust docs.
 
 **Editor dev note:** the editor bundles core at build time — after any core change,
 **restart `pnpm --filter intenttext-editor dev`** (vite won't re-bundle a workspace
-dep on dist change). Several "it didn't work" moments were stale dev servers.
+dep on dist change). Several "it didn't work" moments were stale dev servers. Verify the
+editor by screenshotting the *running* editor (headless Chrome + CDP), not by theorizing.
 
-## The 5 open points (next session, in priority order)
+## The 5 open points — ✅ all resolved 2026-06-10 (history below)
 
 1. ~~**WYSIWYG — make the PDF match the visual editor.**~~ ✅ **DONE** (2026-06-10).
    Instead of reconciling two stylesheets, the PDF/HTML export now **prints the editor's
@@ -65,10 +74,18 @@ dep on dist change). Several "it didn't work" moments were stale dev servers.
    tamper-evidence free today → trusted timestamp / identity binding as managed paid
    tiers attesting the same canonical hash).
 
-5. **Minor cleanups.** (a) On-save index update inside the editor (optimization on the
-   lazy self-heal — `apps/editor/src/hooks/useWorkspace.ts`). (b) Cosmetic version-label
-   sweep across the experimental `apps/docs` site (still says "v2.x"; content is
-   otherwise accurate).
+5. ~~**Minor cleanups.**~~ ✅ **DONE** (2026-06-10). (b) Version-label sweep: fixed the
+   current-version labels that were stale — docs hero badge `v3.1` → `v4.1`,
+   `reference/keywords/content.md` example "v2.14 format" → "v4.1", and the editor status
+   bar `v3.1.0` → `v4.1`. (Historical `**Since:** v2.x` provenance markers on individual
+   keywords are accurate and intentionally left as-is — bumping them would falsify when a
+   keyword was introduced; likewise example-document versions like a contract's own
+   "v2.1".) (a) On-save index update: **not applicable** — the web editor is single-file
+   (`useFile.saveFile` writes one file via the File System Access API; `useWorkspace` has
+   no folder handle, no file list, no `.it-index`). There is no folder-backed workspace to
+   index, so there's nothing to optimize here. On-save/lazy indexing is correctly a
+   CLI/desktop concern (core's `updateIndex`/`checkStaleness` self-heal on query). If a
+   folder workspace is ever added to the editor, revisit then.
 
 **Testing the editor headlessly** (how I've been verifying): start dev, then
 `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu
