@@ -152,107 +152,20 @@ export function VisualEditor({ value, onChange, theme }: Props) {
   const pageRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(1);
 
-  const applyPagedLayout = useCallback(() => {
-    const el = pageRef.current;
-    if (!el) return;
-    const tiptap = el.querySelector(".tiptap") as HTMLElement | null;
-    if (!tiptap) return;
-
-    // Collect shiftable blocks. Direct tiptap children are used, EXCEPT for
-    // list containers (ol/ul) which are expanded into their <li> children so
-    // that a long list spanning multiple pages has each item shifted individually
-    // rather than the entire list being skipped as "too tall to shift".
-    const collectBlocks = (): HTMLElement[] => {
-      const result: HTMLElement[] = [];
-      for (const child of Array.from(tiptap.children) as HTMLElement[]) {
-        const tag = child.tagName.toLowerCase();
-        if (tag === "ol" || tag === "ul") {
-          for (const li of Array.from(child.children) as HTMLElement[]) {
-            result.push(li as HTMLElement);
-          }
-        } else {
-          result.push(child);
-        }
-      }
-      return result;
-    };
-
-    // Reset ALL previously applied shifts (including li elements from prior passes).
-    const allShifted = el.querySelectorAll(
-      "[data-page-shift='1']",
-    ) as NodeListOf<HTMLElement>;
-    for (const shifted of allShifted) {
-      shifted.style.marginTop = "";
-      delete shifted.dataset.pageShift;
-    }
-
-    const tiptapRect = tiptap.getBoundingClientRect();
-    const topInTiptap = (node: HTMLElement) =>
-      node.getBoundingClientRect().top - tiptapRect.top;
-    const bottomInTiptap = (node: HTMLElement) =>
-      node.getBoundingClientRect().bottom - tiptapRect.top;
-
-    // Re-collect each pass because shifting items changes subsequent positions.
-    for (let pass = 0; pass < 6; pass++) {
-      let changed = false;
-      const blocks = collectBlocks();
-      if (blocks.length === 0) break;
-
-      for (const block of blocks) {
-        const top = topInTiptap(block);
-        const bottom = bottomInTiptap(block);
-        const blockHeight = bottom - top;
-        if (blockHeight <= 0) continue;
-
-        // `top` is measured in TipTap content coordinates (starts at content area,
-        // not at the physical page top), so page bounds must use content-space math.
-        const pageIndex = Math.floor(top / PAGE_STRIDE);
-        const pageContentBottom = pageIndex * PAGE_STRIDE + PAGE_CONTENT_HEIGHT;
-        if (bottom <= pageContentBottom) continue;
-
-        // Skip blocks taller than a full content area — they genuinely cannot
-        // be shifted onto a single page and must overflow naturally.
-        if (blockHeight >= PAGE_CONTENT_HEIGHT) continue;
-
-        const nextPageTop = (pageIndex + 1) * PAGE_STRIDE;
-        const shift = Math.max(0, nextPageTop - top);
-        if (shift > 0) {
-          const nextMargin = `${shift}px`;
-          if (block.style.marginTop !== nextMargin) {
-            block.style.marginTop = nextMargin;
-            block.dataset.pageShift = "1";
-            changed = true;
-          }
-        }
-      }
-
-      if (!changed) break;
-    }
-  }, [PAGE_CONTENT_HEIGHT, PAGE_STRIDE]);
-
+  // Page count is derived purely from the content height — for the page counter
+  // and the page-break GUIDE lines. We never shift content: the document flows in
+  // one continuous sheet on screen, and real page breaks happen natively at print
+  // (renderPrint @page). This replaces the old margin-injection hack that caused the
+  // caret to jump while typing near a page boundary.
   const recalcPages = useCallback(() => {
-    const el = pageRef.current;
-    if (!el) return;
-    const tiptap = el.querySelector(".tiptap") as HTMLElement | null;
+    const tiptap = pageRef.current?.querySelector(
+      ".tiptap",
+    ) as HTMLElement | null;
     if (!tiptap) return;
-
-    applyPagedLayout();
-
-    const blocks = Array.from(tiptap.children) as HTMLElement[];
-    const tiptapRect = tiptap.getBoundingClientRect();
-    let lastBottom = 0;
-    for (const block of blocks) {
-      const bottom = block.getBoundingClientRect().bottom - tiptapRect.top;
-      if (bottom > lastBottom) lastBottom = bottom;
-    }
-
-    const totalHeight = Math.max(tiptap.scrollHeight, lastBottom);
-    const pages = Math.max(
-      1,
-      Math.ceil((totalHeight + PAGE_GAP) / (PAGE_CONTENT_HEIGHT + PAGE_GAP)),
-    );
+    const contentHeight = tiptap.scrollHeight;
+    const pages = Math.max(1, Math.ceil(contentHeight / PAGE_CONTENT_HEIGHT));
     setPageCount(pages);
-  }, [PAGE_CONTENT_HEIGHT, PAGE_GAP, applyPagedLayout]);
+  }, [PAGE_CONTENT_HEIGHT]);
 
   useEffect(() => {
     const el = pageRef.current;
@@ -289,10 +202,7 @@ export function VisualEditor({ value, onChange, theme }: Props) {
     try {
       const t = getBuiltinTheme(theme);
       if (!t) return "";
-      return generateThemeCSS(t).replace(
-        /:root\{/,
-        ".docs-page-sheet,.docs-page.docs-editor-layer{",
-      );
+      return generateThemeCSS(t).replace(/:root\{/, ".docs-page{");
     } catch {
       return "";
     }
@@ -451,58 +361,34 @@ export function VisualEditor({ value, onChange, theme }: Props) {
       <div className="docs-canvas" ref={canvasRef}>
         <div
           className="docs-page-scaler"
-          style={{
-            width: PAGE_WIDTH * zoom,
-            minHeight:
-              (pageCount * PAGE_HEIGHT + (pageCount - 1) * PAGE_GAP) * zoom,
-          }}
+          style={{ width: PAGE_WIDTH * zoom }}
         >
           <div
             className="docs-page-flow"
             dir={docLayoutMeta.dir}
             style={{
-              minHeight: pageCount * PAGE_HEIGHT + (pageCount - 1) * PAGE_GAP,
               transform: zoom !== 1 ? `scale(${zoom})` : undefined,
               transformOrigin: "top left",
-              ["--it-page-height" as string]: `${PAGE_HEIGHT}px`,
-              ["--it-page-gap" as string]: `${PAGE_GAP}px`,
-              ["--it-page-margin-top" as string]: `${PAGE_MARGIN_TOP}px`,
-              ["--it-page-margin-bottom" as string]: `${PAGE_MARGIN_BOTTOM}px`,
             }}
           >
-            <div className="docs-page-stack">
-              {Array.from({ length: pageCount }, (_, i) => {
-                const pageTop = i * (PAGE_HEIGHT + PAGE_GAP);
-                const pageNum = i + 1;
-                return (
-                  <div
-                    key={`sheet-${i}`}
-                    className="docs-page-sheet"
-                    style={{ top: pageTop }}
-                  >
-                    <div className="docs-page-header-region">
-                      <span className="docs-page-meta-text">
-                        {docLayoutMeta.header}
-                      </span>
-                    </div>
-                    <div className="docs-page-footer-region">
-                      <span className="docs-page-meta-text">
-                        {docLayoutMeta.footer}
-                      </span>
-                      <span className="docs-page-number">{pageNum}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div
-              className="docs-page docs-editor-layer"
-              ref={pageRef}
-              style={{
-                minHeight: pageCount * PAGE_HEIGHT + (pageCount - 1) * PAGE_GAP,
-              }}
-            >
+            {/* One continuous sheet that grows with content — no fake page
+                shifting. Real page breaks happen natively at print. */}
+            <div className="docs-page docs-sheet" ref={pageRef}>
               <EditorContent editor={editor} />
+              {/* Page-break guides: pure overlay, never affect content layout. */}
+              <div className="docs-page-breaks" aria-hidden="true">
+                {Array.from({ length: Math.max(0, pageCount - 1) }, (_, i) => (
+                  <div
+                    key={`brk-${i}`}
+                    className="docs-page-break"
+                    style={{
+                      top: PAGE_MARGIN_TOP + (i + 1) * PAGE_CONTENT_HEIGHT,
+                    }}
+                  >
+                    <span className="docs-page-break-label">Page {i + 2}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

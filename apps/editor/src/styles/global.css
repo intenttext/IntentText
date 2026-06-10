@@ -1477,23 +1477,28 @@ button {
   width: 794px;
 }
 
-.docs-page-stack {
+/* Page-break guides — pure visual overlay; never affect content layout. */
+.docs-page-breaks {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  z-index: 1;
 }
-
-.docs-page-sheet {
+.docs-page-break {
   position: absolute;
-  left: 0;
-  width: 794px;
-  height: 1123px;
-  background: #fff;
-  box-shadow:
-    0 8px 24px rgba(15, 23, 42, 0.08),
-    0 1px 3px rgba(60, 64, 67, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
+  left: -96px;
+  right: -96px;
+  border-top: 1px dashed rgba(120, 130, 145, 0.45);
+}
+.docs-page-break-label {
+  position: absolute;
+  right: 0;
+  top: 4px;
+  font-size: 10px;
+  color: #9aa0a6;
+  background: var(--bg-app, #f3f4f6);
+  padding: 0 6px;
+  border-radius: 4px;
 }
 
 .docs-page-header-region,
@@ -1547,48 +1552,10 @@ button {
   overflow: visible;
 }
 
-.docs-page.docs-editor-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: transparent;
-  box-shadow: none;
-  border-radius: 0;
-  padding-top: 96px;
-  padding-right: 96px;
-  padding-bottom: 96px;
-  padding-left: 96px;
-  /* Hard page-body clipping: only show content inside each page body window.
-     This prevents any visual overlap into header/footer or page gap areas. */
-  -webkit-mask-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent var(--it-page-margin-top, 96px),
-    #000 var(--it-page-margin-top, 96px),
-    #000 calc(
-      var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)
-    ),
-    transparent
-      calc(var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)),
-    transparent calc(var(--it-page-height, 1123px) + var(--it-page-gap, 24px))
-  );
-  mask-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent var(--it-page-margin-top, 96px),
-    #000 var(--it-page-margin-top, 96px),
-    #000 calc(
-      var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)
-    ),
-    transparent
-      calc(var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)),
-    transparent calc(var(--it-page-height, 1123px) + var(--it-page-gap, 24px))
-  );
-}
-
-/* ── Card-like gap between pages ──────────────────────────── */
-.docs-page-gap-overlay {
-  display: none;
+/* One continuous sheet — grows with content, centered, no shifting. */
+.docs-page.docs-sheet {
+  margin: 0 auto;
+  overflow: visible;
 }
 
 .docs-page-footer {
@@ -1776,16 +1743,17 @@ button {
   margin: 16px 0;
 }
 
-/* ─── Metadata chip ───────────────────────────────────────── */
+/* ─── Metadata (page:/meta:/font:/header:/footer:) ────────────
+   Document settings — kept in the model for round-trip, but hidden in the visual
+   editor (edit them in Source mode). Zero height so they never affect layout. */
 .docs-page .tiptap .it-doc-meta {
-  display: inline-block;
-  font-size: 0.72rem;
-  color: var(--text-muted, #6b7280);
-  background: var(--bg-app, #f3f4f6);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 5px;
-  padding: 1px 8px;
-  margin: 2px 0;
+  display: block;
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  pointer-events: none;
   user-select: none;
 }
 
