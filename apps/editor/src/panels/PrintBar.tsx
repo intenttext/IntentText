@@ -49,16 +49,33 @@ export function PrintBar({ content, theme, onThemeChange }: Props) {
       let full = renderPrint(doc, { theme });
       if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
 
+      // A zero-size iframe prints blank/unstyled in Chrome — give it real (A4)
+      // dimensions, hidden off-screen, and print only after it has loaded.
       const iframe = document.createElement("iframe");
-      iframe.style.cssText = "position:fixed;left:-9999px;width:0;height:0";
+      iframe.setAttribute("aria-hidden", "true");
+      iframe.style.cssText =
+        "position:fixed;right:0;bottom:0;width:210mm;height:297mm;border:0;visibility:hidden;";
       document.body.appendChild(iframe);
-      iframe.contentDocument!.open();
-      iframe.contentDocument!.write(full);
-      iframe.contentDocument!.close();
-      setTimeout(() => {
-        iframe.contentWindow!.print();
-        setTimeout(() => document.body.removeChild(iframe), 1000);
-      }, 300);
+
+      let printed = false;
+      const doPrint = () => {
+        if (printed) return;
+        printed = true;
+        try {
+          iframe.contentWindow!.focus();
+          iframe.contentWindow!.print();
+        } finally {
+          setTimeout(() => iframe.remove(), 1000);
+        }
+      };
+      iframe.onload = () => window.setTimeout(doPrint, 120);
+
+      const idoc = iframe.contentWindow!.document;
+      idoc.open();
+      idoc.write(full);
+      idoc.close();
+      // Fallback if onload doesn't fire for a written document.
+      if (idoc.readyState === "complete") window.setTimeout(doPrint, 250);
     } catch {
       /* ignore */
     }
