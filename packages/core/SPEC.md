@@ -78,6 +78,47 @@ keywords remain recognized but are not part of any tier.
 - The `history:` boundary separates the live document from its append-only audit
   log; content above the boundary is what gets hashed.
 
+### 4.1 Canonicalization — the exact bytes that get hashed
+
+The document hash is **tamper-evidence, not PKI**: anyone with the source and a SHA-256
+implementation can reproduce it. The algorithm (`computeDocumentHash` in
+[`src/trust.ts`](src/trust.ts)) is deliberately tiny and operates on the **raw source
+string**, in this exact order:
+
+1. **Cut at the history boundary.** Scan lines top-to-bottom; the boundary is the first
+   line that, *trimmed*, equals `history:` (legacy: a `---` line immediately followed by
+   a `// history` line). Keep only the bytes **before** that line. If there is no
+   boundary, keep the whole source. The append-only audit log below `history:` is never
+   hashed, so adding history entries never changes the document hash.
+2. **Drop the seal lines.** From the kept content, remove every line whose **raw,
+   un-trimmed** text starts with `sign:`, `freeze:`, or `amendment:`. These carry the
+   seal metadata whose own `hash:` field references the body *without* them — so they
+   must be excluded to avoid a circular definition. (Prefix match is literal: an indented
+   `  sign:` is **not** removed.)
+3. **Join and trim.** Re-join the surviving lines with a single `\n` (LF), then apply one
+   `String.trim()` to the whole result (strips leading/trailing whitespace, including a
+   trailing newline).
+4. **Hash.** `"sha256:" + sha256(utf8Bytes(body)).toHex()`.
+
+Determinism notes for re-implementers:
+
+- **Encoding is UTF-8; line ending is LF (`\n`).** A file saved with CRLF hashes
+  differently — normalize to LF before hashing.
+- The hash covers the **canonical source text**, not the parsed model — property order,
+  spacing inside a line, and inline marks are all significant. Round-tripping through
+  `documentToSource()` produces canonical text; editing in the visual editor preserves
+  trust lines verbatim (see the editor's `itTrust` node) so a save does not perturb the
+  hash.
+- `approve:` lines are **not** stripped — an approval is part of the body it approves and
+  is included in the hash.
+
+`sealDocument()` computes the hash, then inserts (just above the `history:` boundary, or
+at end of file) a `sign:` line — `sign: <signer> | role: <role> | at: <ISO8601> | hash:
+<hash>` — followed by `freeze: | at: <ISO8601> | hash: <hash> | status: locked`.
+`verifyDocument()` recomputes the hash and compares it to the `freeze` block's `hash:`
+(`intact`), and reports, per signer, whether their recorded hash matches the frozen hash
+(`valid`) and/or the current hash (`signedCurrentVersion`).
+
 ## 5. Stability guarantees
 
 - **Explicit syntax is stable.** A document that parsed under v3.x parses the same

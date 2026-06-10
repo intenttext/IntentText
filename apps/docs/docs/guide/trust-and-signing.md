@@ -204,6 +204,65 @@ signline: Ahmed Al-Rashid | role: CEO | org: Acme Corp | date-line: Date
 | **Lives in**     | The `.it` file          | The printed output |
 | **Queryable**    | Yes                     | Yes                |
 
+## What exactly gets hashed
+
+The hash is **reproducible by anyone** — there is no secret. Given the source file and
+any SHA-256 implementation, you can recompute it and confirm a seal yourself. The
+algorithm runs on the **raw source text**, in order:
+
+1. **Cut at the `history:` boundary.** Only the content _above_ `history:` is hashed, so
+   appending audit-log entries never changes the document hash. (No boundary → the whole
+   file.)
+2. **Drop the seal lines.** Lines starting with `sign:`, `freeze:`, or `amendment:` are
+   removed before hashing — their own `hash:` field refers to the body _without_ them, so
+   including them would be circular. (`approve:` lines **are** hashed — an approval is
+   part of what it approves.)
+3. **Join with `\n` and trim.** Surviving lines are joined with LF and the whole string
+   is trimmed once.
+4. **Hash.** `sha256:` + the hex SHA-256 of those UTF-8 bytes.
+
+:::note Reproducibility & determinism
+Encoding is **UTF-8**, line ending is **LF (`\n`)** — a file saved with CRLF hashes
+differently, so normalize line endings before hashing. The hash covers the _canonical
+source text_, so property order and spacing inside a line matter. Editing in the visual
+editor preserves trust lines verbatim, so a normal save never perturbs the hash. The
+exact, byte-level spec — with a reference reimplementation that reproduces the core
+hash — is **[SPEC §4.1](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md)**.
+:::
+
+## What sealing does — and doesn't — prove
+
+Be precise about the guarantee, because "signed" means different things in different
+systems:
+
+- ✅ **Tamper-evidence.** If a single byte of the hashed body changes after sealing,
+  `verify` fails. This is real and useful: it proves the document you're holding is
+  bit-for-bit the one that was sealed.
+- ✅ **Self-verifiable, offline, forever.** No vendor, key server, or network is needed
+  to check a seal — just the file and SHA-256. The trust property travels with the file.
+- ❌ **Not cryptographic non-repudiation.** There are no private keys or PKI. A `sign:`
+  line asserts _who_ sealed _which content_; it does not cryptographically bind that
+  assertion to a verified identity. Anyone who can edit the file can also recompute a new
+  hash and re-seal it under any name — what they _cannot_ do is silently alter the
+  sealed body and have the old seal still verify.
+- ❌ **Not a trusted timestamp.** The `at:` time is self-asserted, not attested by a
+  third party.
+
+This is the right default for the overwhelming majority of business documents — invoices,
+agreements, approvals — where the question is "has this been altered since we agreed to
+it?" rather than "can I prove in court who signed it." When you need more, the model is
+designed to **layer** without changing the file format:
+
+| Tier | What it adds | Status |
+| --- | --- | --- |
+| **Tamper-evidence** | SHA-256 seal, self-verifiable | Built in, free, today |
+| **Trusted timestamp** | RFC-3161 / notary attestation of _when_ | Managed/paid path |
+| **Identity binding** | X.509 / PKI signature over the same hash | Managed/paid path |
+
+The higher tiers attest the _same canonical hash_ defined above — so a document can start
+as a plain tamper-evident `.it` file and gain notarization or PKI later without rewriting
+its content.
+
 ---
 
 **Related:**
