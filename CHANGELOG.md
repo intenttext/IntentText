@@ -6,6 +6,17 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [4.1.1] - 2026-06-10
+
+### Fixed
+
+- **Template placeholders no longer flagged as warnings.** A document that uses
+  `{{…}}` placeholders but declares no context (`context:` block / metadata / step
+  outputs) is now treated as a template — its placeholders resolve at merge time, so
+  they are not "unresolved variable" warnings. When a context IS declared, undeclared
+  `{{vars}}` remain warnings (typo detection). Fixes the noisy
+  "Unresolved variable {{…}}" warning on template files in the editor and VSCode.
+
 ## [4.1.0] - 2026-06-10
 
 The finalization release: one canonical implementation, a tiered format, and a
