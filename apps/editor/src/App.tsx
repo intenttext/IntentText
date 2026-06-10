@@ -193,6 +193,11 @@ export default function App() {
           onSave={saveFile}
           onModal={setModal}
           isSealed={trustState.trust.isSealed}
+          samples={DEMO_DOCS.map((d) => ({ id: d.id, title: d.title }))}
+          onLoadSample={(id) => {
+            const doc = getDemoDocById(id);
+            if (doc) loadDemoDoc(doc);
+          }}
         />
 
         <div className="panels" style={{ flex: 1 }}>
