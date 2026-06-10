@@ -1,0 +1,32 @@
+{
+  "company": {
+    "name": "Jadwal Technology",
+    "email": "billing@jadwal.io",
+    "vat": "VAT-300123456700003"
+  },
+  "customer": {
+    "name": "Acme Corporation",
+    "email": "ap@acme.com"
+  },
+  "invoice": {
+    "number": "INV-2026-0042",
+    "date": "2026-03-06",
+    "dueDate": "2026-03-20",
+    "status": "Unpaid"
+  },
+  "items": [
+    { "description": "Platform Development — March", "qty": 1, "unitPrice": "12,000 QAR", "total": "12,000 QAR" },
+    { "description": "UX Design Services", "qty": "8 hrs", "unitPrice": "450 QAR", "total": "3,600 QAR" },
+    { "description": "Hosting & Infrastructure", "qty": "1 month", "unitPrice": "900 QAR", "total": "900 QAR" }
+  ],
+  "totals": {
+    "subtotal": "16,500 QAR",
+    "taxRate": 5,
+    "tax": "825 QAR",
+    "due": "17,325 QAR"
+  },
+  "payment": {
+    "bank": "Qatar National Bank",
+    "iban": "QA57QNBA000000000123456789001"
+  }
+}
