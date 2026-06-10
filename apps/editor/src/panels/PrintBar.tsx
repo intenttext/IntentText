@@ -1,44 +1,25 @@
 import { useState } from "react";
 import {
   parseIntentText,
-  renderHTML,
-  generateThemeCSS,
-  getBuiltinTheme,
+  renderPrint,
   listBuiltinThemes,
 } from "@intenttext/core";
+
+/** Inject extra CSS before </head> of a renderPrint() document. */
+function injectCss(html: string, css: string): string {
+  if (!css) return html;
+  return html.includes("</head>")
+    ? html.replace("</head>", `<style>${css}</style></head>`)
+    : html;
+}
+
+const MINIMAL_INK_CSS =
+  ".it-callout{background:none!important;border:1px solid #ccc!important}";
 
 interface Props {
   content: string;
   theme: string;
   onThemeChange: (theme: string) => void;
-}
-
-const EDITOR_PAGE_MARGIN_MM = 25.4;
-
-function buildPrintCss(themeCss: string, printMode: "normal" | "minimal-ink") {
-  return `
-@page { size: A4; margin: ${EDITOR_PAGE_MARGIN_MM}mm; }
-html, body { margin: 0; padding: 0; }
-body {
-  font-family: "Inter", "Segoe UI", sans-serif;
-  font-size: 15px;
-  line-height: 1.7;
-  color: #202124;
-}
-p:empty::after { content: '\\00a0'; white-space: pre; }
-h1 { font-size: 28px; font-weight: 700; line-height: 1.3; letter-spacing: -0.5px; margin: 0 0 4px; }
-h2 { font-size: 22px; font-weight: 600; line-height: 1.3; margin: 24px 0 4px; padding-bottom: 4px; border-bottom: 1px solid #dadce0; }
-h3 { font-size: 17px; font-weight: 600; line-height: 1.3; margin: 16px 0 2px; }
-p { margin: 4px 0; }
-.it-summary { color: #5f6368; font-size: 16px; line-height: 1.5; margin: 0 0 8px; }
-.it-callout { padding: 12px 16px; border-radius: 8px; margin: 8px 0; }
-.it-divider { border: none; border-top: 1px solid #dadce0; margin: 16px 0; }
-pre { background: #f8f9fa; padding: 12px 16px; border-radius: 8px; font-size: 13px; line-height: 1.6; overflow-x: auto; }
-blockquote { border-left: 3px solid #9aa0a6; padding-left: 16px; margin: 12px 0; color: #3c4043; font-style: italic; }
-h1, h2, h3, p, pre, blockquote, .it-callout, .it-generic, .it-doc-generic { page-break-inside: avoid; break-inside: avoid; }
-${printMode === "minimal-ink" ? ".it-callout{background:none!important;border:1px solid #ccc!important}" : ""}
-${themeCss}
-`;
 }
 
 function download(data: string, filename: string, mime: string) {
@@ -62,11 +43,11 @@ export function PrintBar({ content, theme, onThemeChange }: Props) {
   const exportPDF = () => {
     try {
       const doc = parseIntentText(content);
-      const html = renderHTML(doc, { theme });
-      const t = getBuiltinTheme(theme);
-      const css = t ? generateThemeCSS(t) : "";
-      const preservedHtml = html.replace(/<p><\/p>/g, "<p>&nbsp;</p>");
-      const full = `<!doctype html><html><head><style>${buildPrintCss(css, printMode)}</style></head><body>${preservedHtml}</body></html>`;
+      // renderPrint honors the document's font:/page:/header:/footer: blocks —
+      // page size, margins, running headers/footers with page numbers, watermarks,
+      // page breaks. Browser print → PDF, no PDF library.
+      let full = renderPrint(doc, { theme });
+      if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
 
       const iframe = document.createElement("iframe");
       iframe.style.cssText = "position:fixed;left:-9999px;width:0;height:0";
@@ -86,19 +67,8 @@ export function PrintBar({ content, theme, onThemeChange }: Props) {
   const exportHTML = () => {
     try {
       const doc = parseIntentText(content);
-      const html = renderHTML(doc, { theme });
-      const t = getBuiltinTheme(theme);
-      const css = t ? generateThemeCSS(t) : "";
-      const preservedHtmlExport = html.replace(/<p><\/p>/g, "<p>&nbsp;</p>");
-      const full = `<!doctype html>
-<html>
-<head>
-<style>${buildPrintCss(css, printMode)}</style>
-</head>
-<body>
-${preservedHtmlExport}
-</body>
-</html>`;
+      let full = renderPrint(doc, { theme });
+      if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
       download(full, "document.html", "text/html");
     } catch {
       /* ignore */
