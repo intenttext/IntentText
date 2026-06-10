@@ -446,6 +446,44 @@ export const ITTrust = Node.create({
   },
 });
 
+// ── Metric / total row ────────────────────────────────────────
+// `metric: Subtotal | value: 16,500 QAR | unit: …` renders as a label-left /
+// value-right row (invoice totals, KPIs). The generic block dropped `value:`
+// entirely. Raw source preserved verbatim for round-trip.
+export const ITMetric = Node.create({
+  name: "itMetric",
+  group: "block",
+  atom: true,
+
+  addAttributes() {
+    return {
+      raw: {
+        default: "",
+        parseHTML: (el) => el.getAttribute("data-raw") || "",
+        renderHTML: (attrs) => ({ "data-raw": attrs.raw }),
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "div[data-it-metric]" }];
+  },
+  renderHTML({ HTMLAttributes, node }) {
+    const { content, props } = parseTrustLine(String(node.attrs.raw || ""));
+    const value = [props.value, props.unit].filter(Boolean).join(" ");
+    // A "total"/"grand total"/"balance due" label reads as the summary line.
+    const isTotal = /\b(total|balance due|amount due|grand)\b/i.test(content);
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-it-metric": "",
+        class: `it-doc-metric${isTotal ? " it-doc-metric--total" : ""}`,
+      }),
+      ["span", { class: "it-doc-metric__label" }, content],
+      ["span", { class: "it-doc-metric__value" }, value],
+    ];
+  },
+});
+
 // ── Page Break ────────────────────────────────────────────────
 export const ITBreak = Node.create({
   name: "itBreak",

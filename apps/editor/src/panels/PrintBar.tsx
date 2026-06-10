@@ -56,8 +56,12 @@ function buildWysiwygPrint(content: string, printMode: string): string | null {
     (doc.blocks.find((b) => b.type === "page")?.properties as
       | Record<string, string>
       | undefined) || {};
-  const header = doc.blocks.find((b) => b.type === "header")?.content || "";
-  const footer = doc.blocks.find((b) => b.type === "footer")?.content || "";
+  // Header/footer may be a standalone block (`header: …`) OR a property of the
+  // `page:` block (`page: | footer: …`). Support both.
+  const header =
+    doc.blocks.find((b) => b.type === "header")?.content || page.header || "";
+  const footer =
+    doc.blocks.find((b) => b.type === "footer")?.content || page.footer || "";
   const size = page.size || "A4";
   const margin = page.margin || page.margins || "18mm 16mm 20mm 16mm";
 

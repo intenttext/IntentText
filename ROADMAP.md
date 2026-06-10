@@ -34,11 +34,17 @@ dep on dist change). Several "it didn't work" moments were stale dev servers.
    renders them as styled trust chips and preserves the exact source line verbatim for
    hash-safe round-trip.
 
-2. **PDF / print visual polish.** `.intent-metric` (totals) is unstyled in print
-   (`DOCUMENT_CSS` lacks a rule); tune `@page` margins so body never collides with the
-   running header/footer; polish the enterprise invoice/contract layout (totals
-   alignment, table borders, signature block). Files: `packages/core/src/document-css.ts`
-   + the `@page`/header-footer CSS in `renderer.ts` `renderPrint`.
+2. ~~**PDF / print visual polish.**~~ ✅ **DONE** (2026-06-10). `metric:` totals were
+   the real gap **in the editor** — they fell through the generic renderer, which
+   dropped the `value:` prop (totals showed labels with no amounts). Added an `itMetric`
+   node (`visual/extensions.ts`) rendering a label-left / value-right row, with a
+   grand-total emphasis when the label reads "Total/Balance/Amount Due". `@page`
+   header/footer in `buildWysiwygPrint` now also reads the `page:` block's `header:`/
+   `footer:` properties (not just standalone blocks), so the running footer renders;
+   20mm bottom margin keeps the body clear of it. Verified: enterprise-grade invoice PDF
+   with styled totals, signature/freeze chips, and a running footer. (Core's
+   `renderHTML`/`renderPrint` already style `.it-metric` as KPI cards in `DOCUMENT_CSS`
+   — the earlier "unstyled in print" note was inaccurate; no core change needed.)
 
 3. **Enterprise-visuals showcase.** "Same `.it`, three themes" side-by-side, proving
    `.it` renders enterprise-credible documents (contract / invoice / letter). Ties to

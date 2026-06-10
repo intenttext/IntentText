@@ -1897,6 +1897,37 @@ button {
   color: #777;
 }
 
+/* ─── Metric / total row ──────────────────────────────────── */
+.docs-page .tiptap .it-doc-metric {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--it-color-border, #eee);
+}
+.docs-page .tiptap .it-doc-metric__label {
+  color: var(--it-color-muted, #555);
+}
+.docs-page .tiptap .it-doc-metric__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--it-color-text, #111);
+  white-space: nowrap;
+}
+/* A "Total Due" / "Balance" metric reads as the grand total. */
+.docs-page .tiptap .it-doc-metric--total {
+  border-bottom: none;
+  border-top: 2px solid var(--it-color-text, #333);
+  margin-top: 2px;
+  padding-top: 8px;
+  font-size: 1.05em;
+}
+.docs-page .tiptap .it-doc-metric--total .it-doc-metric__label {
+  color: var(--it-color-text, #111);
+  font-weight: 600;
+}
+
 /* ─── Page Break ──────────────────────────────────────────── */
 
 .docs-page .tiptap .it-doc-break {
