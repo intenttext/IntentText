@@ -4,6 +4,7 @@ import { StatusBar } from "./status/StatusBar";
 import { MonacoEditor } from "./editor/MonacoEditor";
 import { VisualEditor } from "./visual/VisualEditor";
 import { PrintBar } from "./panels/PrintBar";
+import { TrustPanel } from "./panels/TrustPanel";
 import { SealModal } from "./modals/SealModal";
 import { VerifyModal } from "./modals/VerifyModal";
 import { HistoryModal } from "./modals/HistoryModal";
@@ -46,6 +47,7 @@ export type ModalType =
   | "amend"
   | "convert"
   | "help"
+  | "trust"
   | null;
 
 export default function App() {
@@ -245,6 +247,28 @@ export default function App() {
       </div>
 
       {/* Modals */}
+      {modal === "trust" && (
+        <div className="modal-backdrop" onClick={() => setModal(null)}>
+          <div className="modal-side" onClick={(e) => e.stopPropagation()}>
+            <TrustPanel
+              trust={trustState.trust}
+              onTrack={trustState.startTracking}
+              onApprove={trustState.addApproval}
+              onSign={trustState.addSignature}
+              onSeal={trustState.seal}
+              onVerify={trustState.verify}
+              onAmend={trustState.addAmendment}
+            />
+            <button
+              className="btn-secondary"
+              style={{ margin: "8px 16px 16px" }}
+              onClick={() => setModal(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
       {modal === "seal" && (
         <SealModal
           content={content}
