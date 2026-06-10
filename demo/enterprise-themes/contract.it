@@ -1,0 +1,37 @@
+font: | family: Inter, Helvetica, sans-serif | size: 11pt | leading: 1.55
+page: | size: A4 | footer: Master Services Agreement · MSA-2026-0188 · Page {{page}}
+
+title: Master Services Agreement
+summary: Dalil Technology LLC ("Provider") and Acme Corporation ("Client")
+meta: | type: contract | ref: MSA-2026-0188 | effective: 2026-04-01 | status: Executed
+
+section: 1. Engagement
+text: Provider shall deliver the cloud platform, integrations, and support set out in
+  Schedule A. Client shall provide timely access, data, and approvals as reasonably
+  required for Provider to perform.
+
+section: 2. Commercials
+metric: Annual License | value: 96,000 QAR
+metric: Implementation (one-time) | value: 38,500 QAR
+metric: Total Year One | value: 134,500 QAR
+
+section: 3. Service Levels
+| Tier | Target | Credit |
+| Critical | 99.9% uptime | 10% monthly fee |
+| Standard | 99.5% uptime | 5% monthly fee |
+| Response | < 1 business hour | — |
+
+section: 4. Term & Termination
+text: This Agreement runs for an initial term of twelve (12) months and renews
+  annually unless either party gives sixty (60) days' written notice.
+warning: Early termination without cause incurs the remaining term's license fees.
+
+section: 5. Confidentiality
+text: Each party shall protect the other's Confidential Information with no less than
+  reasonable care and use it solely to perform under this Agreement.
+
+section: 6. Signatures
+approve: Legal review complete | by: Sara Hassan | role: Legal Counsel | at: 2026-03-28
+sign: Ahmed Al-Rashid | role: CEO, Dalil Technology LLC | at: 2026-04-01T09:00:00Z
+sign: Acme Corporation | role: Authorized Signatory | at: 2026-04-01T11:20:00Z
+freeze: | at: 2026-04-01T11:20:00Z | hash: sha256:9f1c… | status: locked
