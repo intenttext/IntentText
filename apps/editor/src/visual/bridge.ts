@@ -354,6 +354,13 @@ export function sourceToDoc(source: string): JSONContent {
         if (pType && keywordsMatch(mkw, parsedBlockKeyword(pType))) blockIdx++;
         continue;
       }
+      // Metric / total → label-left / value-right row, exact source preserved.
+      if (mkw === "metric") {
+        result.push({ type: "itMetric", attrs: { raw: trimmed } });
+        const pType = doc.blocks[blockIdx]?.type;
+        if (pType && keywordsMatch(mkw, parsedBlockKeyword(pType))) blockIdx++;
+        continue;
+      }
     }
 
     // Group a run of bullet/ordered list lines into one TipTap list node, so
@@ -714,6 +721,9 @@ function nodeToLine(node: JSONContent): string | null {
       return node.attrs?.raw || "";
 
     case "itTrust":
+      return node.attrs?.raw || "";
+
+    case "itMetric":
       return node.attrs?.raw || "";
 
     case "itBreak":
