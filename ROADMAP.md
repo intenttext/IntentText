@@ -77,19 +77,18 @@ The editor already has Monaco + a TipTap visual editor + bridge, trust panel & m
 preview, print bar, theme picker, and a showcase system. Demo 3 is assess-and-polish,
 phased:
 
-- [~] **A. Round-trip fidelity** _(in progress — wedge proven, one gap left)_
+- [x] **A. Round-trip fidelity — DONE (7/7).** The visual editor produces canonical
+  `.it` losslessly (faithful to core, the source of truth).
   - Removed a dead second serializer (flat VisualBlock model — no callers).
   - core now exports `blockToSource` (canonical per-block serializer).
-  - Fixed list serialization (`text: •` → `- ` / `N.`).
-  - Added a fidelity harness (`pnpm --filter intenttext-editor roundtrip:check`):
-    **all 5 business documents round-trip losslessly.**
-  - **Remaining gap (precise):** in `visual/bridge.ts`, `sourceToDoc`'s line-walker
-    processes lines one at a time and never groups consecutive `- ` / `N.` lines into
-    TipTap `bulletList` / `orderedList` nodes; `blockToNode` has no `list-item` /
-    `step-item` case, so list lines fall through to `itGenericBlock` and get mangled.
-    Fix: group runs of bullet/ordered lines into list nodes on the source→doc side
-    (docToSource already emits `- `/`N.` correctly). Verify with `roundtrip:check`
-    (target: simple.it + meeting-notes.it pass → 7/7).
+  - `docToSource` emits canonical bullets (`- ` / `N.`); `sourceToDoc` groups runs of
+    list lines into TipTap `bulletList`/`orderedList` nodes.
+  - Fixed a core serializer bug: custom blocks used `originalContent` (which includes
+    the `keyword:` prefix) → duplicated keyword (`- ahmed: Ahmed: …`). Now uses
+    `content`.
+  - Fidelity harness `pnpm --filter intenttext-editor roundtrip:check` (no deps; Node
+    type-stripping) compares the visual round-trip to core's canonical round-trip:
+    **7/7 documents pass.** Wired into CI (Node bumped 20→22).
 - [ ] **B. Trust sidebar** — polish TrustPanel into a simple seal/sign/freeze/history
   view + one-click Verify.
 - [ ] **C. Embed Demo 1** — plug the invoice template→merge→sign→query flow into the

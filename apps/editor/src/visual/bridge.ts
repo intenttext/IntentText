@@ -268,6 +268,25 @@ function fallbackLineToBlock(trimmedLine: string): {
 /**
  * Convert IntentText source to TipTap JSON content
  */
+/** Match a bullet (`- x` / `* x`) or ordered (`1. x`) list line → its item text. */
+function listLineMatch(
+  trimmed: string,
+): { ordered: boolean; text: string } | null {
+  const bullet = trimmed.match(/^[-*]\s+(.*)$/);
+  if (bullet) return { ordered: false, text: bullet[1] };
+  const ordered = trimmed.match(/^\d+\.\s+(.*)$/);
+  if (ordered) return { ordered: true, text: ordered[1] };
+  return null;
+}
+
+/** A TipTap listItem wrapping a single paragraph of the item text. */
+function makeListItem(text: string): JSONContent {
+  return {
+    type: "listItem",
+    content: [{ type: "paragraph", content: textToContent(text) }],
+  };
+}
+
 export function sourceToDoc(source: string): JSONContent {
   if (!source.trim()) {
     return {
@@ -289,11 +308,39 @@ export function sourceToDoc(source: string): JSONContent {
   let blockIdx = 0;
   const result: JSONContent[] = [];
 
-  for (const line of lines) {
+  for (let li = 0; li < lines.length; li++) {
+    const line = lines[li];
     const trimmed = line.trim();
 
     // Skip empty lines
     if (!trimmed) continue;
+
+    // Group a run of bullet/ordered list lines into one TipTap list node, so
+    // lists round-trip as list-items (not generic blocks). docToSource emits
+    // `- item` / `N. item` for these.
+    const listStart = listLineMatch(trimmed);
+    if (listStart) {
+      const ordered = listStart.ordered;
+      const items: JSONContent[] = [];
+      let lj = li;
+      while (lj < lines.length) {
+        const t = lines[lj].trim();
+        const m = t ? listLineMatch(t) : null;
+        if (!m || m.ordered !== ordered) break;
+        items.push(makeListItem(m.text));
+        // If this list item is a top-level block (not a section child), it also
+        // sits in `content` — consume it so the trailing append doesn't dupe it.
+        const pType = doc.blocks[blockIdx]?.type;
+        if (pType === "list-item" || pType === "step-item") blockIdx++;
+        lj++;
+      }
+      result.push({
+        type: ordered ? "orderedList" : "bulletList",
+        content: items,
+      });
+      li = lj - 1; // -1: the for-loop will increment
+      continue;
+    }
 
     // Comment lines
     if (trimmed.startsWith("//")) {

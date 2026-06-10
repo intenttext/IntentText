@@ -184,11 +184,13 @@ function serializeBlock(block: IntentBlock): string {
 
   // Custom (user-defined) keyword passthrough — emit with the original keyword,
   // not the internal "custom" type. The keyword is stored in properties.keyword.
+  // Use `content` (the value), NOT `originalContent` — the latter still includes
+  // the `keyword:` prefix, which we add back here (would otherwise duplicate it).
   if (type === "custom") {
     const keyword = block.properties?.keyword
       ? String(block.properties.keyword)
       : "";
-    const content = block.originalContent ?? block.content ?? "";
+    const content = block.content ?? "";
     const propStr = serializeProperties(block, ["keyword"]);
     const head = keyword ? `${keyword}: ${content}` : content;
     return propStr ? `${head} | ${propStr}` : head;
