@@ -6,6 +6,41 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [4.2.0] - 2026-06-10
+
+### Added
+
+- **Inline styled spans — `[text]{ key: value; key: value }`.** Style _part_ of a line
+  (one word colored, a phrase bold-and-larger, combined styles) without affecting the
+  rest. Carries the same style keys as block-level props, but `;`-separated (the `|` is
+  the reserved line delimiter). Parses to a `styled` inline node and renders to
+  `<span style="…">` via the **same** property→CSS mapping as block props, so partial
+  styling is reproduced identically by `renderHTML`, `renderPrint`, the editor, and any
+  consumer. Matched after `[text](url)` links and `[[notes]]` so it never shadows them.
+- **New style keys `underline:` / `strike:` / `valign:`.** Map to `text-decoration`
+  (underline + line-through combine) and `vertical-align` (`sub` / `super`), so spans —
+  and blocks — can carry underline, strikethrough, and sub/superscript.
+- **ERP integration kit** (`demo/erp-integration/`, `pnpm demo:erp`): a portable,
+  one-file pattern for using IntentText as a print/report engine inside an app — store
+  a `.it` template as a string, `parseAndMerge(template, data)` →
+  `renderHTML`/`renderPrint`, browser print (zero-dep) or server PDF (puppeteer).
+  Documented in the **ERP Integration** ecosystem guide.
+
+### Changed
+
+- **Visual editor styling is now faithful end-to-end.** The editor previously flattened
+  every mark in a line to whole-line properties (so partial styling was lost or smeared)
+  and emitted style keys that didn't match core's (`style`/`font`/`bgcolor` vs core's
+  `italic`/`family`/`bg`), so whole-line italic/font/highlight never rendered through
+  core. The bridge now serializes each text run independently (semantic marks or a
+  `[text]{…}` span), parses marks/spans back from core's inline AST, and is unified on
+  core's canonical keys — so what you style in the editor prints identically through the
+  template/print path. A fidelity guard surfaces any styling that can't be saved to
+  `.it` (regression net).
+- **Enterprise-themes showcase** (`pnpm demo:themes`, one `.it` → three themes) and
+  **WYSIWYG editor export** (the PDF/HTML now prints the editor's own rendered DOM, so
+  it matches the on-screen view exactly).
+
 ## [4.1.2] - 2026-06-10
 
 ### Fixed

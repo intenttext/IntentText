@@ -131,6 +131,7 @@ const sidebars: SidebarsConfig = {
     "ecosystem/vscode-extension",
     "ecosystem/python",
     "ecosystem/core-api",
+    { type: "doc", id: "ecosystem/erp-integration", label: "ERP / App Integration" },
   ],
 };
 
