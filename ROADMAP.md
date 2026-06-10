@@ -117,6 +117,18 @@ phased:
   watermarks, page breaks. Removed the divergent `buildPrintCss`.
 - [ ] On-save index update inside the editor (optimization on top of lazy self-heal).
 
+## Tomorrow — FIRST THING: verify the dev-server restart
+
+The PDF "no style" + on-screen "rows hidden around a divider" were traced to a **stale
+`pnpm dev` process** serving the old bundled core (vite doesn't re-bundle a workspace
+dep when its dist changes). The stale process was killed, vite cache cleared, core
+rebuilt at 4.1.2. **Step 1 tomorrow:** `pnpm --filter intenttext-editor dev`, then
+re-test the PDF button (should match `/tmp/actual.pdf`, which headless Chrome proved is
+fully styled) and the on-screen rows.
+- If PDF is styled but rows still hide around a divider on FRESH code → real bug in the
+  TipTap visual editor's divider handling (`apps/editor/src/visual/bridge.ts`), fix
+  directly. (Not the stale bundle.)
+
 ## Tomorrow — PDF / print visual polish (started in 4.1.2)
 
 4.1.2 made print share the full element CSS (no longer "primitive") and fixed table
