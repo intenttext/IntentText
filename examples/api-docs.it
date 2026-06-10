@@ -52,7 +52,7 @@ sub: Status Codes
 
 sub: Error Format
 note: All errors follow RFC 7807 (Problem Details)
-code:
+```json
 {
   "type": "https://api.example.com/errors/invalid-request",
   "title": "Invalid Request",
@@ -60,7 +60,7 @@ code:
   "detail": "The 'email' field is required",
   "instance": "/users"
 }
-end:
+```
 
 section: Rate Limiting
 sub: Limits by Tier
@@ -82,12 +82,12 @@ sub: Events
 done: Webhook payload schema | time: 2026-02-25
 
 sub: Verification
-code:
+```js
 const signature = crypto
   .createHmac('sha256', webhookSecret)
   .update(payload)
   .digest('hex');
-end:
+```
 
 ref: Authentication Guide | rel: related | file: ./auth-guide.it
 ref: Error Handling Best Practices | rel: related | file: ./errors.it

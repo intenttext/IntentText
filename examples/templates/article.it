@@ -26,7 +26,7 @@ note: {{article.body3}} | align: justify
 
 note: {{article.body4}}[^1] | align: justify
 
-image: {{article.image1.alt}} | at: {{article.image1.path}}
+image: {{article.image1.alt}} | src: {{article.image1.path}}
 caption: {{article.image1.caption}}
 
 note: {{article.body5}} | align: justify

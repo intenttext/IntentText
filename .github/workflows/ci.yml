@@ -39,6 +39,9 @@ jobs:
       - name: Consumer parity gate (registry <-> VSCode grammar)
         run: pnpm --filter @intenttext/core parity:check
 
+      - name: Example files clean (no deprecations / unknown keywords)
+        run: node scripts/check-examples.mjs
+
       - name: Emit core package size report
         run: node packages/core/scripts/report-package-size.cjs > core-package-size.json
 
