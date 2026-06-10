@@ -93,8 +93,12 @@ export function extractTrustState(doc: IntentDocument | null): TrustState {
   if (freeze) {
     base.isSealed = true;
     base.lifecycle = "sealed";
-    base.sealedBy = prop(freeze, "by", freeze.content ?? "");
-    base.sealedAt = prop(freeze, "at");
+    // The sealer's identity lives on the sign: block added during sealing — the
+    // freeze: block carries only at/hash/status. Fall back to any freeze content.
+    const lastSig = base.signatures[base.signatures.length - 1];
+    base.sealedBy =
+      lastSig?.by || prop(freeze, "by", freeze.content ?? "");
+    base.sealedAt = prop(freeze, "at") || lastSig?.at || "";
     base.sealHash = prop(freeze, "hash");
   }
 

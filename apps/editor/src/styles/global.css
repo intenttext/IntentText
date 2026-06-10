@@ -2297,6 +2297,15 @@ button {
   margin-top: 8px;
   line-height: 1.4;
 }
+.trust-verify-signers {
+  margin: 6px 0 0;
+  padding-left: 14px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+.trust-verify-signers li {
+  margin: 2px 0;
+}
 .trust-verify-result.pass {
   background: rgba(22, 163, 74, 0.08);
   color: #15803d;
