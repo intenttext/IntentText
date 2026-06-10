@@ -1477,28 +1477,23 @@ button {
   width: 794px;
 }
 
-/* Page-break guides — pure visual overlay; never affect content layout. */
-.docs-page-breaks {
+.docs-page-stack {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
 }
-.docs-page-break {
+
+.docs-page-sheet {
   position: absolute;
-  left: -96px;
-  right: -96px;
-  border-top: 1px dashed rgba(120, 130, 145, 0.45);
-}
-.docs-page-break-label {
-  position: absolute;
-  right: 0;
-  top: 4px;
-  font-size: 10px;
-  color: #9aa0a6;
-  background: var(--bg-app, #f3f4f6);
-  padding: 0 6px;
-  border-radius: 4px;
+  left: 0;
+  width: 794px;
+  height: 1123px;
+  background: #fff;
+  box-shadow:
+    0 8px 24px rgba(15, 23, 42, 0.08),
+    0 1px 3px rgba(60, 64, 67, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
 }
 
 .docs-page-header-region,
@@ -1552,10 +1547,39 @@ button {
   overflow: visible;
 }
 
-/* One continuous sheet — grows with content, centered, no shifting. */
-.docs-page.docs-sheet {
-  margin: 0 auto;
-  overflow: visible;
+/* The editable content layer sits over the page frames. It is paginated in JS so
+   content lands only inside each page's body; the mask hides any sliver that would
+   otherwise show in a header/footer/gap dead zone. */
+.docs-page.docs-editor-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 96px;
+  -webkit-mask-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent var(--it-page-margin-top, 96px),
+    #000 var(--it-page-margin-top, 96px),
+    #000
+      calc(var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)),
+    transparent
+      calc(var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)),
+    transparent calc(var(--it-page-height, 1123px) + var(--it-page-gap, 24px))
+  );
+  mask-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent var(--it-page-margin-top, 96px),
+    #000 var(--it-page-margin-top, 96px),
+    #000
+      calc(var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)),
+    transparent
+      calc(var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)),
+    transparent calc(var(--it-page-height, 1123px) + var(--it-page-gap, 24px))
+  );
 }
 
 .docs-page-footer {

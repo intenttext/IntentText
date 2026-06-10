@@ -152,38 +152,99 @@ export function VisualEditor({ value, onChange, theme }: Props) {
   const pageRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(1);
 
-  // Page count is derived purely from the content height — for the page counter
-  // and the page-break GUIDE lines. We never shift content: the document flows in
-  // one continuous sheet on screen, and real page breaks happen natively at print
-  // (renderPrint @page). This replaces the old margin-injection hack that caused the
-  // caret to jump while typing near a page boundary.
-  const recalcPages = useCallback(() => {
-    const tiptap = pageRef.current?.querySelector(
-      ".tiptap",
-    ) as HTMLElement | null;
+  // Paginate content into real pages so every page has header + footer space.
+  // Each top-level block that would straddle a page's content area is pushed down
+  // (margin-top) to start on the next page — content never renders into the
+  // header/footer/gap "dead zones". This is the same idea as Word/Docs.
+  //
+  // The KEY fix vs the old version: after re-paginating we scroll the caret back
+  // into view, so typing near a page boundary never goes blind.
+  const applyPagedLayout = useCallback(() => {
+    const el = pageRef.current;
+    if (!el) return;
+    const tiptap = el.querySelector(".tiptap") as HTMLElement | null;
     if (!tiptap) return;
-    const contentHeight = tiptap.scrollHeight;
-    const pages = Math.max(1, Math.ceil(contentHeight / PAGE_CONTENT_HEIGHT));
+
+    const collectBlocks = (): HTMLElement[] => {
+      const out: HTMLElement[] = [];
+      for (const child of Array.from(tiptap.children) as HTMLElement[]) {
+        const tag = child.tagName.toLowerCase();
+        if (tag === "ol" || tag === "ul") {
+          for (const li of Array.from(child.children) as HTMLElement[])
+            out.push(li);
+        } else out.push(child);
+      }
+      return out;
+    };
+
+    // Reset previous shifts.
+    for (const s of Array.from(
+      el.querySelectorAll("[data-page-shift='1']"),
+    ) as HTMLElement[]) {
+      s.style.marginTop = "";
+      delete s.dataset.pageShift;
+    }
+
+    const tiptapTop = tiptap.getBoundingClientRect().top;
+    for (let pass = 0; pass < 8; pass++) {
+      let changed = false;
+      for (const block of collectBlocks()) {
+        const r = block.getBoundingClientRect();
+        const top = r.top - tiptapTop;
+        const bottom = r.bottom - tiptapTop;
+        const h = bottom - top;
+        if (h <= 0 || h >= PAGE_CONTENT_HEIGHT) continue; // too tall to fit a page
+        const pageIndex = Math.floor(top / PAGE_STRIDE);
+        const pageContentBottom = pageIndex * PAGE_STRIDE + PAGE_CONTENT_HEIGHT;
+        if (bottom <= pageContentBottom) continue; // fits on its page
+        const shift = (pageIndex + 1) * PAGE_STRIDE - top;
+        if (shift > 0) {
+          block.style.marginTop = `${shift}px`;
+          block.dataset.pageShift = "1";
+          changed = true;
+        }
+      }
+      if (!changed) break;
+    }
+  }, [PAGE_CONTENT_HEIGHT, PAGE_STRIDE]);
+
+  const recalcPages = useCallback(() => {
+    const el = pageRef.current;
+    const tiptap = el?.querySelector(".tiptap") as HTMLElement | null;
+    if (!tiptap) return;
+    applyPagedLayout();
+    const totalHeight = tiptap.scrollHeight;
+    const pages = Math.max(1, Math.ceil(totalHeight / PAGE_STRIDE));
     setPageCount(pages);
-  }, [PAGE_CONTENT_HEIGHT]);
+    // Keep the caret visible after content re-flows across page boundaries.
+    if (editor?.isFocused) editor.commands.scrollIntoView();
+  }, [applyPagedLayout, PAGE_STRIDE, editor]);
 
   useEffect(() => {
     const el = pageRef.current;
     if (!el) return;
-    const observer = new ResizeObserver(recalcPages);
+    let raf = 0;
+    const schedule = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(recalcPages);
+    };
+    const observer = new ResizeObserver(schedule);
     observer.observe(el);
-    // Also observe the tiptap element itself for content growth
     const tiptap = el.querySelector(".tiptap");
     if (tiptap) observer.observe(tiptap);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
   }, [recalcPages]);
 
-  // Also recalculate pages on every editor update
+  // Re-paginate on every editor update.
   useEffect(() => {
     if (!editor) return;
-    editor.on("update", recalcPages);
+    const handler = () => requestAnimationFrame(recalcPages);
+    editor.on("update", handler);
     return () => {
-      editor.off("update", recalcPages);
+      editor.off("update", handler);
     };
   }, [editor, recalcPages]);
 
@@ -361,34 +422,56 @@ export function VisualEditor({ value, onChange, theme }: Props) {
       <div className="docs-canvas" ref={canvasRef}>
         <div
           className="docs-page-scaler"
-          style={{ width: PAGE_WIDTH * zoom }}
+          style={{
+            width: PAGE_WIDTH * zoom,
+            minHeight:
+              (pageCount * PAGE_HEIGHT + (pageCount - 1) * PAGE_GAP) * zoom,
+          }}
         >
           <div
             className="docs-page-flow"
             dir={docLayoutMeta.dir}
             style={{
+              minHeight: pageCount * PAGE_HEIGHT + (pageCount - 1) * PAGE_GAP,
               transform: zoom !== 1 ? `scale(${zoom})` : undefined,
               transformOrigin: "top left",
+              ["--it-page-height" as string]: `${PAGE_HEIGHT}px`,
+              ["--it-page-gap" as string]: `${PAGE_GAP}px`,
+              ["--it-page-margin-top" as string]: `${PAGE_MARGIN_TOP}px`,
+              ["--it-page-margin-bottom" as string]: `${PAGE_MARGIN_BOTTOM}px`,
             }}
           >
-            {/* One continuous sheet that grows with content — no fake page
-                shifting. Real page breaks happen natively at print. */}
-            <div className="docs-page docs-sheet" ref={pageRef}>
-              <EditorContent editor={editor} />
-              {/* Page-break guides: pure overlay, never affect content layout. */}
-              <div className="docs-page-breaks" aria-hidden="true">
-                {Array.from({ length: Math.max(0, pageCount - 1) }, (_, i) => (
-                  <div
-                    key={`brk-${i}`}
-                    className="docs-page-break"
-                    style={{
-                      top: PAGE_MARGIN_TOP + (i + 1) * PAGE_CONTENT_HEIGHT,
-                    }}
-                  >
-                    <span className="docs-page-break-label">Page {i + 2}</span>
+            {/* Page frames: every page has reserved header + footer space. */}
+            <div className="docs-page-stack" aria-hidden="true">
+              {Array.from({ length: pageCount }, (_, i) => (
+                <div
+                  key={`sheet-${i}`}
+                  className="docs-page-sheet"
+                  style={{ top: i * (PAGE_HEIGHT + PAGE_GAP) }}
+                >
+                  <div className="docs-page-header-region">
+                    <span className="docs-page-meta-text">
+                      {docLayoutMeta.header}
+                    </span>
                   </div>
-                ))}
-              </div>
+                  <div className="docs-page-footer-region">
+                    <span className="docs-page-meta-text">
+                      {docLayoutMeta.footer}
+                    </span>
+                    <span className="docs-page-number">{i + 1}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Editable content, paginated to skip the header/footer dead zones. */}
+            <div
+              className="docs-page docs-editor-layer"
+              ref={pageRef}
+              style={{
+                minHeight: pageCount * PAGE_HEIGHT + (pageCount - 1) * PAGE_GAP,
+              }}
+            >
+              <EditorContent editor={editor} />
             </div>
           </div>
         </div>
