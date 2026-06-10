@@ -7,20 +7,22 @@ title: Style Properties
 
 Style properties control the visual appearance of blocks when rendered to HTML or print. They are pipe properties that the renderer maps directly to CSS.
 
-## The 10 style properties
+## The style properties
 
-| Property   | CSS Mapping                      | Example Values                   | Notes                                       |
-| ---------- | -------------------------------- | -------------------------------- | ------------------------------------------- |
-| `color:`   | `color`                          | `red`, `#ff0000`, `rgb(255,0,0)` | Any CSS color value                         |
-| `size:`    | `font-size`                      | `0.85em`, `18px`, `12pt`         | Any CSS size unit                           |
-| `family:`  | `font-family`                    | `Georgia`, `Inter`               | Font name                                   |
-| `weight:`  | `font-weight`                    | `bold`, `600`, `normal`          | CSS font-weight values                      |
-| `align:`   | `text-align`                     | `center`, `right`, `justify`     | Also adds class `.intent-align-center` etc. |
-| `bg:`      | `background-color`               | `yellow`, `#fffde7`              | Any CSS color value                         |
-| `indent:`  | `padding-left`                   | `2em`, `20px`                    | Any CSS length                              |
-| `opacity:` | `opacity`                        | `0.5`, `0.6`                     | 0–1 range                                   |
-| `italic:`  | `font-style: italic`             | `true`                           | Boolean — only `"true"` applies             |
-| `border:`  | `border: 1px solid currentColor` | `true`                           | Boolean — only `"true"` applies             |
+| Property     | CSS Mapping                      | Example Values                   | Notes                                       |
+| ------------ | -------------------------------- | -------------------------------- | ------------------------------------------- |
+| `color:`     | `color`                          | `red`, `#ff0000`, `rgb(255,0,0)` | Any CSS color value                         |
+| `size:`      | `font-size`                      | `0.85em`, `18px`, `12pt`         | Any CSS size unit                           |
+| `family:`    | `font-family`                    | `Georgia`, `Inter`               | Font name                                   |
+| `weight:`    | `font-weight`                    | `bold`, `600`, `normal`          | CSS font-weight values                      |
+| `align:`     | `text-align`                     | `center`, `right`, `justify`     | Also adds class `.intent-align-center` etc. |
+| `bg:`        | `background-color`               | `yellow`, `#fffde7`              | Any CSS color value                         |
+| `indent:`    | `padding-left`                   | `2em`, `20px`                    | Any CSS length                              |
+| `opacity:`   | `opacity`                        | `0.5`, `0.6`                     | 0–1 range                                   |
+| `italic:`    | `font-style: italic`             | `true`                           | Boolean — only `"true"` applies             |
+| `border:`    | `border: 1px solid currentColor` | `true`                           | Boolean — only `"true"` applies             |
+| `underline:` | `text-decoration: underline`     | `true`                           | Boolean — combines with `strike:`           |
+| `strike:`    | `text-decoration: line-through`  | `true`                           | Boolean — combines with `underline:`        |
 
 ## Usage examples
 
@@ -31,6 +33,31 @@ quote: Key insight | bg: #fffde7 | border: true | indent: 2em
 warning: Deadline tomorrow | color: #d32f2f | bg: #ffebee | weight: bold
 text: Fine print | size: 0.75em | opacity: 0.7 | align: center
 ```
+
+## Styling part of a line — inline styled spans
+
+Block-level props above style the **whole** block. To style **part** of a line — one
+word red, a phrase bold-and-larger, the rest normal — use an inline **styled span**:
+
+```
+[text]{ key: value; key: value }
+```
+
+The braces carry the **same style keys** as block props, but separated by **`;`** (the
+`|` is reserved for the line-level property delimiter). Spans combine freely and sit
+alongside the semantic marks (`*bold*`, `_italic_`, `~strike~`, `` `code` ``):
+
+```intenttext
+text: Payment is [overdue]{ color: #c00; weight: bold } — please act _now_.
+metric: Total Due | value: [17,325 QAR]{ size: 1.2em; weight: bold }
+text: A [combined]{ color: blue; weight: bold; italic: true; underline: true } word.
+```
+
+Spans render to `<span style="…">` using the exact same mapping as block props, so a
+template styled this way prints **identically** through the editor, the CLI, and the
+core renderer (`renderHTML` / `renderPrint`). Use marks for plain emphasis and spans for
+color/size/font or combined styling; keep the systematic look (fonts, heading style) in
+the **theme** rather than repeating spans everywhere.
 
 ## How style properties work
 

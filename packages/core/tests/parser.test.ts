@@ -285,6 +285,32 @@ New paragraph starts`;
     expect(inline.some((n) => n.type === "tag")).toBe(true);
   });
 
+  it("should parse an inline styled span [text]{props} with ;-separated keys", () => {
+    const result = parseIntentText(
+      "text: Pay [overdue]{color: #c00; weight: bold} now",
+    );
+    const inline = result.blocks[0].inline || [];
+    const span = inline.find((n) => n.type === "styled");
+    expect(span).toBeTruthy();
+    expect(span).toMatchObject({
+      type: "styled",
+      value: "overdue",
+      props: { color: "#c00", weight: "bold" },
+    });
+    // clean content drops the markup
+    expect(result.blocks[0].content).toBe("Pay overdue now");
+  });
+
+  it("should not treat [text](url) links or [[notes]] as styled spans", () => {
+    const link = parseIntentText("text: see [docs](https://x.io)").blocks[0]
+      .inline || [];
+    expect(link.some((n) => n.type === "link")).toBe(true);
+    expect(link.some((n) => n.type === "styled")).toBe(false);
+
+    const note = parseIntentText("text: aside [[draft note]]").blocks[0].inline || [];
+    expect(note.some((n) => n.type === "styled")).toBe(false);
+  });
+
   it("should parse inline quote emphasis with ==text==", () => {
     const result = parseIntentText("note: ==Urgent quote== for editor");
     const inline = result.blocks[0].inline || [];

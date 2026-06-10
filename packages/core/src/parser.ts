@@ -396,6 +396,32 @@ function parseInlineNodes(text: string): {
         i = urlEnd + 1;
         continue;
       }
+
+      // Inline styled span: [text]{color: red | weight: bold}
+      // (not [[note]] and not [text](url), handled above)
+      if (text[i + 1] !== "[") {
+        const close = text.indexOf("]", i + 1);
+        if (close > i && text[close + 1] === "{") {
+          const braceEnd = text.indexOf("}", close + 2);
+          if (braceEnd > close + 1 && text[braceEnd + 1] !== "}") {
+            // Span props are `;`-separated (CSS-like) — `|` is reserved for the
+            // line-level property delimiter and can't appear inside a line.
+            const props: Record<string, string> = {};
+            for (const seg of text.slice(close + 2, braceEnd).split(";")) {
+              const c = seg.indexOf(":");
+              if (c > 0) {
+                const k = seg.slice(0, c).trim();
+                if (k) props[k] = seg.slice(c + 1).trim();
+              }
+            }
+            if (Object.keys(props).length > 0) {
+              addNode({ type: "styled", value: text.slice(i + 1, close), props });
+              i = braceEnd + 1;
+              continue;
+            }
+          }
+        }
+      }
     }
 
     // Inline side-note [[note text]]
