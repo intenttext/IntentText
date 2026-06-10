@@ -158,33 +158,38 @@ rendered output open:
 - [ ] `.vsix` built: `packages/vscode/intenttext-1.4.8.vsix` (bundles core 4.1.2) —
   ready to upload to the VSCode Marketplace.
 
-## Other saved items (do not lose)
+## Still open (next session)
 
-- [ ] **Publish `@intenttext/core` to npm** — publish-ready (see status above). Process:
-  merge branch → tag `v4.1.0` → `NPM_TOKEN`. Owner triggers; not done unilaterally.
-- [x] **Template-variable warning fixed (4.1.1).** The "Unresolved variable {{…}}"
-  warning originated in core's `validate.ts` (surfaced by both editor and VSCode). A
-  document with `{{…}}` placeholders but no declared context is now treated as a
-  template (placeholders resolve at merge); undeclared vars still warn when a context
-  IS declared. Published `@intenttext/core@4.1.1`; editor + vscode rebuilt against it.
-- [ ] **Enterprise-grade visuals — show it.** Demonstrate that `.it` can render
-  documents an enterprise would actually use (contract, invoice, letter). Builds on
-  the styling plan (themes as document classes + scoped `style:` block). Deliverable:
-  enrich a couple of themes to enterprise quality + a side-by-side "same `.it`, three
-  themes" showcase. (See "Styling & visual fidelity" above.)
+- [ ] **WYSIWYG: make the PDF match the visual editor.** Two render paths (TipTap CSS
+  vs core `renderPrint`/`DOCUMENT_CSS`). Align them so the editor view = the PDF. The
+  one genuinely-unfinished editor item.
+- [ ] **PDF / print visual polish** — `.intent-metric` in print, page-margin/header-
+  footer spacing, enterprise invoice/contract layout.
+- [ ] **Enterprise-grade visuals showcase** — "same `.it`, three themes" (ties to the
+  styling plan: themes as document classes + scoped `style:` block).
+- [ ] SPEC §4 **canonicalization** subsection (reproducible sealing/verifying).
+- [ ] Public **"how sign/seal works"** doc (tamper-evidence today; notary = paid path).
+- [ ] On-save index update in the editor (optimization on lazy self-heal).
+- [ ] Cosmetic: version-label sweep across the experimental docs site (still says v2.x).
 
 ## Done (this engagement)
 
-- [x] **Cleanup pass.**
+- [x] **v4.1 finalization** — one TS parser, tiered format, parity gates, focused
+  surface. Published `@intenttext/core` 4.1.0 → 4.1.2 to npm; tags v4.1.0–v4.1.2.
 - [x] **Demo 1** — template+merge+sign+query (`pnpm demo:invoice`).
 - [x] **Demo 2** — folder query-by-parameter (`pnpm demo:search`).
 - [x] **Incremental, self-healing indexing** — CLI `index`/`query`, no init step.
-  See [packages/core/INDEXING.md](packages/core/INDEXING.md).
-- [ ] SPEC §4: precise **canonicalization** subsection so sealing/verifying is
-  reproducible by anyone. _(pending)_
-- [ ] Public "how sign/seal works" doc (tamper-evidence today; notary = paid path). _(pending)_
+- [x] **Editor: round-trip fidelity** (7/7), **trust sidebar** (now wired + visible),
+  **embedded Demo 1** sample, **native PDF** (renderPrint), **table rendering**,
+  **metadata hidden**, **native page breaks** (spacer plugin, no hidden content).
+- [x] **Template-variable warning fixed (4.1.1)**, **styled PDF + page-break-safe
+  tables (4.1.2)**.
+- [x] **VSCode**: grammar parity gate; example files fixed + `check:examples` CI guard;
+  `.vsix` at `packages/vscode/intenttext-1.4.8.vsix`.
+- [x] **Docs refresh** — Python doc corrected, tiers documented, obsolete removed,
+  stale package names fixed.
 
-## Done (this engagement)
+## Done (earlier)
 
 - v4.1.0 finalization: one TS parser, tiered format (core 13 + profiles), parity gates,
   focused supported surface (core/mcp/vscode/editor). See FINALIZATION.md.
