@@ -151,7 +151,10 @@ export type InlineNode =
   | { type: "tag"; value: string }
   | { type: "label"; value: string }
   | { type: "link"; value: string; href: string }
-  | { type: "footnote-ref"; value: string };
+  | { type: "footnote-ref"; value: string }
+  // Inline styled span: `[text]{color: red | weight: bold}`. Carries the same
+  // style keys as block-level props; rendered as <span style="…">.
+  | { type: "styled"; value: string; props: Record<string, string> };
 
 export interface IntentExtension {
   keywords?: string[];

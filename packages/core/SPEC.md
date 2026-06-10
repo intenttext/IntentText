@@ -50,6 +50,14 @@ task: Ship auth | owner: Ada | priority: high | due: 2026-03-08
 Within content: `*bold*`, `_italic_`, `~strike~`, `` `code` ``, `@mention`,
 `#tag`, `[label](href)`, dates, and footnote refs parse into `inline` nodes.
 
+An **inline styled span** `[text]{ key: value; key: value }` styles part of a line with
+the same keys as block-level style props (see [style-properties](../../apps/docs/docs/reference/style-properties.md)),
+but **`;`-separated** — `|` is reserved for the line-level property delimiter and cannot
+appear inside a line. Spans parse into a `styled` inline node and render to `<span
+style="…">` via the same property→CSS mapping as block props, so partial styling is
+reproduced identically by any renderer. It is distinct from `[label](url)` (link) and
+`[[note]]` (side-note), which are matched first.
+
 ## 3. Keyword tiers
 
 The format is **small by default**. A plain document needs only the **core** tier.

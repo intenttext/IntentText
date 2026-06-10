@@ -152,6 +152,12 @@ function applyInlineFormatting(
             return `<mark class="intent-inline-highlight">${escapeHtml(node.value)}</mark>`;
           case "code":
             return `<code>${escapeHtml(node.value)}</code>`;
+          case "styled": {
+            const css = extractInlineStyles(node.props);
+            return css
+              ? `<span style="${css}">${escapeHtml(node.value)}</span>`
+              : escapeHtml(node.value);
+          }
           case "inline-note":
             return `<span class="intent-inline-note">${escapeHtml(node.value)}</span>`;
           case "date":
@@ -198,12 +204,15 @@ const STYLE_PROPERTIES: Record<string, string> = {
   opacity: "opacity",
   italic: "font-style",
   border: "border",
+  underline: "text-decoration",
+  strike: "text-decoration",
 };
 
 function extractInlineStyles(
   properties: Record<string, string | number>,
 ): string {
   const styles: string[] = [];
+  const decorations: string[] = [];
   for (const [prop, css] of Object.entries(STYLE_PROPERTIES)) {
     const value = properties[prop];
     if (value === undefined || value === "") continue;
@@ -212,10 +221,16 @@ function extractInlineStyles(
       styles.push("border: 1px solid currentColor");
     } else if (prop === "italic" && strValue === "true") {
       styles.push("font-style: italic");
-    } else {
+    } else if (prop === "underline" && strValue === "true") {
+      decorations.push("underline");
+    } else if (prop === "strike" && strValue === "true") {
+      decorations.push("line-through");
+    } else if (prop !== "underline" && prop !== "strike") {
       styles.push(`${css}: ${strValue}`);
     }
   }
+  // underline + strike combine into a single text-decoration declaration.
+  if (decorations.length) styles.push(`text-decoration: ${decorations.join(" ")}`);
   return styles.join("; ");
 }
 
