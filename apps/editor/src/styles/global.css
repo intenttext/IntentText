@@ -1835,6 +1835,68 @@ button {
   vertical-align: top;
 }
 
+/* ─── Trust blocks (sign / seal / approve / freeze / amendment) ─── */
+.docs-page .tiptap .it-doc-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 10px 0;
+  padding: 9px 14px;
+  border: 1px solid #daa520;
+  border-radius: 8px;
+  background: #fffdf5;
+  font-size: 0.9rem;
+  user-select: none;
+}
+.docs-page .tiptap .it-doc-trust--seal {
+  border: 2px solid #c62828;
+  background: #fdf5f5;
+  font-weight: 600;
+}
+.docs-page .tiptap .it-doc-trust--approve {
+  border-color: #4caf50;
+  background: #f6fbf6;
+}
+.docs-page .tiptap .it-doc-trust--freeze {
+  border-color: #5b8def;
+  background: #f5f8ff;
+}
+.docs-page .tiptap .it-doc-trust--amendment,
+.docs-page .tiptap .it-doc-trust--amend {
+  border-color: #b0b0b0;
+  background: #fafafa;
+}
+.docs-page .tiptap .it-doc-trust__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+.docs-page .tiptap .it-doc-trust__label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.docs-page .tiptap .it-doc-trust__name {
+  font-weight: 600;
+  color: #111;
+}
+.docs-page .tiptap .it-doc-trust__role {
+  color: #555;
+}
+.docs-page .tiptap .it-doc-trust__date {
+  color: #777;
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+.docs-page .tiptap .it-doc-trust__hash {
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  color: #444;
+}
+.docs-page .tiptap .it-doc-trust__meta {
+  font-size: 0.78rem;
+  color: #777;
+}
+
 /* ─── Page Break ──────────────────────────────────────────── */
 
 .docs-page .tiptap .it-doc-break {

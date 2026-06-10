@@ -339,6 +339,113 @@ export const ITTable = Node.create({
   },
 });
 
+// ── Trust block (sign / seal / approve / freeze / amendment) ──
+// Renders tamper-evidence lines as proper styled chips instead of leaking raw
+// `| at: …` props. The exact source line is preserved in `raw` and re-emitted
+// verbatim on docToSource so the document hash never changes from a round-trip.
+function parseTrustLine(raw: string): {
+  keyword: string;
+  content: string;
+  props: Record<string, string>;
+} {
+  const colon = raw.indexOf(":");
+  const keyword = (colon >= 0 ? raw.slice(0, colon) : raw).trim().toLowerCase();
+  const rest = colon >= 0 ? raw.slice(colon + 1).trim() : "";
+  const segs = rest.split("|").map((s) => s.trim());
+  const content = segs.shift() || "";
+  const props: Record<string, string> = {};
+  for (const seg of segs) {
+    const c = seg.indexOf(":");
+    if (c > 0) props[seg.slice(0, c).trim().toLowerCase()] = seg.slice(c + 1).trim();
+  }
+  return { keyword, content, props };
+}
+
+export const ITTrust = Node.create({
+  name: "itTrust",
+  group: "block",
+  atom: true,
+
+  addAttributes() {
+    return {
+      raw: {
+        default: "",
+        parseHTML: (el) => el.getAttribute("data-raw") || "",
+        renderHTML: (attrs) => ({ "data-raw": attrs.raw }),
+      },
+      keyword: {
+        default: "",
+        parseHTML: (el) => el.getAttribute("data-trust") || "",
+        renderHTML: (attrs) => ({ "data-trust": attrs.keyword }),
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "div[data-it-trust]" }];
+  },
+  renderHTML({ HTMLAttributes, node }) {
+    const { keyword, content, props } = parseTrustLine(
+      String(node.attrs.raw || ""),
+    );
+    const role = props.role || props.title || "";
+    const date = props.at || props.date || props.time || "";
+    const parts: (string | (string | object)[])[] = [];
+
+    if (keyword === "seal") {
+      const hash = content || props.hash || "";
+      const algo = props.algo || "sha-256";
+      parts.push(
+        ["span", { class: "it-doc-trust__icon" }, "🔒"],
+        ["span", { class: "it-doc-trust__label" }, "Sealed"],
+        ["span", { class: "it-doc-trust__meta" }, algo],
+        ...(hash
+          ? [["code", { class: "it-doc-trust__hash" }, hash.slice(0, 16) + "…"]]
+          : []),
+      );
+    } else if (keyword === "approve") {
+      parts.push(
+        ["span", { class: "it-doc-trust__icon" }, "✓"],
+        ["span", { class: "it-doc-trust__label" }, "Approved"],
+        ["span", { class: "it-doc-trust__name" }, content],
+        ...(role ? [["span", { class: "it-doc-trust__role" }, role]] : []),
+        ...(date ? [["span", { class: "it-doc-trust__date" }, date]] : []),
+      );
+    } else if (keyword === "freeze") {
+      parts.push(
+        ["span", { class: "it-doc-trust__icon" }, "❄"],
+        ["span", { class: "it-doc-trust__label" }, "Frozen"],
+        ...(content ? [["span", { class: "it-doc-trust__name" }, content]] : []),
+        ...(date ? [["span", { class: "it-doc-trust__date" }, date]] : []),
+      );
+    } else if (keyword === "amend" || keyword === "amendment") {
+      parts.push(
+        ["span", { class: "it-doc-trust__icon" }, "✎"],
+        ["span", { class: "it-doc-trust__label" }, "Amendment"],
+        ["span", { class: "it-doc-trust__name" }, content],
+        ...(date ? [["span", { class: "it-doc-trust__date" }, date]] : []),
+      );
+    } else {
+      // sign
+      parts.push(
+        ["span", { class: "it-doc-trust__icon" }, "✒"],
+        ["span", { class: "it-doc-trust__name" }, content],
+        ...(role ? [["span", { class: "it-doc-trust__role" }, role]] : []),
+        ...(date ? [["span", { class: "it-doc-trust__date" }, date]] : []),
+      );
+    }
+
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-it-trust": "",
+        "data-trust": keyword,
+        class: `it-doc-trust it-doc-trust--${keyword}`,
+      }),
+      ...parts,
+    ];
+  },
+});
+
 // ── Page Break ────────────────────────────────────────────────
 export const ITBreak = Node.create({
   name: "itBreak",

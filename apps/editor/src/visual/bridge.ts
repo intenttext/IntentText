@@ -15,6 +15,17 @@ const META_KEYWORDS = new Set([
   "footer",
   "watermark",
 ]);
+// Tamper-evidence / history keywords — rendered as styled trust chips, with the
+// exact source line preserved verbatim for round-trip (the document hash must not
+// change from editing in the visual editor).
+const TRUST_KEYWORDS = new Set([
+  "sign",
+  "seal",
+  "approve",
+  "freeze",
+  "amend",
+  "amendment",
+]);
 const HEADING_MAP: Record<string, string> = {
   title: "itTitle",
   section: "itSection",
@@ -332,6 +343,13 @@ export function sourceToDoc(source: string): JSONContent {
       const mkw = lineKeyword(trimmed);
       if (mkw && META_KEYWORDS.has(mkw)) {
         result.push({ type: "itMeta", attrs: { raw: trimmed } });
+        const pType = doc.blocks[blockIdx]?.type;
+        if (pType && keywordsMatch(mkw, parsedBlockKeyword(pType))) blockIdx++;
+        continue;
+      }
+      // Trust / history blocks → styled chip, exact source preserved.
+      if (mkw && TRUST_KEYWORDS.has(mkw)) {
+        result.push({ type: "itTrust", attrs: { raw: trimmed, keyword: mkw } });
         const pType = doc.blocks[blockIdx]?.type;
         if (pType && keywordsMatch(mkw, parsedBlockKeyword(pType))) blockIdx++;
         continue;
@@ -693,6 +711,9 @@ function nodeToLine(node: JSONContent): string | null {
     }
 
     case "itMeta":
+      return node.attrs?.raw || "";
+
+    case "itTrust":
       return node.attrs?.raw || "";
 
     case "itBreak":

@@ -5,7 +5,7 @@ import {
   listBuiltinThemes,
 } from "@intenttext/core";
 
-/** Inject extra CSS before </head> of a renderPrint() document. */
+/** Inject extra CSS before </head> of an HTML document string. */
 function injectCss(html: string, css: string): string {
   if (!css) return html;
   return html.includes("</head>")
@@ -14,7 +14,70 @@ function injectCss(html: string, css: string): string {
 }
 
 const MINIMAL_INK_CSS =
-  ".it-callout{background:none!important;border:1px solid #ccc!important}";
+  ".it-doc-callout{background:none!important;border:1px solid #ccc!important}";
+
+/** Build a CSS `content` value from header/footer text, mapping {{page}}/{{pages}}. */
+function cssContent(text: string): string {
+  return String(text)
+    .split(/(\{\{\s*pages?\s*\}\})/g)
+    .filter(Boolean)
+    .map((p) => {
+      if (/\{\{\s*page\s*\}\}/.test(p)) return "counter(page)";
+      if (/\{\{\s*pages\s*\}\}/.test(p)) return "counter(pages)";
+      return JSON.stringify(p);
+    })
+    .join(" ");
+}
+
+/**
+ * WYSIWYG print: render the editor's OWN content DOM with its OWN stylesheets, so the
+ * PDF looks exactly like the visual editor. Page size / margins / running header+footer
+ * come from the document's page:/header:/footer: blocks via @page. Returns null when
+ * the visual editor isn't mounted (source mode) — caller falls back to renderPrint.
+ */
+function buildWysiwygPrint(content: string, printMode: string): string | null {
+  const tiptap = document.querySelector(".docs-page .tiptap");
+  if (!tiptap) return null;
+
+  const clone = tiptap.cloneNode(true) as HTMLElement;
+  // Page-break spacers are a screen affordance; print paginates natively via @page.
+  clone.querySelectorAll("[data-it-spacer]").forEach((e) => e.remove());
+  const bodyHtml = clone.innerHTML;
+
+  // Copy the editor's stylesheets (bundled global.css + injected theme) verbatim.
+  const styles = Array.from(
+    document.querySelectorAll('style, link[rel="stylesheet"]'),
+  )
+    .map((e) => e.outerHTML)
+    .join("\n");
+
+  const doc = parseIntentText(content);
+  const page =
+    (doc.blocks.find((b) => b.type === "page")?.properties as
+      | Record<string, string>
+      | undefined) || {};
+  const header = doc.blocks.find((b) => b.type === "header")?.content || "";
+  const footer = doc.blocks.find((b) => b.type === "footer")?.content || "";
+  const size = page.size || "A4";
+  const margin = page.margin || page.margins || "18mm 16mm 20mm 16mm";
+
+  let pageCss = `@page{size:${size};margin:${margin};}`;
+  if (header)
+    pageCss += `@page{@top-center{content:${cssContent(header)};font:10px -apple-system,sans-serif;color:#9aa0a6;}}`;
+  if (footer)
+    pageCss += `@page{@bottom-center{content:${cssContent(footer)};font:10px -apple-system,sans-serif;color:#9aa0a6;}}`;
+
+  // Strip the on-screen sheet chrome so only the page content prints.
+  const overrides = `
+    html,body{margin:0;background:#fff;}
+    .docs-page,.docs-page.docs-sheet{box-shadow:none;border-radius:0;margin:0;width:auto;min-height:0;padding:0;background:#fff;}
+    .docs-page .tiptap{padding:0;}
+    [data-it-spacer]{display:none!important;}
+    ${printMode === "minimal-ink" ? MINIMAL_INK_CSS : ""}
+  `;
+
+  return `<!doctype html><html><head><meta charset="utf-8">${styles}<style>${pageCss}${overrides}</style></head><body><div class="docs-page docs-sheet"><div class="tiptap">${bodyHtml}</div></div></body></html>`;
+}
 
 interface Props {
   content: string;
@@ -42,12 +105,14 @@ export function PrintBar({ content, theme, onThemeChange }: Props) {
 
   const exportPDF = () => {
     try {
-      const doc = parseIntentText(content);
-      // renderPrint honors the document's font:/page:/header:/footer: blocks —
-      // page size, margins, running headers/footers with page numbers, watermarks,
-      // page breaks. Browser print → PDF, no PDF library.
-      let full = renderPrint(doc, { theme });
-      if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
+      // WYSIWYG: print the editor's own rendered content + stylesheets so the PDF
+      // matches the on-screen view. Falls back to core renderPrint in source mode.
+      let full = buildWysiwygPrint(content, printMode);
+      if (!full) {
+        const doc = parseIntentText(content);
+        full = renderPrint(doc, { theme });
+        if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
+      }
 
       // A zero-size iframe prints blank/unstyled in Chrome — give it real (A4)
       // dimensions, hidden off-screen, and print only after it has loaded.
@@ -83,9 +148,12 @@ export function PrintBar({ content, theme, onThemeChange }: Props) {
 
   const exportHTML = () => {
     try {
-      const doc = parseIntentText(content);
-      let full = renderPrint(doc, { theme });
-      if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
+      let full = buildWysiwygPrint(content, printMode);
+      if (!full) {
+        const doc = parseIntentText(content);
+        full = renderPrint(doc, { theme });
+        if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
+      }
       download(full, "document.html", "text/html");
     } catch {
       /* ignore */
