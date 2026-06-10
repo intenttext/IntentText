@@ -1547,39 +1547,56 @@ button {
   overflow: visible;
 }
 
-/* The editable content layer sits over the page frames. It is paginated in JS so
-   content lands only inside each page's body; the mask hides any sliver that would
-   otherwise show in a header/footer/gap dead zone. */
-.docs-page.docs-editor-layer {
+/* One continuous sheet — grows with content. The Pagination plugin inserts real
+   page-break spacers inside it, so content flows onto each page (nothing hidden). */
+.docs-page.docs-sheet {
+  margin: 0 auto;
+  overflow: visible;
+}
+
+/* ─── Page-break spacer: footer + grey gap + next header ──────────────────── */
+.docs-page-spacer {
+  position: relative;
+  /* span the full sheet width, past the content padding */
+  margin-left: -96px;
+  margin-right: -96px;
+  user-select: none;
+}
+.docs-pb-rest {
+  position: relative;
+  background: #fff;
+}
+.docs-pb-footer {
   position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: transparent;
-  box-shadow: none;
-  border-radius: 0;
-  padding: 96px;
-  -webkit-mask-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent var(--it-page-margin-top, 96px),
-    #000 var(--it-page-margin-top, 96px),
-    #000
-      calc(var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)),
-    transparent
-      calc(var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)),
-    transparent calc(var(--it-page-height, 1123px) + var(--it-page-gap, 24px))
-  );
-  mask-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent var(--it-page-margin-top, 96px),
-    #000 var(--it-page-margin-top, 96px),
-    #000
-      calc(var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)),
-    transparent
-      calc(var(--it-page-height, 1123px) - var(--it-page-margin-bottom, 96px)),
-    transparent calc(var(--it-page-height, 1123px) + var(--it-page-gap, 24px))
-  );
+  left: 96px;
+  right: 96px;
+  bottom: 18px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #9aa0a6;
+  border-top: 1px solid rgba(218, 220, 224, 0.85);
+}
+.docs-pb-gap {
+  background: var(--bg-app, #eef0f3);
+  box-shadow:
+    inset 0 2px 3px rgba(15, 23, 42, 0.06),
+    inset 0 -2px 3px rgba(15, 23, 42, 0.06);
+}
+.docs-pb-header {
+  position: relative;
+  background: #fff;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 96px 8px;
+  font-size: 11px;
+  color: #9aa0a6;
+  border-bottom: 1px solid rgba(218, 220, 224, 0.85);
+}
+.docs-pb-num {
+  font-variant-numeric: tabular-nums;
 }
 
 .docs-page-footer {
