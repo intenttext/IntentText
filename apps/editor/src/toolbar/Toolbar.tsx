@@ -180,6 +180,14 @@ export function Toolbar({
 
       <button
         className="tbtn"
+        onClick={() => onModal("trust")}
+        title="Trust — track, sign, seal, verify, history"
+      >
+        {isSealed ? "🔒 Trust" : "Trust"}
+      </button>
+
+      <button
+        className="tbtn"
         onClick={() => onModal("help")}
         title="Keyboard shortcuts"
       >
