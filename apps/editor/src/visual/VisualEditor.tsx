@@ -18,6 +18,7 @@ import FontFamily from "@tiptap/extension-font-family";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import { FontSize } from "./font-size";
+import { Pagination } from "./pagination";
 import { sourceToDoc, docToSource } from "./bridge";
 import {
   ITTitle,
@@ -51,9 +52,22 @@ export function VisualEditor({ value, onChange, theme }: Props) {
   const lastSourceRef = useRef<string>("");
   const isInternalUpdate = useRef(false);
   const isHydrating = useRef(true);
+  // Current header/footer text for the page-break spacers (read live by the plugin).
+  const layoutMetaRef = useRef<{ header: string; footer: string }>({
+    header: "",
+    footer: "",
+  });
 
   const editor = useEditor({
     extensions: [
+      Pagination.configure({
+        pageHeight: 1123,
+        marginTop: 96,
+        marginBottom: 96,
+        gap: 24,
+        header: () => layoutMetaRef.current.header,
+        footer: () => layoutMetaRef.current.footer,
+      }),
       StarterKit.configure({
         heading: false,
         codeBlock: false,
@@ -152,101 +166,40 @@ export function VisualEditor({ value, onChange, theme }: Props) {
   const pageRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(1);
 
-  // Paginate content into real pages so every page has header + footer space.
-  // Each top-level block that would straddle a page's content area is pushed down
-  // (margin-top) to start on the next page — content never renders into the
-  // header/footer/gap "dead zones". This is the same idea as Word/Docs.
-  //
-  // The KEY fix vs the old version: after re-paginating we scroll the caret back
-  // into view, so typing near a page boundary never goes blind.
-  const applyPagedLayout = useCallback(() => {
-    const el = pageRef.current;
-    if (!el) return;
-    const tiptap = el.querySelector(".tiptap") as HTMLElement | null;
-    if (!tiptap) return;
-
-    const collectBlocks = (): HTMLElement[] => {
-      const out: HTMLElement[] = [];
-      for (const child of Array.from(tiptap.children) as HTMLElement[]) {
-        const tag = child.tagName.toLowerCase();
-        if (tag === "ol" || tag === "ul") {
-          for (const li of Array.from(child.children) as HTMLElement[])
-            out.push(li);
-        } else out.push(child);
-      }
-      return out;
-    };
-
-    // Reset previous shifts.
-    for (const s of Array.from(
-      el.querySelectorAll("[data-page-shift='1']"),
-    ) as HTMLElement[]) {
-      s.style.marginTop = "";
-      delete s.dataset.pageShift;
-    }
-
-    const tiptapTop = tiptap.getBoundingClientRect().top;
-    for (let pass = 0; pass < 8; pass++) {
-      let changed = false;
-      for (const block of collectBlocks()) {
-        const r = block.getBoundingClientRect();
-        const top = r.top - tiptapTop;
-        const bottom = r.bottom - tiptapTop;
-        const h = bottom - top;
-        if (h <= 0 || h >= PAGE_CONTENT_HEIGHT) continue; // too tall to fit a page
-        const pageIndex = Math.floor(top / PAGE_STRIDE);
-        const pageContentBottom = pageIndex * PAGE_STRIDE + PAGE_CONTENT_HEIGHT;
-        if (bottom <= pageContentBottom) continue; // fits on its page
-        const shift = (pageIndex + 1) * PAGE_STRIDE - top;
-        if (shift > 0) {
-          block.style.marginTop = `${shift}px`;
-          block.dataset.pageShift = "1";
-          changed = true;
-        }
-      }
-      if (!changed) break;
-    }
-  }, [PAGE_CONTENT_HEIGHT, PAGE_STRIDE]);
-
+  // Page breaks are handled natively by the Pagination plugin (real spacers that
+  // push content to the next page — nothing is ever hidden). Here we only count the
+  // spacers to show "N pages" in the footer.
   const recalcPages = useCallback(() => {
-    const el = pageRef.current;
-    const tiptap = el?.querySelector(".tiptap") as HTMLElement | null;
+    const tiptap = pageRef.current?.querySelector(
+      ".tiptap",
+    ) as HTMLElement | null;
     if (!tiptap) return;
-    applyPagedLayout();
-    const totalHeight = tiptap.scrollHeight;
-    const pages = Math.max(1, Math.ceil(totalHeight / PAGE_STRIDE));
-    setPageCount(pages);
-    // Keep the caret visible after content re-flows across page boundaries.
-    if (editor?.isFocused) editor.commands.scrollIntoView();
-  }, [applyPagedLayout, PAGE_STRIDE, editor]);
+    const spacers = tiptap.querySelectorAll("[data-it-spacer]").length;
+    setPageCount(spacers + 1);
+  }, []);
 
-  useEffect(() => {
-    const el = pageRef.current;
-    if (!el) return;
-    let raf = 0;
-    const schedule = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(recalcPages);
-    };
-    const observer = new ResizeObserver(schedule);
-    observer.observe(el);
-    const tiptap = el.querySelector(".tiptap");
-    if (tiptap) observer.observe(tiptap);
-    return () => {
-      cancelAnimationFrame(raf);
-      observer.disconnect();
-    };
-  }, [recalcPages]);
-
-  // Re-paginate on every editor update.
   useEffect(() => {
     if (!editor) return;
     const handler = () => requestAnimationFrame(recalcPages);
     editor.on("update", handler);
+    handler();
     return () => {
       editor.off("update", handler);
     };
   }, [editor, recalcPages]);
+
+  // Keep the spacer header/footer text in sync with the document.
+  useEffect(() => {
+    try {
+      const doc = parseIntentText(value);
+      layoutMetaRef.current = {
+        header: doc.blocks.find((b) => b.type === "header")?.content || "",
+        footer: doc.blocks.find((b) => b.type === "footer")?.content || "",
+      };
+    } catch {
+      /* keep previous */
+    }
+  }, [value]);
 
   // Word count for the page indicator
   const getWordCount = useCallback(() => {
@@ -422,55 +375,20 @@ export function VisualEditor({ value, onChange, theme }: Props) {
       <div className="docs-canvas" ref={canvasRef}>
         <div
           className="docs-page-scaler"
-          style={{
-            width: PAGE_WIDTH * zoom,
-            minHeight:
-              (pageCount * PAGE_HEIGHT + (pageCount - 1) * PAGE_GAP) * zoom,
-          }}
+          style={{ width: PAGE_WIDTH * zoom }}
         >
           <div
             className="docs-page-flow"
             dir={docLayoutMeta.dir}
             style={{
-              minHeight: pageCount * PAGE_HEIGHT + (pageCount - 1) * PAGE_GAP,
               transform: zoom !== 1 ? `scale(${zoom})` : undefined,
               transformOrigin: "top left",
-              ["--it-page-height" as string]: `${PAGE_HEIGHT}px`,
-              ["--it-page-gap" as string]: `${PAGE_GAP}px`,
-              ["--it-page-margin-top" as string]: `${PAGE_MARGIN_TOP}px`,
-              ["--it-page-margin-bottom" as string]: `${PAGE_MARGIN_BOTTOM}px`,
             }}
           >
-            {/* Page frames: every page has reserved header + footer space. */}
-            <div className="docs-page-stack" aria-hidden="true">
-              {Array.from({ length: pageCount }, (_, i) => (
-                <div
-                  key={`sheet-${i}`}
-                  className="docs-page-sheet"
-                  style={{ top: i * (PAGE_HEIGHT + PAGE_GAP) }}
-                >
-                  <div className="docs-page-header-region">
-                    <span className="docs-page-meta-text">
-                      {docLayoutMeta.header}
-                    </span>
-                  </div>
-                  <div className="docs-page-footer-region">
-                    <span className="docs-page-meta-text">
-                      {docLayoutMeta.footer}
-                    </span>
-                    <span className="docs-page-number">{i + 1}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {/* Editable content, paginated to skip the header/footer dead zones. */}
-            <div
-              className="docs-page docs-editor-layer"
-              ref={pageRef}
-              style={{
-                minHeight: pageCount * PAGE_HEIGHT + (pageCount - 1) * PAGE_GAP,
-              }}
-            >
+            {/* One continuous sheet. The Pagination plugin inserts real page-break
+                spacers (footer + gap + header) so content flows onto each page —
+                nothing is hidden and the caret stays in document order. */}
+            <div className="docs-page docs-sheet" ref={pageRef}>
               <EditorContent editor={editor} />
             </div>
           </div>
