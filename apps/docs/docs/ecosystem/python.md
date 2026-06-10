@@ -5,7 +5,13 @@ title: Python SDK
 
 # Python SDK
 
-A pure Python implementation of the IntentText parser, renderer, query engine, merge system, and trust operations.
+> **Experimental.** Not part of the supported v4 release surface. The canonical
+> implementation is the TypeScript `@intenttext/core`.
+
+A thin Python client over the canonical IntentText core. It does **not** re-implement
+the grammar — parsing is delegated to the core CLI and mapped into Python dataclasses,
+so Python results can never drift from the JS parser. For rendering, querying, merging,
+and trust operations, use `@intenttext/core` (Node) or the core CLI directly.
 
 ## Installation
 
@@ -13,202 +19,56 @@ A pure Python implementation of the IntentText parser, renderer, query engine, m
 pip install intenttext
 ```
 
-Requires Python 3.9+.
+Requires Python 3.10+ and the IntentText core CLI reachable (see below).
 
 ## Quick start
 
 ```python
-from intenttext import parse, render, query, merge, seal, verify, amend
-
-# Parse a .it file
-doc = parse(open("document.it").read())
-print(doc.title)
-print(len(doc.blocks))
-
-# Render to HTML
-html = render(doc, theme="corporate")
-
-# Query
-results = query("./contracts", type="deadline", format="table")
-
-# Merge template
-merged = merge(template_source, {"client": "Acme Corp", "amount": 5000})
-
-# Trust
-sealed = seal("contract.it", signer="Ahmed", role="CEO")
-is_valid = verify("contract.it")
-amended = amend("contract.it", section="Payment", now="Net 15", ref="Amendment #1")
-```
-
-## Parsing
-
-```python
 from intenttext import parse
 
-source = """
+doc = parse("""
 title: Quarterly Report
-meta:
-  author: Finance Team
-  date: 2026-Q1
+task: Ship auth | owner: Ada | priority: high
+""")
 
-section: Revenue
-text: Total revenue increased 12% year-over-year.
-metric: Revenue | value: $4.2M | target: $4.0M | status: above
-
-section: Expenses
-text: Operating expenses held flat.
-metric: OpEx | value: $2.1M | target: $2.3M | status: below
-"""
-
-doc = parse(source)
-print(doc.title)          # "Quarterly Report"
-print(doc.meta["author"]) # "Finance Team"
-
+print(doc.metadata.title)            # "Quarterly Report"
 for block in doc.blocks:
-    print(f"{block.keyword}: {block.value}")
+    print(block.type, block.content, block.properties)
 ```
 
-### Parser options
+`parse_safe(source)` returns a `ParseResult` wrapping the same document.
 
-```python
-doc = parse(source, strict=True)      # Raise on unknown keywords
-doc = parse(source, resolve_aliases=True)  # Convert aliases to canonical keywords
+## Configuring the core
+
+The client locates the core CLI in this order:
+
+1. `INTENTTEXT_CLI` — path to `cli.js` (or any executable that accepts
+   `<file.it>` and prints the document JSON to stdout).
+2. `cli.js` discovered by walking up from the package (monorepo checkout).
+3. `intenttext` on `PATH` (a globally installed core CLI).
+
+If none is found, `parse()` raises `IntentTextCoreNotFound`.
+
+```bash
+export INTENTTEXT_CLI=/path/to/intenttext/cli.js
 ```
 
-## Rendering
+## Exports
 
-```python
-from intenttext import parse, render
+| Symbol | Purpose |
+| --- | --- |
+| `parse(source)` | Parse `.it` source → `IntentDocument` |
+| `parse_safe(source)` | Parse → `ParseResult` (document + warnings/errors) |
+| `IntentTextCoreNotFound`, `IntentTextParseError` | Raised on missing core / parse failure |
+| `IntentDocument`, `IntentBlock`, `IntentMetadata`, `InlineSegment`, … | Dataclasses for the parsed shape |
 
-doc = parse(source)
+## What changed in 4.0
 
-# HTML with theme
-html = render(doc, format="html", theme="corporate")
-
-# Plain text
-text = render(doc, format="text")
-
-# JSON AST
-json_str = render(doc, format="json")
-```
-
-### Available themes
-
-`corporate`, `minimal`, `warm`, `technical`, `print`, `legal`, `editorial`, `dark`
-
-## Querying
-
-```python
-from intenttext import query
-
-# Query a single file
-results = query("contract.it", type="deadline")
-
-# Query a directory
-results = query("./company", type="contact", recursive=True)
-
-# Filter
-results = query("./company", type="metric", filter="status:above")
-
-# Output formats
-table = query("./company", type="deadline", format="table")
-csv = query("./company", type="contact", format="csv")
-```
-
-## Template merging
-
-```python
-from intenttext import merge
-
-template = """
-title: Invoice {{number}}
-meta:
-  client: {{client}}
-  date: {{date}}
-
-text: Amount due: {{amount}}
-
-{{each: items}}
-  | Item | Qty | Price |
-  | {{name}} | {{qty}} | {{price}} |
-{{/each}}
-"""
-
-data = {
-    "number": "INV-2847",
-    "client": "Acme Corp",
-    "date": "2026-03-15",
-    "amount": "$5,000",
-    "items": [
-        {"name": "Consulting", "qty": "40h", "price": "$4,000"},
-        {"name": "Materials", "qty": "1", "price": "$1,000"}
-    ]
-}
-
-result = merge(template, data)
-# result is the merged .it source string
-```
-
-## Trust operations
-
-```python
-from intenttext import seal, verify, history, amend
-
-# Seal
-result = seal("contract.it", signer="Ahmed Al-Rashid", role="CEO")
-print(result.hash)      # SHA-256 hash
-print(result.sealed)    # True
-
-# Verify
-check = verify("contract.it")
-print(check.valid)      # True/False
-print(check.signers)    # ["Ahmed Al-Rashid"]
-
-# History
-hist = history("contract.it")
-for entry in hist.entries:
-    print(f"{entry.action} by {entry.signer} at {entry.timestamp}")
-
-# Amend
-result = amend(
-    "contract.it",
-    section="Payment Terms",
-    was="Net 30",
-    now="Net 15",
-    ref="Amendment #1"
-)
-```
-
-## Type reference
-
-```python
-from intenttext.types import (
-    Document,       # Parsed document
-    Block,          # Individual keyword block
-    Meta,           # Document metadata
-    QueryResult,    # Query response
-    SealResult,     # Seal operation result
-    VerifyResult,   # Verification result
-    HistoryEntry,   # Trust history entry
-    AmendResult,    # Amendment result
-    MergeResult,    # Template merge result
-)
-```
-
-## Integration example
-
-```python
-from intenttext import parse, render, query
-from pathlib import Path
-
-# Build a dashboard from all metric documents
-metrics_dir = Path("./company/reports")
-results = query(str(metrics_dir), type="metric", recursive=True, format="json")
-
-for metric in results:
-    print(f"{metric['name']}: {metric['value']} (target: {metric['target']}, status: {metric['status']})")
-```
+Earlier versions shipped a separate Python parser, renderer, validator, query engine,
+and trust helpers. Those duplicated the grammar and could drift, so they were removed.
+Python now exposes only `parse` / `parse_safe` over the canonical core. Everything else
+lives in `@intenttext/core` / the CLI.
 
 ## Source
 
-Repository: [intenttext-python](https://github.com/intenttext/intenttext-python)
+Repository: [`packages/python`](https://github.com/intenttext/IntentText/tree/main/packages/python)

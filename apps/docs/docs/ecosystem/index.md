@@ -33,4 +33,4 @@ IntentText is more than a file format. It's a complete toolchain for structured 
 | Tool                       | Description                                      |
 | -------------------------- | ------------------------------------------------ |
 | [MCP Server](./mcp-server) | Model Context Protocol server for AI agents      |
-| [Python Package](./python) | Python parser, renderer, query, merge, and trust |
+| [Python Package](./python) | Thin Python client over the core CLI (experimental) |

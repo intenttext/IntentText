@@ -21,6 +21,24 @@ IntentText supports a compact canonical keyword set plus compatibility aliases a
 - [Layout](./keywords/layout) — `page:`, `font:`, `header:`, `footer:`, `watermark:`, `signline:`, `divider:`
 - [Aliases](./keywords/aliases) — alias forms mapped to canonical keywords
 
+## Keyword tiers (v4.1)
+
+The canonical keywords are grouped into a small everyday **core** set plus opt-in
+**profiles**, so a plain `.it` document needs only ~13 keywords and everything else is
+opt-in. Tiering is contract metadata — the parser still recognizes every keyword, and
+unknown keywords pass through as `custom`.
+
+| Tier | Keywords |
+| --- | --- |
+| **core** (13) | `title` `summary` `meta` `section` `sub` `text` `info` `quote` `code` `image` `link` `task` `done` |
+| **agent** | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` |
+| **contract** | `sign` `approve` `freeze` `track` `revision` `amendment` `history` `cite` |
+| **data** | `columns` `row` `metric` |
+| **print** | `page` `header` `footer` `watermark` `break` `toc` |
+
+Exposed from `@intenttext/core` as `KEYWORD_TIERS`, `CORE_KEYWORDS`, and `tierOf`. See
+the canonical [SPEC](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md).
+
 ## Properties
 
 - [Pipe Properties](./pipe-properties) — keyword-specific properties
