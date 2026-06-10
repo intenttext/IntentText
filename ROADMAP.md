@@ -4,6 +4,63 @@ _Last updated: 2026-06-10. Forward plan. For the completed cleanup, see
 [FINALIZATION.md](FINALIZATION.md); for architecture, [ARCHITECTURE.md](ARCHITECTURE.md);
 for the format, [packages/core/SPEC.md](packages/core/SPEC.md)._
 
+---
+
+# ▶ RESUME HERE — where we are
+
+**Shipped & stable:** `@intenttext/core@4.1.2` on npm; `main` tagged v4.1.0–v4.1.2.
+The wedge works end-to-end (`pnpm demo:invoice`, `pnpm demo:search`). The editor is
+functional: round-trip fidelity (7/7), native page breaks (no hidden content), table
+rendering, hidden metadata, native PDF, and the **Trust** toolbar button (sign/seal/
+verify/history). Examples are guarded by `pnpm check:examples` in CI.
+
+**Editor dev note:** the editor bundles core at build time — after any core change,
+**restart `pnpm --filter intenttext-editor dev`** (vite won't re-bundle a workspace
+dep on dist change). Several "it didn't work" moments were stale dev servers.
+
+## The 5 open points (next session, in priority order)
+
+1. **WYSIWYG — make the PDF match the visual editor.** _(highest value; the one real
+   editor gap)._ The visual editor renders via **TipTap** CSS (`apps/editor/src/styles/
+   global.css` `.docs-page .tiptap .it-doc-*` + `visual/extensions.ts` node renderHTML),
+   while the PDF renders via core **`renderPrint`** (`packages/core/src/renderer.ts` +
+   shared `DOCUMENT_CSS`). Different class names + stylesheets → they don't match.
+   **Approach:** drive both from one stylesheet — e.g. make the TipTap nodes emit the
+   same `.intent-*` classes as core (or import `DOCUMENT_CSS` into the editor and map
+   node classes to it). Verify by screenshotting editor vs `renderPrint` output of the
+   same doc (headless Chrome — see below).
+
+2. **PDF / print visual polish.** `.intent-metric` (totals) is unstyled in print
+   (`DOCUMENT_CSS` lacks a rule); tune `@page` margins so body never collides with the
+   running header/footer; polish the enterprise invoice/contract layout (totals
+   alignment, table borders, signature block). Files: `packages/core/src/document-css.ts`
+   + the `@page`/header-footer CSS in `renderer.ts` `renderPrint`.
+
+3. **Enterprise-visuals showcase.** "Same `.it`, three themes" side-by-side, proving
+   `.it` renders enterprise-credible documents (contract / invoice / letter). Ties to
+   the styling plan (themes as document classes + a scoped `style:` block — see
+   "Styling & visual fidelity" below). Likely a new `demo/` entry + theme enrichment in
+   `packages/core/src/themes/`.
+
+4. **Two trust docs.** (a) SPEC §4 **canonicalization** subsection in
+   `packages/core/SPEC.md` — exact bytes that get hashed (already partly there; make it
+   reproducible by anyone). (b) A public **"how sign/seal works"** page — tamper-
+   evidence today (SHA-256), with the notary/timestamp service as the paid path
+   (see memory `intenttext-strategy-decisions`).
+
+5. **Minor cleanups.** (a) On-save index update inside the editor (optimization on the
+   lazy self-heal — `apps/editor/src/hooks/useWorkspace.ts`). (b) Cosmetic version-label
+   sweep across the experimental `apps/docs` site (still says "v2.x"; content is
+   otherwise accurate).
+
+**Testing the editor headlessly** (how I've been verifying): start dev, then
+`"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu
+--screenshot=/tmp/x.png --window-size=1440,1000 "http://localhost:5173/"`. For PDF:
+`--print-to-pdf=/tmp/x.pdf --no-pdf-header-footer`. The `?source=<urlencoded .it>` param
+loads a doc (but autosave/localStorage can take precedence — use a fresh `--user-data-dir`).
+
+---
+
 ## Thesis & wedge
 
 `.it` is the only plain-text file that is simultaneously a **readable document**, a
@@ -117,60 +174,9 @@ phased:
   watermarks, page breaks. Removed the divergent `buildPrintCss`.
 - [ ] On-save index update inside the editor (optimization on top of lazy self-heal).
 
-## Tomorrow — TWO confirmed real bugs (not staleness; incognito reproduced both)
-
-The `renderPrint` OUTPUT is verified styled — headless Chrome of the exact editor
-output → `/tmp/actual.pdf` is a fully-styled invoice. So core is correct; the bugs are
-in the editor's print mechanism + the visual editor.
-
-**BUG 1 — PDF button prints unstyled.** There are TWO PDF buttons:
-- `apps/editor/src/panels/PrintBar.tsx` exportPDF — uses `renderPrint` (correct CSS),
-  BUT prints via a **zero-size iframe** (`width:0;height:0`). Chrome can print a
-  zero-dimension iframe blank/unstyled — suspect #1.
-- `apps/editor/src/toolbar/ExportMenu.tsx` exportPDF (lines 80-86, the toolbar
-  "Export ▾ → Export as PDF") — does NOT render anything; it just calls
-  `document.querySelector('.panel-preview iframe').contentWindow.print()`. The editor
-  shows the **TipTap VisualEditor, not a `.panel-preview iframe`**, so this prints the
-  wrong/none element → unstyled. **This is very likely the button being clicked.**
-  FIX: make ExportMenu.exportPDF build a `renderPrint(doc,{theme})` document and print
-  it in a properly-sized hidden iframe (or `window.open` + print), exactly like a fixed
-  PrintBar. Give BOTH a robust print helper (real iframe dimensions, wait for load).
-
-**BUG 2 — divider hides rows in the visual editor.** In the TipTap editor, typing after
-a divider: you can't see what you're typing until ~6 Enters. Real visual-editor bug:
-the `itDivider` node (see `apps/editor/src/visual/extensions.ts` + `keyword-styles.ts`)
-likely has CSS/positioning that overlays following content, or the editor doesn't
-scroll the caret into view. Investigate the itDivider node + editor caret/scroll.
-
-## Tomorrow — PDF / print visual polish (started in 4.1.2)
-
-4.1.2 made print share the full element CSS (no longer "primitive") and fixed table
-rows being clipped at page breaks. Remaining visual work, needs iteration with the
-rendered output open:
-
-- [ ] `.intent-metric` (and any other elements) not yet styled in print — audit the
-  full `DOCUMENT_CSS` element list against a real invoice/contract PDF.
-- [ ] Page margins & header/footer spacing — make sure body content never collides
-  with running header/footer; tune `@page` margins per page size.
-- [ ] Enterprise invoice/contract layout polish (totals block alignment, table
-  zebra/borders, signature block, spacing) — the "enterprise visuals" deliverable.
-- [ ] Consider a dedicated print theme per document class (invoice/contract/letter).
-- [ ] `.vsix` built: `packages/vscode/intenttext-1.4.8.vsix` (bundles core 4.1.2) —
-  ready to upload to the VSCode Marketplace.
-
-## Still open (next session)
-
-- [ ] **WYSIWYG: make the PDF match the visual editor.** Two render paths (TipTap CSS
-  vs core `renderPrint`/`DOCUMENT_CSS`). Align them so the editor view = the PDF. The
-  one genuinely-unfinished editor item.
-- [ ] **PDF / print visual polish** — `.intent-metric` in print, page-margin/header-
-  footer spacing, enterprise invoice/contract layout.
-- [ ] **Enterprise-grade visuals showcase** — "same `.it`, three themes" (ties to the
-  styling plan: themes as document classes + scoped `style:` block).
-- [ ] SPEC §4 **canonicalization** subsection (reproducible sealing/verifying).
-- [ ] Public **"how sign/seal works"** doc (tamper-evidence today; notary = paid path).
-- [ ] On-save index update in the editor (optimization on lazy self-heal).
-- [ ] Cosmetic: version-label sweep across the experimental docs site (still says v2.x).
+_(Resolved editor bugs from earlier sessions — PDF-prints-unstyled, divider-hides-
+rows, mask/shift pagination — are all FIXED and listed under "Done" below. The live
+open work is the **5 open points** at the top.)_
 
 ## Done (this engagement)
 
