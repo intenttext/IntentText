@@ -17,11 +17,14 @@ import { parseAndMerge, renderHTML, renderPrint } from "@intenttext/core";
  *
  * @param {string} templateSource  the `.it` template text (e.g. Mongo doc `.source`)
  * @param {object} data            the invoice/report data (any nested JSON)
- * @param {{theme?: string}} [opts] theme name: corporate | legal | editorial | ...
+ * @param {{theme?: string, missing?: "keep"|"blank"}} [opts]
+ *        theme: corporate | legal | editorial | … ; missing: how to render a
+ *        `{{field}}` with no data — "blank" (default here, for finished documents)
+ *        so a missing optional field never prints `{{customer.phone}}`.
  * @returns {string} a complete <html> document
  */
 export function renderDocumentHTML(templateSource, data, opts = {}) {
-  const doc = parseAndMerge(templateSource, data);
+  const doc = parseAndMerge(templateSource, data, { missing: opts.missing || "blank" });
   return renderHTML(doc, { theme: opts.theme || "corporate" });
 }
 
@@ -31,7 +34,7 @@ export function renderDocumentHTML(templateSource, data, opts = {}) {
  * dialog (browser) or a headless renderer (server) to get a PDF.
  */
 export function renderDocumentPrintHTML(templateSource, data, opts = {}) {
-  const doc = parseAndMerge(templateSource, data);
+  const doc = parseAndMerge(templateSource, data, { missing: opts.missing || "blank" });
   return renderPrint(doc, { theme: opts.theme || "corporate" });
 }
 

@@ -44,8 +44,9 @@ export type {
   ParseWarning,
   ParseError,
 } from "./parser";
-export { renderPrint, collectPrintLayout } from "./renderer";
+export { renderPrint, collectPrintLayout, cssContentValue } from "./renderer";
 export { mergeData, parseAndMerge } from "./merge";
+export type { MergeOptions } from "./merge";
 export { convertMarkdownToIntentText } from "./markdown";
 export { convertHtmlToIntentText } from "./html-to-it";
 export {

@@ -165,6 +165,49 @@ app.get("/api/invoices/:id/pdf", async (req, res) => {
 });
 ```
 
+## Receipts (80mm thermal) and other page sizes
+
+The same pipeline produces POS receipts — just change the template's `page:` size and
+margin. Narrow pages need a small margin (an A4-style 20mm would eat half an 80mm roll);
+core defaults narrow pages (≤120mm) to a tight 4mm, but set it explicitly to be sure:
+
+```
+font: | family: ui-monospace, monospace | size: 10pt
+page: | size: 80mm auto | margin: 4mm
+
+title: {{company.name}}
+summary: Receipt {{invoice.number}}
+
+section: Items
+| Item | Qty | Total | each: items |
+| {{item.description}} | {{item.qty}} | {{item.total}} |
+
+section: Totals
+metric: Total | value: {{totals.total}}
+metric: Paid | value: {{totals.paid}}
+text: Thank you · {{company.name}}
+```
+
+Keep receipt tables to **2–3 narrow columns** so they fit the roll width. `size:` also
+accepts `A4`, `A5`, `Letter`, `Legal`, or any CSS size (`size: 210mm 297mm`).
+
+## Missing data, totals, and Arabic
+
+- **Missing fields print blank, not `{{token}}`.** The kit merges with `missing: "blank"`,
+  so an absent optional field (e.g. `{{customer.phone}}`) renders empty rather than
+  leaking the placeholder onto the document. Pass `{ missing: "keep" }` only while
+  authoring a template, to see which fields are unfilled.
+- **Totals render as label→value rows.** `metric: Subtotal | value: …` is a document
+  total line (label left, amount right; a `Total`/`Balance Due` row is emphasized) — the
+  same as the editor. A metric with `target:`/`trend:` renders as a dashboard KPI card
+  instead.
+- **Arabic / RTL** works out of the box: add `meta: | dir: rtl` and the document (table
+  column order, totals, running footer) lays out right-to-left. Mix Arabic and Latin
+  freely; numbers and `{{invoice.number}}` stay correct via the browser's bidi handling.
+- **Untrusted data is safe.** Merged values are HTML-escaped, and style-property values
+  (e.g. a per-tenant `color:`) can't break out of the `style` attribute — so invoice data
+  from your database can't inject markup.
+
 ## Why this is portable
 
 - **One package** (`@intenttext/core`) plus one small file you own.
