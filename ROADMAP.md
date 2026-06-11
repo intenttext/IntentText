@@ -8,19 +8,42 @@ for the format, [packages/core/SPEC.md](packages/core/SPEC.md)._
 
 # ▶ RESUME HERE — where we are
 
-_Snapshot: 2026-06-10. `@intenttext/core@4.2.0` live on npm; `main` tagged through
-v4.2.0. The project is production-usable for the wedge (template + merge + sign + query)
-and for embedding as a print/report engine in another app._
+_Snapshot: 2026-06-12. `@intenttext/core@4.2.1` live on npm; `main` tagged through
+v4.2.1. **Production-ready for enterprise printing** — audited and hardened as the
+embedded print/report engine for the Jadwal ERP (which is on 4.2.1 in three packages:
+dash, api, desktop-core; client-side printing live via `apps/dash/src/lib/print.ts`)._
+
+## Production-readiness audit (4.2.1, 2026-06-12)
+
+Audited against Jadwal's real templates (A4 invoice, 80mm POS receipt, Arabic) — every
+claim below was verified by rendering through core and inspecting the output, and is
+locked by regression tests (888 passing, incl. 13 production-print guards in
+`packages/core/tests/print-production.test.ts`):
+
+- **Security:** merged data is HTML-escaped everywhere; style-prop values can't break out
+  of `style="…"` (stored-XSS fixed); header/footer text is CSS-string-escaped. Safe for
+  DB/user-entered data.
+- **Editor↔core parity:** `metric:` totals print as label→value rows (Total emphasized)
+  exactly like the editor; header/footer built by ONE shared `cssContentValue()`.
+- **Page numbers:** `{{page}}`/`{{pages}}` compile to CSS counters in print.
+- **Receipts:** `margin:` (singular) honored; narrow pages (≤120mm) default to 4mm. The
+  80mm receipt fits the roll.
+- **Arabic/RTL:** `meta: | dir: rtl` flows the whole document RTL (tables, totals,
+  running footer) — verified visually.
+- **Multi-page:** 120-row tables repeat the header per page; rows never split/clip.
+- **Merge:** never crashes on missing/odd data; `{ missing: "blank" }` renders unresolved
+  `{{fields}}` empty on finished documents (ERP-kit default; `"keep"` for authoring).
 
 ## What's achieved (status)
 
-**Core (`@intenttext/core@4.2.0`, on npm):** one canonical TypeScript parser; 37 tiered
-keywords; `parseAndMerge` (templates + `each:` loops); `renderHTML` / `renderPrint`
-(shared `DOCUMENT_CSS`, `@page` layout, running header/footer); tamper-evidence trust
-(`sealDocument`/`verifyDocument`, SHA-256, canonicalization spec'd in SPEC §4.1 and
-verified reproducible); folder indexing/query. **New in 4.2.0:** inline **styled spans**
-`[text]{ color: …; weight: … }` for partial-line styling, rendered identically by every
-consumer; `underline`/`strike`/`valign` style keys.
+**Core (`@intenttext/core@4.2.1`, on npm):** one canonical TypeScript parser; 37 tiered
+keywords; `parseAndMerge` (templates + `each:` loops, `MergeOptions`); `renderHTML` /
+`renderPrint` (shared `DOCUMENT_CSS`, `@page` layout, running header/footer with page
+counters); tamper-evidence trust (`sealDocument`/`verifyDocument`, SHA-256,
+canonicalization spec'd in SPEC §4.1 and verified reproducible); folder indexing/query.
+**4.2.x:** inline **styled spans** `[text]{ color: …; weight: … }` for partial-line
+styling, rendered identically by every consumer; `underline`/`strike`/`valign` style
+keys; the production-print hardening above.
 
 **Editor (apps/editor):** visual (TipTap) + source (Monaco), faithful round-trip (7/7).
 **WYSIWYG PDF** (prints the editor's own DOM → PDF == on-screen). Native page breaks (no
@@ -34,25 +57,29 @@ faithful end-to-end (per-run marks/spans, unified on core's style keys, fidelity
 see `ecosystem/erp-integration` docs). Examples + demos guarded by `pnpm check:examples`.
 
 **Docs:** SPEC (incl. §4.1 canonicalization), `reference/style-properties` (incl. spans),
-`guide/trust-and-signing` (what sealing does/doesn't prove), `ecosystem/erp-integration`,
-CHANGELOG through 4.2.0.
+`guide/trust-and-signing` (what sealing does/doesn't prove), `ecosystem/erp-integration`
+(now incl. 80mm receipts, missing-data, totals, Arabic), CHANGELOG through 4.2.1.
 
 ## Possible next stages (pick up here)
 
 Nothing is mid-flight — these are fresh, independent options, roughly by leverage:
 
-1. **Scoped `style:` block** ("Styling & visual fidelity" below) — a designated theme/
+1. **Jadwal server-side real PDFs** — Jadwal's backend `HtmlPdfProvider`
+   (`packages/infrastructure/src/pdf/html.pdf-provider.ts`) returns HTML as a Buffer,
+   not real PDF bytes; its API resolvers still use legacy HTML string templates
+   (`renderPdfTemplate`). Next: feed it IntentText output and add a headless-Chrome step
+   (see the puppeteer recipe in `ecosystem/erp-integration`) for emailing/archiving
+   invoices. This work lives in the Jadwal repo, not here.
+2. **Scoped `style:` block** ("Styling & visual fidelity" below) — a designated theme/
    style region so a document can carry house styling without per-line props. The natural
-   next step after inline spans. Lowest-risk, high polish.
-2. **Editor folder-workspace + on-save indexing** (deferred point 5a) — open a directory
-   (File System Access API), maintain `.it-index`, update on save. Turns the single-file
-   editor into a real workspace; unlocks in-editor query.
-3. **Managed trust tiers** (from the trust docs) — RFC-3161 timestamp / PKI signature over
-   the same canonical hash. The paid path; only if a customer needs legal-grade signing.
-4. **ERP kit hardening** — a second template type (report/statement), and optionally
-   publish the kit as a tiny npm package (`@intenttext/print`) instead of copy-paste.
-5. **VSCode `.vsix` refresh** — rebuild/republish the extension against core 4.2.0 if
+   next step after inline spans.
+3. **ERP kit as a package** — optionally publish the kit as `@intenttext/print`
+   (it's currently copy-paste; Jadwal already embedded its own copy in
+   `apps/dash/src/lib/print.ts`). A statement/report template type would round it out.
+4. **VSCode `.vsix` refresh** — rebuild/republish the extension against core 4.2.1 if
    distributing a new build (the extension esbuild-bundles core).
+5. **Editor folder-workspace + on-save indexing**; **managed trust tiers** (RFC-3161 /
+   PKI over the same canonical hash) — unchanged, not ERP-blocking.
 
 **Editor dev note:** the editor bundles core at build time — after any core change,
 **restart `pnpm --filter intenttext-editor dev`** (vite won't re-bundle a workspace dep on
