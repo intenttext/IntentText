@@ -3,6 +3,7 @@ import {
   parseIntentText,
   renderPrint,
   listBuiltinThemes,
+  cssContentValue,
 } from "@intenttext/core";
 
 /** Inject extra CSS before </head> of an HTML document string. */
@@ -16,18 +17,10 @@ function injectCss(html: string, css: string): string {
 const MINIMAL_INK_CSS =
   ".it-doc-callout{background:none!important;border:1px solid #ccc!important}";
 
-/** Build a CSS `content` value from header/footer text, mapping {{page}}/{{pages}}. */
-function cssContent(text: string): string {
-  return String(text)
-    .split(/(\{\{\s*pages?\s*\}\})/g)
-    .filter(Boolean)
-    .map((p) => {
-      if (/\{\{\s*page\s*\}\}/.test(p)) return "counter(page)";
-      if (/\{\{\s*pages\s*\}\}/.test(p)) return "counter(pages)";
-      return JSON.stringify(p);
-    })
-    .join(" ");
-}
+// Header/footer CSS `content` value (maps {{page}}/{{pages}} → counters, CSS-escapes).
+// Shared with core's renderPrint so the editor and core build running headers/footers
+// identically — single source of truth.
+const cssContent = cssContentValue;
 
 /**
  * WYSIWYG print: render the editor's OWN content DOM with its OWN stylesheets, so the

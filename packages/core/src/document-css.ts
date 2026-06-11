@@ -248,6 +248,13 @@ sup.it-fn-ref a{color:#111;text-decoration:none;border-bottom:1px solid #999;}
 .it-metric-red{border-color:#c62828;}
 .it-metric-red .it-metric-value{color:#c62828;}
 .it-metric-neutral{border-color:#ddd;}
+/* Document total/line rows (invoice, receipt, statement) — matches the editor's
+   itMetric node so editor-designed templates print identically. */
+.it-metric-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:5px 0;border-bottom:1px solid var(--it-color-border,#e5e7eb);}
+.it-metric-row__label{color:var(--it-color-muted,#555);}
+.it-metric-row__value{font-variant-numeric:tabular-nums;font-weight:600;color:var(--it-color-text,#111);white-space:nowrap;}
+.it-metric-row--total{border-bottom:none;border-top:2px solid var(--it-color-text,#333);margin-top:2px;padding-top:8px;font-size:1.05em;}
+.it-metric-row--total .it-metric-row__label{color:var(--it-color-text,#111);font-weight:600;}
 .it-amendment{margin:10px 0;padding:10px 14px;border:2px solid #e65100;background:#fff8e1;}
 .it-amendment-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
 .it-amendment-icon{font-size:1rem;}

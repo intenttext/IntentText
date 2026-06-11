@@ -1,0 +1,18 @@
+font: | family: ui-monospace, Menlo, monospace | size: 10pt | leading: 1.4
+page: | size: 80mm auto | margin: 4mm
+
+title: {{company.name}}
+summary: {{doc.title}} {{invoice.number}}
+meta: | date: {{invoice.date}}
+
+section: Items
+| Item | Qty | Total | each: items |
+| {{item.description}} | {{item.qty}} | {{item.total}} |
+
+section: Totals
+metric: Subtotal | value: {{totals.subtotal}}
+metric: Tax | value: {{totals.tax}}
+metric: Total | value: {{totals.total}}
+metric: Paid | value: {{totals.paid}}
+
+text: Thank you · {{company.name}}

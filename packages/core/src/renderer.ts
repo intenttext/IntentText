@@ -53,6 +53,41 @@ function escapeHtml(text: string): string {
 }
 
 /**
+ * Build a CSS `content` value for an @page margin box (running header/footer).
+ *
+ * Two things HTML-escaping gets wrong here and this gets right:
+ *  - `{{page}}` / `{{pages}}` become `counter(page)` / `counter(pages)` so running
+ *    page numbers actually work (parity with the editor's print path).
+ *  - Literal text is escaped for the CSS *string* context (`\` → `\\`, `"` → `\"`,
+ *    newlines flattened) — not HTML entities, which would print as `&quot;`.
+ *
+ * Returns a value ready to drop straight after `content:` (already quoted), e.g.
+ *   `"INV-1 · Page " counter(page)`
+ */
+export function cssContentValue(text: string): string {
+  if (!text) return '""';
+  const parts = String(text)
+    .split(/(\{\{\s*pages?\s*\}\})/g)
+    .filter((p) => p !== "");
+  return (
+    parts
+      .map((p) => {
+        if (/^\{\{\s*page\s*\}\}$/.test(p)) return "counter(page)";
+        if (/^\{\{\s*pages\s*\}\}$/.test(p)) return "counter(pages)";
+        return (
+          '"' +
+          p
+            .replace(/\\/g, "\\\\")
+            .replace(/"/g, '\\"')
+            .replace(/[\r\n]+/g, " ") +
+          '"'
+        );
+      })
+      .join(" ") || '""'
+  );
+}
+
+/**
  * Format an ISO timestamp for trust block display.
  */
 function formatTrustDate(isoStr: string): string {
@@ -217,7 +252,12 @@ function extractInlineStyles(
   for (const [prop, css] of Object.entries(STYLE_PROPERTIES)) {
     const value = properties[prop];
     if (value === undefined || value === "") continue;
-    const strValue = String(value);
+    // The result is emitted inside a `style="…"` attribute. A value from merged
+    // data (e.g. `color: {{brandColor}}`) could otherwise contain a `"` and break
+    // out of the attribute → stored XSS, or a `;`/`{` to inject extra declarations.
+    // Strip declaration/block separators, then HTML-escape — so font-family quotes
+    // survive as entities (decode back to valid CSS) but an attribute breakout can't.
+    const strValue = escapeHtml(String(value).replace(/[;{}]/g, ""));
     if (prop === "border" && strValue === "true") {
       styles.push("border: 1px solid currentColor");
     } else if (prop === "italic" && strValue === "true") {
@@ -266,7 +306,9 @@ function renderBlock(block: IntentBlock): string {
       return `<h3 id="${slugify(block.content)}" class="intent-sub${alignClass}"${styleAttr}>${content}</h3>`;
 
     case "divider":
-      const dividerStyle = props.style ? String(props.style) : "solid";
+      const dividerStyle = props.style
+        ? escapeHtml(String(props.style).replace(/[;{}"]/g, ""))
+        : "solid";
       const label = content
         ? `<span class="intent-divider-label">${content}</span>`
         : "";
@@ -935,6 +977,21 @@ function renderBlock(block: IntentBlock): string {
       const trend = props.trend ? String(props.trend) : "";
       const period = props.period ? escapeHtml(String(props.period)) : "";
 
+      // A dashboard KPI (has target / trend / period) renders as a boxed card.
+      // Everything else is a document total/line (invoice, receipt, statement) and
+      // renders as a label-left / value-right row — matching the editor's `itMetric`
+      // node, so a template designed in the editor prints identically through core.
+      if (!target && !trend && !period) {
+        const isTotal = /\b(total|balance due|amount due|grand)\b/i.test(
+          String(block.content || ""),
+        );
+        const valueText = [val, unit].filter(Boolean).join(" ");
+        return `<div class="it-metric-row${isTotal ? " it-metric-row--total" : ""}">
+        <span class="it-metric-row__label">${content}</span>
+        <span class="it-metric-row__value">${valueText}</span>
+      </div>`;
+      }
+
       const trendIcon =
         trend === "up"
           ? "↑"
@@ -1253,17 +1310,27 @@ function buildDynamicCSS(doc: IntentDocument): string {
   const fontSize = String(fontBlock?.properties?.size || "12pt");
   const leading = String(fontBlock?.properties?.leading || "1.6");
   const rawSize = String(pageBlock?.properties?.size || "A4");
-  const margins = String(pageBlock?.properties?.margins || "20mm");
 
   // v2.9: Resolve paper size — named sizes or custom dimensions
   let pageSize: string;
+  let widthHint = rawSize;
   if (rawSize === "custom") {
     const w = String(pageBlock?.properties?.width || "210mm");
     const h = String(pageBlock?.properties?.height || "297mm");
+    widthHint = w;
     pageSize = `${escapeHtml(w)} ${escapeHtml(h)}`;
   } else {
     pageSize = escapeHtml(PAPER_SIZES[rawSize] || rawSize);
   }
+
+  // Accept `margin` (singular, what the editor and most authors write) or `margins`.
+  // With none set, default by width: a 20mm A4 margin would eat half of an 80mm
+  // thermal receipt, so narrow pages (≤120mm) get a tight 4mm default.
+  const explicitMargin =
+    pageBlock?.properties?.margin ?? pageBlock?.properties?.margins;
+  const widthMatch = /(\d+(?:\.\d+)?)\s*mm/.exec(widthHint);
+  const widthMm = widthMatch ? parseFloat(widthMatch[1]) : Infinity;
+  const margins = String(explicitMargin ?? (widthMm <= 120 ? "4mm" : "20mm"));
 
   return `@page{size:${pageSize};margin:${escapeHtml(margins)};}body.it-print{font-family:${escapeHtml(fontFamily)};font-size:${escapeHtml(fontSize)};line-height:${escapeHtml(leading)};}`;
 }
@@ -1310,20 +1377,20 @@ export function renderPrint(
   let headerFooterCSS = "";
   if (layout.header) {
     const hp = layout.header.properties || {};
-    const left = hp.left ? escapeHtml(String(hp.left)) : "";
-    const center = hp.center ? escapeHtml(String(hp.center)) : "";
-    const right = hp.right ? escapeHtml(String(hp.right)) : "";
-    headerFooterCSS += `@page{@top-left{content:"${left}";}@top-center{content:"${center}";}@top-right{content:"${right}";}}`;
+    const left = cssContentValue(String(hp.left ?? ""));
+    const center = cssContentValue(String(hp.center ?? ""));
+    const right = cssContentValue(String(hp.right ?? ""));
+    headerFooterCSS += `@page{@top-left{content:${left};}@top-center{content:${center};}@top-right{content:${right};}}`;
     if (String(hp["skip-first"]) === "true") {
       headerFooterCSS += `@page:first{@top-left{content:"";}@top-center{content:"";}@top-right{content:"";}}`;
     }
   }
   if (layout.footer) {
     const fp = layout.footer.properties || {};
-    const left = fp.left ? escapeHtml(String(fp.left)) : "";
-    const center = fp.center ? escapeHtml(String(fp.center)) : "";
-    const right = fp.right ? escapeHtml(String(fp.right)) : "";
-    headerFooterCSS += `@page{@bottom-left{content:"${left}";}@bottom-center{content:"${center}";}@bottom-right{content:"${right}";}}`;
+    const left = cssContentValue(String(fp.left ?? ""));
+    const center = cssContentValue(String(fp.center ?? ""));
+    const right = cssContentValue(String(fp.right ?? ""));
+    headerFooterCSS += `@page{@bottom-left{content:${left};}@bottom-center{content:${center};}@bottom-right{content:${right};}}`;
     if (String(fp["skip-first"]) === "true") {
       headerFooterCSS += `@page:first{@bottom-left{content:"";}@bottom-center{content:"";}@bottom-right{content:"";}}`;
     }
@@ -1363,12 +1430,12 @@ export function renderPrint(
   // v2.9: Backward compat — page: header/footer string properties treated as center zone
   let backwardCompatCSS = "";
   if (!layout.header && pageBlock?.properties?.header) {
-    const h = escapeHtml(String(pageBlock.properties.header));
-    backwardCompatCSS += `@page{@top-center{content:"${h}";}}`;
+    const h = cssContentValue(String(pageBlock.properties.header));
+    backwardCompatCSS += `@page{@top-center{content:${h};}}`;
   }
   if (!layout.footer && pageBlock?.properties?.footer) {
-    const f = escapeHtml(String(pageBlock.properties.footer));
-    backwardCompatCSS += `@page{@bottom-center{content:"${f}";}}`;
+    const f = cssContentValue(String(pageBlock.properties.footer));
+    backwardCompatCSS += `@page{@bottom-center{content:${f};}}`;
   }
 
   // v2.9: Minimal-ink CSS

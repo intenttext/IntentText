@@ -84,11 +84,17 @@ function resolveString(
     const value = getByPath(data, path);
     if (value !== undefined && value !== null) return String(value);
 
+    // Unresolved data path. In "blank" mode (production printing) render it empty
+    // so an invoice never shows a literal `{{customer.phone}}`; in "keep" mode
+    // (default) leave the marker visible to aid template debugging.
     hasUnresolved = true;
-    return match;
+    return MISSING_MODE === "blank" ? "" : match;
   });
   return { resolved, hasUnresolved };
 }
+
+/** How to render a `{{path}}` that resolves to nothing. Set per mergeData() call. */
+let MISSING_MODE: "keep" | "blank" = "keep";
 
 function resolveBlock(
   block: IntentBlock,
@@ -308,12 +314,24 @@ function expandEachRows(
  * metadata.title and metadata.summary. Other metadata fields are not resolved.
  * Pure function — returns a new document, never mutates the input.
  */
+export interface MergeOptions {
+  /**
+   * How to render a `{{path}}` with no matching data:
+   *  - "keep" (default): leave the literal marker — useful while authoring templates.
+   *  - "blank": render empty — use for finished documents (invoices, receipts) so a
+   *    missing optional field never prints `{{customer.phone}}`.
+   */
+  missing?: "keep" | "blank";
+}
+
 export function mergeData(
   template: IntentDocument,
   data: Record<string, unknown>,
+  options?: MergeOptions,
 ): IntentDocument {
   if (!template || !template.blocks) return template;
   if (!data || typeof data !== "object") return template;
+  MISSING_MODE = options?.missing ?? "keep";
   const agentName = template.metadata?.agent;
 
   // v2.8.1: expand each: table rows before variable resolution
@@ -349,7 +367,8 @@ export function mergeData(
 export function parseAndMerge(
   source: string,
   data: Record<string, unknown>,
+  options?: MergeOptions,
 ): IntentDocument {
   const template = parseIntentText(source);
-  return mergeData(template, data);
+  return mergeData(template, data, options);
 }

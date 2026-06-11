@@ -6,6 +6,49 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [4.2.1] - 2026-06-12
+
+Production hardening for embedding as an ERP print engine (invoices, receipts,
+statements). Audited against real templates; the fixes below close correctness,
+parity, and security gaps found in the `renderPrint` / merge path.
+
+### Security
+
+- **Stored-XSS via style-property values is fixed.** A merged value used in a style
+  position (e.g. `color: {{brandColor}}`) could contain a `"` and break out of the
+  `style="…"` attribute to inject an event handler. Style values are now stripped of
+  `;{}` and HTML-escaped, so attribute breakout is impossible while valid CSS (including
+  quoted `font-family`) is preserved. Same hardening applied to `divider`'s `style:`.
+
+### Fixed
+
+- **Running page numbers work in print.** `{{page}}` / `{{pages}}` in a `header:`/`footer:`
+  now compile to CSS `counter(page)` / `counter(pages)` instead of printing the literal
+  `{{page}}`. Header/footer text is escaped for the CSS *string* context (no more stray
+  `&quot;`). The editor and core now share one `cssContentValue()` for this — single
+  source of truth.
+- **`metric:` totals match the editor.** A plain `metric: Subtotal | value: …` renders as
+  a label→value total row (amount right-aligned; `Total`/`Balance Due` emphasized), like
+  the editor — not a boxed KPI card. A metric with `target:`/`trend:`/`period:` still
+  renders as a KPI card. So an invoice/receipt prints the same through core as it looks in
+  the editor.
+- **`margin:` (singular) is honored,** matching the editor and most authors — previously
+  only `margins:` was read, so a custom margin was silently ignored. With no margin set,
+  narrow pages (≤120mm, e.g. an 80mm receipt) default to a tight 4mm instead of a 20mm A4
+  margin that would consume half the roll.
+
+### Added
+
+- **`parseAndMerge` / `mergeData` accept `{ missing: "keep" | "blank" }`.** In `"blank"`
+  mode a `{{field}}` with no data renders empty, so a finished document never shows a
+  literal `{{customer.phone}}`. Default stays `"keep"` for template authoring; the ERP
+  kit defaults to `"blank"`.
+- Exported `cssContentValue()` and the `MergeOptions` type.
+- `demo/erp-integration/`: an 80mm `receipt-template.it`; the kit now merges with
+  `missing: "blank"`. New ecosystem docs cover receipts, missing-data, totals, and Arabic.
+- 13 production-printing regression tests (metric parity, page counters, CSS/style
+  escaping, missing-field modes, multi-page header repeat, RTL) — 888 total, all passing.
+
 ## [4.2.0] - 2026-06-10
 
 ### Added
