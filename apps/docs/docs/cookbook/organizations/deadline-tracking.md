@@ -18,43 +18,54 @@ Use `deadline:` in every document. Query them to see every upcoming deadline acr
 Contracts have renewal dates:
 
 ```intenttext
-deadline: Contract renewal | due: 2027-03-31 | status: pending
-deadline: Payment due | due: 2026-04-15 | status: pending
+deadline: Contract renewal | date: 2027-03-31 | status: pending
+deadline: Payment due | date: 2026-04-15 | status: pending
 ```
 
 Projects have milestones:
 
 ```intenttext
-deadline: Phase 1 complete | due: 2026-06-01 | status: in-progress
-deadline: Beta launch | due: 2026-07-15 | status: pending
+deadline: Phase 1 complete | date: 2026-06-01 | status: in-progress
+deadline: Beta launch | date: 2026-07-15 | status: pending
 ```
 
 HR has review cycles:
 
 ```intenttext
-deadline: Q2 performance reviews | due: 2026-06-30 | status: pending
-deadline: Annual compensation review | due: 2026-12-01 | status: pending
+deadline: Q2 performance reviews | date: 2026-06-30 | status: pending
+deadline: Annual compensation review | date: 2026-12-01 | status: pending
+```
+
+Arabic documents use the `مهلة` alias — same canonical `deadline` semantics, same queries, and the keyword round-trips exactly as written. Dates are always ISO `YYYY-MM-DD`:
+
+```intenttext
+مهلة: تجديد الرخصة التجارية | date: 2026-09-30 | status: pending
+مهلة: سداد دفعة المورد | date: 2026-07-15 | status: pending
+مهلة: انتهاء عقد الإيجار | date: 2027-01-31 | status: pending
 ```
 
 ### Query upcoming deadlines
 
 ```bash
 # All deadlines across the company
-intenttext query ./company --type deadline --format table
+dotit query ./company --type deadline --format table
 ```
 
 ```
-File                              Type      Content                   Due          Status
+File                              Type      Content                   Date         Status
 contracts/acme.it                 deadline  Payment due               2026-04-15   pending
 contracts/globaltech.it           deadline  Contract renewal          2027-03-31   pending
+contracts/gulf-tech.it            deadline  تجديد الرخصة التجارية      2026-09-30   pending
 projects/cloud-migration.it      deadline  Phase 1 complete          2026-06-01   in-progress
 hr/reviews/q2.it                  deadline  Q2 performance reviews    2026-06-30   pending
 ```
 
+One query spans every language — `مهلة` blocks index as `deadline`, so Arabic and English deadlines land in the same table. ISO dates are what make the date comparisons and sorting work.
+
 ### Natural language
 
 ```bash
-intenttext ask ./company "What deadlines are coming up in April?" --format text
+dotit ask ./company "What deadlines are coming up in April?" --format text
 ```
 
 > Two deadlines in April 2026:
@@ -66,16 +77,16 @@ intenttext ask ./company "What deadlines are coming up in April?" --format text
 
 ```bash
 # Only pending deadlines
-intenttext query ./company --type deadline --status pending --format table
+dotit query ./company --type deadline --status pending --format table
 
 # Overdue deadlines
-intenttext ask ./company "What deadlines are overdue?" --format text
+dotit ask ./company "What deadlines are overdue?" --format text
 ```
 
 ### Export for calendar integration
 
 ```bash
-intenttext query ./company --type deadline --format csv > deadlines.csv
+dotit query ./company --type deadline --format csv > deadlines.csv
 ```
 
 Import into Google Calendar, Outlook, or any project management tool.
@@ -84,18 +95,17 @@ Import into Google Calendar, Outlook, or any project management tool.
 
 When `deadline:` blocks are rendered, they're color-coded by proximity:
 
-| Time remaining | Display                |
-| -------------- | ---------------------- |
-| > 30 days      | Green — plenty of time |
-| 7–30 days      | Yellow — approaching   |
-| < 7 days       | Orange — imminent      |
-| Overdue        | Red — past due         |
+| Time remaining            | Display                |
+| ------------------------- | ---------------------- |
+| > 30 days                 | Green — plenty of time |
+| 7–30 days                 | Amber — approaching    |
+| < 7 days (incl. overdue)  | Red — imminent or past |
 
 This applies to both HTML and print rendering.
 
 ```bash
 # Render a document with color-coded deadlines
-intenttext project.it --html --theme corporate
+dotit project.it --html --theme corporate
 ```
 
 ## The pattern

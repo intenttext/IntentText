@@ -10,8 +10,7 @@ Three keywords for organizing the document — sections, subsections, and a tabl
 ## `section:`
 
 **Category:** Structure
-**Since:** v1.0
-**Aliases:** `h2:`, `heading:`, `chapter:`
+**Aliases:** `قسم:`, `h2:`, `heading:`, `chapter:`
 
 Section heading. Renders as H2. Blocks below belong to this section until the next `section:`.
 
@@ -39,8 +38,7 @@ section: Definitions
 ## `sub:`
 
 **Category:** Structure
-**Since:** v1.0
-**Aliases:** `h3:`, `subheading:`
+**Aliases:** `فرعي:`, `h3:`, `subheading:`
 
 Subsection heading. Renders as H3.
 
@@ -65,7 +63,6 @@ text: A fee of 1.5% per month applies to overdue payments.
 ## `toc:`
 
 **Category:** Structure
-**Since:** v2.5
 
 Auto-generated table of contents based on `section:` and `sub:` headings in the document.
 

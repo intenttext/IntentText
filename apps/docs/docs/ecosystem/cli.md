@@ -10,35 +10,35 @@ The IntentText command-line tool handles parsing, rendering, querying, template 
 ## Installation
 
 ```bash
-npm install -g intenttext
+npm install -g @dotit/core
 ```
 
 Or use without installing:
 
 ```bash
-npx intenttext <command>
+npx -p @dotit/core dotit <command>
 ```
 
 ## Quick start
 
 ```bash
 # Parse a file
-intenttext document.it
+dotit document.it
 
 # Render to HTML
-intenttext document.it --html --theme corporate
+dotit document.it --html --theme corporate
 
 # Query deadlines
-intenttext query ./contracts --type deadline --format table
+dotit query ./contracts --type deadline --format table
 
 # Seal a contract
-intenttext seal contract.it --signer "Ahmed" --role "CEO"
+dotit seal contract.it --signer "Ahmed" --role "CEO"
 
 # Verify integrity
-intenttext verify contract.it
+dotit verify contract.it
 
 # Amend a frozen document
-intenttext amend contract.it --section "Payment" --was "Net 30" --now "Net 15" --ref "Amendment #1"
+dotit amend contract.it --section "Payment" --was "Net 30" --now "Net 15" --ref "Amendment #1"
 ```
 
 ## Common workflows
@@ -48,26 +48,26 @@ intenttext amend contract.it --section "Payment" --was "Net 30" --now "Net 15" -
 ```bash
 # Write a .it file in your editor
 # Render to see the output
-intenttext document.it --html --theme minimal
+dotit document.it --html --theme minimal
 
 # Iterate — edit the .it file, re-render
-intenttext document.it --print --theme corporate
+dotit document.it --print --theme corporate
 
 # Export to PDF
-intenttext document.it --pdf --theme legal
+dotit document.it --pdf --theme legal
 ```
 
 ### Template workflow
 
 ```bash
 # Start with a Hub template
-intenttext hub pull invoice-standard --domain finance
+dotit hub pull invoice-standard --domain finance
 
 # Prepare your data
 echo '{"client": "Acme Corp", "amount": 5000}' > data.json
 
 # Merge and render
-intenttext invoice-standard.it --data data.json --pdf --theme corporate
+dotit invoice-standard.it --data data.json --pdf --theme corporate
 ```
 
 ### Trust workflow
@@ -77,33 +77,33 @@ intenttext invoice-standard.it --data data.json --pdf --theme corporate
 # Get approvals (add approve: blocks manually or via editor)
 
 # Seal when ready
-intenttext seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
+dotit seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
 
 # Send to counterparty — they seal too
-intenttext seal contract.it --signer "Maria Santos" --role "COO"
+dotit seal contract.it --signer "Maria Santos" --role "COO"
 
 # Verify at any time
-intenttext verify contract.it
+dotit verify contract.it
 
 # Amend if needed
-intenttext amend contract.it --section "Scope" --now "Extended to Phase 2" --ref "Amendment #1"
+dotit amend contract.it --section "Scope" --now "Extended to Phase 2" --ref "Amendment #1"
 
 # View complete history
-intenttext history contract.it
+dotit history contract.it
 ```
 
 ### Organizational workflow
 
 ```bash
 # Build indexes
-intenttext index ./company --recursive
+dotit index ./company --recursive
 
 # Query across everything
-intenttext query ./company --type deadline --format table
-intenttext query ./company --type contact --format csv > contacts.csv
+dotit query ./company --type deadline --format table
+dotit query ./company --type contact --format csv > contacts.csv
 
 # Natural language queries
-intenttext ask ./company "Which contracts expire this quarter?" --format text
+dotit ask ./company "Which contracts expire this quarter?" --format text
 ```
 
 ## Configuration
@@ -120,7 +120,7 @@ intenttext ask ./company "Which contracts expire this quarter?" --format text
 
 | Variable            | Description                                            |
 | ------------------- | ------------------------------------------------------ |
-| `ANTHROPIC_API_KEY` | Required for `intenttext ask` (natural language query) |
+| `ANTHROPIC_API_KEY` | Required for `dotit ask` (natural language query) |
 | `INTENTTEXT_THEME`  | Default theme for all render commands                  |
 
 ## Full command reference

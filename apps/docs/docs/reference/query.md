@@ -12,7 +12,7 @@ IntentText documents are queryable. Every block is structured data — you can f
 ### CLI
 
 ```bash
-intenttext document.it --query "type=task owner=Ahmed due<2026-03-01 sort:due:asc limit:10"
+dotit document.it --query "type=task owner=Ahmed due<2026-03-01 sort:due:asc limit:10"
 ```
 
 ### Query string syntax
@@ -44,19 +44,42 @@ Conditions are split on whitespace. Values that contain spaces (e.g., `owner=Ahm
 | `limit:N`        | Limit results    | `limit:10`                |
 | `offset:N`       | Pagination       | `offset:5`                |
 
+### Dates are ISO 8601
+
+Date comparisons (`due<2026-03-01`, `date>=2026-01-01`) work out of the box **when the values are ISO 8601** — `YYYY-MM-DD` or a full timestamp like `2026-03-01T09:00:00Z`. ISO dates sort and compare correctly as dates, not as strings.
+
+This is why the format standardizes on ISO for the date-bearing property keys (`date`, `due`, `at`, `expires`, `issued`). Locale forms like `09/03/2026` are ambiguous (March 9 or September 3?) and break range queries — the semantic validator flags them with a `DATE_NOT_ISO` warning. Template placeholders (`due: {{invoice.dueDate}}`) are exempt.
+
+```bash
+# Every task due before March — works because due: values are ISO
+dotit document.it --query "type=task due<2026-03-01 sort:due:asc"
+```
+
+### Queries cross languages
+
+Arabic keyword aliases resolve to canonical types, so one query finds blocks regardless of the language they were written in. Given a quotation written in Arabic:
+
+```intenttext
+عنوان: عرض سعر — تأثيث المكتب الرئيسي
+مهمة: اعتماد العرض | owner: أحمد | due: 2026-06-20
+مهلة: انتهاء صلاحية العرض | date: 2026-07-15 | consequence: يلزم عرض جديد
+```
+
+`type=task due<2026-07-01` matches the `مهمة:` block exactly as it would an English `task:` line. Custom Arabic keywords and property keys are queryable too — `فئة=أثاث` filters `مصروف:` expense blocks by their Arabic category property.
+
 ## Multi-file query
 
 Query `.it` files across an entire directory.
 
 ```bash
 # Query all .it files in a directory
-intenttext query ./contracts --type approve --format table
+dotit query ./contracts --type approve --format table
 
 # Glob pattern
-intenttext query "docs/*.it" --type deadline --format json
+dotit query "docs/*.it" --type deadline --format json
 
 # Combined filters
-intenttext query ./hr --type contact --by "Sarah" --format csv
+dotit query ./hr --type contact --by "Sarah" --format csv
 ```
 
 ### Flags
@@ -120,6 +143,15 @@ const results = queryDocument(doc, {
 });
 ```
 
+The string syntax is also available programmatically via `queryBlocks` + `parseQuery`:
+
+```javascript
+import { parseIntentText, queryBlocks, parseQuery } from "@dotit/core";
+
+const doc = parseIntentText(source);
+const { blocks, matched } = queryBlocks(doc, parseQuery("type=task due<2026-03-01 sort:due:asc"));
+```
+
 ### Return value
 
 Array of matching `IntentBlock` objects:
@@ -139,8 +171,8 @@ Array of matching `IntentBlock` objects:
 Ask questions in plain English. Uses an LLM to interpret the question and return structured answers.
 
 ```bash
-intenttext ask ./contracts "What tasks are overdue?" --format text
-intenttext ask ./hr "Who are the contacts in the Engineering section?" --format json
+dotit ask ./contracts "What tasks are overdue?" --format text
+dotit ask ./hr "Who are the contacts in the Engineering section?" --format json
 ```
 
 ### Flags
@@ -159,11 +191,11 @@ For large document collections, build indexes first, then query the composed ind
 
 ```bash
 # Build indexes
-intenttext index ./contracts --recursive
-intenttext index ./hr --recursive
+dotit index ./contracts --recursive
+dotit index ./hr --recursive
 
 # Query uses indexes automatically when available
-intenttext query ./contracts --type deadline --format table
+dotit query ./contracts --type deadline --format table
 ```
 
 See [Index Files](./index-file) for details on the `.it-index` format.

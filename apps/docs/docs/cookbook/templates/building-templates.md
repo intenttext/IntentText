@@ -30,7 +30,7 @@ section: Line Items
 
 section: Payment
 metric: Total Due | value: 23000 | unit: USD
-deadline: Payment due | due: 2026-04-15
+deadline: Payment due | date: 2026-04-15
 ```
 
 ### After: a template
@@ -50,7 +50,7 @@ section: Line Items
 
 section: Payment
 metric: Total Due | value: {{total}} | unit: {{currency}}
-deadline: Payment due | due: {{payment_due}}
+deadline: Payment due | date: {{payment_due}}
 ```
 
 ### The data
@@ -98,22 +98,22 @@ deadline: Payment due | due: {{payment_due}}
 
 ```bash
 # Parse merged document (JSON output)
-intenttext template.it --data data.json
+dotit template.it --data data.json
 
 # Render to HTML
-intenttext template.it --data data.json --html --theme corporate
+dotit template.it --data data.json --html --theme corporate
 
 # Render to PDF
-intenttext template.it --data data.json --pdf --theme corporate
+dotit template.it --data data.json --pdf --theme corporate
 ```
 
 ### JavaScript
 
 ```javascript
-import { parseAndMerge, render } from "@dotit/core";
+import { parseAndMerge, renderHTML } from "@dotit/core";
 
 const doc = parseAndMerge(templateSource, data);
-const html = render(doc, { theme: "corporate" });
+const html = renderHTML(doc, { theme: "corporate" });
 ```
 
 ## What happens to missing variables
@@ -122,14 +122,19 @@ If a variable has no matching data, the `{{variable}}` text stays visible in the
 
 ```bash
 # Find blocks with missing data
-intenttext template.it --data partial-data.json --query "unresolved=1"
+dotit template.it --data partial-data.json --query "unresolved=1"
 ```
 
 ## Publish to the Hub
 
+:::caution Planned — not yet in the CLI
+The `dotit hub` subcommands shown below are **planned**; today the Hub is browse-and-copy
+via the web app, and the current `dotit` CLI does not include them yet.
+:::
+
 ```bash
 # Upload to the IntentText Hub
-intenttext hub publish invoice-template.it --domain finance
+dotit hub publish invoice-template.it --domain finance
 ```
 
 The template becomes available for anyone to browse, fork, and use.

@@ -42,7 +42,7 @@ Each `.it-index` covers only its immediate folder. `hr/.it-index` knows about `p
 ### Step 1: Build indexes
 
 ```bash
-intenttext index ./hr --recursive
+dotit index ./hr --recursive
 ```
 
 This creates:
@@ -54,7 +54,7 @@ This creates:
 ### Step 2: Query
 
 ```bash
-intenttext query ./hr --type contact --format table
+dotit query ./hr --type contact --format table
 ```
 
 The CLI:
@@ -74,10 +74,10 @@ hr/profiles/sarah.it         contact  Sarah Chen    Personal   role: VP Eng
 
 ```bash
 # Only profiles, not templates
-intenttext query ./hr/profiles --type contact --format table
+dotit query ./hr/profiles --type contact --format table
 
 # Only policies
-intenttext query ./hr --type policy --format table
+dotit query ./hr --type policy --format table
 ```
 
 ## Real-world example
@@ -86,19 +86,19 @@ An organization with 500+ documents:
 
 ```bash
 # Build all indexes
-intenttext index ./company --recursive
+dotit index ./company --recursive
 
 # Find all deadlines across the entire company
-intenttext query ./company --type deadline --format table
+dotit query ./company --type deadline --format table
 
 # Find contracts expiring this quarter
-intenttext ask ./company/contracts "Which contracts expire before July 2026?" --format text
+dotit ask ./company/contracts "Which contracts expire before July 2026?" --format text
 
 # Build a contact directory
-intenttext query ./company --type contact --format csv > contacts.csv
+dotit query ./company --type contact --format csv > contacts.csv
 
 # Find all amendments
-intenttext query ./company/contracts --type amendment --format table
+dotit query ./company/contracts --type amendment --format table
 ```
 
 Each query reads only the relevant `.it-index` files. No full file parsing needed.

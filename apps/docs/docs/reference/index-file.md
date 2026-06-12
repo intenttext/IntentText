@@ -35,10 +35,10 @@ Why shallow? Because folders are organizational boundaries. An HR folder might h
 
 ```bash
 # Build a shallow index for one folder
-intenttext index ./contracts
+dotit index ./contracts
 
 # Build indexes in all subfolders recursively
-intenttext index ./company --recursive
+dotit index ./company --recursive
 ```
 
 ### Programmatic API
@@ -57,7 +57,7 @@ const index = buildShallowIndex(folder, files, coreVersion);
   "scope": "shallow",
   "folder": "contracts",
   "built_at": "2026-03-15T10:30:00Z",
-  "core_version": "3.1.0",
+  "core_version": "1.0.0",
   "files": {
     "service-agreement.it": {
       "hash": "abc123",
@@ -109,7 +109,7 @@ Every block type **except** layout and structural blocks:
 
 ## Staleness detection
 
-The index tracks file hashes. When you run `intenttext index`, it checks:
+The index tracks file hashes. When you run `dotit index`, it checks:
 
 1. Are there new `.it` files not in the index?
 2. Have any indexed files been modified (hash mismatch)?
@@ -148,7 +148,7 @@ Multi-folder queries compose indexes automatically when `.it-index` files exist:
 
 ```bash
 # Queries contracts/ and uses .it-index if available
-intenttext query ./contracts --type deadline --format table
+dotit query ./contracts --type deadline --format table
 ```
 
 ## Real-world example: HR department
@@ -173,16 +173,16 @@ hr/
 
 ```bash
 # Build all indexes
-intenttext index ./hr --recursive
+dotit index ./hr --recursive
 
 # Find all deadlines across HR
-intenttext query ./hr/employees --type deadline --format table
+dotit query ./hr/employees --type deadline --format table
 
 # Find all contacts
-intenttext query ./hr/employees --type contact --format json
+dotit query ./hr/employees --type contact --format json
 
 # Find policies by topic
-intenttext query ./hr/policies --content "remote" --format table
+dotit query ./hr/policies --content "remote" --format table
 ```
 
 Each `.it-index` covers only its folder. The `--recursive` flag builds one per subfolder, not a single giant index.

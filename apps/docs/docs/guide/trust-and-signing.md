@@ -56,10 +56,10 @@ After `freeze:`, the document is immutable. Any edit changes the content, which 
 
 ## Seal with the CLI
 
-One command does approve + sign + freeze:
+One command does sign + freeze:
 
 ```bash
-intenttext seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
+dotit seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
 ```
 
 This:
@@ -72,7 +72,7 @@ This:
 ## Verify anytime
 
 ```bash
-intenttext verify contract.it
+dotit verify contract.it
 ```
 
 ```
@@ -118,7 +118,7 @@ The original seal is preserved. The amendment is additive — it records what ch
 ## Amend with the CLI
 
 ```bash
-intenttext amend contract.it \
+dotit amend contract.it \
   --section "Payment" \
   --was "Net 30" \
   --now "Net 15" \
@@ -129,7 +129,7 @@ intenttext amend contract.it \
 ## Verify after amendment
 
 ```bash
-intenttext verify contract.it
+dotit verify contract.it
 ```
 
 ```
@@ -145,7 +145,7 @@ intenttext verify contract.it
 ## View history
 
 ```bash
-intenttext history contract.it
+dotit history contract.it
 ```
 
 ```
@@ -159,9 +159,9 @@ v1.2  2026-03-05  Ahmed Al-Rashid   Final edits
 Filter by author or section:
 
 ```bash
-intenttext history contract.it --by "Sarah Chen"
-intenttext history contract.it --section "Payment"
-intenttext history contract.it --json
+dotit history contract.it --by "Sarah Chen"
+dotit history contract.it --section "Payment"
+dotit history contract.it --json
 ```
 
 ## The history boundary

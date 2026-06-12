@@ -100,16 +100,16 @@ Create `invoice-data.json`:
 
 ```bash
 # Preview the merged JSON
-intenttext invoice-template.it --data invoice-data.json
+dotit invoice-template.it --data invoice-data.json
 
 # Render to HTML
-intenttext invoice-template.it --data invoice-data.json --html
+dotit invoice-template.it --data invoice-data.json --html
 
 # Render with a theme
-intenttext invoice-template.it --data invoice-data.json --html --theme corporate
+dotit invoice-template.it --data invoice-data.json --html --theme corporate
 
 # Export to PDF
-intenttext invoice-template.it --data invoice-data.json --pdf invoice.pdf
+dotit invoice-template.it --data invoice-data.json --pdf invoice.pdf
 ```
 
 ## How `each:` works

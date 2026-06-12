@@ -168,7 +168,7 @@ Server PDFs: npm i @dotit/pdf →
 ## 8. Query — a folder of .it files is a database
 
   queryBlocks(doc, "type:task owner:Ahmed sort:due:asc limit:5")
-  CLI: intenttext query ./docs "type:invoice status:Unpaid"
+  CLI: dotit query ./docs "type:invoice status:Unpaid"
 Folder indexing is shallow, per-folder (.it-index), self-healing on query.
 
 ## 9. Generation rules (follow these exactly)

@@ -23,11 +23,11 @@ page: | size: A4 | margins: 2.54cm
 font: | body: Inter | heading: Inter | mono: JetBrains Mono | size: 11pt
 
 // Running header and footer
-header: CONFIDENTIAL — Service Agreement | align: left | size: 8pt
-footer: Page {page} of {pages} | align: center | size: 8pt
+header: CONFIDENTIAL — Service Agreement
+footer: Page {{page}} of {{pages}}
 
 // Watermark (remove for final version)
-watermark: DRAFT | color: #cccccc | opacity: 0.06
+watermark: DRAFT | color: rgba(0,0,0,0.06)
 
 section: Parties
 
@@ -46,11 +46,11 @@ metric: Annual value | value: 180000 | unit: USD | weight: bold
 
 section: Timeline
 
-deadline: Contract effective | due: 2026-04-01
-deadline: Contract renewal | due: 2027-03-31
+deadline: Contract effective | date: 2026-04-01
+deadline: Contract renewal | date: 2027-03-31
 
 // Page break before signatures
-break: | before: page
+break:
 
 section: Signatures
 
@@ -59,8 +59,6 @@ sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22 | hash: sha256:a1b2c3d4
 
 signline: Ahmed Al-Rashid | role: CEO, Acme Corp | label: Provider Signature
 signline: | label: Date | width: 30%
-
-break: | before: 2cm
 
 signline: Maria Santos | role: COO, GlobalTech | label: Client Signature
 signline: | label: Date | width: 30%
@@ -101,19 +99,19 @@ Print rendering uses system fonts. Specify fonts available on the target machine
 ### Headers and footers
 
 ```intenttext
-header: Company Name — Document Title | align: left | size: 8pt
-footer: Page {page} of {pages} | align: center | size: 8pt
+header: Company Name — Document Title
+footer: Page {{page}} of {{pages}}
 ```
 
-`{page}` and `{pages}` are auto-replaced with the current page number and total pages.
+`{{page}}` and `{{pages}}` compile to live CSS page counters in print output — the editor and `renderPrint` share the same engine. For three-zone layouts, use zone properties instead of content: `footer: | left: INV-1 | center: Page {{page}} of {{pages}} | right: Confidential`.
 
 ### Page breaks
 
 ```intenttext
-break: | before: page
+break:
 ```
 
-Forces a page break before the next block. Use before signature sections to keep them on a clean page.
+Forces a page break at that point. Use before signature sections to keep them on a clean page.
 
 ### Signature lines
 
@@ -127,10 +125,10 @@ Creates a horizontal line on the printed page for wet-ink signatures. Combine `s
 
 ```bash
 # Print HTML (open in browser, Ctrl+P)
-intenttext contract.it --print --theme corporate
+dotit contract.it --print --theme corporate
 
 # Direct PDF
-intenttext contract.it --pdf --theme corporate
+dotit contract.it --pdf --theme corporate
 ```
 
 ## Next steps

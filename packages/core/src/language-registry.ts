@@ -4,7 +4,7 @@
  * Single source of truth for the IntentText keyword contract.
  * KEYWORDS array, BlockType union, and ALIASES map are all derived from this.
  *
- * v2.14: Canonical keyword set frozen at 37 keywords.
+ * v2.14: Canonical keyword set frozen at 37 keywords (38 since `style` joined in 4.3).
  * Everything else is an alias, internal type, or extension block.
  */
 
@@ -548,8 +548,8 @@ export const CANONICAL_KEYWORDS: string[] = LANGUAGE_REGISTRY.filter(
   (k) => k.status === "stable",
 ).map((k) => k.canonical);
 
-/** Total canonical keyword count — frozen at 37. */
-export const KEYWORD_COUNT = CANONICAL_KEYWORDS.length; // 37
+/** Total canonical keyword count — 38 (37 at the v2.14 freeze + `style`). */
+export const KEYWORD_COUNT = CANONICAL_KEYWORDS.length; // 38
 
 /** Total extension keyword count. */
 export const EXTENSION_COUNT = EXTENSION_REGISTRY.length;

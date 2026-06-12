@@ -12,7 +12,7 @@ You need a `.it` document as a PDF — for email, print, archive, or legal filin
 ## The solution
 
 ```bash
-intenttext document.it --pdf --theme corporate
+dotit document.it --pdf --theme corporate
 ```
 
 This renders the document to PDF using the print renderer with full layout support: page size, fonts, headers, footers, watermarks, and signature lines.
@@ -21,13 +21,13 @@ This renders the document to PDF using the print renderer with full layout suppo
 
 ```bash
 # Default theme
-intenttext document.it --pdf
+dotit document.it --pdf
 
 # With a specific theme
-intenttext document.it --pdf --theme legal
+dotit document.it --pdf --theme legal
 
 # Template merge to PDF
-intenttext template.it --data data.json --pdf --theme corporate
+dotit template.it --data data.json --pdf --theme corporate
 ```
 
 ## Theme selection
@@ -46,9 +46,9 @@ Choose a theme that matches the document type:
 | `dark`      | Screen reading (not great for print)   |
 
 ```bash
-intenttext report.it --pdf --theme corporate
-intenttext contract.it --pdf --theme legal
-intenttext newsletter.it --pdf --theme editorial
+dotit report.it --pdf --theme corporate
+dotit contract.it --pdf --theme legal
+dotit newsletter.it --pdf --theme editorial
 ```
 
 ## PDF metadata
@@ -69,9 +69,9 @@ Control the PDF layout from inside the `.it` file:
 ```intenttext
 page: | size: A4 | margins: 2.54cm
 font: | body: Inter | heading: Inter | size: 11pt
-header: Company Name | align: left | size: 8pt
-footer: Page {page} of {pages} | align: center | size: 8pt
-watermark: CONFIDENTIAL | opacity: 0.05
+header: Company Name
+footer: Page {{page}} of {{pages}}
+watermark: CONFIDENTIAL | color: rgba(0,0,0,0.05)
 ```
 
 These keywords only affect print/PDF output. They're ignored in standard HTML rendering.
@@ -84,7 +84,29 @@ PDF generation requires Puppeteer:
 npm install puppeteer
 ```
 
-Puppeteer uses a headless Chromium instance to convert the print HTML to PDF. It's a dev dependency — not needed for parsing, rendering to HTML, or any other operation.
+Puppeteer uses a headless Chromium instance to convert the print HTML to PDF. It's an optional dependency — not needed for parsing, rendering to HTML, or any other operation.
+
+## Server-side PDFs: `@dotit/pdf`
+
+For programmatic PDF generation (emailing invoices, compliance archiving, batch runs), use the dedicated package — core stays zero-dependency:
+
+```bash
+npm install @dotit/pdf
+```
+
+```javascript
+import { issuePDF } from "@dotit/pdf";
+
+// merge → seal (tamper-evident SHA-256) → real PDF bytes, in one call
+const { source, hash, at, pdf } = await issuePDF(templateSource, data, {
+  signer: "Billing System",
+  role: "Issuer",
+  theme: "corporate",
+});
+// store the sealed .it `source` on the record; email/archive the `pdf` bytes
+```
+
+`issueDocument()` does the same flow minus Chrome (returns print-ready HTML), and `renderPDF()` / `createPdfRenderer()` are the lower-level primitives (the latter reuses one Chrome instance for batch runs).
 
 ## Batch export
 

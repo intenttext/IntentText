@@ -23,11 +23,11 @@ meta: | type: research | agent: research-agent
 section: Findings
 
 text: The cloud services market grew 22% YoY in Q1 2026.
-cite: Gartner Cloud Report 2026 | by: Gartner | at: https://gartner.com/cloud-2026
+cite: Gartner Cloud Report 2026 | author: Gartner | url: https://gartner.com/cloud-2026
 
 metric: Market size | value: 540 | unit: billion USD | trend: up
 metric: YoY growth | value: 22 | unit: % | trend: up
-metric: Top 3 share | value: 67 | unit: % | trend: flat
+metric: Top 3 share | value: 67 | unit: % | trend: stable
 
 context: Analysis prepared for strategic planning team. Focus on mid-market segment.
 
@@ -132,13 +132,13 @@ audit: Research complete | by: research-agent | at: 2026-03-15T10:00:00Z | level
 
 ```bash
 # Find all agent outputs
-intenttext query ./agents --type done --format table
+dotit query ./agents --type done --format table
 
 # Find all references between documents
-intenttext query ./agents --type ref --format json
+dotit query ./agents --type ref --format json
 
 # Trace the chain from any document
-intenttext ask ./agents "What documents led to the execution plan?" --format text
+dotit ask ./agents "What documents led to the execution plan?" --format text
 ```
 
 ## Next steps

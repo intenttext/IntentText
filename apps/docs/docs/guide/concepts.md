@@ -44,17 +44,17 @@ The `code:` keyword isn't special. Every block is `keyword: value | properties`.
 
 IntentText has a stable **38-keyword canonical contract**, plus aliases and extension keywords for specialized domains.
 
-Keywords are grouped into 7 categories:
+The canonical keywords are tiered — a small everyday **core** set plus opt-in profiles:
 
-| Category      | Keywords                                                                                                                                                                                                                                                                           | Purpose                       |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| **Identity**  | `title:`, `summary:`, `meta:`, `context:`, `track:`, `agent:`, `model:`                                                                                                                                                                                                            | What the document is          |
-| **Content**   | `text:`, `quote:`, `cite:`, `warning:`, `danger:`, `tip:`, `info:`, `success:`, `code:`, `image:`, `link:`, `def:`, `figure:`, `contact:`, `byline:`, `epigraph:`, `caption:`, `footnote:`, `dedication:`                                                                          | What the document says        |
-| **Structure** | `section:`, `sub:`, `break:`, `ref:`, `deadline:`, `embed:`, `toc:`                                                                                                                                                                                                                | How the document is organized |
-| **Data**      | `columns:`, `row:`, `input:`, `output:`, `metric:`                                                                                                                                                                                                                                 | Typed data blocks             |
-| **Agent**     | `step:`, `gate:`, `trigger:`, `signal:`, `decision:`, `memory:`, `prompt:`, `tool:`, `audit:`, `done:`, `error:`, `result:`, `handoff:`, `wait:`, `parallel:`, `retry:`, `call:`, `loop:`, `checkpoint:`, `import:`, `export:`, `progress:`, `task:`, `ask:`, `assert:`, `secret:` | Workflow for AI agents        |
-| **Trust**     | `approve:`, `sign:`, `freeze:`, `revision:`, `policy:`, `amendment:`, `history:`                                                                                                                                                                                                   | Document integrity            |
-| **Layout**    | `page:`, `font:`, `header:`, `footer:`, `watermark:`, `signline:`, `divider:`                                                                                                                                                                                                      | Print and PDF rendering       |
+| Tier | Keywords | Use for |
+| --- | --- | --- |
+| **core** (13) | `title:` `summary:` `meta:` `section:` `sub:` `text:` `info:` `quote:` `code:` `image:` `link:` `task:` `done:` | Everyday documents: notes, READMEs, plans |
+| **agent** | `step:` `decision:` `gate:` `trigger:` `result:` `policy:` `audit:` `ask:` `context:` | AI / workflow documents |
+| **contract** | `sign:` `approve:` `freeze:` `track:` `amendment:` `cite:` | Signed, frozen, auditable documents |
+| **data** | `columns:` `row:` `metric:` | Tabular / metric data |
+| **print** | `page:` `header:` `footer:` `watermark:` `style:` `break:` `toc:` | Print / PDF layout |
+
+Beyond the canonical set: **aliases** (`todo:` resolves to `task:`, plus 33 Arabic aliases like `عنوان:` for `title:` that round-trip as written), **extension keywords** (`deadline:`, `contact:`, `def:`, `ref:`, `figure:`, and the `x-ns:` namespaces), and **custom keywords** — any `word: ...` line you invent parses as a typed `custom` block, never an error.
 
 Every keyword has a purpose. Use `text:` for text, `task:` for trackable work, `metric:` for measurable values, `deadline:` for dates with consequences.
 
@@ -69,6 +69,8 @@ task: Review the contract | owner: Ahmed | due: 2026-04-15 | status: pending
 The first value after the colon is always the **content**. Everything after a `|` is a **property**. Properties are `key: value` pairs.
 
 Some keywords have specific properties — `task:` understands `owner:`, `due:`, `status:`. Others have general properties — any keyword can use [style properties](../reference/style-properties) like `color:`, `weight:`, `align:`.
+
+Two conventions keep lines unambiguous: dates in date-bearing properties (`date:`, `due:`, `at:`, `expires:`, `issued:`) are **ISO 8601** (`2026-04-15`) so date queries and sorting just work, and a literal pipe in content or a value is escaped as `\|` (colons never need escaping). See [Reserved characters & escaping](../reference/pipe-properties#reserved-characters--escaping).
 
 ## 4. Sections
 
@@ -125,7 +127,7 @@ contact: {{client.name}} | role: {{client.role}} | email: {{client.email}}
 Merge a template with data:
 
 ```bash
-intenttext invoice-template.it --data client-data.json --html
+dotit invoice-template.it --data client-data.json --html
 ```
 
 The same parser handles both. Templates are just documents with `{{variables}}`.

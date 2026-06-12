@@ -58,7 +58,7 @@ The history boundary:
 ### CLI
 
 ```bash
-intenttext history contract.it
+dotit history contract.it
 ```
 
 ```
@@ -74,13 +74,13 @@ Version  Date        Author  Change
 
 ```bash
 # By author
-intenttext history contract.it --by "Sarah"
+dotit history contract.it --by "Sarah"
 
 # By section
-intenttext history contract.it --section "Payment"
+dotit history contract.it --section "Payment"
 
 # As JSON — for downstream processing
-intenttext history contract.it --json
+dotit history contract.it --json
 ```
 
 ### JSON output
@@ -121,7 +121,7 @@ Each `revision:` block can track:
 | ---------------- | ------------------------------ | --------------------------------- |
 | **Where**        | Below the `history:` boundary  | After `freeze:`, above `history:` |
 | **When**         | During drafting, before freeze | After the document is sealed      |
-| **Written by**   | The CLI (auto-generated)       | The `intenttext amend` command    |
+| **Written by**   | The CLI (auto-generated)       | The `dotit amend` command    |
 | **Purpose**      | Draft history                  | Formal post-seal changes          |
 | **Affects seal** | No — below the boundary        | No — after `freeze:`              |
 
@@ -140,8 +140,8 @@ For a fully auditable document:
 
 ```bash
 # Full picture
-intenttext verify contract.it   # seal + amendments
-intenttext history contract.it  # revision history
+dotit verify contract.it   # seal + amendments
+dotit history contract.it  # revision history
 ```
 
 ## Next steps

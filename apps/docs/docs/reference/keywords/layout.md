@@ -5,12 +5,12 @@ title: Layout Keywords
 
 # Layout Keywords
 
-Five keywords for controlling how a document looks when rendered — pagination, headers, footers, watermarks, and print page breaks.
+Six keywords for controlling how a document looks when rendered — pagination, headers, footers, watermarks, document-wide style rules, and print page breaks.
 
 ## `page:`
 
 **Category:** Layout
-**Since:** v2.0
+**Aliases:** `صفحة:`
 
 Defines the page layout settings for print and PDF output.
 
@@ -47,8 +47,7 @@ page: | size: letter | orientation: landscape | margin: 2cm
 ## `header:`
 
 **Category:** Layout
-**Since:** v2.0
-**Aliases:** `running-head:`
+**Aliases:** `ترويسة:`
 
 Defines the running header for multi-page output.
 
@@ -84,7 +83,7 @@ header: Service Agreement v1.0 | align: center | show-on: after-first
 ## `footer:`
 
 **Category:** Layout
-**Since:** v2.0
+**Aliases:** `تذييل:`
 
 Defines the running footer for multi-page output, including page numbers.
 
@@ -129,7 +128,7 @@ footer: {{date}} | align: right | show-on: after-first
 ## `watermark:`
 
 **Category:** Layout
-**Since:** v2.2
+**Aliases:** `علامة:`
 
 Watermark printed diagonally across every page.
 
@@ -166,7 +165,7 @@ watermark: For Review Only | opacity: 0.1 | angle: 30
 ## `break:`
 
 **Category:** Layout
-**Since:** v1.0
+**Aliases:** `فاصل:`
 
 Page break for print output. Invisible in web rendering — renders as `display:none` with `aria-hidden="true"`. In print and PDF, forces a page break at the point where `break:` appears.
 
@@ -216,7 +215,7 @@ Use `break:` for structural pagination. Use `x-layout: divider` for visible sect
 ## `style:`
 
 **Category:** Layout
-**Since:** v4.3
+**Aliases:** `نمط:`
 
 Scoped document style rule — house styling for a **block type**, declared once,
 document-wide. Keeps presentation out of the content body: lines stay clean and

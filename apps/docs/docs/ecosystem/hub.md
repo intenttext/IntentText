@@ -13,7 +13,7 @@ The [IntentText Hub](https://hub.intenttext.io) is the template marketplace for 
 
 Anyone with a GitHub account can publish templates. Community templates are available instantly — no review required.
 
-- Publish with `intenttext hub publish template.it --domain finance`
+- Publish with `dotit hub publish template.it --domain finance` _(CLI command planned)_
 - Visible to all users immediately
 - Author name and profile linked to GitHub account
 
@@ -61,19 +61,24 @@ See [Themes](./themes) for details.
 
 Sign in with GitHub OAuth. Your GitHub username becomes your Hub identity.
 
+:::caution Planned — not yet in the CLI
+The `dotit hub` subcommands shown below are **planned**; today the Hub is browse-and-copy
+via the web app, and the current `dotit` CLI does not include them yet.
+:::
+
 ```bash
 # Authenticate via browser
-intenttext hub login
+dotit hub login
 ```
 
 ## Publishing a template
 
 ```bash
 # Publish to the Hub
-intenttext hub publish invoice-template.it --domain finance
+dotit hub publish invoice-template.it --domain finance
 
 # With metadata
-intenttext hub publish invoice-template.it --domain finance --description "Standard invoice with line items"
+dotit hub publish invoice-template.it --domain finance --description "Standard invoice with line items"
 ```
 
 Requirements:
@@ -91,7 +96,7 @@ Go to [hub.intenttext.io](https://hub.intenttext.io) and filter by domain or sea
 ### Pull via CLI
 
 ```bash
-intenttext hub pull invoice-standard --domain finance
+dotit hub pull invoice-standard --domain finance
 ```
 
 ### Fork
@@ -103,7 +108,7 @@ Fork a template to your account, customize it, and publish your version.
 Create custom themes and distribute them through the Hub:
 
 ```bash
-intenttext theme publish my-theme.json
+dotit theme publish my-theme.json
 ```
 
 See [Themes](./themes) for the theme JSON format.

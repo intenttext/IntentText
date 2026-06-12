@@ -77,7 +77,7 @@ def: Term | meaning: The 12-month period beginning on the Effective Date, automa
 
 ```bash
 # All defined terms across all contracts
-intenttext query ./contracts --type def --format table
+dotit query ./contracts --type def --format table
 ```
 
 ```
@@ -90,10 +90,10 @@ contracts/cloud-svc.it    def   SLA                       Service Level Agreemen
 
 ```bash
 # Search for a specific term
-intenttext query ./contracts --type def --content "Confidential" --format json
+dotit query ./contracts --type def --content "Confidential" --format json
 
 # Natural language
-intenttext ask ./contracts "What is the definition of Force Majeure?" --format text
+dotit ask ./contracts "What is the definition of Force Majeure?" --format text
 ```
 
 ## Building a master glossary
@@ -102,10 +102,10 @@ Query all definitions across your document collection and export:
 
 ```bash
 # CSV for spreadsheets
-intenttext query ./company --type def --format csv > glossary.csv
+dotit query ./company --type def --format csv > glossary.csv
 
 # JSON for applications
-intenttext query ./company --type def --format json > glossary.json
+dotit query ./company --type def --format json > glossary.json
 ```
 
 ## Next steps

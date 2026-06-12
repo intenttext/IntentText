@@ -17,10 +17,10 @@ Build a `.it-index` for each folder. The index pre-parses every `.it` file and s
 
 ```bash
 # Single folder
-intenttext index ./contracts
+dotit index ./contracts
 
 # All subfolders
-intenttext index ./company --recursive
+dotit index ./company --recursive
 ```
 
 The `--recursive` flag creates one `.it-index` per subfolder — not one giant index.
@@ -45,7 +45,7 @@ Every block is indexed except layout and structural blocks:
   "scope": "shallow",
   "folder": "contracts/active",
   "built_at": "2026-03-15T10:30:00Z",
-  "core_version": "3.1.0",
+  "core_version": "1.0.0",
   "files": {
     "acme-service.it": {
       "hash": "abc123",
@@ -56,7 +56,7 @@ Every block is indexed except layout and structural blocks:
           "type": "deadline",
           "content": "Payment due",
           "section": "Payment",
-          "properties": { "due": "2026-04-15" }
+          "properties": { "date": "2026-04-15" }
         }
       ]
     }
@@ -70,7 +70,7 @@ The index tracks file hashes. On rebuild, only changed files are re-parsed:
 
 ```bash
 # Rebuild — unchanged files are skipped
-intenttext index ./contracts
+dotit index ./contracts
 ```
 
 New files → added to the index. Modified files → re-indexed. Deleted files → removed from the index.
@@ -79,9 +79,9 @@ New files → added to the index. Modified files → re-indexed. Deleted files �
 
 | Event                   | Action                             |
 | ----------------------- | ---------------------------------- |
-| Added a new `.it` file  | `intenttext index ./folder`        |
-| Edited an existing file | `intenttext index ./folder`        |
-| Deleted a file          | `intenttext index ./folder`        |
+| Added a new `.it` file  | `dotit index ./folder`        |
+| Edited an existing file | `dotit index ./folder`        |
+| Deleted a file          | `dotit index ./folder`        |
 | Nothing changed         | No action needed — index is reused |
 
 Rebuilding is fast because only stale entries are updated.
@@ -92,10 +92,10 @@ Queries use the index automatically when `.it-index` exists:
 
 ```bash
 # Without index: parses every .it file in contracts/
-intenttext query ./contracts --type deadline --format table
+dotit query ./contracts --type deadline --format table
 
 # With index: reads .it-index, returns results instantly
-intenttext query ./contracts --type deadline --format table
+dotit query ./contracts --type deadline --format table
 ```
 
 No flag needed. If `.it-index` exists and is fresh, it's used.

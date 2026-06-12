@@ -34,6 +34,22 @@ IntentText has **38 canonical keywords** organized into eight categories. Each k
 
 Each keyword has a dedicated entry in its category page with full syntax, properties table, examples, and behavioral notes.
 
+## Write keywords in Arabic
+
+The canonical keywords ship with **33 registered Arabic aliases** — `عنوان`→`title`, `قسم`→`section`, `مهمة`→`task`, `صف`→`row`, `توقيع`→`sign`, and more. An Arabic document gets full canonical semantics, and the serializer re-emits keywords **as written**, so Arabic documents stay Arabic through every round-trip (sealed documents keep their hash):
+
+```intenttext
+عنوان: عرض سعر — توريد أجهزة الحاسوب
+قسم: البنود
+أعمدة: الوصف | الكمية | الإجمالي
+صف: حاسوب محمول | 10 | 45,000 QAR
+مؤشر: الإجمالي المستحق | value: 45,000 QAR
+مهمة: مراجعة العرض | owner: سارة | due: 2026-06-25
+توقيع: أحمد الراشد | role: المدير التنفيذي | at: 2026-06-12T09:00:00Z
+```
+
+The `مهمة:` line is a `task` block (`type=task` queries match it), the table keywords build a real `table`, and `توقيع:` is a tamper-evident `sign:` seal. Keywords and property keys are Unicode words in general, so any-script *custom* keywords (`مصروف: كراسي | فئة: أثاث`) parse as typed, queryable blocks too. Full table: [Aliases →](./aliases#arabic-aliases).
+
 ## Extension keywords
 
 Beyond the 38 canonical keywords, IntentText supports **extension blocks** via a namespaced `x-ns:` prefix. Extensions cover domain-specific and advanced use cases without polluting the core keyword set.

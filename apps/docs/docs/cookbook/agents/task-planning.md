@@ -54,13 +54,13 @@ done: Onboarding pipeline ready | status: template | time: 2026-03-15T10:00:00Z
 
 ```bash
 # All steps and their status
-intenttext plan.it --query "type=step"
+dotit plan.it --query "type=step"
 
 # Pending steps only
-intenttext plan.it --query "type=step status=pending"
+dotit plan.it --query "type=step status=pending"
 
 # Steps that depend on a specific step
-intenttext plan.it --query "type=step depends:contains=gather"
+dotit plan.it --query "type=step depends:contains=gather"
 ```
 
 ## Next steps

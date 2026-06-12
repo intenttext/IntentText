@@ -40,7 +40,7 @@ Each folder has a `.it-index` — a shallow index of its own files. Queries comp
 ## Find every deadline
 
 ```bash
-intenttext query ./contracts --type deadline
+dotit query ./contracts --type deadline
 ```
 
 ```
@@ -56,13 +56,13 @@ intenttext query ./contracts --type deadline
 Or ask in plain English:
 
 ```bash
-intenttext ask ./contracts "what deadlines are coming up in April?"
+dotit ask ./contracts "what deadlines are coming up in April?"
 ```
 
 ## Find every contact
 
 ```bash
-intenttext query ./contracts --type contact --org "Acme"
+dotit query ./contracts --type contact --org "Acme"
 ```
 
 Your documents _become_ your contact directory — with zero extra work.
@@ -72,8 +72,8 @@ Your documents _become_ your contact directory — with zero extra work.
 Every `approve:` and `sign:` block is queryable:
 
 ```bash
-intenttext query ./contracts --type sign
-intenttext query ./contracts --type approve --by "Sarah Chen"
+dotit query ./contracts --type sign
+dotit query ./contracts --type approve --by "Sarah Chen"
 ```
 
 ## The trust workflow
@@ -105,14 +105,14 @@ With `amendment:`:
 amendment: Payment terms updated | section: Payment | was: Net 30 | now: Net 15 | ref: Amendment #1 | by: Ahmed | approved-by: Sarah Chen
 ```
 
-The original seal is preserved. The amendment carries its own approval chain. Run `intenttext verify` and see both the original seal and all amendments.
+The original seal is preserved. The amendment carries its own approval chain. Run `dotit verify` and see both the original seal and all amendments.
 
 ## Build indexes
 
 ```bash
-intenttext index ./contracts
-intenttext index . --recursive
-intenttext index . --recursive --watch
+dotit index ./contracts
+dotit index . --recursive
+dotit index . --recursive --watch
 ```
 
 Indexes are shallow — each folder's `.it-index` only knows about its own files. Queries compose automatically across nested indexes. Change one file and only its folder's index needs rebuilding.
@@ -120,22 +120,22 @@ Indexes are shallow — each folder's `.it-index` only knows about its own files
 ## Metrics and reporting
 
 ```bash
-intenttext query ./reports --type metric --owner Finance
+dotit query ./reports --type metric --owner Finance
 ```
 
 Every `metric:` block across every report — queryable, filterable, exportable to CSV:
 
 ```bash
-intenttext query ./reports --type metric --format csv > metrics.csv
+dotit query ./reports --type metric --format csv > metrics.csv
 ```
 
 ## Why not just use Word?
 
 | Feature                | Word / Google Docs  | IntentText                  |
 | ---------------------- | ------------------- | --------------------------- |
-| Query across 500 files | No                  | `intenttext query ./`       |
+| Query across 500 files | No                  | `dotit query ./`       |
 | Find all deadlines     | Manual search       | `--type deadline`           |
-| Verify who signed      | Check metadata      | `intenttext verify`         |
+| Verify who signed      | Check metadata      | `dotit verify`         |
 | Amend without voiding  | Break seal, re-sign | `amendment:` preserves seal |
 | Version control        | Track changes       | `track:` + git              |
 | Template reuse         | Copy-paste          | `{{variables}}` + merge     |

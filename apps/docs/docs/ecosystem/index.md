@@ -11,7 +11,7 @@ IntentText is more than a file format. It's a complete toolchain for structured 
 
 | Tool                       | Description                                          |
 | -------------------------- | ---------------------------------------------------- |
-| [Core Library](./core-api) | The npm package — parse, render, query, merge, trust |
+| [Core Library](./core-api) | `@dotit/core` 1.0.0 — parse, render, query, merge, trust |
 | `@dotit/pdf`          | Server-side PDFs — issue (merge → seal) → real PDF bytes; opt-in companion |
 | [CLI](./cli)               | Command-line tool for every operation                |
 
@@ -33,6 +33,6 @@ IntentText is more than a file format. It's a complete toolchain for structured 
 
 | Tool                       | Description                                      |
 | -------------------------- | ------------------------------------------------ |
-| [MCP Server](./mcp-server) | Model Context Protocol server for AI agents      |
+| [MCP Server](./mcp-server) | `@dotit/mcp` — Model Context Protocol server for AI agents |
 | [Python Package](./python) | Thin Python client over the core CLI (experimental) |
 | [ERP / App Integration](./erp-integration) | Use IntentText as a print/report engine in your app — template + data → HTML/PDF |

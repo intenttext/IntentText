@@ -56,7 +56,9 @@ export default function Home(): React.ReactElement {
       {/* ── Hero ──────────────────────────────────────────── */}
       <div className="hero-section">
         <div className="container">
-          <div className="hero-badge">Open format &middot; v4.3</div>
+          <div className="hero-badge">
+            Open format &middot; v1.0 &middot; <code>@dotit</code> on npm
+          </div>
           <h1>Documents that think.</h1>
           <p className="hero-subtitle">
             IntentText (<code>.it</code>) is an open format for structured
@@ -189,9 +191,10 @@ export default function Home(): React.ReactElement {
               </FeatureIcon>
               <h3>AI Agents</h3>
               <p>
-                27 workflow keywords. Pipeline definitions agents can read and
-                execute. Gates, decisions, handoffs. An MCP server ships ready.
-                Agents produce <code>.it</code> files, not just Markdown.
+                Seven workflow keywords. Pipeline definitions agents can read
+                and execute. Gates, decisions, handoffs. An MCP server (
+                <code>@dotit/mcp</code>) ships ready. Agents produce{" "}
+                <code>.it</code> files, not just Markdown.
               </p>
               <Link to="/docs/guide/for-agents" className="card-link">
                 For agents <ChevronRight size={16} />
@@ -256,6 +259,28 @@ export default function Home(): React.ReactElement {
               <p>
                 One <code>.it</code> file renders to HTML, PDF, JSON. The format
                 is open. No lock-in, ever.
+              </p>
+            </div>
+          </div>
+          <div className="why-item">
+            <Globe size={20} strokeWidth={1.5} />
+            <div>
+              <strong>Multilingual</strong>
+              <p>
+                Write <code>مهمة:</code> instead of <code>task:</code> — Arabic
+                keyword aliases carry full semantics, round-trip as written, and
+                RTL layout works out of the box.
+              </p>
+            </div>
+          </div>
+          <div className="why-item">
+            <Lock size={20} strokeWidth={1.5} />
+            <div>
+              <strong>Hardened</strong>
+              <p>
+                Fuzz-tested parser that never throws on untrusted input.
+                Escaping that survives round-trips. Sealed documents keep their
+                hash.
               </p>
             </div>
           </div>
@@ -335,7 +360,7 @@ export default function Home(): React.ReactElement {
             <div className="trust-step-number">2</div>
             <h3>Seal</h3>
             <p>
-              One command: <code>intenttext seal</code>. The document is frozen.
+              One command: <code>dotit seal</code>. The document is frozen.
               Any tampering breaks the hash. Verify anytime.
             </p>
           </div>

@@ -23,6 +23,7 @@ Style properties control the visual appearance of blocks when rendered to HTML o
 | `border:`    | `border: 1px solid currentColor` | `true`                           | Boolean — only `"true"` applies             |
 | `underline:` | `text-decoration: underline`     | `true`                           | Boolean — combines with `strike:`           |
 | `strike:`    | `text-decoration: line-through`  | `true`                           | Boolean — combines with `underline:`        |
+| `valign:`    | `vertical-align`                 | `sub`, `super`                   | Subscript / superscript positioning         |
 
 ## Usage examples
 
@@ -62,7 +63,7 @@ the **theme** rather than repeating spans everywhere.
 ## House styling for the whole document — `style:` blocks
 
 To style **every** block of a type — all section headers teal, all totals dark — don't
-repeat props on each line. Declare a scoped **`style:` rule** once (v4.3):
+repeat props on each line. Declare a scoped **`style:` rule** once:
 
 ```intenttext
 style: section | color: #0a7 | weight: 600

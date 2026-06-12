@@ -18,9 +18,9 @@ meta: | type: report | domain: business | track: true
 
 page: | size: A4 | margins: 2.54cm
 font: | body: Inter | heading: Inter | size: 11pt
-header: Q1 2026 — Engineering | align: left | size: 8pt
-footer: CONFIDENTIAL — Page {page} of {pages} | align: center | size: 8pt
-watermark: DRAFT | color: #cccccc | opacity: 0.06
+header: Q1 2026 — Engineering
+footer: CONFIDENTIAL — Page {{page}} of {{pages}}
+watermark: DRAFT | color: rgba(0,0,0,0.06)
 
 section: Executive Summary
 
@@ -33,7 +33,7 @@ metric: Deployment frequency | value: 4.2 | target: 3 | unit: per week | trend: 
 metric: Incident MTTR | value: 18 | target: 30 | unit: minutes | trend: down | color: green
 metric: Code coverage | value: 91 | target: 85 | unit: % | trend: up
 metric: Customer-reported bugs | value: 12 | target: 20 | unit: count | trend: down | color: green
-metric: Team satisfaction | value: 4.2 | target: 4.0 | unit: /5 | trend: flat
+metric: Team satisfaction | value: 4.2 | target: 4.0 | unit: /5 | trend: stable
 
 section: Project Status
 
@@ -45,14 +45,14 @@ section: Project Status
 
 section: Infrastructure
 
-figure: Monthly deployment frequency | at: /images/deploy-frequency.png | caption: Deployment frequency increased 40% after CI/CD improvements | source: Internal metrics dashboard
-figure: Incident response times | at: /images/mttr-chart.png | caption: Mean time to recovery dropped below 20 minutes in March | source: PagerDuty analytics
+figure: Monthly deployment frequency | src: /images/deploy-frequency.png | num: 1 | caption: Deployment frequency increased 40% after CI/CD improvements | source: Internal metrics dashboard
+figure: Incident response times | src: /images/mttr-chart.png | num: 2 | caption: Mean time to recovery dropped below 20 minutes in March | source: PagerDuty analytics
 
 section: Analysis
 
 text: The 40% improvement in deployment frequency directly correlates with the CI/CD pipeline rebuild completed in January. Teams are now shipping smaller, more frequent changes.
 
-cite: State of DevOps Report 2025 | by: DORA Team | at: https://dora.dev/report | note: Elite performers deploy multiple times per day with sub-hour recovery times. Our metrics now meet elite performer benchmarks.
+cite: State of DevOps Report 2025 | author: DORA Team | url: https://dora.dev/report | note: Elite performers deploy multiple times per day with sub-hour recovery times. Our metrics now meet elite performer benchmarks.
 
 text: Customer-reported bugs dropped 40% quarter-over-quarter, tracking with the code coverage increase from 82% to 91%.
 
@@ -63,10 +63,10 @@ warning: Two senior engineers departing in Q2. Knowledge transfer plan in progre
 
 section: Next Quarter Goals
 
-deadline: API platform GA | due: 2026-04-15 | status: pending
-deadline: Security hardening complete | due: 2026-05-01 | status: pending
-deadline: Mobile SDK alpha | due: 2026-06-30 | status: pending
-deadline: Q2 report due | due: 2026-07-07 | status: pending
+deadline: API platform GA | date: 2026-04-15 | status: pending
+deadline: Security hardening complete | date: 2026-05-01 | status: pending
+deadline: Mobile SDK alpha | date: 2026-06-30 | status: pending
+deadline: Q2 report due | date: 2026-07-07 | status: pending
 
 section: Sign-Off
 
@@ -78,9 +78,9 @@ track: | by: ahmed@acme.co
 
 ## Step by step
 
-1. **Metrics grid** — Multiple `metric:` blocks in a section render as a dashboard grid. Each has a value, target, unit, and trend. Color coding happens automatically: value meeting/exceeding target → green.
-2. **Figures** — `figure:` with `caption:` and `source:` creates numbered, captioned images. Auto-numbered: Figure 1, Figure 2, etc.
-3. **Citations** — `cite:` for external sources. Includes author, URL, and annotation.
+1. **Metrics grid** — Multiple `metric:` blocks in a section render as a dashboard grid. Each has a value, target, unit, and trend. Color coding happens automatically: value meeting/exceeding target → green, below target → red.
+2. **Figures** — `figure:` with `caption:`, `source:`, and `num:` creates numbered, captioned images: `num: 1` renders as **Figure 1:** before the caption.
+3. **Citations** — `cite:` with `author:` and `url:` for external sources; `note:` keeps an annotation queryable.
 4. **Deadlines** — Every upcoming milestone is a `deadline:` block. Queryable across all reports.
 5. **Approvals** — Management sign-off with `approve:`.
 6. **Watermark** — `watermark: DRAFT` stamps every page. Remove when finalized.
@@ -89,26 +89,26 @@ track: | by: ahmed@acme.co
 
 ```bash
 # Find all metrics across reports
-intenttext query ./reports --type metric --format table
+dotit query ./reports --type metric --format table
 
 # Overdue deadlines
-intenttext ask ./reports "What deadlines are overdue?" --format text
+dotit ask ./reports "What deadlines are overdue?" --format text
 
-# All risks and warnings
-intenttext query ./reports --type warning --format table
+# All risks and warnings (warning: is an alias of info — query the canonical type)
+dotit query ./reports --type info --format table
 
 # Metrics by department
-intenttext query ./reports --type metric --section "Key Metrics" --format csv
+dotit query ./reports --type metric --section "Key Metrics" --format csv
 ```
 
 ## Render
 
 ```bash
 # Corporate theme for executive presentation
-intenttext report.it --print --theme corporate
+dotit report.it --print --theme corporate
 
 # PDF export
-intenttext report.it --pdf --theme corporate
+dotit report.it --pdf --theme corporate
 ```
 
 ## Next steps

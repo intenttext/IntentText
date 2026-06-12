@@ -49,6 +49,22 @@ describe("print: running header/footer", () => {
     expect(v).toBe('"Ref \\"A\\\\B\\""');
     expect(v).not.toContain("&quot;");
   });
+
+  it("content-only header:/footer: blocks render in the center zone (llms.txt + editor parity)", () => {
+    const html = renderPrint(
+      parseIntentText("title: T\nheader: ACME Corp\nfooter: Page {{page}} of {{pages}}"),
+    );
+    expect(html).toMatch(/@top-center\{content:"ACME Corp"/);
+    expect(html).toMatch(/@bottom-center\{content:"Page " counter\(page\)/);
+  });
+
+  it("zone properties take precedence over block content", () => {
+    const html = renderPrint(
+      parseIntentText("title: T\nheader: Ignored | center: Wins"),
+    );
+    expect(html).toMatch(/@top-center\{content:"Wins"/);
+    expect(html).not.toContain('"Ignored"');
+  });
 });
 
 describe("print: injection safety (merged data)", () => {

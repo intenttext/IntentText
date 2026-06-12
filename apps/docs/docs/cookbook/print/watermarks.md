@@ -12,17 +12,17 @@ You need to mark printed documents as DRAFT, CONFIDENTIAL, or VOID — a visible
 ## The solution
 
 ```intenttext
-watermark: DRAFT | color: #cccccc | opacity: 0.06
+watermark: DRAFT | color: rgba(0,0,0,0.06)
 ```
 
-The `watermark:` keyword places rotated text behind the page content on every printed page.
+The `watermark:` keyword places rotated text behind the page content on every printed page. Intensity is controlled through the color's alpha channel (or a light solid color).
 
 ## Common watermarks
 
 ### DRAFT
 
 ```intenttext
-watermark: DRAFT | color: #cccccc | opacity: 0.06
+watermark: DRAFT | color: rgba(0,0,0,0.06)
 ```
 
 Light gray, barely visible. Signals the document isn't final without obscuring content.
@@ -30,7 +30,7 @@ Light gray, barely visible. Signals the document isn't final without obscuring c
 ### CONFIDENTIAL
 
 ```intenttext
-watermark: CONFIDENTIAL | color: #999999 | opacity: 0.05 | size: 96pt
+watermark: CONFIDENTIAL | color: rgba(0,0,0,0.05) | size: 96pt
 ```
 
 Larger text for legal emphasis. Still subtle enough to read through.
@@ -38,31 +38,30 @@ Larger text for legal emphasis. Still subtle enough to read through.
 ### VOID
 
 ```intenttext
-watermark: VOID | color: #ff0000 | opacity: 0.08
+watermark: VOID | color: rgba(255,0,0,0.10)
 ```
 
-Red for canceled or invalidated documents. Higher opacity for visibility.
+Red for canceled or invalidated documents. Higher alpha for visibility.
 
 ### COPY
 
 ```intenttext
-watermark: COPY | color: #cccccc | opacity: 0.1
+watermark: COPY | color: rgba(0,0,0,0.10)
 ```
 
 Marks printed copies to distinguish from originals.
 
 ## Properties
 
-| Property   | Default   | Description                                                                             |
-| ---------- | --------- | --------------------------------------------------------------------------------------- |
-| `color:`   | `#cccccc` | Any CSS color value                                                                     |
-| `opacity:` | `0.1`     | 0–1 range. Keep below 0.15 to maintain readability                                      |
-| `angle:`   | `-45`     | Rotation in degrees. -45 is diagonal bottom-left to top-right                           |
-| `size:`    | `72pt`    | Font size. Larger for fewer characters (DRAFT), smaller for longer words (CONFIDENTIAL) |
+| Property | Default           | Description                                                                              |
+| -------- | ----------------- | ---------------------------------------------------------------------------------------- |
+| `color:` | `rgba(0,0,0,0.08)` | Any CSS color value — use the alpha channel for subtlety                                 |
+| `angle:` | `-45`             | Rotation in degrees. -45 is diagonal bottom-left to top-right                            |
+| `size:`  | `80pt`            | Font size. Larger for fewer characters (DRAFT), smaller for longer words (CONFIDENTIAL)  |
 
-## Opacity guide
+## Intensity guide (color alpha)
 
-| Opacity     | Effect                                                      |
+| Alpha       | Effect                                                      |
 | ----------- | ----------------------------------------------------------- |
 | `0.03–0.05` | Very subtle — noticeable but doesn't interfere with reading |
 | `0.06–0.10` | Standard — clearly visible, content still readable          |
@@ -74,12 +73,12 @@ Marks printed copies to distinguish from originals.
 Watermarks are keywords in the `.it` file. To remove them, delete the line. For final versions:
 
 1. Remove `watermark: DRAFT` from the file
-2. Re-render: `intenttext document.it --print`
+2. Re-render: `dotit document.it --print`
 
 For templates, use a variable:
 
 ```intenttext
-watermark: {{watermark_text}} | color: {{watermark_color}} | opacity: {{watermark_opacity}}
+watermark: {{watermark_text}} | color: {{watermark_color}}
 ```
 
 Pass empty data to skip the watermark, or specific values for different versions.
@@ -87,8 +86,8 @@ Pass empty data to skip the watermark, or specific values for different versions
 ## Render
 
 ```bash
-intenttext document.it --print --theme corporate
-intenttext document.it --pdf --theme legal
+dotit document.it --print --theme corporate
+dotit document.it --pdf --theme legal
 ```
 
 Watermarks appear in both print HTML and PDF output. They do not appear in standard HTML rendering.

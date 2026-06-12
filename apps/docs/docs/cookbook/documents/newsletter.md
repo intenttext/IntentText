@@ -18,14 +18,14 @@ meta: | type: newsletter | domain: editorial
 
 page: | size: A4 | margins: 2cm
 font: | body: Georgia | heading: Inter | size: 11pt
-header: The Acme Weekly | align: center | size: 10pt
-footer: © 2026 Acme Corp — Subscribe at acme.co/newsletter | align: center | size: 8pt
+header: The Acme Weekly
+footer: © 2026 Acme Corp — Subscribe at acme.co/newsletter
 
 section: Lead Story
 
 text: *AI-Powered Quality Control Goes Live*
 
-figure: Assembly line monitoring system | at: /images/ai-quality-control.jpg | caption: The new AI monitoring system inspects 2,000 units per hour with 99.7% accuracy | source: Internal photography, March 2026
+figure: Assembly line monitoring system | src: /images/ai-quality-control.jpg | num: 1 | caption: The new AI monitoring system inspects 2,000 units per hour with 99.7% accuracy | source: Internal photography, March 2026
 
 text: After 18 months of development, our AI quality control system is live on Production Line 3. The system uses computer vision to inspect manufactured components, flagging defects that human inspectors miss at speed.
 
@@ -33,11 +33,11 @@ quote: We're not replacing inspectors — we're giving them superpowers. The AI 
 
 text: Early results show a ^47% reduction^ in defect escape rate and a ~12-minute~ 8-minute average inspection cycle time. The team plans to roll out to all six production lines by Q3.
 
-cite: McKinsey Global Institute | at: https://mckinsey.com/ai-manufacturing | note: AI quality inspection reduces defect rates by 30-50% across manufacturing sectors
+cite: McKinsey Global Institute | url: https://mckinsey.com/ai-manufacturing | note: AI quality inspection reduces defect rates by 30-50% across manufacturing sectors
 
 section: Team Spotlight
 
-figure: Engineering team at the March hackathon | at: /images/hackathon-team.jpg | caption: The Acme engineering team during the 2026 spring hackathon
+figure: Engineering team at the March hackathon | src: /images/hackathon-team.jpg | num: 2 | caption: The Acme engineering team during the 2026 spring hackathon
 
 text: *Meet the Cloud Migration Team*
 
@@ -53,9 +53,9 @@ section: Q2 Roadmap
 
 text: Three major initiatives for the next quarter:
 
-deadline: API Platform GA | due: 2026-04-15 | status: in-progress
-deadline: Mobile SDK Alpha | due: 2026-06-01 | status: planning
-deadline: Security Certification | due: 2026-06-30 | status: planning
+deadline: API Platform GA | date: 2026-04-15 | status: in-progress
+deadline: Mobile SDK Alpha | date: 2026-06-01 | status: planning
+deadline: Security Certification | date: 2026-06-30 | status: planning
 
 section: Quick Links
 
@@ -70,7 +70,7 @@ link: Subscribe to This Newsletter | to: https://acme.co/newsletter/subscribe
 1. **Lead story** — Bold text with `*asterisks*`, a `figure:` for the hero image, `quote:` for a pull quote, and `cite:` for the external source.
 2. **Inline formatting** — `^highlight^` for emphasis, `~strikethrough~` for the old number replaced by the new one.
 3. **Team spotlight** — `contact:` blocks make team members queryable across all newsletters.
-4. **Figures** — `figure:` with `caption:` and `source:` for auto-numbered, captioned images.
+4. **Figures** — `figure:` with `src:`, `caption:`, `source:`, and `num:` for numbered, captioned images.
 5. **Deadlines** — Even in a newsletter, `deadline:` blocks are queryable so you can track initiatives across issues.
 6. **Links** — `link:` blocks for resources, each with a `to:` URL.
 
@@ -80,26 +80,26 @@ Newsletters look best with `warm` or `editorial` themes:
 
 ```bash
 # Warm theme — friendly, approachable
-intenttext newsletter.it --html --theme warm
+dotit newsletter.it --html --theme warm
 
 # Editorial theme — magazine-style
-intenttext newsletter.it --html --theme editorial
+dotit newsletter.it --html --theme editorial
 
 # PDF for email attachment
-intenttext newsletter.it --pdf --theme editorial
+dotit newsletter.it --pdf --theme editorial
 ```
 
 ## Query it
 
 ```bash
 # All people mentioned across newsletters
-intenttext query ./newsletters --type contact --format table
+dotit query ./newsletters --type contact --format table
 
 # All deadlines announced in newsletters
-intenttext query ./newsletters --type deadline --format table
+dotit query ./newsletters --type deadline --format table
 
 # Find citations
-intenttext query ./newsletters --type cite --format json
+dotit query ./newsletters --type cite --format json
 ```
 
 ## Next steps

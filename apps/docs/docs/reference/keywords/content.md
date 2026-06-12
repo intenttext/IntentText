@@ -10,8 +10,7 @@ Seven keywords for the substance of a document — text, callouts, quotations, c
 ## `text:`
 
 **Category:** Content
-**Since:** v1.0
-**Aliases:** `note:`, `body:`, `content:`, `paragraph:`, `p:`
+**Aliases:** `نص:`, `note:`, `body:`, `content:`, `paragraph:`, `p:`
 
 General body text — the default block type.
 
@@ -40,7 +39,7 @@ text: Please review by end of week | color: #dc2626 | italic: true
 ## `info:`
 
 **Category:** Content
-**Since:** v1.0
+**Aliases:** `تنبيه:`, plus the variant forms below
 
 Callout block. Renders with a colored background and visual indicator.
 
@@ -59,10 +58,10 @@ info: content | type: variant
 ### Examples
 
 ```intenttext
-info: This document uses IntentText v4.1 format.
+info: This document uses the IntentText 1.0 format.
 info: This contract expires in 14 days. Renewal required. | type: warning
 info: Deleting this record is irreversible. | type: danger
-info: Use intenttext query to find all deadlines across your folder. | type: tip
+info: Use dotit query to find all deadlines across your folder. | type: tip
 info: Migration completed — 12,450 records transferred. | type: success
 ```
 
@@ -90,28 +89,27 @@ The parser resolves both forms to `{ type: "info", properties: { type: "warning"
 ## `quote:`
 
 **Category:** Content
-**Since:** v1.0
-**Aliases:** `blockquote:`, `excerpt:`, `pullquote:`
+**Aliases:** `اقتباس:`, `blockquote:`, `excerpt:`, `pullquote:`
 
 Block quotation with optional attribution.
 
 ### Syntax
 
 ```
-quote: content | citation: source
+quote: content | by: source
 ```
 
 ### Properties
 
-| Property   | Type   | Description      |
-| ---------- | ------ | ---------------- |
-| `citation` | string | Attribution text |
+| Property | Type   | Description      |
+| -------- | ------ | ---------------- |
+| `by`     | string | Attribution text |
 
 ### Examples
 
 ```intenttext
-quote: The best way to predict the future is to invent it. | citation: Alan Kay
-quote: All documents should be machine-readable from birth. | citation: IntentText Manifesto
+quote: The best way to predict the future is to invent it. | by: Alan Kay
+quote: All documents should be machine-readable from birth. | by: IntentText Manifesto
 ```
 
 ---
@@ -119,8 +117,7 @@ quote: All documents should be machine-readable from birth. | citation: IntentTe
 ## `cite:`
 
 **Category:** Content
-**Since:** v1.0
-**Aliases:** `citation:`, `source:`, `reference:`
+**Aliases:** `استشهاد:`, `citation:`, `source:`, `reference:`
 
 Bibliographic citation with author, date, and URL.
 
@@ -150,8 +147,7 @@ cite: Structured Documents in Enterprise | author: Chen, Wei | date: 2025 | url:
 ## `code:`
 
 **Category:** Content
-**Since:** v1.0
-**Aliases:** `snippet:`
+**Aliases:** `شيفرة:`, `snippet:`
 
 Code block with optional language for syntax highlighting.
 
@@ -208,27 +204,27 @@ text: Set ```NODE_ENV=production``` before deploying.
 ## `image:`
 
 **Category:** Content
-**Since:** v1.0
+**Aliases:** `صورة:`, `img:`, `photo:`, `picture:`
 
 Inline image. No caption, no number — flows with surrounding text.
 
 ### Syntax
 
 ```
-image: alt text | src: url | width: value
+image: alt text | src: url | caption: text
 ```
 
 ### Properties
 
-| Property | Type   | Required | Description      |
-| -------- | ------ | -------- | ---------------- |
-| `src`    | string | yes      | Image URL or path |
-| `width`  | string | no       | Display width    |
+| Property  | Type   | Required | Description       |
+| --------- | ------ | -------- | ----------------- |
+| `src`     | string | yes      | Image URL or path |
+| `caption` | string | no       | Caption rendered below the image |
 
 ### Examples
 
 ```intenttext
-image: Company logo | src: ./images/logo.png | width: 200px
+image: Company logo | src: ./images/logo.png | caption: Our logo
 image: Architecture diagram | src: ./diagrams/arch.png
 ```
 
@@ -242,28 +238,28 @@ image: Architecture diagram | src: ./diagrams/arch.png
 ## `link:`
 
 **Category:** Content
-**Since:** v1.0
+**Aliases:** `رابط:`, `url:`, `href:`
 
 Hyperlink to an external resource.
 
 ### Syntax
 
 ```
-link: display text | url: target | title: tooltip
+link: display text | to: target | title: tooltip
 ```
 
 ### Properties
 
-| Property | Type   | Required | Description  |
-| -------- | ------ | -------- | ------------ |
-| `url`    | string | yes      | Link target  |
-| `title`  | string | no       | Tooltip text |
+| Property | Type   | Required | Description                                       |
+| -------- | ------ | -------- | ------------------------------------------------- |
+| `to`     | string | yes      | Link target (falls back to the content if absent) |
+| `title`  | string | no       | Tooltip text                                      |
 
 ### Examples
 
 ```intenttext
-link: IntentText Hub | url: https://intenttext-hub.vercel.app
-link: View the full contract | url: ./contracts/acme-2026.it | title: Acme Services Contract
+link: IntentText Hub | to: https://intenttext-hub.vercel.app
+link: View the full contract | to: ./contracts/acme-2026.it | title: Acme Services Contract
 ```
 
 ---

@@ -82,14 +82,14 @@ sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2
 freeze: | status: locked | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2
 ```
 
-`freeze:` seals the document. The hash covers all content above the `freeze:` block. After freezing, any edit to the content invalidates the seal.
+`freeze:` seals the document. The hash covers all content above the `history:` boundary, excluding the `sign:`/`freeze:`/`amendment:` lines themselves (`approve:` lines ARE included). After freezing, any edit to the content invalidates the seal.
 
 ## Using the CLI
 
 The `seal` command automates steps 2–4:
 
 ```bash
-intenttext seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
+dotit seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
 ```
 
 This:
@@ -103,13 +103,13 @@ This:
 
 ```bash
 # Find all approved documents
-intenttext query ./contracts --type approve --format table
+dotit query ./contracts --type approve --format table
 
 # Who approved what?
-intenttext query ./contracts --type approve --by "Sarah Chen" --format json
+dotit query ./contracts --type approve --by "Sarah Chen" --format json
 
 # Find unsigned documents (have approve but no freeze)
-intenttext ask ./contracts "Which contracts have approvals but no freeze?" --format text
+dotit ask ./contracts "Which contracts have approvals but no freeze?" --format text
 ```
 
 ## Next steps

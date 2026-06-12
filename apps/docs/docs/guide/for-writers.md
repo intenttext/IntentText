@@ -20,7 +20,7 @@ You don't need to memorize the full language. Writers use these first:
 | `citation:` or `source:`    | Citation           | `cite:`    |
 | `todo:` or `check:`         | Task item          | `task:`    |
 
-All aliases are listed in the [Aliases Reference](../reference/keywords/aliases). Write what’s natural — the parser maps it to the canonical keyword.
+All aliases are listed in the [Aliases Reference](../reference/keywords/aliases) — including **33 Arabic aliases** (`عنوان:` for `title:`, `نص:` for `text:`, `اقتباس:` for `quote:`, …) that are re-emitted exactly as you wrote them, so an Arabic manuscript stays Arabic. Write what’s natural — the parser maps it to the canonical keyword.
 
 ## Write an article
 
@@ -35,7 +35,7 @@ text: A contract in Word is just a blob of styled text. The deadline on page 12?
 
 section: The Solution
 text: Structured plain text — where every line declares its intent — is the answer that’s been hiding in plain sight.
-quote: The best format is the one you can still read in 50 years. | citation: Knuth, 1984
+quote: The best format is the one you can still read in 50 years. | by: Knuth, 1984
 
 section: Sources
 cite: Structured Documents and the Future of Computing | url: https://arxiv.org/example | author: Chen, Wei | date: 2025
@@ -81,9 +81,9 @@ def: Shallow Index | meaning: A per-folder index that only catalogs files in its
 8 built-in themes transform your document instantly:
 
 ```bash
-intenttext article.it --html --theme editorial
-intenttext article.it --html --theme warm
-intenttext article.it --print --theme minimal
+dotit article.it --html --theme editorial
+dotit article.it --html --theme warm
+dotit article.it --print --theme minimal
 ```
 
 | Theme         | Best for                                   |
@@ -102,7 +102,7 @@ intenttext article.it --print --theme minimal
 One command:
 
 ```bash
-intenttext article.it --print --theme editorial --pdf article.pdf
+dotit article.it --print --theme editorial --pdf article.pdf
 ```
 
 The print renderer reads `font:` and `page:` blocks for typography and layout:
@@ -167,7 +167,7 @@ text: Run ```npm install``` to set up the project.
 ## The editorial workflow
 
 1. Write in `.it` — plain text, any editor
-2. Preview with `intenttext article.it --html --theme editorial`
+2. Preview with `dotit article.it --html --theme editorial`
 3. Get feedback, revise
 4. `track:` to activate history
 5. `approve:` for editorial sign-off

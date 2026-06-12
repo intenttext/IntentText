@@ -10,13 +10,13 @@ IntentText ships a command-line tool for parsing, rendering, querying, sealing, 
 ## Installation
 
 ```bash
-npm install -g intenttext
+npm install -g @dotit/core
 ```
 
 Or use with `npx`:
 
 ```bash
-npx intenttext <command>
+npx -p @dotit/core dotit <command>
 ```
 
 ## Commands
@@ -26,7 +26,7 @@ npx intenttext <command>
 Parse a `.it` file to JSON.
 
 ```bash
-intenttext document.it
+dotit document.it
 ```
 
 Output: full JSON AST of the document.
@@ -36,9 +36,9 @@ Output: full JSON AST of the document.
 ### Render to HTML
 
 ```bash
-intenttext document.it --html
-intenttext document.it --html --theme corporate
-intenttext document.it --html --output document.html
+dotit document.it --html
+dotit document.it --html --theme corporate
+dotit document.it --html --output document.html
 ```
 
 | Flag             | Description                                 |
@@ -54,8 +54,8 @@ intenttext document.it --html --output document.html
 Generate print-optimized HTML with page layout, fonts, headers, footers, and watermarks.
 
 ```bash
-intenttext document.it --print
-intenttext document.it --print --theme legal
+dotit document.it --print
+dotit document.it --print --theme legal
 ```
 
 | Flag             | Description         |
@@ -70,11 +70,11 @@ intenttext document.it --print --theme legal
 Merge a template with data to produce a document.
 
 ```bash
-intenttext template.it --data data.json
-intenttext template.it --data data.json --html
-intenttext template.it --data data.json --html --theme corporate
-intenttext template.it --data data.json --print
-intenttext template.it --data data.json --pdf
+dotit template.it --data data.json
+dotit template.it --data data.json --html
+dotit template.it --data data.json --html --theme corporate
+dotit template.it --data data.json --print
+dotit template.it --data data.json --pdf
 ```
 
 | Flag             | Description                        |
@@ -92,9 +92,9 @@ intenttext template.it --data data.json --pdf
 Convert Markdown or HTML files to `.it` format.
 
 ```bash
-intenttext document.md --to-it
-intenttext page.html --to-it
-intenttext document.md --to-it --output
+dotit document.md --to-it
+dotit page.html --to-it
+dotit document.md --to-it --output
 ```
 
 | Flag       | Description                   |
@@ -109,7 +109,7 @@ intenttext document.md --to-it --output
 Query blocks within a single document.
 
 ```bash
-intenttext document.it --query "type=task owner=Ahmed sort:due:asc limit:10"
+dotit document.it --query "type=task owner=Ahmed sort:due:asc limit:10"
 ```
 
 | Flag                 | Description                 |
@@ -125,8 +125,8 @@ See [Query System](./query) for operator syntax.
 Query across a directory of `.it` files.
 
 ```bash
-intenttext query <dir> --type <type> --format <format>
-intenttext query "docs/*.it" --type deadline --format table
+dotit query <dir> --type <type> --format <format>
+dotit query "docs/*.it" --type deadline --format table
 ```
 
 | Flag                        | Description                      |
@@ -145,8 +145,8 @@ intenttext query "docs/*.it" --type deadline --format table
 Ask questions about documents in plain English.
 
 ```bash
-intenttext ask <dir> "What deadlines are coming up?" --format text
-intenttext ask <dir> "Who approved the service agreement?" --format json
+dotit ask <dir> "What deadlines are coming up?" --format text
+dotit ask <dir> "Who approved the service agreement?" --format json
 ```
 
 | Flag                  | Description   |
@@ -162,11 +162,11 @@ Requires `ANTHROPIC_API_KEY` environment variable.
 Validate a document against a built-in schema.
 
 ```bash
-intenttext document.it --validate project
-intenttext document.it --validate meeting
-intenttext document.it --validate article
-intenttext document.it --validate checklist
-intenttext document.it --validate agentic
+dotit document.it --validate project
+dotit document.it --validate meeting
+dotit document.it --validate article
+dotit document.it --validate checklist
+dotit document.it --validate agentic
 ```
 
 | Schema      | Description                                            |
@@ -184,9 +184,9 @@ intenttext document.it --validate agentic
 List and inspect built-in themes.
 
 ```bash
-intenttext theme list
-intenttext theme info corporate
-intenttext theme info legal
+dotit theme list
+dotit theme info corporate
+dotit theme info legal
 ```
 
 | Subcommand          | Description                                  |
@@ -203,8 +203,8 @@ intenttext theme info legal
 Build shallow `.it-index` files for fast queries.
 
 ```bash
-intenttext index ./contracts
-intenttext index ./company --recursive
+dotit index ./contracts
+dotit index ./company --recursive
 ```
 
 | Flag          | Description                     |
@@ -220,7 +220,7 @@ See [Index Files](./index-file) for index architecture.
 Digitally sign and freeze a document in one step.
 
 ```bash
-intenttext seal document.it --signer "Ahmed Al-Rashid" --role "CEO"
+dotit seal document.it --signer "Ahmed Al-Rashid" --role "CEO"
 ```
 
 | Flag              | Description            |
@@ -237,7 +237,7 @@ This adds `sign:` and `freeze:` blocks to the document with a computed content h
 Check document integrity — validate the seal hash against current content.
 
 ```bash
-intenttext verify document.it
+dotit verify document.it
 ```
 
 Output:
@@ -253,10 +253,10 @@ Output:
 View the change history of a tracked document.
 
 ```bash
-intenttext history document.it
-intenttext history document.it --json
-intenttext history document.it --by "Ahmed"
-intenttext history document.it --section "Payment"
+dotit history document.it
+dotit history document.it --json
+dotit history document.it --by "Ahmed"
+dotit history document.it --section "Payment"
 ```
 
 | Flag               | Description       |
@@ -269,12 +269,10 @@ intenttext history document.it --section "Payment"
 
 ### Amend
 
-_Since v2.11_
-
 Add a formal amendment to a frozen document.
 
 ```bash
-intenttext amend document.it \
+dotit amend document.it \
   --section "Payment" \
   --was "Net 30" \
   --now "Net 15" \

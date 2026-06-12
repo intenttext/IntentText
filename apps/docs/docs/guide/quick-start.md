@@ -16,7 +16,7 @@ npm install @dotit/core
 Or use the CLI globally:
 
 ```bash
-npm install -g intenttext
+npm install -g @dotit/core
 ```
 
 ## Write your first `.it` file
@@ -43,7 +43,7 @@ deadline: Vendor selection complete | date: 2026-04-10 | consequence: Delays lau
 ## Parse it
 
 ```bash
-npx intenttext hello.it
+npx -p @dotit/core dotit hello.it
 ```
 
 You get structured JSON — every block typed, every property extracted.
@@ -51,13 +51,13 @@ You get structured JSON — every block typed, every property extracted.
 ## Render to HTML
 
 ```bash
-npx intenttext hello.it --html
+npx -p @dotit/core dotit hello.it --html
 ```
 
 Clean, styled HTML. Add a theme:
 
 ```bash
-npx intenttext hello.it --html --theme corporate
+npx -p @dotit/core dotit hello.it --html --theme corporate
 ```
 
 ## Query it
@@ -65,13 +65,36 @@ npx intenttext hello.it --html --theme corporate
 Find all tasks owned by Sarah:
 
 ```bash
-npx intenttext hello.it --query "type=task owner=Sarah"
+npx -p @dotit/core dotit hello.it --query "type=task owner=Sarah"
 ```
 
 Find all deadlines:
 
 ```bash
-npx intenttext hello.it --query "type=deadline"
+npx -p @dotit/core dotit hello.it --query "type=deadline"
+```
+
+## Write it in Arabic, if you like
+
+The canonical keywords have registered Arabic aliases — same semantics, same queries, and the keywords **round-trip as written** (an Arabic document stays Arabic). Create `quotation.it`:
+
+```intenttext
+عنوان: عرض سعر — تأثيث المكتب الرئيسي
+ملخص: شركة الإتقان للتجارة — صالح حتى 2026-07-15
+بيانات: | dir: rtl | theme: corporate
+
+قسم: البنود
+أعمدة: الوصف | الكمية | الإجمالي
+صف: كرسي مكتب تنفيذي | 12 | 10,200 QAR
+مؤشر: الإجمالي المستحق | value: 10,200 QAR
+
+مهمة: اعتماد العرض | owner: أحمد | due: 2026-06-20
+```
+
+The same query finds the task whichever language it was written in:
+
+```bash
+npx -p @dotit/core dotit quotation.it --query "type=task due<2026-07-01"
 ```
 
 ## Use in code

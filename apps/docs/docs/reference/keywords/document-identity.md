@@ -10,8 +10,7 @@ Four keywords that establish what a document is — its title, description, meta
 ## `title:`
 
 **Category:** Identity
-**Since:** v1.0
-**Aliases:** `h1:`
+**Aliases:** `عنوان:`, `h1:`
 
 The document title. Renders as H1. Every document should have exactly one.
 
@@ -39,8 +38,7 @@ title: Invoice {{invoice.number}}
 ## `summary:`
 
 **Category:** Identity
-**Since:** v1.0
-**Aliases:** `abstract:`
+**Aliases:** `ملخص:`, `abstract:`
 
 Brief description of the document. Renders as a subtitle below the title.
 
@@ -62,7 +60,7 @@ summary: Monthly financial performance report for the board
 ## `meta:`
 
 **Category:** Identity
-**Since:** v2.8.1
+**Aliases:** `بيانات:`
 
 Document metadata as key-value pairs. Not rendered visually — used for classification, filtering, and template system.
 
@@ -105,7 +103,6 @@ meta: | theme: corporate | version: 2.1
 ## `context:`
 
 **Category:** Document Identity
-**Since:** v2.0
 
 Execution context for the document — the agent identity, goal, and operating constraints.
 

@@ -11,12 +11,12 @@ You need to prove a document hasn't been tampered with since it was signed. If s
 
 ## The solution
 
-`intenttext seal` computes a SHA-256 hash of the document content, adds a `sign:` block and a `freeze:` block. `intenttext verify` checks the hash against the current content.
+`dotit seal` computes a SHA-256 hash of the document content, adds a `sign:` block and a `freeze:` block. `dotit verify` checks the hash against the current content.
 
 ### Seal
 
 ```bash
-intenttext seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
+dotit seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
 ```
 
 This adds to the document:
@@ -29,7 +29,7 @@ freeze: | status: locked | at: 2026-03-22T15:00:00Z | hash: sha256:a1b2c3d4e5f6a
 ### Verify
 
 ```bash
-intenttext verify contract.it
+dotit verify contract.it
 ```
 
 Output when valid:
@@ -67,7 +67,7 @@ The hash does **not** cover:
 - `amendment:` lines (stripped before hashing)
 - The `history:` boundary and revisions below it
 
-This is what makes amendments possible: they live after the `freeze:` block, so they don't break the original seal.
+This is what makes amendments possible: `amendment:` lines are stripped before hashing (like `sign:` and `freeze:`), so adding one never breaks the original seal.
 
 ## Multiple signatures
 
@@ -75,10 +75,10 @@ A document can have multiple signers:
 
 ```bash
 # First signer
-intenttext seal contract.it --signer "Ahmed Al-Rashid" --role "CEO, Acme Corp"
+dotit seal contract.it --signer "Ahmed Al-Rashid" --role "CEO, Acme Corp"
 
 # Second signer (adds another sign: block, re-computes freeze:)
-intenttext seal contract.it --signer "Maria Santos" --role "COO, GlobalTech"
+dotit seal contract.it --signer "Maria Santos" --role "COO, GlobalTech"
 ```
 
 After both:
@@ -92,19 +92,24 @@ freeze: | status: locked | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8
 ## Verification in code
 
 ```javascript
-import { parseIntentText, verify } from "@dotit/core";
+import { verifyDocument } from "@dotit/core";
 
-const doc = parseIntentText(source);
-const result = verify(doc);
+// verifyDocument takes the raw .it source string — the hash covers exact bytes
+const result = verifyDocument(source);
 
-if (result.valid) {
-  console.log("Seal intact");
-  console.log("Signatures:", result.signatures);
-  console.log("Amendments:", result.amendments.length);
+if (result.intact) {
+  console.log("Seal intact:", result.hash);
+  for (const s of result.signers ?? []) {
+    console.log(`${s.signer} (${s.role}) — valid: ${s.valid}`);
+  }
 } else {
-  console.log("SEAL BROKEN:", result.reason);
+  console.log("SEAL BROKEN");
+  console.log("Expected:", result.expectedHash);
+  console.log("Actual:  ", result.hash);
 }
 ```
+
+To seal in code, use `sealDocument(source, { signer, role })` — it returns `{ success, hash, source, at }`. Store the returned `source` exactly as-is (no trimming, no CRLF conversion): the hash covers the exact bytes.
 
 ## Complete workflow
 
@@ -112,16 +117,16 @@ if (result.valid) {
 # 1. Write the contract
 # 2. Review and add approvals (manually or via editor)
 # 3. Seal
-intenttext seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
+dotit seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
 
 # 4. Send to counterparty, they seal too
-intenttext seal contract.it --signer "Maria Santos" --role "COO"
+dotit seal contract.it --signer "Maria Santos" --role "COO"
 
 # 5. Verify at any time
-intenttext verify contract.it
+dotit verify contract.it
 
 # 6. View full history
-intenttext history contract.it
+dotit history contract.it
 ```
 
 ## Next steps

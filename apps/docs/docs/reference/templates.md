@@ -128,34 +128,43 @@ Data is a JSON object:
 
 ```bash
 # Merge to JSON
-intenttext template.it --data data.json
+dotit template.it --data data.json
 
 # Merge and render HTML
-intenttext template.it --data data.json --html
+dotit template.it --data data.json --html
 
 # Merge and render with theme
-intenttext template.it --data data.json --html --theme corporate
+dotit template.it --data data.json --html --theme corporate
 
 # Merge to print HTML
-intenttext template.it --data data.json --print
+dotit template.it --data data.json --print
 
 # Merge to PDF (requires puppeteer)
-intenttext template.it --data data.json --pdf
+dotit template.it --data data.json --pdf
 ```
 
 ### JavaScript
 
 ```javascript
-import { parseIntentText, mergeData, render, renderPrint } from "@dotit/core";
+import {
+  parseIntentText,
+  mergeData,
+  parseAndMerge,
+  renderHTML,
+  renderPrint,
+} from "@dotit/core";
 
 const doc = parseIntentText(templateSource);
 const merged = mergeData(doc, data);
 
 // Or one-step:
-const merged = parseAndMerge(templateSource, data);
+const merged2 = parseAndMerge(templateSource, data);
+
+// For finished documents, render unresolved fields as empty instead of {{markers}}:
+const issued = parseAndMerge(templateSource, data, { missing: "blank" });
 
 // Render
-const html = render(merged);
+const html = renderHTML(merged);
 const printHtml = renderPrint(merged, { theme: "corporate" });
 ```
 

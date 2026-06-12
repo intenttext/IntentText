@@ -149,7 +149,7 @@ audit: Migration complete — 0 errors | by: DataBot | at: 2026-03-06T03:45:00Z 
 Query the audit trail:
 
 ```bash
-intenttext query ./logs --type audit --by DataBot --format table
+dotit query ./logs --type audit --by DataBot --format table
 ```
 
 ---
@@ -159,22 +159,25 @@ intenttext query ./logs --type audit --by DataBot --format table
 The IntentText MCP server gives agents direct access to `.it` files without the need to import `@dotit/core` directly:
 
 ```bash
-npm install intenttext-mcp
+npm install @dotit/mcp
 ```
 
 Available MCP tools:
 
-| Tool                | Purpose                           |
-| ------------------- | --------------------------------- |
-| `intenttext_parse`  | Parse a `.it` file to JSON        |
-| `intenttext_render` | Render to HTML                    |
-| `intenttext_query`  | Query blocks with filters         |
-| `intenttext_merge`  | Merge template with data          |
-| `intenttext_seal`   | Seal a document                   |
-| `intenttext_verify` | Verify integrity                  |
-| `intenttext_amend`  | Amend a frozen document           |
-| `intenttext_diff`   | Diff two document versions        |
-| `intenttext_source` | Convert JSON back to `.it` source |
+| Tool                   | Purpose                              |
+| ---------------------- | ------------------------------------ |
+| `parse_intent_text`    | Parse a `.it` source to JSON         |
+| `render_html`          | Render to styled HTML                |
+| `render_print`         | Render to print-ready HTML           |
+| `query_document`       | Query blocks with filters            |
+| `merge_template`       | Merge a template with data           |
+| `seal_document`        | Seal a document (sign + freeze)      |
+| `verify_document`      | Verify integrity                     |
+| `validate_document`    | Semantic validation beyond syntax    |
+| `diff_documents`       | Diff two document versions           |
+| `document_to_source`   | Convert JSON back to `.it` source    |
+| `extract_workflow`     | Extract the execution graph          |
+| `get_document_history` | Read a tracked document's history    |
 
 Connect to Claude:
 
@@ -183,7 +186,7 @@ Connect to Claude:
   "mcpServers": {
     "intenttext": {
       "command": "node",
-      "args": ["./node_modules/intenttext-mcp/dist/index.js"]
+      "args": ["./node_modules/@dotit/mcp/dist/index.js"]
     }
   }
 }

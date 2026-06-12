@@ -101,13 +101,13 @@ Dark background, light text, screen-optimized. Not ideal for printing.
 
 ```bash
 # HTML rendering
-intenttext document.it --html --theme corporate
+dotit document.it --html --theme corporate
 
 # Print rendering
-intenttext document.it --print --theme legal
+dotit document.it --print --theme legal
 
 # PDF export
-intenttext document.it --pdf --theme editorial
+dotit document.it --pdf --theme editorial
 ```
 
 ### In the document
@@ -166,16 +166,16 @@ Create custom themes as JSON files:
 
 ```bash
 # List installed themes
-intenttext theme list
+dotit theme list
 
 # Theme details
-intenttext theme info corporate
+dotit theme info corporate
 
 # Install from Hub
-intenttext theme install my-brand
+dotit theme install my-brand
 
 # Publish to Hub
-intenttext theme publish my-brand.json
+dotit theme publish my-brand.json
 ```
 
 ## Local themes

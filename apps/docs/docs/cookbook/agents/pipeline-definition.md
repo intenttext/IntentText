@@ -112,20 +112,20 @@ Use `phase:` to group steps across sections:
 
 ```bash
 # Query all steps in the validation phase
-intenttext pipeline.it --query "type=step phase=validation"
+dotit pipeline.it --query "type=step phase=validation"
 ```
 
 ## Query it
 
 ```bash
 # All steps with their dependencies
-intenttext pipeline.it --query "type=step"
+dotit pipeline.it --query "type=step"
 
 # Error handlers
-intenttext pipeline.it --query "type=error"
+dotit pipeline.it --query "type=error"
 
 # Steps that use a specific tool
-intenttext pipeline.it --query "type=step tool:contains=ocr"
+dotit pipeline.it --query "type=step tool:contains=ocr"
 ```
 
 ## Next steps

@@ -18,8 +18,8 @@ meta: | type: contract | domain: legal | track: true
 
 page: | size: A4 | margins: 2.54cm
 font: | body: Inter | heading: Inter | size: 11pt
-header: CONFIDENTIAL | align: right | size: 8pt
-footer: Service Agreement — Page {page} of {pages} | align: center | size: 8pt
+header: CONFIDENTIAL
+footer: Service Agreement — Page {{page}} of {{pages}}
 
 section: Definitions
 
@@ -43,16 +43,16 @@ text: 4. On-call incident response (< 1 hour SLA)
 
 section: Timeline
 
-deadline: Contract effective | due: 2026-04-01 | status: confirmed
-deadline: Q1 review | due: 2026-07-01 | status: pending
-deadline: Q2 review | due: 2026-10-01 | status: pending
-deadline: Contract renewal | due: 2027-03-31 | status: pending
+deadline: Contract effective | date: 2026-04-01 | status: confirmed
+deadline: Q1 review | date: 2026-07-01 | status: pending
+deadline: Q2 review | date: 2026-10-01 | status: pending
+deadline: Contract renewal | date: 2027-03-31 | status: pending
 
 section: Payment
 
 metric: Monthly retainer | value: 15000 | unit: USD
 metric: Annual value | value: 180000 | unit: USD | weight: bold
-deadline: Payment due | due: 2026-04-15 | status: pending
+deadline: Payment due | date: 2026-04-15 | status: pending
 text: Payment due within 15 days of each monthly invoice.
 
 section: Signatures
@@ -66,8 +66,6 @@ sign: Maria Santos | role: COO, GlobalTech | at: 2026-03-22T14:30:00Z | hash: sh
 // Physical signature lines for the printed version
 signline: Ahmed Al-Rashid | role: CEO, Acme Corp | label: Provider Signature
 signline: | label: Date | width: 30%
-
-break: | before: 0.5cm
 
 signline: Maria Santos | role: COO, GlobalTech | label: Client Signature
 signline: | label: Date | width: 30%
@@ -88,14 +86,58 @@ track: | by: legal@acme.co
 7. **Physical signatures** — `signline:` creates lines on the printed page for wet-ink signatures.
 8. **Freeze** — `freeze:` seals the document. Any content edit will invalidate the hash.
 
+## Arabic services contract (عقد)
+
+The same contract pattern works fully in Arabic. The 33 Arabic keyword aliases in core (`قسم`→section, `تعريف`→def, `جهة`→contact, `مهلة`→deadline, `اعتماد`→approve, …) carry full canonical semantics and are serialized back exactly as written, so an Arabic contract stays Arabic through every parse → edit → save cycle. Dates remain ISO (`YYYY-MM-DD`) regardless of language.
+
+```intenttext
+عنوان: عقد تقديم خدمات — شركة الخليج للتقنية ومؤسسة الدوحة للتجارة
+ملخص: دعم تقني سنوي وإدارة البنية السحابية
+بيانات: | dir: rtl | type: contract | domain: legal
+
+قسم: التعريفات
+
+تعريف: المزود | meaning: شركة الخليج للتقنية، شركة مسجلة في دولة قطر
+تعريف: العميل | meaning: مؤسسة الدوحة للتجارة، مؤسسة مسجلة في دولة قطر
+تعريف: الخدمات | meaning: الدعم التقني وإدارة البنية السحابية والمراقبة الأمنية
+
+قسم: الأطراف
+
+جهة: شركة الخليج للتقنية | role: مزود | email: legal@gulftech.qa
+جهة: مؤسسة الدوحة للتجارة | role: عميل | email: contracts@dohatrade.qa
+
+قسم: نطاق العمل
+
+نص: يلتزم المزود بتقديم الخدمات للعميل طوال مدة العقد، وتشمل المراقبة على مدار الساعة والتدقيق الأمني الشهري ومراجعات الأداء الربعية.
+
+قسم: الجدول الزمني
+
+مهلة: سريان العقد | date: 2026-07-01 | status: confirmed
+مهلة: المراجعة الربعية الأولى | date: 2026-10-01 | status: pending
+مهلة: تجديد العقد | date: 2027-06-30 | status: pending
+
+قسم: الدفع
+
+مؤشر: الأتعاب الشهرية | value: 55,000 ر.ق
+مهلة: استحقاق الدفعة الأولى | date: 2026-07-15 | status: pending
+نص: تُسدد الدفعات خلال 15 يومًا من تاريخ كل فاتورة شهرية.
+
+قسم: التوقيعات
+
+اعتماد: اكتملت المراجعة القانونية | by: سارة المنصوري | role: المستشار القانوني | at: 2026-06-20
+اعتماد: موافقة الإدارة المالية | by: خالد العبدالله | role: المدير المالي | at: 2026-06-21
+```
+
+Seal it the same way — `sealDocument()` (or `dotit seal`) appends the canonical `sign:` and `freeze:` lines, which are excluded from the hash. The Arabic `اعتماد:` (approve) lines are part of the hashed body, exactly like English `approve:` lines, and one query (`type:deadline` or `type:contact`) spans Arabic and English contracts alike.
+
 ## Seal and verify
 
 ```bash
 # Seal the contract (adds sign: and freeze: automatically)
-intenttext seal contract.it --signer "Ahmed Al-Rashid" --role "CEO, Acme Corp"
+dotit seal contract.it --signer "Ahmed Al-Rashid" --role "CEO, Acme Corp"
 
 # Verify integrity
-intenttext verify contract.it
+dotit verify contract.it
 # ✓ Document sealed at 2026-03-22T15:00:00Z
 # ✓ Hash valid: sha256:f9a0b1c2
 # ✓ 2 signatures, 2 approvals
@@ -106,7 +148,7 @@ intenttext verify contract.it
 Six months later, payment terms need to change:
 
 ```bash
-intenttext amend contract.it \
+dotit amend contract.it \
   --section "Payment" \
   --was "Payment due within 15 days" \
   --now "Payment due within 30 days" \
@@ -125,7 +167,7 @@ amendment: Payment terms updated | section: Payment | was: Payment due within 15
 Verify after amendment:
 
 ```bash
-intenttext verify contract.it
+dotit verify contract.it
 # ✓ Original seal valid: sha256:f9a0b1c2
 # ⚡ 1 amendment applied
 #   Amendment #1: Payment terms updated (2026-09-15)
@@ -135,16 +177,16 @@ intenttext verify contract.it
 
 ```bash
 # All contracts with GlobalTech
-intenttext query ./contracts --type contact --content "GlobalTech" --format table
+dotit query ./contracts --type contact --content "GlobalTech" --format table
 
 # Upcoming deadlines
-intenttext query ./contracts --type deadline --format table
+dotit query ./contracts --type deadline --format table
 
 # All defined terms
-intenttext query ./contracts --type def --format json
+dotit query ./contracts --type def --format json
 
 # All amendments
-intenttext query ./contracts --type amendment --format table
+dotit query ./contracts --type amendment --format table
 ```
 
 ## Next steps

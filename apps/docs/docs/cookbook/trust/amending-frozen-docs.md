@@ -23,7 +23,7 @@ The old way:
 
 ## With `amendment:`
 
-The `amendment:` keyword (v2.11) adds a formal change record **alongside** the sealed content. The original seal stays intact.
+The `amendment:` keyword adds a formal change record **alongside** the sealed content. `amendment:` lines are excluded from the document hash (like `sign:` and `freeze:`), so the original seal stays intact.
 
 ```intenttext
 // ... original content above ...
@@ -32,14 +32,14 @@ sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2
 sign: Maria Santos | role: COO | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8
 freeze: | status: locked | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2
 
-// Amendments live AFTER freeze:, so they don't break the seal
+// Amendment lines are excluded from the document hash, so they don't break the seal
 amendment: Payment terms updated | section: Payment | was: Net 15 | now: Net 30 | ref: Amendment #1 | by: Ahmed Al-Rashid | approved-by: Sarah Chen | at: 2026-09-15
 ```
 
 ## The CLI command
 
 ```bash
-intenttext amend contract.it \
+dotit amend contract.it \
   --section "Payment" \
   --was "Net 15" \
   --now "Net 30" \
@@ -54,15 +54,15 @@ intenttext amend contract.it \
 ```
 Error: AMENDMENT_WITHOUT_FREEZE
 Cannot amend a document that has not been frozen.
-Use `intenttext seal` first.
+Use `dotit seal` first.
 ```
 
-## What `intenttext verify` reports
+## What `dotit verify` reports
 
 After an amendment:
 
 ```bash
-intenttext verify contract.it
+dotit verify contract.it
 ```
 
 ```
@@ -110,25 +110,25 @@ amendment: Payment terms updated | section: Payment | was: Net 15 | now: Net 30 
 
 ```bash
 # Find all amended contracts
-intenttext query ./contracts --type amendment --format table
+dotit query ./contracts --type amendment --format table
 
 # Amendments by a specific person
-intenttext query ./contracts --type amendment --by "Ahmed Al-Rashid" --format json
+dotit query ./contracts --type amendment --by "Ahmed Al-Rashid" --format json
 
 # Natural language
-intenttext ask ./contracts "Which contracts have been amended since September?" --format text
+dotit ask ./contracts "Which contracts have been amended since September?" --format text
 ```
 
 ## The complete lifecycle
 
 ```bash
 # 1. Write and seal the contract
-intenttext seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
+dotit seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
 
 # 2. Time passes... terms need to change
 
 # 3. Amend (seal is preserved)
-intenttext amend contract.it \
+dotit amend contract.it \
   --section "Payment" \
   --was "Net 15" \
   --now "Net 30" \
@@ -136,10 +136,10 @@ intenttext amend contract.it \
   --by "Ahmed Al-Rashid"
 
 # 4. Verify (original seal + amendments)
-intenttext verify contract.it
+dotit verify contract.it
 
 # 5. View history
-intenttext history contract.it
+dotit history contract.it
 ```
 
 ## Next steps

@@ -10,8 +10,7 @@ Three keywords for structured data — tables, rows, and quantitative metrics.
 ## `columns:`
 
 **Category:** Data
-**Since:** v1.0
-**Aliases:** `headers:`
+**Aliases:** `أعمدة:`, `headers:`
 
 Table column definitions — declares column names for the following `row:` blocks.
 
@@ -40,7 +39,7 @@ row: Operations | USD 150,000 | USD 98,000 | USD 52,000
 ## `row:`
 
 **Category:** Data
-**Since:** v1.0
+**Aliases:** `صف:`
 
 Table data row — pipe-separated cell values. Must follow a `columns:` declaration.
 
@@ -90,8 +89,7 @@ The `each:` property on the header row enables dynamic row expansion:
 ## `metric:`
 
 **Category:** Data
-**Since:** v2.11
-**Aliases:** `kpi:`, `measure:`, `indicator:`
+**Aliases:** `مؤشر:`, `kpi:`, `measure:`, `indicator:`
 
 Quantitative measurement or KPI. Queryable, renderable as cards or grids, with optional target comparison and trend indicators.
 

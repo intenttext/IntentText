@@ -19,9 +19,9 @@ IntentText supports a compact canonical keyword set plus compatibility aliases a
 - [Agent](./keywords/agent) — `step:`, `gate:`, `trigger:`, `signal:`, `decision:`, `memory:`, `prompt:`, `tool:`, `audit:`, `done:`, `error:`, `result:`, `handoff:`, `wait:`, `parallel:`, `retry:`, `call:`, `loop:`, `checkpoint:`, `import:`, `export:`, `progress:`, `task:`, `ask:`, `assert:`, `secret:`
 - [Trust](./keywords/trust) — `approve:`, `sign:`, `freeze:`, `revision:`, `policy:`, `amendment:`, `history:`
 - [Layout](./keywords/layout) — `page:`, `font:`, `header:`, `footer:`, `watermark:`, `signline:`, `divider:`
-- [Aliases](./keywords/aliases) — alias forms mapped to canonical keywords
+- [Aliases](./keywords/aliases) — alias forms mapped to canonical keywords, including the **33 Arabic aliases** (`عنوان`→`title`, `مهمة`→`task`, `صف`→`row`, …) that round-trip as written
 
-## Keyword tiers (v4.1)
+## Keyword tiers
 
 The canonical keywords are grouped into a small everyday **core** set plus opt-in
 **profiles**, so a plain `.it` document needs only ~13 keywords and everything else is
@@ -32,10 +32,12 @@ unknown keywords pass through as `custom`.
 | --- | --- |
 | **core** (13) | `title` `summary` `meta` `section` `sub` `text` `info` `quote` `code` `image` `link` `task` `done` |
 | **agent** | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` |
-| **contract** | `sign` `approve` `freeze` `track` `revision` `amendment` `history` `cite` |
+| **contract** | `sign` `approve` `freeze` `track` `amendment` `cite` |
 | **data** | `columns` `row` `metric` |
 | **print** | `page` `header` `footer` `watermark` `style` `break` `toc` |
 
+The `history:` boundary and `revision:` entries remain recognized alongside the contract
+tier (they live below the audit-log boundary rather than in the stable keyword set).
 Exposed from `@dotit/core` as `KEYWORD_TIERS`, `CORE_KEYWORDS`, and `tierOf`. See
 the canonical [SPEC](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md).
 

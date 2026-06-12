@@ -15,25 +15,25 @@ You have a template and a JSON data file (or a JavaScript object). You need to m
 
 ```bash
 # Merge and output JSON AST
-intenttext template.it --data data.json
+dotit template.it --data data.json
 
 # Merge and render HTML
-intenttext template.it --data data.json --html
+dotit template.it --data data.json --html
 
 # Merge, render with theme
-intenttext template.it --data data.json --html --theme corporate
+dotit template.it --data data.json --html --theme corporate
 
 # Merge to print HTML
-intenttext template.it --data data.json --print --theme legal
+dotit template.it --data data.json --print --theme legal
 
 # Merge to PDF
-intenttext template.it --data data.json --pdf --theme corporate
+dotit template.it --data data.json --pdf --theme corporate
 ```
 
 ### JavaScript merge
 
 ```javascript
-import { parseIntentText, mergeData, render, renderPrint } from "@dotit/core";
+import { parseIntentText, mergeData, renderHTML, renderPrint } from "@dotit/core";
 
 // Two-step merge
 const doc = parseIntentText(templateSource);
@@ -43,8 +43,11 @@ const merged = mergeData(doc, data);
 import { parseAndMerge } from "@dotit/core";
 const merged = parseAndMerge(templateSource, data);
 
+// For finished documents, render unresolved fields as empty instead of {{marker}}
+const finished = parseAndMerge(templateSource, data, { missing: "blank" });
+
 // Render
-const html = render(merged);
+const html = renderHTML(merged);
 const printHtml = renderPrint(merged, { theme: "corporate" });
 ```
 
@@ -53,7 +56,7 @@ const printHtml = renderPrint(merged, { theme: "corporate" });
 1. `each:` table rows are expanded first (one row per array element)
 2. All `{{variable}}` occurrences are resolved — in content, properties, table cells, and inline nodes
 3. `title:` and `summary:` metadata are also resolved
-4. Missing variables leave `{{variable}}` visible and add `unresolved: 1` to the block
+4. Missing variables leave `{{variable}}` visible and add `unresolved: 1` to the block (the default `missing: "keep"`); pass `{ missing: "blank" }` to render them empty for finished documents
 
 `mergeData` is a pure function — it never mutates the input document.
 
@@ -114,8 +117,58 @@ Variables work everywhere — not just in content:
 
 ```intenttext
 contact: {{client_name}} | role: {{client_role}} | email: {{client_email}}
-deadline: {{milestone_name}} | due: {{milestone_date}} | status: {{milestone_status}}
+deadline: {{milestone_name}} | date: {{milestone_date}} | status: {{milestone_status}}
 metric: {{kpi_name}} | value: {{kpi_value}} | target: {{kpi_target}} | unit: {{kpi_unit}}
+```
+
+## Arabic template: quotation (عرض سعر)
+
+Templates work in Arabic exactly like English — the Arabic keyword aliases (`عنوان`→title, `أعمدة`/`صف`→table, `مؤشر`→metric, `مهلة`→deadline, `ترويسة`/`تذييل`→header/footer) round-trip as written, `{{placeholders}}` resolve in content and properties, and `each:` expands table rows. Dates stay ISO.
+
+```intenttext
+عنوان: عرض سعر رقم {{quote.number}}
+ملخص: {{company.name}} — {{customer.name}}
+بيانات: | dir: rtl | type: quotation | domain: finance
+
+قسم: مقدم إلى
+
+جهة: {{customer.name}} | email: {{customer.email}} | phone: {{customer.phone}}
+
+قسم: البنود
+
+أعمدة: الوصف | الكمية | سعر الوحدة | الإجمالي | each: items
+صف: {{item.description}} | {{item.qty}} | {{item.unitPrice}} | {{item.total}}
+
+قسم: الإجمالي
+
+مؤشر: المجموع الفرعي | value: {{totals.subtotal}}
+مؤشر: الإجمالي المستحق | value: {{totals.due}}
+
+قسم: الشروط
+
+نص: هذا العرض ساري حتى {{quote.validUntil}}، والأسعار بالريال القطري شاملة التوريد والتركيب.
+مهلة: انتهاء صلاحية العرض | date: {{quote.validUntil}} | status: pending
+```
+
+```json
+{
+  "quote": { "number": "QT-2026-077", "validUntil": "2026-07-31" },
+  "company": { "name": "شركة الخليج للتقنية" },
+  "customer": {
+    "name": "مؤسسة الدوحة للتجارة",
+    "email": "purchasing@dohatrade.qa",
+    "phone": "+974-4444-0200"
+  },
+  "items": [
+    { "description": "ترخيص النظام السنوي", "qty": "1", "unitPrice": "18,000 ر.ق", "total": "18,000 ر.ق" },
+    { "description": "تدريب الموظفين", "qty": "3", "unitPrice": "2,500 ر.ق", "total": "7,500 ر.ق" }
+  ],
+  "totals": { "subtotal": "25,500 ر.ق", "due": "25,500 ر.ق" }
+}
+```
+
+```bash
+dotit quotation-ar.it --data quote-data.json --print --theme corporate
 ```
 
 ## Handling missing data
@@ -132,7 +185,7 @@ const merged = mergeData(doc, { name: "Acme" });
 Find unresolved blocks:
 
 ```bash
-intenttext template.it --data partial.json --query "unresolved=1"
+dotit template.it --data partial.json --query "unresolved=1"
 ```
 
 This is intentional design. A template with partial data should still produce a useful document — not crash.

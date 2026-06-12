@@ -11,6 +11,8 @@ TypeScript/JavaScript API reference for `@dotit/core`.
 npm install @dotit/core
 ```
 
+Current version: **1.0.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
+
 ## Parser
 
 ### `parseIntentText(source, options?)`
@@ -22,7 +24,7 @@ import { parseIntentText } from "@dotit/core";
 
 const doc = parseIntentText(`
 title: Quarterly Report
-meta: | author: Finance Team | date: 2026-Q1
+meta: | author: Finance Team | date: 2026-03-31 | period: Q1
 
 section: Revenue
 text: Revenue grew 12% year-over-year.
@@ -41,6 +43,12 @@ interface ParseOptions {
   includeHistorySection?: boolean; // Parse trust history (default: false)
 }
 ```
+
+**Escaping:** ` | ` (space-pipe-space) is the reserved property delimiter. Write a
+literal pipe as `\|` and a literal backslash as `\\` — the parser unescapes them
+anywhere in content and property values, and `documentToSource` re-escapes on
+output, so escape round-trips are a fixpoint. Colons need no escaping inside
+content (`quote: He said: watch this` is fine).
 
 ### `parseIntentTextSafe(source, options?)`
 
@@ -235,24 +243,41 @@ const opts = parseQuery(
 );
 ```
 
-### `queryDocument(document, field, value)`
+### `queryDocument(document, query?)`
 
-Simple field=value query helper.
+Simple, intuitive filter API. All conditions are ANDed; type arrays are ORed.
+Returns matching blocks (never mutates the document).
 
 ```typescript
 import { queryDocument } from "@dotit/core";
 
-const tasks = queryDocument(doc, "type", "step");
+const tasks = queryDocument(doc, { type: "step" });
+const urgent = queryDocument(doc, {
+  type: ["task", "deadline"],
+  section: "Scope",
+  properties: { priority: "high" },
+  limit: 10,
+});
+```
+
+```typescript
+interface SimpleQueryOptions {
+  type?: string | string[];
+  content?: string | RegExp; // case-insensitive substring or regex
+  properties?: Record<string, string | RegExp>;
+  section?: string | RegExp;
+  limit?: number;
+}
 ```
 
 ### `formatQueryResult(result, format?)`
 
-Format query results as text or JSON.
+Format query results as `"simple"` text (default), `"table"`, or `"json"`.
 
 ```typescript
 import { formatQueryResult } from "@dotit/core";
 
-const text = formatQueryResult(result, "text");
+const table = formatQueryResult(result, "table");
 const json = formatQueryResult(result, "json");
 ```
 
@@ -390,14 +415,17 @@ const diff = computeTrustDiff(oldDoc, newDoc);
 
 ```typescript
 interface SealOptions {
-  by: string;
+  signer: string;
   role?: string;
+  skipSign?: boolean; // freeze without adding a sign: line
 }
 
 interface SealResult {
-  valid: boolean;
-  freezeBlock: IntentBlock;
-  updatedSource: string;
+  success: boolean;
+  hash: string; // "sha256:…"
+  source: string; // the sealed text — store exactly as returned
+  at: string;
+  error?: string;
 }
 
 interface VerifyResult {
@@ -458,7 +486,7 @@ Build a shallow `.it-index` for a folder.
 ```typescript
 import { buildShallowIndex } from "@dotit/core";
 
-const index = buildShallowIndex("./contracts", filesMap, "3.1.0");
+const index = buildShallowIndex("./contracts", filesMap, "1.0.0");
 ```
 
 ### `buildIndexEntry(document, source, modifiedAt)`
@@ -672,6 +700,15 @@ import { documentToSource } from "@dotit/core";
 const source = documentToSource(doc);
 ```
 
+**Aliases round-trip as written.** When a line used an alias — including the Arabic
+keyword aliases (`عنوان` → `title`, `مهمة` → `task`, `صف` → `row`, `توقيع` → `sign`, …)
+— the parser records the keyword as written on `block.keywordAlias`, and
+`documentToSource` re-emits that form instead of normalizing to the canonical
+English keyword. An Arabic document stays Arabic, `abstract:` stays `abstract:`,
+and a sealed document keeps its hash through a parse → serialize cycle. Table
+keywords (`أعمدة`/`صف`, `headers`) are preserved the same way. Reserved characters
+are re-escaped on output (`\|`, `\\`), so escape round-trips are stable too.
+
 ## Conversion
 
 ### `convertMarkdownToIntentText(markdown)`
@@ -765,12 +802,18 @@ interface AskOptions {
 interface IntentBlock {
   id: string;
   type: BlockType;
+  keywordAlias?: string; // keyword AS WRITTEN when the line used an alias (incl. Arabic) — re-emitted on serialize
   content: string;
   originalContent?: string;
   properties?: Record<string, string | number>;
   inline?: InlineNode[];
   children?: IntentBlock[];
-  table?: { headers?: string[]; rows: string[][] };
+  table?: {
+    headers?: string[];
+    rows: string[][];
+    headersKeyword?: string; // keyword as written for the headers line (e.g. أعمدة, headers)
+    rowKeyword?: string; // keyword as written for row lines (e.g. صف)
+  };
 }
 ```
 
@@ -814,7 +857,7 @@ interface IntentDocumentMetadata {
 
 Union type covering all 38 canonical keywords plus extension namespace blocks.
 
-**Canonical (37 total):**
+**Canonical (38 total):**
 
 - **Document Identity (4):** `title`, `summary`, `meta`, `context`
 - **Structure (3):** `section`, `sub`, `toc`
@@ -823,7 +866,7 @@ Union type covering all 38 canonical keywords plus extension namespace blocks.
 - **Data (3):** `columns`, `row`, `metric`
 - **Agentic Workflow (7):** `step`, `decision`, `gate`, `trigger`, `result`, `policy`, `audit`
 - **Trust (5):** `track`, `approve`, `sign`, `freeze`, `amendment`
-- **Layout (5):** `page`, `header`, `footer`, `watermark`, `break`
+- **Layout (6):** `page`, `header`, `footer`, `watermark`, `break`, `style`
 
 **Extension blocks:**
 
@@ -863,7 +906,7 @@ interface Diagnostic {
 
 ### `ALIASES`
 
-Record mapping alias keywords to their canonical types. Includes callout aliases (`warning:` → `info:` with `type: warning`), shorthand forms, and per-category aliases. See [Aliases Reference](/docs/reference/keywords/aliases).
+Record mapping alias keywords to their canonical types. Includes callout aliases (`warning:` → `info:` with `type: warning`), shorthand forms, per-category aliases, and the 33 registered Arabic aliases (`عنوان` → `title`, `قسم` → `section`, `مهمة` → `task`, `مؤشر` → `metric`, `اعتماد` → `approve`, `تجميد` → `freeze`, …) — an Arabic document gets full canonical semantics, and aliases serialize back as written. See [Aliases Reference](/docs/reference/keywords/aliases).
 
 ### `KEYWORDS`
 

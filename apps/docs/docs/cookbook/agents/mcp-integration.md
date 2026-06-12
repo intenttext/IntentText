@@ -16,7 +16,7 @@ The IntentText MCP server exposes every core operation as a tool. Connect it to 
 ### Installation
 
 ```bash
-npm install -g @anthropic/intenttext-mcp
+npm install -g @dotit/mcp
 ```
 
 ### Configure Claude Desktop
@@ -28,7 +28,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "intenttext": {
       "command": "npx",
-      "args": ["@anthropic/intenttext-mcp"]
+      "args": ["-y", "@dotit/mcp"]
     }
   }
 }
@@ -43,7 +43,7 @@ Add to `.vscode/mcp.json`:
   "servers": {
     "intenttext": {
       "command": "npx",
-      "args": ["@anthropic/intenttext-mcp"]
+      "args": ["-y", "@dotit/mcp"]
     }
   }
 }
@@ -51,59 +51,52 @@ Add to `.vscode/mcp.json`:
 
 ## Available tools
 
-| Tool              | Description                                 |
-| ----------------- | ------------------------------------------- |
-| `parse`           | Parse a `.it` file to JSON AST              |
-| `render`          | Render to HTML with optional theme          |
-| `render_print`    | Render to print HTML                        |
-| `query`           | Query blocks in a document                  |
-| `query_directory` | Query across a directory of `.it` files     |
-| `merge`           | Merge a template with data                  |
-| `validate`        | Validate against a schema                   |
-| `seal`            | Sign and freeze a document                  |
-| `verify`          | Verify document integrity                   |
-| `history`         | Get document revision history               |
-| `amend`           | Add a formal amendment to a frozen document |
-| `diff`            | Compare two `.it` files                     |
-| `source`          | Read raw `.it` source                       |
+| Tool                   | Description                                  |
+| ---------------------- | -------------------------------------------- |
+| `parse_intent_text`    | Parse `.it` source into a structured document |
+| `render_html`          | Render to styled HTML with optional theme    |
+| `render_print`         | Render to print-optimised HTML               |
+| `query_document`       | Query blocks by type, content, or properties |
+| `merge_template`       | Merge a `{{variable}}` template with data    |
+| `validate_document`    | Semantic validation beyond syntax            |
+| `seal_document`        | Sign and freeze a document                   |
+| `verify_document`      | Verify document integrity                    |
+| `get_document_history` | Get document revision history                |
+| `diff_documents`       | Semantic diff between two versions           |
+| `document_to_source`   | Convert a parsed document back to `.it`      |
+| `extract_workflow`     | Extract the execution graph from a workflow  |
 
 ## Example conversation
 
 **User**: "Read the contract at contracts/service-agreement.it and tell me when the payment deadline is."
 
-**Claude** uses `parse` tool → reads the document → finds `deadline:` blocks:
+**Claude** uses the `parse_intent_text` tool → reads the document → finds `deadline:` blocks:
 
-> The payment deadline is April 15, 2026 (Net 30 from invoice date). The contract also has a renewal deadline of March 31, 2027.
+> The payment deadline is 2026-04-15 (Net 30 from invoice date). The contract also has a renewal deadline of 2027-03-31.
 
 **User**: "Amend the payment terms from Net 30 to Net 45."
 
-**Claude** uses `amend` tool:
+**Claude** appends an `amendment:` line (amendment lines are excluded from the document hash, so the seal is preserved):
 
-```json
-{
-  "file": "contracts/service-agreement.it",
-  "section": "Payment",
-  "was": "Net 30",
-  "now": "Net 45",
-  "ref": "Amendment #1"
-}
+```intenttext
+amendment: Payment terms updated | section: Payment | was: Net 30 | now: Net 45 | ref: Amendment #1 | at: 2026-09-15
 ```
 
 > Done. Amendment #1 has been added to the contract. The original seal is preserved. The payment terms now read Net 45.
 
 **User**: "Verify the contract is still valid."
 
-**Claude** uses `verify` tool:
+**Claude** uses the `verify_document` tool:
 
 > ✓ Original seal is valid (sha256:f9a0b1c2, sealed 2026-03-22). One amendment applied: Amendment #1 — Payment terms changed from Net 30 to Net 45. Both signatures from Ahmed Al-Rashid (CEO) and Maria Santos (COO) are intact.
 
-## The lightweight alternative: `intenttext ask`
+## The lightweight alternative: `dotit ask`
 
 If you don't need full MCP integration, use the built-in natural language query:
 
 ```bash
-intenttext ask ./contracts "What are the payment terms?" --format text
-intenttext ask ./hr "Who are the contacts in Engineering?" --format json
+dotit ask ./contracts "What are the payment terms?" --format text
+dotit ask ./hr "Who are the contacts in Engineering?" --format json
 ```
 
 This uses the Anthropic API directly — no MCP server needed.
@@ -112,7 +105,7 @@ This uses the Anthropic API directly — no MCP server needed.
 
 An agent can use MCP tools to execute a pipeline defined in a `.it` file:
 
-1. `parse` the pipeline definition
+1. `extract_workflow` on the pipeline definition (or `parse_intent_text` for the raw blocks)
 2. Read `step:` blocks and their dependencies
 3. Execute each step's `tool:` in dependency order
 4. Check `gate:` conditions for branching

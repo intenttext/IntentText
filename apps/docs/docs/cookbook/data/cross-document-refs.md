@@ -57,16 +57,17 @@ An agent reading this document can follow `ref:` links to gather full context wi
 
 ```bash
 # All references across contracts
-intenttext query ./contracts --type ref --format table
+dotit query ./contracts --type ref --format table
 
-# Find what supersedes what
-intenttext query ./contracts --type ref --content "supersedes" --format json
+# Filter by relationship type inside one document (rel: is a property)
+dotit service-agreement.it --query "type=ref rel=supersedes"
+dotit service-agreement.it --query "type=ref rel=amended-by"
 
-# Find all amendments
-intenttext query ./contracts --type ref --content "amended-by" --format table
+# Export every reference as JSON and filter downstream
+dotit query ./contracts --type ref --format json
 
 # Natural language
-intenttext ask ./contracts "Which contract supersedes the 2025 agreement?" --format text
+dotit ask ./contracts "Which contract supersedes the 2025 agreement?" --format text
 ```
 
 ## Building a document graph
@@ -74,7 +75,7 @@ intenttext ask ./contracts "Which contract supersedes the 2025 agreement?" --for
 Export all references to visualize the relationships:
 
 ```bash
-intenttext query ./company --type ref --format json > document-graph.json
+dotit query ./company --type ref --format json > document-graph.json
 ```
 
 Each entry contains:

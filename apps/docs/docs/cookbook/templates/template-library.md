@@ -142,18 +142,23 @@ The [IntentText Hub](https://hub.intenttext.io) hosts **76 curated templates** a
 
 ### Merge with data
 
+:::caution Planned — not yet in the CLI
+The `dotit hub` subcommands shown below are **planned**; today the Hub is browse-and-copy
+via the web app, and the current `dotit` CLI does not include them yet.
+:::
+
 ```bash
 # Download template
-intenttext hub pull invoice-standard --domain finance
+dotit hub pull invoice-standard --domain finance
 
 # Merge with your data
-intenttext invoice-standard.it --data my-data.json --html --theme corporate
+dotit invoice-standard.it --data my-data.json --html --theme corporate
 ```
 
 ### Publish your own
 
 ```bash
-intenttext hub publish my-template.it --domain business
+dotit hub publish my-template.it --domain business
 ```
 
 Community templates are published instantly. Apply for curated status to appear in the official directory.

@@ -79,7 +79,7 @@ Put the invoice template in `finance/templates/`, not in a global `templates/` f
 Each folder gets its own `.it-index`. Build them all:
 
 ```bash
-intenttext index ./company --recursive
+dotit index ./company --recursive
 ```
 
 This creates one `.it-index` per subfolder — not one giant index for everything.
@@ -97,23 +97,23 @@ This creates one `.it-index` per subfolder — not one giant index for everythin
 
 ```bash
 # Build index for one folder
-intenttext index ./company/contracts/active
+dotit index ./company/contracts/active
 
 # Build all indexes recursively
-intenttext index ./company --recursive
+dotit index ./company --recursive
 ```
 
 ## Querying across the structure
 
 ```bash
 # All contacts across the company
-intenttext query ./company --type contact --format table
+dotit query ./company --type contact --format table
 
 # All pending deadlines in contracts
-intenttext query ./company/contracts/active --type deadline --status pending --format table
+dotit query ./company/contracts/active --type deadline --status pending --format table
 
 # Templates only
-intenttext query ./company --type meta --content "template" --format json
+dotit query ./company --type meta --content "template" --format json
 ```
 
 ## Next steps

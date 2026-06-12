@@ -1467,7 +1467,11 @@ export function renderPrint(
   if (layout.header) {
     const hp = layout.header.properties || {};
     const left = cssContentValue(String(hp.left ?? ""));
-    const center = cssContentValue(String(hp.center ?? ""));
+    // Content-only form (`header: ACME Corp`) renders in the center zone —
+    // parity with the editor's print path and the llms.txt teaching.
+    const center = cssContentValue(
+      String(hp.center ?? layout.header.content ?? ""),
+    );
     const right = cssContentValue(String(hp.right ?? ""));
     headerFooterCSS += `@page{@top-left{content:${left};}@top-center{content:${center};}@top-right{content:${right};}}`;
     if (String(hp["skip-first"]) === "true") {
@@ -1477,7 +1481,9 @@ export function renderPrint(
   if (layout.footer) {
     const fp = layout.footer.properties || {};
     const left = cssContentValue(String(fp.left ?? ""));
-    const center = cssContentValue(String(fp.center ?? ""));
+    const center = cssContentValue(
+      String(fp.center ?? layout.footer.content ?? ""),
+    );
     const right = cssContentValue(String(fp.right ?? ""));
     headerFooterCSS += `@page{@bottom-left{content:${left};}@bottom-center{content:${center};}@bottom-right{content:${right};}}`;
     if (String(fp["skip-first"]) === "true") {

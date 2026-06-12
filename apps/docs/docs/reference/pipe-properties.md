@@ -28,6 +28,34 @@ quote: The only limit is imagination | by: Anonymous | size: 1.2em
 code: ```fetch("/api/data")``` | lang: js
 ````
 
+## Reserved characters & escaping
+
+` | ` (space-pipe-space) is the **only** reserved delimiter in a line. Two escape sequences exist, and they are all you ever need:
+
+- **Literal pipe** — write `\|` (backslash-pipe). Works in content **and** in property values.
+- **Literal backslash** — write `\\` (double backslash).
+
+```intenttext
+task: Review the A \| B comparison | owner: Ada
+text: Windows path: C:\\Users\\ahmed\\docs
+metric: Margin | value: 40\|60 split
+```
+
+The parser unescapes `\|` and `\\` anywhere in content and property values, and the serializer **re-escapes them on output** — so escape round-trips are a stable fixpoint. A parsed-and-reserialized document never silently turns a literal pipe back into a property delimiter.
+
+**Colons need no escaping.** Only the first word-plus-colon of a line is interpreted as a keyword — every later colon is plain text:
+
+```intenttext
+quote: He said: watch this | by: Ada
+text: Schedule — 09:00: standup, 14:30: review
+```
+
+The only edge case: starting a line's *prose* with something that looks like a keyword. `total: 50` on its own line would parse as a custom `total` block — if you mean it as text, say so explicitly:
+
+```intenttext
+text: total: 50
+```
+
 ## Standard properties by keyword
 
 Each keyword documents its own properties on its reference page. Here is a cross-reference of common properties and where they appear.
@@ -37,7 +65,7 @@ Each keyword documents its own properties on its reference page. Here is a cross
 | Property | Used by                                                                       | Description                             |
 | -------- | ----------------------------------------------------------------------------- | --------------------------------------- |
 | `by:`    | `quote:`, `approve:`, `sign:`, `audit:`, `revision:`, `amendment:`            | Author or attribution                   |
-| `at:`    | `image:`, `audit:`, `approve:`, `sign:`, `freeze:`, `revision:`, `amendment:` | File path, URL, or timestamp            |
+| `at:`    | `image:`, `audit:`, `approve:`, `sign:`, `freeze:`, `revision:`, `amendment:` | File path, URL, or ISO 8601 timestamp   |
 | `id:`    | Any block                                                                     | Explicit block identifier               |
 | `ref:`   | `ref:`, `approve:`, `amendment:`                                              | Reference identifier or cross-reference |
 
@@ -125,3 +153,5 @@ text: Custom data | department: Engineering | priority: high | reviewed: true
 ```
 
 Custom properties are preserved in parsed output, appear in queries, and survive merge operations. This makes `.it` files extensible without schema changes.
+
+One convention applies across all properties: the date-bearing keys (`date`, `due`, `at`, `expires`, `issued`) hold **ISO 8601** values (`2026-03-09` or `2026-03-09T14:00:00Z`). Locale formats are ambiguous and break [date-range queries](./query#dates-are-iso-8601) — the validator flags them with a `DATE_NOT_ISO` warning.

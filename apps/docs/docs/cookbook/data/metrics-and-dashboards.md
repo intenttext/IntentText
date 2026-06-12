@@ -32,7 +32,7 @@ section: Engineering
 metric: Sprint Velocity | value: 87 | target: 80 | unit: points | trend: up
 metric: Deploy Frequency | value: 4.2 | target: 3.0 | unit: per week | trend: up
 metric: MTTR | value: 18 | target: 30 | unit: minutes | trend: down | color: green
-metric: Uptime | value: 99.97 | target: 99.9 | unit: % | trend: flat
+metric: Uptime | value: 99.97 | target: 99.9 | unit: % | trend: stable
 
 section: Customer
 
@@ -48,43 +48,40 @@ When a section contains multiple `metric:` blocks, they render as a dashboard gr
 
 ## Color coding
 
-Metrics are color-coded automatically based on value vs target:
+Metrics with a `target:` are color-coded automatically based on value vs target:
 
-| Condition                             | Color  |
-| ------------------------------------- | ------ |
-| Value meets or exceeds target         | Green  |
-| Value is close to target (within 10%) | Yellow |
-| Value misses target by more than 10%  | Red    |
+| Condition                     | Color |
+| ----------------------------- | ----- |
+| Value meets or exceeds target | Green |
+| Value below target            | Red   |
 
-You can override with an explicit `color:` property:
+For metrics where lower is better (churn, MTTR, resolution time), set an explicit `color:` — the automatic comparison assumes higher-is-better:
 
 ```intenttext
 metric: Churn Rate | value: 2.1 | target: 3.0 | unit: % | color: green
 ```
 
-For metrics where lower is better (churn, MTTR, resolution time), the renderer handles the inversion automatically — lower value = green.
-
 ## Trend indicators
 
-| Trend  | Display |
-| ------ | ------- |
-| `up`   | ↑       |
-| `down` | ↓       |
-| `flat` | →       |
+| Trend    | Display |
+| -------- | ------- |
+| `up`     | ↑       |
+| `down`   | ↓       |
+| `stable` | →       |
 
-Trend arrows combine with color coding — an upward trend on revenue is green, an upward trend on churn is red.
+Trend arrows render alongside the value — pair them with `color:` when the direction's meaning isn't obvious (an upward churn trend deserves red).
 
 ## Querying metrics
 
 ```bash
 # All metrics across all reports
-intenttext query ./reports --type metric --format table
+dotit query ./reports --type metric --format table
 
 # Metrics in a specific section
-intenttext query ./reports --type metric --section "Revenue" --format csv
+dotit query ./reports --type metric --section "Revenue" --format csv
 
 # Natural language
-intenttext ask ./reports "What's our MRR trend?" --format text
+dotit ask ./reports "What's our MRR trend?" --format text
 ```
 
 ## Agent monitoring
@@ -108,7 +105,7 @@ audit: Metrics recorded | by: monitoring-agent | at: 2026-03-15T10:00:00Z | leve
 Query agent performance over time:
 
 ```bash
-intenttext query ./agent-logs --type metric --content "Error rate" --format csv
+dotit query ./agent-logs --type metric --content "Error rate" --format csv
 ```
 
 ## Next steps

@@ -30,7 +30,7 @@ Turn documents into reusable templates and merge them with data.
 Approvals, signatures, sealing, and amendments.
 
 - [Approval Workflow](./trust/approval-workflow) — approve → sign → freeze
-- [Sealing Contracts](./trust/sealing-contracts) — `intenttext seal` and `intenttext verify`
+- [Sealing Contracts](./trust/sealing-contracts) — `dotit seal` and `dotit verify`
 - [Amending Frozen Documents](./trust/amending-frozen-docs) — formal amendments without breaking the seal
 - [Audit Trail](./trust/audit-trail) — track + revision + history
 

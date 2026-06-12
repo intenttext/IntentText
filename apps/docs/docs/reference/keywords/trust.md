@@ -10,7 +10,7 @@ Five keywords for document integrity — tracking versions, recording approvals,
 ## `track:`
 
 **Category:** Trust
-**Since:** v2.8
+**Aliases:** `تتبع:`
 
 Activates document version tracking. Once set, the CLI records revisions below the `history:` boundary automatically.
 
@@ -50,7 +50,7 @@ track: | version: 2.3 | by: Sarah Chen
 ## `approve:`
 
 **Category:** Trust
-**Since:** v2.8
+**Aliases:** `اعتماد:`
 
 Named approval stamp. Records who approved the document, their role, and when.
 
@@ -81,14 +81,14 @@ approve: Compliance review | by: Maria Santos | role: Compliance Officer | ref: 
 
 - Multiple `approve:` blocks are common — legal, finance, compliance, management
 - Requires `track:` to be set first
-- Queryable: `intenttext query . --type approve --by "Sarah Chen"`
+- Queryable: `dotit query . --type approve --by "Sarah Chen"`
 
 ---
 
 ## `sign:`
 
 **Category:** Trust
-**Since:** v2.8
+**Aliases:** `توقيع:`, `sig:`
 
 Integrity hash seal. Records the signer's name, role, timestamp, and a SHA-256 hash of the document body at the time of signing. If the document is modified after signing, the stored hash will no longer match and verification will report the discrepancy. This is tamper evidence via hash comparison, not cryptographic non-repudiation.
 
@@ -129,8 +129,7 @@ Use both when a contract needs digital verification _and_ paper signatures.
 ## `freeze:`
 
 **Category:** Trust
-**Since:** v2.8
-**Aliases:** `lock:`
+**Aliases:** `تجميد:`, `lock:`
 
 Seal the document. After `freeze:`, any edit to the content above invalidates the hash.
 
@@ -158,16 +157,15 @@ freeze: | status: locked | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8
 
 - `freeze:` content is typically empty — data is in properties
 - After freezing, the only permitted additions are `amendment:` blocks
-- Use `intenttext seal` to compute the hash and add `sign:` + `freeze:` automatically
-- Use `intenttext verify` to check the hash against current content
+- Use `dotit seal` to compute the hash and add `sign:` + `freeze:` automatically
+- Use `dotit verify` to check the hash against current content
 
 ---
 
 ## `amendment:`
 
 **Category:** Trust
-**Since:** v2.11
-**Aliases:** `amend:`, `change:`
+**Aliases:** `تعديل:`, `amend:`, `change:`
 
 Formal change to a frozen document. Preserves the original seal while recording what was changed, where, who authorized it, and when.
 
@@ -211,12 +209,12 @@ With `amendment:`:
 - The original seal is **preserved**
 - The amendment is **additive** — it records the change alongside the sealed content
 - Each amendment can have its own approval chain (`approved-by:`)
-- `intenttext verify` reports both the original seal status and all amendments
+- `dotit verify` reports both the original seal status and all amendments
 
 ### CLI
 
 ```bash
-intenttext amend contract.it \
+dotit amend contract.it \
   --section "Payment" \
   --was "Net 30" \
   --now "Net 15" \
@@ -266,6 +264,6 @@ Automated history and revision blocks are available in the `x-trust:` namespace.
 | Extension            | Purpose                                            |
 | -------------------- | -------------------------------------------------- |
 | `x-trust: history`   | History boundary marker — separates live document from machine-managed history section |
-| `x-trust: revision`  | Auto-generated change record written by `intenttext seal` and `intenttext amend` |
+| `x-trust: revision`  | Auto-generated change record written by `dotit seal` and `dotit amend` |
 
 See [Extension Keywords →](./extensions) for full syntax documentation.

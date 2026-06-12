@@ -13,6 +13,10 @@ The format is based on Keep a Changelog.
 
 ### Fixed
 
+- **Content-only `header:` / `footer:` blocks now print.** `header: ACME Corp` (no
+  zone properties) renders in the top-center @page zone — parity with the editor's
+  print path and the llms.txt teaching. Zone properties (`left:`/`center:`/`right:`)
+  still take precedence.
 - **Escaped pipes now survive round-trips.** `\|` parsed correctly into a literal
   pipe, but the serializer emitted it back UNescaped — re-parsing then split it as a
   property delimiter (data corruption in editor round-trips). The serializer now
@@ -20,6 +24,11 @@ The format is based on Keep a Changelog.
   fixpoint.
 
 ### Added
+
+- **`dotit` CLI now ships with `@dotit/core`** (1.0.1). `npm install -g @dotit/core`
+  gives you the `dotit` command (parse, render, query, seal, verify, amend, index,
+  ask, themes). Previously the CLI existed only as a repo script and the documented
+  `intenttext` npm package never existed.
 
 - **Unicode (Arabic, any-language) keywords and property keys.** The keyword grammar
   is now `\p{L}` Unicode words, so Arabic domain keywords parse as typed `custom`

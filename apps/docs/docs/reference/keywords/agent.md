@@ -10,7 +10,6 @@ Seven keywords for defining executable AI agent workflows. These blocks describe
 ## `step:`
 
 **Category:** Agentic Workflow
-**Since:** v2.0
 **Aliases:** `run:`
 
 A unit of work in a workflow. Steps are executed in dependency order by the workflow runtime.
@@ -50,7 +49,6 @@ step: Transform records | id: transform | depends: validate | tool: jq
 ## `decision:`
 
 **Category:** Agentic Workflow
-**Since:** v2.0
 **Aliases:** `if:`
 
 Conditional branching. Routes execution based on a condition evaluated by the runtime.
@@ -88,7 +86,6 @@ decision: Budget within limit? | if: amount <= 10000 | then: auto_approve | else
 ## `gate:`
 
 **Category:** Agentic Workflow
-**Since:** v2.3
 
 Human approval checkpoint. Blocks workflow execution until the required approver grants permission. Controlled via the `onGate` runtime callback.
 
@@ -128,7 +125,6 @@ When the executor encounters a `gate:` block with no `status: approved` property
 ## `trigger:`
 
 **Category:** Agentic Workflow
-**Since:** v2.0
 **Aliases:** `on:`
 
 Event-based activation. Declares what event starts a workflow or a section of a workflow.
@@ -159,7 +155,6 @@ trigger: Deployment complete | event: deploy.success | filter: env == "productio
 ## `result:`
 
 **Category:** Agentic Workflow
-**Since:** v2.1
 
 Terminal workflow result — the final output of a completed workflow.
 
@@ -188,7 +183,6 @@ result: Invoice generated | format: PDF | data: ./invoices/inv-2026-001.pdf
 ## `policy:`
 
 **Category:** Agentic Workflow
-**Since:** v2.7
 **Aliases:** `rule:`, `constraint:`, `guard:`, `requirement:`
 
 Enforceable constraint or rule. Policies are evaluated by the workflow runtime before execution begins. A policy with `requires: gate` blocks execution unless a matching gate block with `status: approved` exists in the document.
@@ -235,7 +229,6 @@ This is the primary mechanism for enforcing mandatory human oversight in automat
 ## `audit:`
 
 **Category:** Agentic Workflow
-**Since:** v2.0
 **Aliases:** `log:`
 
 Audit log entry. Records what an agent or person did, when, and the action taken. The runtime calls `onAudit()` when this block is encountered during execution.

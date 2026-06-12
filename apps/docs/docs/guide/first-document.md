@@ -31,7 +31,7 @@ contact: Ahmed Al-Rashid | role: CEO | email: ahmed@acme.com | org: Acme Corp | 
 contact: James Miller | role: CFO | email: j.miller@globaltech.co | org: GlobalTech Inc. | phone: +1-415-555-0200
 ```
 
-Every `contact:` is queryable. Later, you can run `intenttext query ./invoices --type contact --org "Acme"` and find every contact across every invoice.
+Every `contact:` is queryable. Later, you can run `dotit query ./invoices --type contact --org "Acme"` and find every contact across every invoice.
 
 ## Add line items
 
@@ -86,7 +86,7 @@ freeze: | status: locked | at: 2026-03-06T14:33:00Z
 Now seal it with the CLI:
 
 ```bash
-intenttext seal invoice.it --signer "Ahmed Al-Rashid" --role "CEO"
+dotit seal invoice.it --signer "Ahmed Al-Rashid" --role "CEO"
 ```
 
 The document is now frozen. Any edit breaks the hash.
@@ -94,7 +94,7 @@ The document is now frozen. Any edit breaks the hash.
 ## Verify anytime
 
 ```bash
-intenttext verify invoice.it
+dotit verify invoice.it
 ```
 
 ```
@@ -108,10 +108,35 @@ intenttext verify invoice.it
 ## Render it
 
 ```bash
-intenttext invoice.it --html --theme corporate
-intenttext invoice.it --print --theme corporate
-intenttext invoice.it --print --theme corporate --pdf invoice.pdf
+dotit invoice.it --html --theme corporate
+dotit invoice.it --print --theme corporate
+dotit invoice.it --print --theme corporate --pdf invoice.pdf
 ```
+
+## The same invoice, in Arabic
+
+Every keyword you used above has a registered Arabic alias with identical semantics — and Arabic keywords **round-trip as written**, so the file stays Arabic through parse, edit, and serialize (a sealed Arabic document keeps its hash):
+
+```intenttext
+عنوان: فاتورة INV-2026-043
+ملخص: خدمات استشارية — شركة الإتقان — الربع الثاني 2026
+بيانات: | type: invoice | currency: QAR | dir: rtl
+
+قسم: الأطراف
+جهة: أحمد الراشد | role: المدير التنفيذي | email: ahmed@itqan.qa
+
+قسم: البنود
+أعمدة: الوصف | الساعات | الإجمالي
+صف: استشارات استراتيجية | 40 | 22,000 QAR
+
+مؤشر: الإجمالي المستحق | value: 22,000 QAR
+مهلة: استحقاق الدفع | date: 2026-07-30 | consequence: غرامة تأخير 1.5% شهريا
+
+اعتماد: تمت المراجعة | by: سارة | role: المدير المالي | at: 2026-06-12
+توقيع: أحمد الراشد | role: المدير التنفيذي | at: 2026-06-12T10:00:00Z
+```
+
+`type=task`, `type=contact`, and `type=deadline` queries match these blocks exactly as they match the English ones. See the [full Arabic alias table](../reference/keywords/aliases#arabic-aliases).
 
 ## The complete file
 
