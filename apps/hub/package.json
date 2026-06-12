@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build:core": "pnpm --filter @intenttext/core build",
+    "build": "pnpm run build:core && next build",
     "start": "next start",
     "seed": "tsx lib/seed.ts",
     "lint": "next lint"
