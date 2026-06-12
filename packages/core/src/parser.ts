@@ -645,6 +645,8 @@ function parseLine(
     lineNumber: number;
     diagnostics: Diagnostic[];
     parseInline: (text: string) => { content: string; inline: InlineNode[] };
+    /** Depth of embedded re-parses (list-item shorthand). Bounded — see below. */
+    embedDepth?: number;
   },
 ): IntentBlock | null {
   const trimmed = line.trim();
@@ -1065,10 +1067,17 @@ function parseLine(
 
     // Inline task shorthand: "- task: ..." should parse the same as a
     // standalone keyword block, but preserve list positioning.
-    const embedded = parseLine(payload, {
-      ...ctx,
-      // embedded content shares same line number
-    });
+    // Depth-bounded: a pathological line like "- - - - …" would otherwise
+    // recurse once per marker and overflow the stack (found by fuzzing).
+    const depth = ctx.embedDepth ?? 0;
+    const embedded =
+      depth < 2
+        ? parseLine(payload, {
+            ...ctx,
+            embedDepth: depth + 1,
+            // embedded content shares same line number
+          })
+        : null;
     if (
       embedded &&
       embedded.type !== "list-item" &&

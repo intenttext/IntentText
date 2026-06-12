@@ -6,6 +6,29 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [4.3.1] - 2026-06-12
+
+Hardening release — the start of the enterprise-hardening track.
+
+### Security
+
+- **Parser stack-overflow DoS fixed.** A single line of repeated list markers
+  (`- - - - …`, ~10KB) crashed `parseIntentText` with a stack overflow — a denial
+  of service for any server parsing untrusted `.it`. The list-item shorthand
+  re-parse is now depth-bounded. Found by the new fuzz suite.
+
+### Added
+
+- **Fuzz/property test suite** (`tests/fuzz.test.ts`): 500 random structured
+  documents + 200 random byte-soup inputs + pathological edge cases (10K newlines,
+  5K pipes, 100KB hash values, BOM, CRLF, deep nesting) — the full pipeline
+  (parse → render → print → serialize → re-parse → hash → verify → merge) must
+  never throw. Deterministic seeds so failures reproduce. 897 tests total.
+- **`/llms.txt`** on the docs site — a complete machine reference that teaches any
+  LLM to author valid `.it` (grammar, all 38 keywords, styling layers, templates,
+  trust, generation rules). Point an agent at it and it can produce documents,
+  templates, and workflows immediately.
+
 ## [4.3.0] - 2026-06-12
 
 ### Added

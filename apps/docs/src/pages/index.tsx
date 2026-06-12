@@ -79,7 +79,7 @@ export default function Home(): React.ReactElement {
           </div>
           <div className="hero-stats">
             <div className="hero-stat">
-              <strong>37</strong>
+              <strong>38</strong>
               <span>canonical keywords</span>
             </div>
             <div className="hero-stat">
