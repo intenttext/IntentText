@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build:core": "pnpm --filter @intenttext/core build",
+    "build": "pnpm run build:core && tsc && vite build",
     "preview": "vite preview",
     "roundtrip:check": "node --experimental-strip-types scripts/roundtrip-check.mjs"
   },
