@@ -7,6 +7,40 @@ export interface DemoDoc {
 
 export const DEMO_DOCS: DemoDoc[] = [
   {
+    id: "invoice-template",
+    title: "Invoice Template — {{variables}} + each: loop",
+    section: "invoices",
+    // A merge TEMPLATE (what an ERP stores per company): {{path}} placeholders
+    // and a repeating table row. Open the Template panel to test it with sample
+    // data and produce a merged PDF — the same pipeline production uses.
+    source: `page: | size: A4
+header: {{company.name}}
+footer: {{invoice.number}} · Page {{page}} of {{pages}}
+
+title: Invoice {{invoice.number}}
+summary: {{company.name}} → {{customer.name}}
+meta: | date: {{invoice.date}} | status: {{invoice.status}}
+
+section: From
+contact: {{company.name}} | email: {{company.email}} | vat: {{company.vat}}
+
+section: Bill To
+contact: {{customer.name}} | email: {{customer.email}}
+
+section: Line Items
+| Description | Qty | Unit Price | Total | each: items |
+| {{item.description}} | {{item.qty}} | {{item.unitPrice}} | {{item.total}} |
+
+section: Totals
+metric: Subtotal | value: {{totals.subtotal}}
+metric: Tax ({{totals.taxRate}}%) | value: {{totals.tax}}
+metric: Total Due | value: {{totals.due}}
+
+section: Payment
+text: Bank {{payment.bank}} · IBAN {{payment.iban}}
+deadline: Payment due | date: {{invoice.dueDate}} | consequence: late fees may apply`,
+  },
+  {
     id: "invoice-demo",
     title: "Invoice — Dalil → Acme (signed)",
     section: "invoices",

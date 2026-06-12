@@ -5,6 +5,8 @@ import { MonacoEditor } from "./editor/MonacoEditor";
 import { VisualEditor } from "./visual/VisualEditor";
 import { PrintBar } from "./panels/PrintBar";
 import { TrustPanel } from "./panels/TrustPanel";
+import { TemplatePanel } from "./panels/TemplatePanel";
+import { extractTemplateVariables } from "./visual/template-highlight";
 import { SealModal } from "./modals/SealModal";
 import { VerifyModal } from "./modals/VerifyModal";
 import { HistoryModal } from "./modals/HistoryModal";
@@ -48,6 +50,7 @@ export type ModalType =
   | "convert"
   | "help"
   | "trust"
+  | "template"
   | null;
 
 export default function App() {
@@ -112,6 +115,30 @@ export default function App() {
     },
     [setContent, setFilename, markSaved],
   );
+
+  // Insert text at the caret of whichever editor is active. The visual editor
+  // listens for this event (it owns the TipTap instance).
+  const insertAtCaret = useCallback(
+    (text: string) => {
+      if (editorMode === "source" && editorRef.current) {
+        const ed = editorRef.current;
+        const sel = ed.getSelection();
+        if (sel) {
+          ed.executeEdits("template-insert", [
+            { range: sel, text, forceMoveMarkers: true },
+          ]);
+          ed.focus();
+        }
+        return;
+      }
+      window.dispatchEvent(
+        new CustomEvent("it-insert-text", { detail: text }),
+      );
+    },
+    [editorMode],
+  );
+
+  const templateVarCount = extractTemplateVariables(content).length;
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -195,6 +222,7 @@ export default function App() {
           onSave={saveFile}
           onModal={setModal}
           isSealed={trustState.trust.isSealed}
+          templateVarCount={templateVarCount}
           samples={DEMO_DOCS.map((d) => ({ id: d.id, title: d.title }))}
           onLoadSample={(id) => {
             const doc = getDemoDocById(id);
@@ -248,8 +276,11 @@ export default function App() {
 
       {/* Modals */}
       {modal === "trust" && (
-        <div className="modal-backdrop" onClick={() => setModal(null)}>
-          <div className="modal-side" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="modal-backdrop modal-backdrop--top"
+          onClick={() => setModal(null)}
+        >
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <TrustPanel
               trust={trustState.trust}
               onTrack={trustState.startTracking}
@@ -258,6 +289,28 @@ export default function App() {
               onSeal={trustState.seal}
               onVerify={trustState.verify}
               onAmend={trustState.addAmendment}
+            />
+            <button
+              className="btn-secondary"
+              style={{ margin: "8px 16px 16px" }}
+              onClick={() => setModal(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      {modal === "template" && (
+        <div
+          className="modal-backdrop modal-backdrop--top"
+          onClick={() => setModal(null)}
+        >
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <TemplatePanel
+              content={content}
+              theme={theme}
+              filename={filename}
+              onInsert={insertAtCaret}
             />
             <button
               className="btn-secondary"

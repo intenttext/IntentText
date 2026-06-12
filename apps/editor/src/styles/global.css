@@ -120,489 +120,6 @@ body::after {
     0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
-.showcase-tabs {
-  height: 48px;
-  display: flex;
-  align-items: stretch;
-  background: var(--bg-app);
-  border-bottom: 1px solid var(--border);
-}
-
-.showcase-mode-switch {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.showcase-mode-switch button {
-  border: 1px solid var(--border);
-  background: var(--bg-toolbar);
-  color: var(--text-muted);
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.showcase-mode-switch button.active {
-  border-color: var(--accent);
-  color: var(--text-primary);
-  background: rgba(37, 99, 235, 0.08);
-}
-
-.showcase-tab {
-  flex: 1;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  border-bottom: 2px solid transparent;
-}
-
-.showcase-tab:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.showcase-tab.active {
-  color: var(--text-primary);
-  border-bottom-color: var(--accent);
-  background: rgba(245, 158, 11, 0.08);
-}
-
-.showcase-panel {
-  width: 360px;
-  min-width: 360px;
-  max-width: 360px;
-  border-left: 1px solid var(--border);
-  background: var(--bg-panel);
-  display: flex;
-  flex-direction: column;
-}
-
-.showcase-panel-header {
-  padding: 14px;
-  border-bottom: 1px solid var(--border);
-}
-
-.showcase-panel-header h3 {
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.showcase-panel-header p {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.showcase-field {
-  padding: 12px 14px 0;
-}
-
-.showcase-field label {
-  display: block;
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.showcase-field input {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-toolbar);
-  color: var(--text-primary);
-  padding: 9px 10px;
-}
-
-.showcase-field select {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-toolbar);
-  color: var(--text-primary);
-  padding: 9px 10px;
-}
-
-.showcase-chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 0 14px 10px;
-}
-
-.showcase-chip {
-  border: 1px solid var(--border);
-  background: var(--bg-toolbar);
-  border-radius: 999px;
-  color: var(--text-primary);
-  font-size: 11px;
-  padding: 4px 8px;
-}
-
-.showcase-chip.removable {
-  border-color: rgba(245, 158, 11, 0.5);
-}
-
-.showcase-statline {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 14px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.showcase-view-toggle {
-  display: inline-flex;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.showcase-view-toggle button {
-  padding: 2px 8px;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.showcase-view-toggle button.active {
-  color: var(--text-primary);
-  background: rgba(245, 158, 11, 0.14);
-}
-
-.showcase-result-list,
-.showcase-timeline,
-.workflow-list {
-  flex: 1;
-  overflow: auto;
-  padding: 0 10px 10px;
-}
-
-.showcase-result,
-.workflow-item {
-  width: 100%;
-  text-align: left;
-  border: 1px solid var(--border);
-  background: var(--bg-toolbar);
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 8px;
-}
-
-.showcase-result:hover,
-.workflow-item:hover {
-  border-color: #4b5563;
-}
-
-.showcase-result-top {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  margin-bottom: 4px;
-}
-
-.showcase-result-line,
-.workflow-dep {
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.showcase-result-table {
-  animation: showcase-fade-in 0.16s ease-out;
-}
-
-.showcase-result-card {
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
-
-.showcase-current-doc,
-.showcase-hash,
-.showcase-trust-state {
-  margin: 0 14px 10px;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-toolbar);
-  font-size: 12px;
-}
-
-.showcase-verify-banner {
-  margin: 0 14px 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 12px;
-}
-
-.showcase-verify-banner.pass {
-  border-color: rgba(63, 185, 80, 0.55);
-  background: rgba(63, 185, 80, 0.1);
-}
-
-.showcase-verify-banner.fail {
-  border-color: rgba(248, 81, 73, 0.55);
-  background: rgba(248, 81, 73, 0.1);
-}
-
-.showcase-amend-form {
-  margin: 0 14px 14px;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-toolbar);
-}
-
-.showcase-amend-form label {
-  display: block;
-  font-size: 11px;
-  color: var(--text-muted);
-  margin: 6px 0 4px;
-}
-
-.showcase-amend-form input {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px;
-  background: var(--bg-panel);
-  color: var(--text-primary);
-  margin-bottom: 4px;
-}
-
-.showcase-context,
-.showcase-exec-log {
-  margin: 0 14px 10px;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-toolbar);
-}
-
-.showcase-context label,
-.showcase-exec-log label {
-  display: block;
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.showcase-context-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 12px;
-  margin-bottom: 6px;
-}
-
-.showcase-context-row code {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  color: #fbbf24;
-}
-
-.showcase-log-row {
-  border-top: 1px solid rgba(48, 54, 61, 0.7);
-  padding-top: 7px;
-  margin-top: 7px;
-  font-size: 12px;
-}
-
-.showcase-log-head {
-  display: flex;
-  justify-content: space-between;
-  color: var(--text-muted);
-  font-size: 11px;
-  margin-bottom: 3px;
-}
-
-.showcase-gate-card {
-  margin: 0 14px 10px;
-  padding: 10px;
-  border: 1px solid rgba(245, 158, 11, 0.55);
-  border-radius: 8px;
-  background: rgba(245, 158, 11, 0.1);
-}
-
-.showcase-gate-card p {
-  margin-top: 4px;
-  margin-bottom: 8px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.showcase-gate-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.showcase-current-doc label,
-.showcase-hash label {
-  display: block;
-  color: var(--text-muted);
-  font-size: 11px;
-  margin-bottom: 4px;
-}
-
-.showcase-hash code {
-  display: block;
-  white-space: pre-wrap;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-}
-
-.badge {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 2px 6px;
-  border-radius: 999px;
-  margin-right: 8px;
-}
-
-.badge.sealed {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
-}
-
-.badge.open {
-  background: rgba(59, 130, 246, 0.2);
-  color: #93c5fd;
-}
-
-.timeline-item {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.timeline-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--accent);
-  margin-top: 5px;
-  flex-shrink: 0;
-}
-
-.timeline-title {
-  font-size: 13px;
-}
-
-.timeline-meta {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.workflow-item.done {
-  border-color: rgba(63, 185, 80, 0.5);
-}
-
-.workflow-item.running {
-  border-color: rgba(245, 158, 11, 0.65);
-  background: rgba(245, 158, 11, 0.08);
-}
-
-.workflow-item.pending {
-  opacity: 0.85;
-}
-
-.workflow-item.blocked {
-  border-color: rgba(245, 158, 11, 0.8);
-  background: rgba(245, 158, 11, 0.14);
-}
-
-.workflow-item.failed {
-  border-color: rgba(248, 81, 73, 0.8);
-  background: rgba(248, 81, 73, 0.12);
-}
-
-@keyframes showcase-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.workflow-type {
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-}
-
-.workflow-label {
-  font-size: 13px;
-  margin: 4px 0;
-}
-
-.showcase-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 0 14px 14px;
-}
-
-.showcase-actions button,
-.showcase-guide-item {
-  border: 1px solid var(--border);
-  background: var(--bg-toolbar);
-  color: var(--text-primary);
-  border-radius: 8px;
-  padding: 8px 10px;
-  text-align: left;
-}
-
-.showcase-actions button:hover,
-.showcase-guide-item:hover {
-  border-color: #4b5563;
-}
-
-.showcase-empty {
-  color: var(--text-muted);
-  font-size: 12px;
-  padding: 8px;
-}
-
-.showcase-guide {
-  max-width: 620px;
-}
-
-.showcase-guide p {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-bottom: 14px;
-}
-
-.showcase-guide-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.showcase-guide-item strong {
-  display: block;
-  margin-bottom: 4px;
-}
-
-.showcase-guide-item span {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
 /* ─── Buttons ─────────────────────────────────────────────── */
 
 button {
@@ -764,17 +281,20 @@ button {
   align-items: center;
   justify-content: center;
 }
-/* Right-aligned drawer for the Trust panel. */
-.modal-side {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: 380px;
-  max-width: 90vw;
+/* Top-anchored variant: card centered horizontally with breathing room above. */
+.modal-backdrop--top {
+  align-items: flex-start;
+  padding-top: 56px;
+}
+/* Centered card for the Trust / Template panels. */
+.modal-card {
+  width: 460px;
+  max-width: 92vw;
+  max-height: calc(100vh - 112px);
   background: var(--bg-modal, #fff);
-  border-left: 1px solid var(--border);
-  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -1492,126 +1012,85 @@ button {
   width: 794px;
 }
 
-.docs-page-stack {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.docs-page-sheet {
-  position: absolute;
-  left: 0;
-  width: 794px;
-  height: 1123px;
-  background: #fff;
-  box-shadow:
-    0 8px 24px rgba(15, 23, 42, 0.08),
-    0 1px 3px rgba(60, 64, 67, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.docs-page-header-region,
-.docs-page-footer-region {
-  position: absolute;
-  left: 96px;
-  right: 96px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  color: #9aa0a6;
-  pointer-events: none;
-}
-
-.docs-page-header-region {
-  top: 20px;
-  border-bottom: 1px solid rgba(218, 220, 224, 0.85);
-}
-
-.docs-page-footer-region {
-  bottom: 20px;
-  border-top: 1px solid rgba(218, 220, 224, 0.85);
-}
-
-.docs-page-meta-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.docs-page-number {
-  margin-left: 12px;
-  color: #7a828d;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ─── Page (A4-like white paper) ──────────────────────────── */
+/* ─── Page (Word-like paper) ──────────────────────────────────────────────────
+   One continuous editable sheet, visually cut into real pages. Vertical margins
+   are real bands (header/footer text lives in them, exactly like print's @page
+   margin boxes); horizontal margins are padding on the content (.tiptap).
+   Geometry (size + margins) comes inline from the document's page: block. */
 
 .docs-page {
-  width: 794px;
-  min-height: 1123px;
   background: #fff;
   box-shadow:
     0 1px 3px rgba(60, 64, 67, 0.15),
     0 1px 2px rgba(60, 64, 67, 0.1);
   border-radius: 2px;
-  padding: 96px;
   position: relative;
   overflow: visible;
 }
 
-/* One continuous sheet — grows with content. The Pagination plugin inserts real
-   page-break spacers inside it, so content flows onto each page (nothing hidden). */
 .docs-page.docs-sheet {
   margin: 0 auto;
   overflow: visible;
 }
 
-/* ─── Page-break spacer: footer + grey gap + next header ──────────────────── */
-.docs-page-spacer {
+/* Content column: horizontal page margins only — vertical space comes from the
+   header band above and the pagination spacers below. flow-root traps first/last
+   block margins inside the content box so page geometry stays exact (and matches
+   print, where the same stylesheet applies). */
+.docs-page .tiptap {
+  padding: 0 var(--page-mx-r, 75.6px) 0 var(--page-mx-l, 75.6px);
+  display: flow-root;
+}
+
+/* Page 1's top margin + header text (static, outside the editable content). */
+.docs-sheet-header {
   position: relative;
-  /* span the full sheet width, past the content padding */
-  margin-left: -96px;
-  margin-right: -96px;
   user-select: none;
 }
-.docs-pb-rest {
+
+/* Header/footer band text — mirrors print's @page margin boxes:
+   10px, muted, centered both ways. */
+.docs-pb-header,
+.docs-pb-footer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 10px -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #9aa0a6;
+  pointer-events: none;
+  overflow: hidden;
+}
+.docs-pb-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+/* ─── Page-break spacer: filler + footer band + gap + next header band ────── */
+.docs-page-spacer {
+  position: relative;
+  /* span the full sheet width, past the content's horizontal margins */
+  margin-left: calc(-1 * var(--pb-mx-l, 75.6px));
+  margin-right: calc(-1 * var(--pb-mx-r, 75.6px));
+  user-select: none;
+}
+.docs-pb-fill {
+  background: #fff;
+}
+.docs-pb-margin {
   position: relative;
   background: #fff;
 }
-.docs-pb-footer {
-  position: absolute;
-  left: 96px;
-  right: 96px;
-  bottom: 18px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  color: #9aa0a6;
-  border-top: 1px solid rgba(218, 220, 224, 0.85);
-}
+/* The gap reads as "space between two sheets of paper": canvas color with a
+   soft shadow edge on each page card. */
 .docs-pb-gap {
   background: var(--bg-app, #eef0f3);
   box-shadow:
-    inset 0 2px 3px rgba(15, 23, 42, 0.06),
-    inset 0 -2px 3px rgba(15, 23, 42, 0.06);
-}
-.docs-pb-header {
-  position: relative;
-  background: #fff;
-  display: flex;
-  align-items: flex-end;
-  padding: 0 96px 8px;
-  font-size: 11px;
-  color: #9aa0a6;
-  border-bottom: 1px solid rgba(218, 220, 224, 0.85);
-}
-.docs-pb-num {
-  font-variant-numeric: tabular-nums;
+    inset 0 6px 5px -4px rgba(15, 23, 42, 0.14),
+    inset 0 -4px 4px -3px rgba(15, 23, 42, 0.1);
 }
 
 .docs-page-footer {
@@ -1914,6 +1393,175 @@ button {
   color: #777;
 }
 
+/* ─── Template variables ({{path}}) ───────────────────────── */
+.docs-page .tiptap .it-doc-var {
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+  border-radius: 4px;
+  padding: 0 3px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.86em;
+}
+.docs-page .tiptap .it-doc-table .it-doc-var-cell {
+  background: #eef2ff;
+  color: #4338ca;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.85em;
+}
+/* Variable chips are an authoring aid — print plain (merged docs have real data). */
+@media print {
+  .it-doc-var,
+  .it-doc-table .it-doc-var-cell {
+    background: none !important;
+    border: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+  }
+}
+
+/* ─── Toolbar badge (template variable count) ─────────────── */
+.tbtn-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  margin-left: 5px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* ─── Template panel ──────────────────────────────────────── */
+.template-panel {
+  padding: 18px 18px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 13px;
+}
+.template-panel__title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.template-panel__hint {
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+.template-panel__hint code,
+.template-panel__empty code {
+  background: #eef2ff;
+  color: #4338ca;
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 12px;
+}
+.template-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.template-panel__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.template-panel__count {
+  background: #4f46e5;
+  color: #fff;
+  border-radius: 8px;
+  min-width: 16px;
+  padding: 1px 5px;
+  text-align: center;
+  font-size: 10px;
+}
+.template-panel__vars,
+.template-panel__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.template-panel__var {
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  cursor: pointer;
+}
+.template-panel__var:hover {
+  background: #e0e7ff;
+}
+.template-panel__var--ghost {
+  background: transparent;
+  border-style: dashed;
+  color: #6b7280;
+}
+.template-panel__empty {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.template-panel__mini {
+  background: none;
+  border: none;
+  color: #4f46e5;
+  font-size: 11px;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+.template-panel__json {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--bg-input, #fafbfc);
+  color: var(--text-primary);
+}
+.template-panel__error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+.template-panel__actions {
+  display: flex;
+  gap: 8px;
+}
+.template-panel__preview {
+  max-height: 220px;
+  overflow: auto;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 /* ─── Document style rule chip (style: blocks) ────────────── */
 .docs-page .tiptap .it-doc-stylerule {
   display: flex;
@@ -2148,11 +1796,18 @@ button {
   overflow: hidden;
   flex-shrink: 0;
 }
-.document-panel {
-  border-right: 1px solid var(--border);
-}
 .trust-panel {
   border-left: 1px solid var(--border);
+}
+/* Inside the centered modal card the panel fills the card — no drawer chrome. */
+.modal-card .side-panel {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
 }
 
 .side-panel-header {
