@@ -218,13 +218,28 @@ function serializeBlock(block: IntentBlock): string {
   // Get content text — prefer originalContent to preserve inline formatting
   const content = block.originalContent ?? block.content ?? "";
 
+  // Emit the keyword AS WRITTEN when the line used an alias (incl. localized/
+  // Arabic aliases) — round-trips stay byte-stable and never silently rewrite an
+  // Arabic document into English keywords (which would also break sealed docs).
+  const kw = block.keywordAlias ?? type;
+
+  // Callout aliases (warning:/tip:/…) parse to info + an injected `type` prop;
+  // when re-emitting the alias itself that injected prop must not duplicate.
+  const exclude =
+    block.keywordAlias &&
+    type === "info" &&
+    block.properties?.type != null &&
+    block.keywordAlias.toLowerCase() === String(block.properties.type)
+      ? ["type"]
+      : [];
+
   // Build the line. When content is empty but properties exist, use the canonical
-  // `type: | props` form (e.g. `font: | family: Inter`) — not `type:  | props`.
-  const propStr = serializeProperties(block);
+  // `kw: | props` form (e.g. `font: | family: Inter`) — not `kw:  | props`.
+  const propStr = serializeProperties(block, exclude);
   if (propStr) {
-    return content ? `${type}: ${content} | ${propStr}` : `${type}: | ${propStr}`;
+    return content ? `${kw}: ${content} | ${propStr}` : `${kw}: | ${propStr}`;
   }
-  return content ? `${type}: ${content}` : `${type}:`;
+  return content ? `${kw}: ${content}` : `${kw}:`;
 }
 
 /**
@@ -275,13 +290,17 @@ function serializeProperties(block: IntentBlock, exclude: string[] = []): string
 function serializeTable(block: IntentBlock): string {
   const lines: string[] = [];
   const table = block.table!;
+  // Emit the keywords as written (e.g. Arabic أعمدة/صف) so round-trips are
+  // byte-stable; defaults match the historical output.
+  const hk = table.headersKeyword ?? "headers";
+  const rk = table.rowKeyword ?? "row";
 
   if (table.headers && table.headers.length > 0) {
-    lines.push(`headers: ${table.headers.join(" | ")}`);
+    lines.push(`${hk}: ${table.headers.join(" | ")}`);
   }
 
   for (const row of table.rows) {
-    lines.push(`row: ${row.join(" | ")}`);
+    lines.push(`${rk}: ${row.join(" | ")}`);
   }
 
   return lines.join("\n");

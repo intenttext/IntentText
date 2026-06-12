@@ -9,6 +9,10 @@ import {
 export interface IntentBlock {
   id: string; // auto-generated UUID or sequential ID
   type: BlockType; // see BlockType union for all valid types
+  /** When the line used an alias (incl. localized/Arabic aliases), the keyword
+   *  AS WRITTEN — documentToSource re-emits it so round-trips are byte-stable
+   *  (an Arabic document stays Arabic; sealed documents keep their hash). */
+  keywordAlias?: string;
   content: string; // primary text value (inline marks already parsed)
   originalContent?: string; // original text with formatting marks
   properties?: Record<string, string | number>; // pipe metadata: owner, due, time, at, to, caption, title, ...
@@ -17,6 +21,10 @@ export interface IntentBlock {
   table?: {
     headers?: string[];
     rows: string[][];
+    /** Keyword as written for the headers line (e.g. أعمدة, headers) — preserved on serialize. */
+    headersKeyword?: string;
+    /** Keyword as written for row lines (e.g. صف) — preserved on serialize. */
+    rowKeyword?: string;
   };
 }
 

@@ -75,7 +75,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Unique document title — renders as H1",
-    aliases: [{ alias: "h1", status: "compat-only" }],
+    aliases: [{ alias: "عنوان", status: "alias" }, { alias: "h1", status: "compat-only" }],
   },
   {
     canonical: "summary",
@@ -83,7 +83,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Short document description",
-    aliases: [{ alias: "abstract", status: "alias" }],
+    aliases: [{ alias: "ملخص", status: "alias" }, { alias: "abstract", status: "alias" }],
   },
   {
     canonical: "meta",
@@ -91,7 +91,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.8.1",
     status: "stable",
     description: "Document metadata (author, tags, theme, type)",
-    aliases: [],
+    aliases: [{ alias: "بيانات", status: "alias" }, ],
   },
   {
     canonical: "context",
@@ -109,7 +109,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Major heading / context boundary — renders as H2",
-    aliases: [
+    aliases: [{ alias: "قسم", status: "alias" }, 
       { alias: "heading", status: "alias" },
       { alias: "chapter", status: "alias" },
       { alias: "h2", status: "compat-only" },
@@ -121,7 +121,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Sub-section — renders as H3",
-    aliases: [
+    aliases: [{ alias: "فرعي", status: "alias" }, 
       { alias: "subheading", status: "alias" },
       { alias: "h3", status: "compat-only" },
       { alias: "subsection", status: "compat-only" },
@@ -143,7 +143,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Body paragraph (note: is alias)",
-    aliases: [
+    aliases: [{ alias: "نص", status: "alias" }, 
       { alias: "note", status: "alias" },
       { alias: "body", status: "alias" },
       { alias: "content", status: "alias" },
@@ -157,7 +157,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Callout block (warning/danger/tip/success are aliases with type injection)",
-    aliases: [
+    aliases: [{ alias: "تنبيه", status: "alias" }, 
       { alias: "warning", status: "alias" },
       { alias: "danger", status: "alias" },
       { alias: "tip", status: "alias" },
@@ -176,7 +176,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Attributed block quotation",
-    aliases: [
+    aliases: [{ alias: "اقتباس", status: "alias" }, 
       { alias: "blockquote", status: "alias" },
       { alias: "excerpt", status: "alias" },
       { alias: "pullquote", status: "alias" },
@@ -188,7 +188,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Bibliographic citation (author, date, url) — NOT same as quote",
-    aliases: [
+    aliases: [{ alias: "استشهاد", status: "alias" }, 
       { alias: "citation", status: "alias" },
       { alias: "source", status: "alias" },
       { alias: "reference", status: "alias" },
@@ -200,7 +200,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Code block with optional language for syntax highlighting",
-    aliases: [{ alias: "snippet", status: "alias" }],
+    aliases: [{ alias: "شيفرة", status: "alias" }, { alias: "snippet", status: "alias" }],
   },
   {
     canonical: "image",
@@ -208,7 +208,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Image with optional caption",
-    aliases: [
+    aliases: [{ alias: "صورة", status: "alias" }, 
       { alias: "img", status: "alias" },
       { alias: "photo", status: "alias" },
       { alias: "picture", status: "alias" },
@@ -220,7 +220,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Hyperlink to an external resource",
-    aliases: [
+    aliases: [{ alias: "رابط", status: "alias" }, 
       { alias: "url", status: "alias" },
       { alias: "href", status: "alias" },
     ],
@@ -233,7 +233,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Actionable item with owner and due date",
-    aliases: [
+    aliases: [{ alias: "مهمة", status: "alias" }, 
       { alias: "check", status: "alias" },
       { alias: "todo", status: "alias" },
       { alias: "action", status: "alias" },
@@ -246,7 +246,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.0",
     status: "stable",
     description: "Completed item — the resolved state of a task: block",
-    aliases: [
+    aliases: [{ alias: "منجز", status: "alias" }, 
       { alias: "completed", status: "compat-only" },
       { alias: "finished", status: "compat-only" },
     ],
@@ -267,7 +267,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Table column definitions (declares headers for following row: blocks)",
-    aliases: [{ alias: "headers", status: "compat-only" }],
+    aliases: [{ alias: "أعمدة", status: "alias" }, { alias: "headers", status: "compat-only" }],
   },
   {
     canonical: "row",
@@ -275,7 +275,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Table data row — pipe-separated cell values",
-    aliases: [],
+    aliases: [{ alias: "صف", status: "alias" }, ],
   },
   {
     canonical: "metric",
@@ -283,7 +283,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.11",
     status: "stable",
     description: "Named measurement with value",
-    aliases: [
+    aliases: [{ alias: "مؤشر", status: "alias" }, 
       { alias: "kpi", status: "alias" },
       { alias: "measure", status: "alias" },
       { alias: "indicator", status: "alias" },
@@ -361,7 +361,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.8",
     status: "stable",
     description: "Start tracking document",
-    aliases: [],
+    aliases: [{ alias: "تتبع", status: "alias" }, ],
   },
   {
     canonical: "approve",
@@ -369,7 +369,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.8",
     status: "stable",
     description: "Approval record",
-    aliases: [],
+    aliases: [{ alias: "اعتماد", status: "alias" }, ],
   },
   {
     canonical: "sign",
@@ -377,7 +377,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.8",
     status: "stable",
     description: "Signature / attestation record",
-    aliases: [{ alias: "sig", status: "alias" }],
+    aliases: [{ alias: "توقيع", status: "alias" }, { alias: "sig", status: "alias" }],
   },
   {
     canonical: "freeze",
@@ -385,7 +385,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.8",
     status: "stable",
     description: "Lock document against changes",
-    aliases: [{ alias: "lock", status: "alias" }],
+    aliases: [{ alias: "تجميد", status: "alias" }, { alias: "lock", status: "alias" }],
   },
   {
     canonical: "amendment",
@@ -393,7 +393,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.11",
     status: "stable",
     description: "Formal change to frozen document",
-    aliases: [
+    aliases: [{ alias: "تعديل", status: "alias" }, 
       { alias: "amend", status: "alias" },
       { alias: "change", status: "alias" },
     ],
@@ -406,7 +406,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.5",
     status: "stable",
     description: "Page layout declaration (document-level)",
-    aliases: [],
+    aliases: [{ alias: "صفحة", status: "alias" }, ],
   },
   {
     canonical: "header",
@@ -414,7 +414,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.9",
     status: "stable",
     description: "Page header for print output",
-    aliases: [],
+    aliases: [{ alias: "ترويسة", status: "alias" }, ],
   },
   {
     canonical: "footer",
@@ -422,7 +422,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.9",
     status: "stable",
     description: "Page footer for print output",
-    aliases: [],
+    aliases: [{ alias: "تذييل", status: "alias" }, ],
   },
   {
     canonical: "watermark",
@@ -430,7 +430,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.9",
     status: "stable",
     description: "Watermark overlay (print)",
-    aliases: [],
+    aliases: [{ alias: "علامة", status: "alias" }, ],
   },
   {
     canonical: "style",
@@ -439,7 +439,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     status: "stable",
     description:
       "Scoped document style rule: maps a block type to style properties (house styling without per-line props)",
-    aliases: [],
+    aliases: [{ alias: "نمط", status: "alias" }, ],
   },
   {
     canonical: "break",
@@ -447,7 +447,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Print page break — invisible in web, forces new page in print",
-    aliases: [],
+    aliases: [{ alias: "فاصل", status: "alias" }, ],
   },
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -697,6 +697,12 @@ export const EXTENSION_LEGACY_ALIASES: Record<string, string> = {
   chart: "figure",
   illustration: "figure",
   visual: "figure",
+  // Arabic aliases (localized keywords; round-trip preserves the written form)
+  "مهلة": "deadline",
+  "جهة": "contact",
+  "تواصل": "contact",
+  "تعريف": "def",
+  "مرجع": "ref",
   // def aliases
   define: "def",
   term: "def",

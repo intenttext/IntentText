@@ -778,7 +778,14 @@ function parseLine(
     let content: string;
     const properties: Record<string, string | number> = Object.create(null);
 
-    if (keyword === "headers" || keyword === "columns" || keyword === "row") {
+    // Resolve aliases for this check so localized table keywords (e.g. Arabic
+    // صف → row) keep `|` as the cell separator, not property metadata.
+    const tableResolved = (ALIASES[keyword] ?? keyword) as string;
+    if (
+      keyword === "headers" ||
+      tableResolved === "columns" ||
+      tableResolved === "row"
+    ) {
       content = rest;
     } else {
       const parts = splitPipeMetadata(rest);
@@ -1031,6 +1038,10 @@ function parseLine(
     return {
       id: nextId(),
       type: resolvedType,
+      // Preserve the keyword AS WRITTEN when an alias was used (incl. localized
+      // aliases like Arabic) — documentToSource re-emits it, so round-trips are
+      // byte-stable and an Arabic document never silently turns English.
+      ...(keyword !== resolvedType ? { keywordAlias: keyword } : {}),
       content: cleanContent,
       originalContent: content,
       properties: Object.keys(properties).length > 0 ? properties : undefined,
@@ -1271,6 +1282,9 @@ export function parseIntentText(
     rows: string[][];
     originalHeaders?: string;
     headerLine?: number;
+    /** Keywords as written (e.g. أعمدة/صف) — preserved on serialize. */
+    headersKeyword?: string;
+    rowKeyword?: string;
   } | null = null;
 
   let previousLineWasBlank = false;
@@ -1320,6 +1334,8 @@ export function parseIntentText(
       table: {
         headers: pendingTable.headers,
         rows: pendingTable.rows,
+        headersKeyword: pendingTable.headersKeyword,
+        rowKeyword: pendingTable.rowKeyword,
       },
     };
 
@@ -1393,8 +1409,14 @@ export function parseIntentText(
     }
 
     // If we have a pending table and current line is not a row (keyword or MD pipe), flush it.
+    // Row detection resolves aliases so localized rows (e.g. Arabic صف:) keep the table open.
     const isMdPipeRow = /^\|.+\|$/.test(trimmed);
-    if (pendingTable && !/^row:\s*/i.test(trimmed) && !isMdPipeRow) {
+    const rowKwMatch = trimmed.match(/^(\p{L}[\p{L}\p{N}-]*):/u);
+    const isRowLine =
+      !!rowKwMatch &&
+      (ALIASES[rowKwMatch[1].toLowerCase()] ?? rowKwMatch[1].toLowerCase()) ===
+        "row";
+    if (pendingTable && !isRowLine && !isMdPipeRow) {
       flushPendingTable();
     }
 
@@ -1582,6 +1604,7 @@ export function parseIntentText(
         rows: [],
         originalHeaders: block.originalContent || block.content,
         headerLine: i + 1,
+        headersKeyword: block.keywordAlias,
       };
       previousLineWasBlank = false;
       continue;
@@ -1591,6 +1614,8 @@ export function parseIntentText(
       const rowCells = splitTableRow(block.originalContent || block.content);
       if (pendingTable) {
         pendingTable.rows.push(rowCells);
+        if (block.keywordAlias && !pendingTable.rowKeyword)
+          pendingTable.rowKeyword = block.keywordAlias;
       } else {
         diagnostics.push({
           severity: "warning",

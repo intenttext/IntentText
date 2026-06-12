@@ -41,7 +41,11 @@ Keywords and property keys are **Unicode words** (`\p{L}` letters, then letters/
 digits/`-`/`_`) — Arabic, Chinese, or any-script domain keywords parse as typed
 `custom` blocks exactly like ASCII ones (`مصروف: كراسي | فئة: أثاث` is a queryable
 `custom` block with keyword `مصروف`). The 38 canonical keywords themselves remain
-English; localized *aliases* may be added through the registry's alias mechanism.
+English; **Arabic aliases ship in the registry** (e.g. عنوان→title, مهمة→task,
+صف→row, توقيع→sign), so an Arabic document gets full canonical semantics — one
+query (`type:task`) matches tasks across languages. Aliases are emitted AS WRITTEN
+on serialization (`keywordAlias`), so round-trips are byte-stable and sealed Arabic
+documents keep their hash.
 
 **Dates are ISO 8601.** Date-bearing properties (`date`, `due`, `at`, `expires`,
 `issued`) canonically hold `YYYY-MM-DD` or `YYYY-MM-DDTHH:mm[:ss]Z` — locale forms

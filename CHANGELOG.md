@@ -12,7 +12,18 @@ The format is based on Keep a Changelog.
   is now `\p{L}` Unicode words, so Arabic domain keywords parse as typed `custom`
   blocks exactly like ASCII ones — `مصروف: كراسي | المورد: ايكيا | فئة: أثاث` is
   queryable by Arabic property (`فئة = أثاث`), by keyword, and by ISO date range.
-  Canonical keywords stay English; localized aliases can come via the registry.
+- **Arabic keyword aliases (33).** The canonical keywords now have registered
+  Arabic aliases — `عنوان`→title, `قسم`→section, `مهمة`→task, `صف`→row,
+  `أعمدة`→columns, `مؤشر`→metric, `توقيع`→sign, `اعتماد`→approve,
+  `تجميد`→freeze, `مهلة`→deadline, `جهة`/`تواصل`→contact, `علامة`→watermark, …
+  An Arabic document gets full canonical semantics (totals rows, contact cards,
+  signatures, deadline logic) and one query (`type:task`) finds tasks across
+  languages.
+- **Aliases now round-trip as written.** `documentToSource` re-emits the keyword
+  the author used (`block.keywordAlias`) instead of normalizing to canonical —
+  an Arabic document stays Arabic, `abstract:` stays `abstract:`, and sealed
+  documents keep their hash through a parse→serialize cycle. Table keywords
+  (`أعمدة`/`صف`, `headers`) are preserved too.
 - **ISO 8601 date standard.** Date-bearing properties (`date`, `due`, `at`,
   `expires`, `issued`) are canonically `YYYY-MM-DD` (or full ISO timestamps). The
   semantic validator flags locale formats (`DATE_NOT_ISO` warning) — `09/03/2026`

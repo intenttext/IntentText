@@ -19,16 +19,46 @@ const AR = `عنوان: عقد خدمات
 مهمة: تجهيز العرض | مسؤول: أحمد | موعد: 2026-07-01`;
 
 describe("Arabic keywords (Unicode keyword grammar)", () => {
-  it("parses Arabic keywords as typed custom blocks with the keyword preserved", () => {
+  it("registered Arabic aliases → canonical types; unregistered → custom", () => {
     const doc = parseIntentText(AR);
+    // عنوان is a registered alias (→ title); مهمة → task; مصروف is a custom
+    // domain keyword (no alias) and passes through typed + preserved.
     expect(doc.blocks.map((b) => b.type)).toEqual([
+      "title",
       "custom",
       "custom",
-      "custom",
-      "custom",
+      "task",
     ]);
+    expect(doc.blocks[0].keywordAlias).toBe("عنوان");
     expect(doc.blocks[1].properties?.keyword).toBe("مصروف");
     expect(doc.blocks[1].content).toBe("كراسي مكتب");
+  });
+
+  it("Arabic alias round-trips stay Arabic, byte-stable (seal-safe)", () => {
+    const src = [
+      "عنوان: عرض سعر",
+      "أعمدة: الوصف | الكمية",
+      "صف: تطوير | 1",
+      "مؤشر: الإجمالي | value: 16500",
+      "توقيع: أحمد | role: المدير | at: 2026-06-12T10:00:00Z",
+    ].join("\n");
+    expect(documentToSource(parseIntentText(src)).trim()).toBe(src);
+  });
+
+  it("cross-language query: type=task matches مهمة lines", () => {
+    const doc = parseIntentText("مهمة: مراجعة العرض | due: 2026-07-01");
+    expect(doc.blocks[0].type).toBe("task");
+    expect(
+      queryBlocks(doc, {
+        where: [{ field: "type", operator: "=", value: "task" }],
+      }).matched,
+    ).toBe(1);
+  });
+
+  it("English aliases also round-trip as written now (abstract: stays abstract:)", () => {
+    expect(documentToSource(parseIntentText("abstract: hi")).trim()).toBe(
+      "abstract: hi",
+    );
   });
 
   it("parses Arabic property keys and values", () => {
