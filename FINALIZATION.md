@@ -12,14 +12,14 @@ in Phase 1.
 
 ---
 
-## Decisions locked (2026-06-09)
+## Decisions locked (2026-06-09) -
 
-| Decision | Choice |
-| --- | --- |
-| Duplicate parsers (Rust core, Python parser) | **Delete both.** TS core is the single source of truth. |
-| Production-maintained surfaces | **Core, MCP server, VSCode extension, Editor app.** |
-| Demoted to `experimental/` (kept, not deleted, no support promise) | Hub, Desktop, Docs, Builder. |
-| First release after this work | `v4.1.0` |
+| Decision                                                           | Choice                                                  |
+| ------------------------------------------------------------------ | ------------------------------------------------------- |
+| Duplicate parsers (Rust core, Python parser)                       | **Delete both.** TS core is the single source of truth. |
+| Production-maintained surfaces                                     | **Core, MCP server, VSCode extension, Editor app.**     |
+| Demoted to `experimental/` (kept, not deleted, no support promise) | Hub, Desktop, Docs, Builder.                            |
+| First release after this work                                      | `v4.1.0`                                                |
 
 ---
 
@@ -27,13 +27,13 @@ in Phase 1.
 
 - `@intenttext/core` v3.5.0 — **875/875 tests pass**, pure TS, ~10.8k LOC.
 - Keyword surface today: **37 canonical + 52 aliases + 12 compat-only + 36 extension + 80 BlockType entries.**
-- `keywords:check` validates the **TS core only** — Python, VSCode snippets, docs, README are *not* covered and drift silently.
+- `keywords:check` validates the **TS core only** — Python, VSCode snippets, docs, README are _not_ covered and drift silently.
 - Duplicate parsers: `packages/python/intenttext/parser.py` (+ `merge.py`, dead `rust_bridge.py`), `packages/rust/` (~10.9k LOC, unused).
 - Root leftovers from the pre-monorepo era: `cli.js` (28k), `intenttext.browser.js` (21k), `demo.js`, `preview.html`, `sample-output.html`.
 
 ---
 
-## Phase 1 — Truth & hygiene  _(0.5–1 day · zero functional risk)_
+## Phase 1 — Truth & hygiene _(0.5–1 day · zero functional risk)_
 
 **Goal:** the repo tells the truth about itself; no stale or duplicate top-level files.
 
@@ -53,12 +53,13 @@ in Phase 1.
 
 ---
 
-## Phase 2 — Delete duplicate parsers, end drift  _(1–2 days · highest value)_
+## Phase 2 — Delete duplicate parsers, end drift _(1–2 days · highest value)_
 
 **Goal:** exactly one parser implementation; every other consumer is generated from or
 validated against it.
 
 ### 2a. Delete Rust
+
 - [ ] Delete `packages/rust/` entirely.
 - [ ] Remove `packages/rust` from `pnpm-workspace.yaml` and any root scripts referencing it.
 - [ ] Delete `packages/core/src/rust-core.ts` and its tests (`rust-core-telemetry.test.ts`, `rust-core-theme-parity.test.ts`) **only after** confirming no package imports from `rust-core`. Re-point any imports to the direct TS functions (`parser.ts`, `renderer.ts`, `validate.ts`, `source.ts`).
@@ -66,6 +67,7 @@ validated against it.
 - [ ] Search apps (editor/desktop) for `prepare:wasm`, `initRustCore()`, `public/rust-wasm/` and remove them.
 
 ### 2b. Delete the Python parser, keep Python as a thin client
+
 - [ ] Delete `packages/python/intenttext/parser.py`, `merge.py`, `rust_bridge.py`, and any other module that re-implements grammar (`renderer.py`, `validate.py`, `trust.py`, `query.py`, `source.py` — review each).
 - [ ] Decide Python's new role:
   - **Recommended:** Python becomes a **types + subprocess client** that shells out to the core CLI for parsing and consumes JSON. Keeps a real PyPI package without a second grammar.
@@ -73,6 +75,7 @@ validated against it.
 - [ ] Update `packages/python/README.md` and `pyproject.toml` to reflect the new role; bump major version with a clear migration note.
 
 ### 2c. Turn `keywords:check` into a cross-consumer parity gate
+
 - [ ] Extend `packages/core/scripts/check-keyword-consistency.cjs` (or add `gen-keyword-docs.ts`) to treat the TS `LANGUAGE_REGISTRY` as the source and **assert** these stay in sync:
   - [ ] README keyword table
   - [ ] `packages/vscode/snippets/*.json` + tokenizer grammar
@@ -84,11 +87,12 @@ validated against it.
 
 ---
 
-## Phase 3 — Simplify the file format  _(2–4 days · the headline change)_
+## Phase 3 — Simplify the file format _(2–4 days · the headline change)_
 
 **Goal:** a plain `.it` file needs ~12 keywords. Everything else is opt-in.
 
 ### 3a. Define tiers (single source: `LANGUAGE_REGISTRY`)
+
 Add a `tier` field to each keyword definition:
 
 - **`core` (~12)** — `title`, `section`, `sub`, `text`, `task`, `done`, `note`, `list`, `table`, `link`, `code`, `meta`.
@@ -97,11 +101,13 @@ Add a `tier` field to each keyword definition:
 - **`profile:print`** — `font`, `page`, `break`, `byline`, `epigraph`, `caption`, `footnote`, `toc`, `dedication`, `header`, `footer`, `watermark`.
 
 ### 3b. Make profiles opt-in, lean on the existing `custom` passthrough
+
 - [ ] A document declares profiles it uses (e.g. `meta: | profile: agent, contract`) or the parser auto-detects. Keywords **outside active tiers** flow through the v3.5 `custom` passthrough you already shipped — no error, no data loss.
 - [ ] Collapse `compat-only` (12) and most `alias` (52) entries: keep only aliases with real usage; mark the rest `deprecated` with a removal version. Goal: cut the alias count by >50%.
 - [ ] Reduce the 36 extension keywords to those that earn their place; the rest become plain `custom` passthrough.
 
 ### 3c. Freeze and document
+
 - [ ] Write **one** canonical grammar doc (`packages/core/SPEC.md`) — line precedence, tiers, profiles, passthrough, trust/freeze semantics. Delete scattered spec fragments.
 - [ ] Freeze the spec at `v4.1` and reference it from README.
 
@@ -109,7 +115,7 @@ Add a `tier` field to each keyword definition:
 
 ---
 
-## Phase 4 — Production readiness & scope cut  _(1–2 days)_
+## Phase 4 — Production readiness & scope cut _(1–2 days)_
 
 **Goal:** small maintained surface, one honest CI, one release.
 
