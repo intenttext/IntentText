@@ -23,7 +23,7 @@ Service default:
 
 ## Notes
 
-- Uses `@intenttext/core` for parse/merge/render HTML.
+- Uses `@dotit/core` for parse/merge/render HTML.
 - Uses runtime package for `createPdf`.
 - Includes minimal migration metadata pass-through for replay endpoint.
 - Intended as copy-start template for ERP backend teams.

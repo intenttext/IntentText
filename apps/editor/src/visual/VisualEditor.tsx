@@ -44,7 +44,7 @@ import {
   generateThemeCSS,
   parseIntentText,
   documentStyleCSS,
-} from "@intenttext/core";
+} from "@dotit/core";
 import {
   getPageGeometry,
   resolvePageTokens,

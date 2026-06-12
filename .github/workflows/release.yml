@@ -35,7 +35,7 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Verify tag matches @intenttext/core version
+      - name: Verify tag matches @dotit/core version
         run: |
           TAG="${GITHUB_REF_NAME}"
           VERSION="$(node -p "require('./packages/core/package.json').version")"
@@ -45,10 +45,10 @@ jobs:
           fi
 
       - name: Build + test + contract gates
-        run: pnpm --filter @intenttext/core check
+        run: pnpm --filter @dotit/core check
 
-      - name: Publish @intenttext/core
-        run: pnpm publish --filter @intenttext/core --access public --no-git-checks --provenance
+      - name: Publish @dotit/core
+        run: pnpm publish --filter @dotit/core --access public --no-git-checks --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

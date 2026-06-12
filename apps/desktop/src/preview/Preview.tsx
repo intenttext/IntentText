@@ -4,7 +4,7 @@ import {
   renderHTML,
   generateThemeCSS,
   getBuiltinTheme,
-} from "@intenttext/core";
+} from "@dotit/core";
 
 interface Props {
   content: string;

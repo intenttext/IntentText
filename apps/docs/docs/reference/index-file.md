@@ -44,7 +44,7 @@ intenttext index ./company --recursive
 ### Programmatic API
 
 ```javascript
-import { buildShallowIndex } from "@intenttext/core";
+import { buildShallowIndex } from "@dotit/core";
 
 const index = buildShallowIndex(folder, files, coreVersion);
 ```
@@ -118,7 +118,7 @@ The index tracks file hashes. When you run `intenttext index`, it checks:
 Only stale entries are rebuilt — unchanged files are skipped.
 
 ```javascript
-import { checkStaleness, updateIndex } from "@intenttext/core";
+import { checkStaleness, updateIndex } from "@dotit/core";
 
 const { changed, removed, added } = checkStaleness(existingIndex, currentFiles);
 const updated = updateIndex(existingIndex, changedFiles, removedFiles);
@@ -129,7 +129,7 @@ const updated = updateIndex(existingIndex, changedFiles, removedFiles);
 To query across folders, compose multiple shallow indexes:
 
 ```javascript
-import { composeIndexes, queryComposed } from "@intenttext/core";
+import { composeIndexes, queryComposed } from "@dotit/core";
 
 const composed = composeIndexes(
   [contractsIndex, hrIndex, financeIndex],

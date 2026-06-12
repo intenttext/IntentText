@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { parseIntentText, extractWorkflow } from "@intenttext/core";
+import { parseIntentText, extractWorkflow } from "@dotit/core";
 import { jsonResult } from "../types.js";
 
 export function registerWorkflowTools(server: McpServer): void {

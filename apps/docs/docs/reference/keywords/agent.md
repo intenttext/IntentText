@@ -265,12 +265,12 @@ audit: Approved quarterly report | by: Sarah Chen | at: 2026-03-06T10:00:00Z | a
 
 ## Workflow Executor
 
-The `@intenttext/core` package includes a production-ready workflow executor that runs `.it` workflow documents directly.
+The `@dotit/core` package includes a production-ready workflow executor that runs `.it` workflow documents directly.
 
 ### `executeWorkflow(document, runtime)`
 
 ```typescript
-import { parseIntentText, executeWorkflow } from "@intenttext/core";
+import { parseIntentText, executeWorkflow } from "@dotit/core";
 
 const doc = parseIntentText(source);
 

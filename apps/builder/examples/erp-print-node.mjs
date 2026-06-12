@@ -50,7 +50,7 @@ async function loadCore() {
     "dist",
     "index.js",
   );
-  return loadModule(["@intenttext/core", localCore]);
+  return loadModule(["@dotit/core", localCore]);
 }
 
 async function loadPdfRuntime() {
@@ -61,7 +61,7 @@ async function loadPdfRuntime() {
     "dist",
     "index.js",
   );
-  return loadModule(["@intenttext/pdf-runtime", localRuntime]);
+  return loadModule(["@dotit/pdf-runtime", localRuntime]);
 }
 
 async function main() {

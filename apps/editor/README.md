@@ -1,6 +1,6 @@
 # Dotit Web
 
-Dotit Web is the browser editor experience for `.it` documents, built on `@intenttext/core`.
+Dotit Web is the browser editor experience for `.it` documents, built on `@dotit/core`.
 
 Canonical language and API documentation lives in `intenttext-docs` (published at `https://itdocs.vercel.app`).
 
@@ -32,7 +32,7 @@ npm run preview
 - React + TypeScript + Vite
 - Monaco Editor
 - TipTap visual editing surface
-- `@intenttext/core`
+- `@dotit/core`
 
 ## Desktop Direction
 

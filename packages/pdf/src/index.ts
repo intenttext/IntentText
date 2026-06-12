@@ -1,6 +1,6 @@
-// @intenttext/pdf — server-side PDF generation for IntentText documents.
+// @dotit/pdf — server-side PDF generation for IntentText documents.
 //
-// Opt-in companion to @intenttext/core (which stays zero-dependency). Use it when a
+// Opt-in companion to @dotit/core (which stays zero-dependency). Use it when a
 // machine — not a person with a browser — must produce the document: emailing an
 // invoice, archiving for compliance, batch statement runs.
 //
@@ -21,7 +21,7 @@ import {
   documentToSource,
   renderPrint,
   sealDocument,
-} from "@intenttext/core";
+} from "@dotit/core";
 
 /* ── Types ────────────────────────────────────────────────────────────────── */
 
@@ -130,7 +130,7 @@ async function launchBrowser(opts: PdfRenderOptions): Promise<ChromeBrowser> {
     const executablePath = findChrome(opts.executablePath);
     if (!executablePath) {
       throw new Error(
-        "@intenttext/pdf: puppeteer-core is installed but no Chrome/Chromium binary was found. " +
+        "@dotit/pdf: puppeteer-core is installed but no Chrome/Chromium binary was found. " +
           "Pass { executablePath } or set PUPPETEER_EXECUTABLE_PATH / CHROME_PATH.",
       );
     }
@@ -138,7 +138,7 @@ async function launchBrowser(opts: PdfRenderOptions): Promise<ChromeBrowser> {
   }
 
   throw new Error(
-    "@intenttext/pdf needs a PDF engine. Install one of:\n" +
+    "@dotit/pdf needs a PDF engine. Install one of:\n" +
       "  npm i puppeteer        (bundles Chromium — zero config)\n" +
       "  npm i puppeteer-core   (uses your system Chrome — set executablePath or CHROME_PATH)\n" +
       "Or render without Chrome in this process: use issueDocument() and send its .html " +
@@ -170,7 +170,7 @@ export function issueDocument(
     role: options.role,
   });
   if (!seal.success) {
-    throw new Error(`@intenttext/pdf: sealing failed: ${seal.error ?? "unknown error"}`);
+    throw new Error(`@dotit/pdf: sealing failed: ${seal.error ?? "unknown error"}`);
   }
   const html = renderPrint(parseIntentText(seal.source), {
     theme: options.theme ?? "corporate",

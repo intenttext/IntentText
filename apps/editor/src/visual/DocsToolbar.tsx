@@ -70,7 +70,7 @@ import {
   Scale,
   Columns3,
 } from "lucide-react";
-import { LANGUAGE_REGISTRY } from "@intenttext/core";
+import { LANGUAGE_REGISTRY } from "@dotit/core";
 import { CATEGORY_META } from "./types";
 
 interface Props {

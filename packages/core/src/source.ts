@@ -1,6 +1,16 @@
 import { IntentDocument, IntentBlock } from "./types";
 
 /**
+ * Escape reserved characters for emission into a `.it` line: `\` → `\\` and
+ * `|` → `\|`. The parser unescapes these anywhere in content/property values,
+ * so serialization round-trips literal pipes instead of corrupting them into
+ * property delimiters (found by escape round-trip testing).
+ */
+function escapeIntentText(text: string): string {
+  return text.replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
+}
+
+/**
  * Canonical property order for specific block types.
  * Properties not in the list are appended alphabetically.
  */
@@ -190,7 +200,7 @@ function serializeBlock(block: IntentBlock): string {
     const keyword = block.properties?.keyword
       ? String(block.properties.keyword)
       : "";
-    const content = block.content ?? "";
+    const content = escapeIntentText(block.content ?? "");
     const propStr = serializeProperties(block, ["keyword"]);
     const head = keyword ? `${keyword}: ${content}` : content;
     return propStr ? `${head} | ${propStr}` : head;
@@ -235,11 +245,14 @@ function serializeBlock(block: IntentBlock): string {
 
   // Build the line. When content is empty but properties exist, use the canonical
   // `kw: | props` form (e.g. `font: | family: Inter`) — not `kw:  | props`.
+  const escContent = escapeIntentText(content);
   const propStr = serializeProperties(block, exclude);
   if (propStr) {
-    return content ? `${kw}: ${content} | ${propStr}` : `${kw}: | ${propStr}`;
+    return escContent
+      ? `${kw}: ${escContent} | ${propStr}`
+      : `${kw}: | ${propStr}`;
   }
-  return content ? `${kw}: ${content}` : `${kw}:`;
+  return escContent ? `${kw}: ${escContent}` : `${kw}:`;
 }
 
 /**
@@ -284,7 +297,9 @@ function serializeProperties(block: IntentBlock, exclude: string[] = []): string
     keys.sort();
   }
 
-  return keys.map((k) => `${k}: ${props[k]}`).join(" | ");
+  return keys
+    .map((k) => `${k}: ${escapeIntentText(String(props[k]))}`)
+    .join(" | ");
 }
 
 function serializeTable(block: IntentBlock): string {

@@ -92,7 +92,7 @@ freeze: | status: locked | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8
 ## Verification in code
 
 ```javascript
-import { parseIntentText, verify } from "@intenttext/core";
+import { parseIntentText, verify } from "@dotit/core";
 
 const doc = parseIntentText(source);
 const result = verify(doc);

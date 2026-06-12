@@ -1,4 +1,4 @@
-import type { IntentDocument } from "@intenttext/core";
+import type { IntentDocument } from "@dotit/core";
 
 export type { IntentDocument };
 

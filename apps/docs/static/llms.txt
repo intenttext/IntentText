@@ -6,7 +6,7 @@ files correctly. One `.it` file is simultaneously: a human-readable document, a
 queryable typed database, a print/PDF-ready artifact, and a tamper-evident signable
 record.
 
-Site: https://itdocs.vercel.app · npm: @intenttext/core · Editor: https://editor.uts.qa
+Site: https://itdocs.vercel.app · npm: @dotit/core · Editor: https://editor.uts.qa
 
 ## 1. Line grammar — everything is one line, one intent
 
@@ -162,7 +162,7 @@ hash covers exact bytes). Never edit above history: after sealing; use amendment
   renderPrint(doc, { theme })  → print-ready HTML: @page size/margins, running
                                  header/footer with page counters, multi-page tables
 Browser: print renderPrint output via an iframe → native dialog → PDF (zero deps).
-Server PDFs: npm i @intenttext/pdf →
+Server PDFs: npm i @dotit/pdf →
   issuePDF(template, data, { signer }) → { source (sealed .it), hash, at, pdf (bytes) }
 
 ## 8. Query — a folder of .it files is a database
@@ -173,7 +173,9 @@ Folder indexing is shallow, per-folder (.it-index), self-healing on query.
 
 ## 9. Generation rules (follow these exactly)
 
-1. NEVER put `|` inside content or property values — it is the delimiter.
+1. ` | ` (space-pipe-space) is the property delimiter. For a LITERAL pipe in
+   content or a value, escape it: `\|` (literal backslash: `\\`). Colons inside
+   content/values need no escaping (`quote: He said: watch this` is fine).
 2. One intent per line. No HTML, no Markdown headings (#), no raw CSS anywhere.
 3. Use semantic keywords over text: — a task is `task:`, a decision is `decision:`,
    money totals are `metric: Label | value: …`.

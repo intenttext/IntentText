@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { parseIntentText } from "@intenttext/core";
-import type { IntentDocument } from "@intenttext/core";
+import { parseIntentText } from "@dotit/core";
+import type { IntentDocument } from "@dotit/core";
 
 interface DocState {
   doc: IntentDocument | null;

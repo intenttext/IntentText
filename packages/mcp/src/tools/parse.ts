@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { parseIntentText, parseIntentTextSafe } from "@intenttext/core";
+import { parseIntentText, parseIntentTextSafe } from "@dotit/core";
 import { jsonResult } from "../types.js";
 
 export function registerParseTools(server: McpServer): void {

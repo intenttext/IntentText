@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from "react";
-import { LANGUAGE_REGISTRY } from "@intenttext/core";
+import { LANGUAGE_REGISTRY } from "@dotit/core";
 import { BlockTag } from "./BlockTag";
 import {
   CATEGORY_META,

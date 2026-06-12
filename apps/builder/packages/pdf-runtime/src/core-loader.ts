@@ -1,7 +1,7 @@
 import type { CoreApi } from "./types.js";
 
 export async function loadCore(): Promise<CoreApi> {
-  const candidates = ["@intenttext/core"];
+  const candidates = ["@dotit/core"];
 
   let coreModule: Record<string, unknown> | null = null;
   let lastErr: unknown = null;
@@ -17,7 +17,7 @@ export async function loadCore(): Promise<CoreApi> {
   if (!coreModule) {
     throw lastErr instanceof Error
       ? lastErr
-      : new Error("Unable to load @intenttext/core");
+      : new Error("Unable to load @dotit/core");
   }
   const parseIntentTextSafe = coreModule.parseIntentTextSafe;
   const parseAndMerge = coreModule.parseAndMerge;
@@ -29,7 +29,7 @@ export async function loadCore(): Promise<CoreApi> {
     typeof renderHTML !== "function"
   ) {
     throw new Error(
-      "@intenttext/core missing parseIntentTextSafe/parseAndMerge/renderHTML",
+      "@dotit/core missing parseIntentTextSafe/parseAndMerge/renderHTML",
     );
   }
 

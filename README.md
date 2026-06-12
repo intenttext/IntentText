@@ -13,7 +13,7 @@
   <a href="https://itdocs.vercel.app">Docs</a> ·
   <a href="https://intenttext-hub.vercel.app">Hub</a> ·
   <a href="https://editor.uts.qa">Editor</a> ·
-  <a href="https://npmjs.com/package/@intenttext/core">npm</a> ·
+  <a href="https://npmjs.com/package/@dotit/core">npm</a> ·
   <a href="https://pypi.org/project/intenttext/">PyPI</a> ·
   <a href="https://x.com/IntentText">Twitter</a>
 </p>
@@ -110,7 +110,7 @@ server: db-prod-01  | ip: 10.0.1.20 | region: eu-west-1 | status: healthy
 ## Parse and Query
 
 ```ts
-import { parseIntentText, queryBlocks } from "@intenttext/core";
+import { parseIntentText, queryBlocks } from "@dotit/core";
 
 const doc = parseIntentText(`
 title: Sprint Planning
@@ -145,7 +145,7 @@ edit after `freeze:` is detectable.
 statements) — one template, merged with a data row, printed with no PDF library:
 
 ```ts
-import { parseAndMerge, renderPrint } from "@intenttext/core";
+import { parseAndMerge, renderPrint } from "@dotit/core";
 
 const html = renderPrint(parseAndMerge(template, invoiceData, { missing: "blank" }));
 // → print-ready HTML: @page size/margins, running header/footer with page
@@ -164,7 +164,7 @@ For **server-side PDFs** (email attachments, compliance archiving, batch runs)
 add the opt-in companion — merge → **seal** (tamper-evident SHA-256) → PDF bytes:
 
 ```ts
-import { issuePDF } from "@intenttext/pdf";
+import { issuePDF } from "@dotit/pdf";
 
 const { source, hash, pdf } = await issuePDF(template, invoiceData, {
   signer: "Acme Billing",
@@ -179,8 +179,8 @@ Full integration guide: **ecosystem → ERP / App Integration** in the docs.
 ## Install
 
 ```bash
-npm install @intenttext/core      # the format: parse, render, merge, query, trust
-npm install @intenttext/pdf       # optional: server-side PDFs (issue → seal → PDF)
+npm install @dotit/core      # the format: parse, render, merge, query, trust
+npm install @dotit/pdf       # optional: server-side PDFs (issue → seal → PDF)
 ```
 
 ```bash
@@ -198,8 +198,8 @@ The TypeScript core is the single canonical implementation of the format (see
 
 | Package               | Description                                                           |
 | --------------------- | --------------------------------------------------------------------- |
-| **@intenttext/core**  | TypeScript parser, renderer, query engine, and CLI — the format       |
-| **@intenttext/pdf**   | Server-side PDFs — issue (merge → seal) → real PDF bytes, opt-in      |
+| **@dotit/core**  | TypeScript parser, renderer, query engine, and CLI — the format       |
+| **@dotit/pdf**   | Server-side PDFs — issue (merge → seal) → real PDF bytes, opt-in      |
 | **intenttext-mcp**    | MCP server — AI agents and LLM clients read and write `.it`           |
 | **intenttext-vscode** | VS Code extension — syntax highlighting, snippets, diagnostics        |
 | **Editor**            | Web editor with live preview, WYSIWYG print, and theme picker         |

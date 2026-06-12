@@ -1,4 +1,4 @@
-import { LANGUAGE_REGISTRY } from "@intenttext/core";
+import { LANGUAGE_REGISTRY } from "@dotit/core";
 import { CATEGORY_META, READ_ONLY_KEYWORDS } from "../types";
 
 interface Props {

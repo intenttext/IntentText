@@ -1,7 +1,7 @@
 # Dotit Desktop
 
 
-> **Experimental** — not part of the supported IntentText v4 release surface. The canonical implementation is `@intenttext/core`. This app builds against the core but carries no stability or support promise.
+> **Experimental** — not part of the supported IntentText v4 release surface. The canonical implementation is `@dotit/core`. This app builds against the core but carries no stability or support promise.
 
 Native desktop editor for `.it` documents, powered by the IntentText core.
 

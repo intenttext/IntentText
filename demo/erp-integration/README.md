@@ -17,7 +17,7 @@ ERP record (invoice/report JSON) ─────────┤
 ## TL;DR
 
 ```bash
-npm i @intenttext/core      # the one and only dependency
+npm i @dotit/core      # the one and only dependency
 ```
 
 ```js
@@ -153,7 +153,7 @@ app.get("/api/invoices/:id/pdf", async (req, res) => {
 
 ## Why this is portable
 
-- **One package** (`@intenttext/core`), one small file you own.
+- **One package** (`@dotit/core`), one small file you own.
 - **No viewer** — `renderHTML` gives you a complete, self-contained HTML document
   (inline CSS); the print path reuses the browser you already have.
 - **Templates are text** — versionable, diffable, editable in the `.it` editor, with no

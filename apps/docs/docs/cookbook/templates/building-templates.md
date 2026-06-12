@@ -110,7 +110,7 @@ intenttext template.it --data data.json --pdf --theme corporate
 ### JavaScript
 
 ```javascript
-import { parseAndMerge, render } from "@intenttext/core";
+import { parseAndMerge, render } from "@dotit/core";
 
 const doc = parseAndMerge(templateSource, data);
 const html = render(doc, { theme: "corporate" });

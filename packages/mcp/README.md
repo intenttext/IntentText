@@ -1,4 +1,4 @@
-# @intenttext/mcp-server
+# @dotit/mcp
 
 <!-- mcp-name: io.github.intenttext/intenttext-mcp -->
 
@@ -19,9 +19,9 @@ With this server running, Claude, GPT, or any MCP-compatible agent can work with
 ## Installation
 
 ```bash
-npm install -g @intenttext/mcp-server
+npm install -g @dotit/mcp
 # or use npx (no install required)
-npx @intenttext/mcp-server
+npx @dotit/mcp
 ```
 
 ## Configure with Claude Desktop
@@ -33,7 +33,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "intenttext": {
       "command": "npx",
-      "args": ["@intenttext/mcp-server"]
+      "args": ["@dotit/mcp"]
     }
   }
 }
@@ -44,7 +44,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```json
 {
   "command": "npx",
-  "args": ["@intenttext/mcp-server"],
+  "args": ["@dotit/mcp"],
   "env": {}
 }
 ```

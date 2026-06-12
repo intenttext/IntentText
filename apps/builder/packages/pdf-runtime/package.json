@@ -1,5 +1,5 @@
 {
-  "name": "@intenttext/pdf-runtime",
+  "name": "@dotit/pdf-runtime",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     "test:retry": "npm run test"
   },
   "dependencies": {
-    "@intenttext/core": "file:../../../IntentText/packages/core",
+    "@dotit/core": "file:../../../IntentText/packages/core",
     "puppeteer": "^24.39.0"
   },
   "devDependencies": {

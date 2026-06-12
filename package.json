@@ -6,8 +6,8 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
-    "build:core": "pnpm --filter @intenttext/core build",
-    "build:mcp": "pnpm --filter @intenttext/mcp-server build",
+    "build:core": "pnpm --filter @dotit/core build",
+    "build:mcp": "pnpm --filter @dotit/mcp build",
     "build:vscode": "pnpm --filter intenttext-vscode build",
     "build:action": "pnpm --filter intenttext-action build",
     "build:docs": "pnpm --filter intenttext-docs build",
@@ -19,8 +19,8 @@
     "dev:hub": "pnpm --filter intenttext-hub dev",
     "dev:desktop": "pnpm --filter intenttext-desktop dev",
     "test": "pnpm -r test",
-    "test:core": "pnpm --filter @intenttext/core test",
-    "test:mcp": "pnpm --filter @intenttext/mcp-server test",
+    "test:core": "pnpm --filter @dotit/core test",
+    "test:mcp": "pnpm --filter @dotit/mcp test",
     "demo": "node cli.js",
     "demo:invoice": "node demo/business-doc/pipeline.mjs",
     "demo:search": "node demo/folder-query/search.mjs",
@@ -29,7 +29,7 @@
     "check:examples": "node scripts/check-examples.mjs",
     "parse": "node cli.js",
     "parse:html": "node cli.js examples/sample.it --html",
-    "browser:build": "pnpm --filter @intenttext/core exec esbuild src/browser.ts --bundle --platform=browser --global-name=IntentText --outfile=../../intenttext.browser.js --format=iife --minify"
+    "browser:build": "pnpm --filter @dotit/core exec esbuild src/browser.ts --bundle --platform=browser --global-name=IntentText --outfile=../../intenttext.browser.js --format=iife --minify"
   },
   "keywords": [
     "intenttext",

@@ -2,10 +2,10 @@
 //
 // The whole pipeline that normally needs a template engine + a PDF library + a
 // signing vendor + a database query layer, in one file, with one dependency:
-// @intenttext/core. Run:  node demo/business-doc/pipeline.mjs
+// @dotit/core. Run:  node demo/business-doc/pipeline.mjs
 //
 // (From a checkout, the import below resolves to the local core build. In a real
-//  app it's just: import { ... } from "@intenttext/core";)
+//  app it's just: import { ... } from "@dotit/core";)
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

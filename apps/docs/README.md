@@ -1,7 +1,7 @@
 # IntentText Docs
 
 
-> **Experimental** — not part of the supported IntentText v4 release surface. The canonical implementation is `@intenttext/core`. This app builds against the core but carries no stability or support promise.
+> **Experimental** — not part of the supported IntentText v4 release surface. The canonical implementation is `@dotit/core`. This app builds against the core but carries no stability or support promise.
 
 Documentation site for [IntentText](https://github.com/intenttext/IntentText) — the structured document format for humans and AI agents.
 

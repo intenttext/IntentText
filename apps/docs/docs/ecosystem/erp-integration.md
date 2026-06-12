@@ -26,14 +26,14 @@ A runnable reference kit lives in the repo at `demo/erp-integration/` — run
 ## Install
 
 ```bash
-npm i @intenttext/core      # the one and only dependency
+npm i @dotit/core      # the one and only dependency
 ```
 
 Everything below uses three functions from a single helper file you copy into your app
 (`intenttext-print.mjs` in the demo). It works in the **browser and Node** (same code).
 
 ```js
-import { parseIntentText, renderHTML, renderPrint } from "@intenttext/core";
+import { parseIntentText, renderHTML, renderPrint } from "@dotit/core";
 
 export function renderDocumentHTML(templateSource, data, opts = {}) {
   return renderHTML(parseAndMergeSafe(templateSource, data), { theme: opts.theme || "corporate" });
@@ -146,11 +146,11 @@ document.querySelector("#preview").srcdoc = html;   // <iframe id="preview">
 
 ### Option B — server, real PDF file (for emailing / archiving)
 
-Use **`@intenttext/pdf`** — the official opt-in companion for the moments no human is at
+Use **`@dotit/pdf`** — the official opt-in companion for the moments no human is at
 a browser (email attachments, compliance archiving, batch statement runs):
 
 ```bash
-npm i @intenttext/pdf
+npm i @dotit/pdf
 npm i puppeteer          # or: puppeteer-core + your system Chrome (CHROME_PATH)
 ```
 
@@ -158,8 +158,8 @@ The enterprise **issue flow** in one call — merge → **seal** (tamper-evident
 PDF bytes:
 
 ```js
-import { issuePDF } from "@intenttext/pdf";
-import { verifyDocument } from "@intenttext/core";
+import { issuePDF } from "@dotit/pdf";
+import { verifyDocument } from "@dotit/core";
 
 app.post("/api/invoices/:id/send", async (req, res) => {
   const template = await db.collection("print-template").findOne({ key: "invtemplate", company });
@@ -184,7 +184,7 @@ app.post("/api/invoices/:id/send", async (req, res) => {
 
 No Chrome in your API process? `issueDocument()` does the same merge→seal and returns
 print-ready `html` — POST it to a rendering sidecar (e.g. Gotenberg) instead. For batch
-runs use `createPdfRenderer()` (reuses one Chrome). Full API: the `@intenttext/pdf`
+runs use `createPdfRenderer()` (reuses one Chrome). Full API: the `@dotit/pdf`
 README.
 
 ## Receipts (80mm thermal) and other page sizes
@@ -232,7 +232,7 @@ accepts `A4`, `A5`, `Letter`, `Legal`, or any CSS size (`size: 210mm 297mm`).
 
 ## Why this is portable
 
-- **One package** (`@intenttext/core`) plus one small file you own.
+- **One package** (`@dotit/core`) plus one small file you own.
 - **No viewer** — `renderHTML` returns a complete, self-contained HTML document (inline
   CSS); the print path reuses the browser you already have.
 - **Templates are text** — versionable, diffable, editable in the editor, no lock-in.

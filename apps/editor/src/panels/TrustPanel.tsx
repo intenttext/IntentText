@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { TrustState } from "../hooks/useTrustState";
-import type { VerifyResult } from "@intenttext/core";
+import type { VerifyResult } from "@dotit/core";
 
 /* ─── Lifecycle step config ────────────────────────────────── */
 const STEPS = [

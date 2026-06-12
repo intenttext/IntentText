@@ -37,6 +37,14 @@ that matches wins:
    keyword is preserved verbatim as `type: "custom"` with `keyword` retained.
 7. **Implicit text** — any remaining non-empty line becomes a `text` block.
 
+**Reserved characters.** ` | ` (space-pipe-space) is the property delimiter; write a
+literal pipe as `\|` (and a literal backslash as `\\`) — the parser unescapes them
+anywhere in content and property values, and the serializer re-escapes on output, so
+round-trips are stable. Colons need **no** escaping inside content or values (`quote:
+He said: watch this` is fine) — only the first word+colon of a line is a keyword. To
+start a line's text with something that LOOKS like a keyword (e.g. `total: 50` as
+prose), write it as explicit text: `text: total: 50`.
+
 Keywords and property keys are **Unicode words** (`\p{L}` letters, then letters/
 digits/`-`/`_`) — Arabic, Chinese, or any-script domain keywords parse as typed
 `custom` blocks exactly like ASCII ones (`مصروف: كراسي | فئة: أثاث` is a queryable
@@ -103,7 +111,7 @@ the reserved surface can stay small without losing extensibility.
 | **print** | `page` `header` `footer` `watermark` `break` `toc` | Print / PDF layout |
 
 Source of truth: `KEYWORD_TIERS` and `CORE_KEYWORDS` exported from
-`@intenttext/core`. Aliases, compat-only keywords, and `x-namespace:` extension
+`@dotit/core`. Aliases, compat-only keywords, and `x-namespace:` extension
 keywords remain recognized but are not part of any tier.
 
 ## 4. Trust model (contract profile)

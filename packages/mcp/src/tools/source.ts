@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { documentToSource } from "@intenttext/core";
-import type { IntentDocument } from "@intenttext/core";
+import { documentToSource } from "@dotit/core";
+import type { IntentDocument } from "@dotit/core";
 import { textResult } from "../types.js";
 
 export function registerSourceTools(server: McpServer): void {

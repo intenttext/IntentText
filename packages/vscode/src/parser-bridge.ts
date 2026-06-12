@@ -3,13 +3,13 @@ import {
   parseIntentTextSafe,
   renderHTML,
   validateDocumentSemantic,
-} from "@intenttext/core";
+} from "@dotit/core";
 import type {
   IntentDocument,
   IntentBlock,
   SafeParseResult,
   SemanticValidationResult,
-} from "@intenttext/core";
+} from "@dotit/core";
 
 export {
   parseIntentText,

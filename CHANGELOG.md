@@ -6,6 +6,19 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+> **Rebrand:** packages are now published as **`@dotit/core`**, **`@dotit/pdf`**, and
+> **`@dotit/mcp`**, starting at **1.0.0**. Same code, same format (`.it`), same team —
+> the `@intenttext/*` packages are deprecated with pointers. History below refers to
+> the old names/versions.
+
+### Fixed
+
+- **Escaped pipes now survive round-trips.** `\|` parsed correctly into a literal
+  pipe, but the serializer emitted it back UNescaped — re-parsing then split it as a
+  property delimiter (data corruption in editor round-trips). The serializer now
+  re-escapes `\` and `|` in content and property values; escape round-trips are a
+  fixpoint.
+
 ### Added
 
 - **Unicode (Arabic, any-language) keywords and property keys.** The keyword grammar
@@ -73,7 +86,7 @@ Hardening release — the start of the enterprise-hardening track.
 - New exports: `collectDocumentStyles()`, `documentStyleCSS(doc, selectorMap?, prefix?)`,
   `DOC_STYLE_TARGETS`, `DocumentStyleRule`.
 
-## [@intenttext/pdf 1.0.0] - 2026-06-12
+## [@dotit/pdf 1.0.0] - 2026-06-12
 
 New opt-in package for **server-side PDF generation** (core stays zero-dependency).
 For the moments no human is at a browser: emailing invoices, compliance archiving,
@@ -246,7 +259,7 @@ focused supported surface.
 
 ### Changed
 
-- **Rust Core Default On** - `@intenttext/core` now defaults to Rust/WASM mode without requiring any environment variable.
+- **Rust Core Default On** - `@dotit/core` now defaults to Rust/WASM mode without requiring any environment variable.
 - **Engine Override Policy** - TypeScript mode remains available only as an explicit override (`INTENTTEXT_CORE_ENGINE=ts` or `globalThis.__INTENTTEXT_CORE_ENGINE = "ts"`).
 - **Safety Fallbacks Retained** - Temporary TS fallback behavior remains in place for compatibility-sensitive paths (options/theme and WASM failure scenarios) while parity hardening continues.
 
@@ -258,7 +271,7 @@ focused supported surface.
 
 ### Added
 
-- **Rust Core Engine Path** — `@intenttext/core` now ships Rust/WASM artifacts generated from `intenttext-rust` under `dist/rust-wasm`.
+- **Rust Core Engine Path** — `@dotit/core` now ships Rust/WASM artifacts generated from `intenttext-rust` under `dist/rust-wasm`.
 - **Rust Engine API Bridge** — `parseIntentText`, `renderHTML`, `documentToSource`, and `validateDocumentSemantic` now flow through a Rust-core bridge module when Rust mode is enabled.
 
 ### Changed

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { existsSync } from "fs";
-import { verifyDocument, parseIntentText } from "@intenttext/core";
+import { verifyDocument, parseIntentText } from "@dotit/core";
 import { issueDocument, issuePDF, htmlToPDF } from "../src/index";
 
 const TEMPLATE = `page: | size: A4 | footer: {{invoice.number}} · Page {{page}}

@@ -1,7 +1,7 @@
 // Parser bridge: .it source → VisualBlock[]
-// Uses @intenttext/core's parser, then maps to visual block model
+// Uses @dotit/core's parser, then maps to visual block model
 
-import { parseIntentText } from "@intenttext/core";
+import { parseIntentText } from "@dotit/core";
 import type { VisualBlock } from "./types";
 
 /**

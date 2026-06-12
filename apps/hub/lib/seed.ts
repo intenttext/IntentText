@@ -5,7 +5,7 @@ import {
   generateThemeCSS,
   listBuiltinThemes,
   getBuiltinTheme,
-} from "@intenttext/core";
+} from "@dotit/core";
 import * as fs from "fs";
 import * as path from "path";
 

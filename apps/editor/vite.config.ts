@@ -3,11 +3,11 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  // @intenttext/core ships CommonJS. Pre-bundle it with esbuild and let
+  // @dotit/core ships CommonJS. Pre-bundle it with esbuild and let
   // @rollup/plugin-commonjs process it so its named exports (e.g.
   // listBuiltinThemes) resolve in both dev and the production build.
   optimizeDeps: {
-    include: ["@intenttext/core"],
+    include: ["@dotit/core"],
   },
   build: {
     commonjsOptions: {

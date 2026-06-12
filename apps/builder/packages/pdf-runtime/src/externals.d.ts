@@ -1,2 +1,2 @@
-declare module "@intenttext/core";
+declare module "@dotit/core";
 declare module "puppeteer";

@@ -10,7 +10,7 @@ You want IntentText working in 5 minutes. Here's how.
 ## Install
 
 ```bash
-npm install @intenttext/core
+npm install @dotit/core
 ```
 
 Or use the CLI globally:
@@ -77,7 +77,7 @@ npx intenttext hello.it --query "type=deadline"
 ## Use in code
 
 ```typescript
-import { parseIntentText, renderHTML } from "@intenttext/core";
+import { parseIntentText, renderHTML } from "@dotit/core";
 
 const source = `
 title: Quick Example

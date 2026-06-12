@@ -131,3 +131,28 @@ describe("ISO date standard (DATE_NOT_ISO)", () => {
     expect(res.issues.filter((i) => i.code === "DATE_NOT_ISO")).toEqual([]);
   });
 });
+
+describe("reserved symbols: \\| escaping", () => {
+  it("escaped pipes land as literal pipes in content and prop values", () => {
+    const doc = parseIntentText(
+      "task: Review docs \\| specs | owner: Ahmed\ncontact: Acme | note: A \\| B",
+    );
+    expect(doc.blocks[0].content).toBe("Review docs | specs");
+    expect(doc.blocks[0].properties?.owner).toBe("Ahmed");
+    expect(doc.blocks[1].properties?.note).toBe("A | B");
+  });
+
+  it("serializer re-escapes — escaped-pipe documents round-trip stable", () => {
+    const src = "task: Review docs \\| specs | owner: Ahmed";
+    const once = documentToSource(parseIntentText(src)).trim();
+    expect(once).toBe(src);
+    // and the cycle is a fixpoint
+    expect(documentToSource(parseIntentText(once)).trim()).toBe(once);
+  });
+
+  it("colons inside content and values need no escaping", () => {
+    const doc = parseIntentText("quote: He said: watch this | by: Sara");
+    expect(doc.blocks[0].content).toBe("He said: watch this");
+    expect(doc.blocks[0].properties?.by).toBe("Sara");
+  });
+});

@@ -74,7 +74,7 @@ async function loadCore() {
     "dist",
     "index.js",
   );
-  return loadModule(["@intenttext/core", localCore]);
+  return loadModule(["@dotit/core", localCore]);
 }
 
 async function loadRuntime() {
@@ -85,7 +85,7 @@ async function loadRuntime() {
     "dist",
     "index.js",
   );
-  return loadModule(["@intenttext/pdf-runtime", localRuntime]);
+  return loadModule(["@dotit/pdf-runtime", localRuntime]);
 }
 
 function normalizeHtml(html) {

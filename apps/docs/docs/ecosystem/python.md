@@ -6,12 +6,12 @@ title: Python SDK
 # Python SDK
 
 > **Experimental.** Not part of the supported v4 release surface. The canonical
-> implementation is the TypeScript `@intenttext/core`.
+> implementation is the TypeScript `@dotit/core`.
 
 A thin Python client over the canonical IntentText core. It does **not** re-implement
 the grammar — parsing is delegated to the core CLI and mapped into Python dataclasses,
 so Python results can never drift from the JS parser. For rendering, querying, merging,
-and trust operations, use `@intenttext/core` (Node) or the core CLI directly.
+and trust operations, use `@dotit/core` (Node) or the core CLI directly.
 
 ## Installation
 
@@ -67,7 +67,7 @@ export INTENTTEXT_CLI=/path/to/intenttext/cli.js
 Earlier versions shipped a separate Python parser, renderer, validator, query engine,
 and trust helpers. Those duplicated the grammar and could drift, so they were removed.
 Python now exposes only `parse` / `parse_safe` over the canonical core. Everything else
-lives in `@intenttext/core` / the CLI.
+lives in `@dotit/core` / the CLI.
 
 ## Source
 

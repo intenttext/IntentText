@@ -10,7 +10,7 @@
   "packages": [
     {
       "registryType": "npm",
-      "identifier": "@intenttext/mcp-server",
+      "identifier": "@dotit/mcp",
       "version": "1.0.1",
       "transport": {
         "type": "stdio"

@@ -1,13 +1,13 @@
-# @intenttext/pdf
+# @dotit/pdf
 
 Server-side PDF generation for [IntentText](https://github.com/intenttext/IntentText)
 (`.it`) documents — for the moments **no human is at a browser**: emailing an invoice,
 archiving for compliance, month-end batch statements.
 
-`@intenttext/core` stays zero-dependency; this is the opt-in enterprise companion.
+`@dotit/core` stays zero-dependency; this is the opt-in enterprise companion.
 
 ```bash
-npm i @intenttext/pdf
+npm i @dotit/pdf
 # plus ONE of:
 npm i puppeteer        # bundles Chromium — zero config
 npm i puppeteer-core   # uses your existing Chrome (set CHROME_PATH if not auto-found)
@@ -19,7 +19,7 @@ Merge data into the template → **seal** the merged document (tamper-evident SH
 → real PDF bytes:
 
 ```js
-import { issuePDF } from "@intenttext/pdf";
+import { issuePDF } from "@dotit/pdf";
 
 const { source, hash, at, pdf } = await issuePDF(template.source, invoiceData, {
   signer: "Jadwal Billing",
@@ -34,7 +34,7 @@ await mailer.send({ attachments: [{ filename: `${number}.pdf`, content: pdf }] }
 
 - **`source`** — the sealed `.it` text. Store it on the record: it's the queryable,
   hash-verifiable **legal artifact** (a few KB of text). Years later,
-  `verifyDocument(source)` from `@intenttext/core` proves it unaltered.
+  `verifyDocument(source)` from `@dotit/core` proves it unaltered.
 - **`pdf`** — the bytes you email/archive.
 - Unresolved `{{fields}}` render **blank** (it's a finished document), pass
   `missing: "keep"` to override.
@@ -44,7 +44,7 @@ await mailer.send({ attachments: [{ filename: `${number}.pdf`, content: pdf }] }
 `issueDocument()` is the same flow minus the PDF — pure, synchronous, no Chrome:
 
 ```js
-import { issueDocument } from "@intenttext/pdf";
+import { issueDocument } from "@dotit/pdf";
 
 const { source, hash, html } = issueDocument(template.source, data, { signer: "Jadwal Billing" });
 // POST `html` to your HTML→PDF sidecar (e.g. Gotenberg), store `source` yourself.
@@ -53,7 +53,7 @@ const { source, hash, html } = issueDocument(template.source, data, { signer: "J
 ## Other entry points
 
 ```js
-import { renderPDF, htmlToPDF, createPdfRenderer } from "@intenttext/pdf";
+import { renderPDF, htmlToPDF, createPdfRenderer } from "@dotit/pdf";
 
 await renderPDF(itSource, { theme: "corporate" });   // finished .it → PDF bytes
 await htmlToPDF(printHtml);                           // bring-your-own HTML → PDF bytes

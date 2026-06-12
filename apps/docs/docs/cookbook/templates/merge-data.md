@@ -33,14 +33,14 @@ intenttext template.it --data data.json --pdf --theme corporate
 ### JavaScript merge
 
 ```javascript
-import { parseIntentText, mergeData, render, renderPrint } from "@intenttext/core";
+import { parseIntentText, mergeData, render, renderPrint } from "@dotit/core";
 
 // Two-step merge
 const doc = parseIntentText(templateSource);
 const merged = mergeData(doc, data);
 
 // Or one-step
-import { parseAndMerge } from "@intenttext/core";
+import { parseAndMerge } from "@dotit/core";
 const merged = parseAndMerge(templateSource, data);
 
 // Render

@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // intenttext-print — the entire ERP print integration. Copy this file into Jadwal.
 //
-//   npm i @intenttext/core      ← the one and only dependency
+//   npm i @dotit/core      ← the one and only dependency
 //
 // A template is a plain `.it` string (authored in the .it editor, stored as a string
 // field in your print-template collection). Merge it with an invoice/report data
@@ -9,7 +9,7 @@
 // library, no viewer to build. Works in the browser AND in Node (same code).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { parseAndMerge, renderHTML, renderPrint } from "@intenttext/core";
+import { parseAndMerge, renderHTML, renderPrint } from "@dotit/core";
 
 /**
  * Merge `data` into the `.it` template and return a full, self-contained HTML

@@ -146,7 +146,7 @@ intenttext template.it --data data.json --pdf
 ### JavaScript
 
 ```javascript
-import { parseIntentText, mergeData, render, renderPrint } from "@intenttext/core";
+import { parseIntentText, mergeData, render, renderPrint } from "@dotit/core";
 
 const doc = parseIntentText(templateSource);
 const merged = mergeData(doc, data);

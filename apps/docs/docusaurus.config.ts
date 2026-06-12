@@ -147,7 +147,7 @@ const config: Config = {
             { label: "Editor", href: "https://editor.uts.qa" },
             {
               label: "npm",
-              href: "https://npmjs.com/package/@intenttext/core",
+              href: "https://npmjs.com/package/@dotit/core",
             },
           ],
         },

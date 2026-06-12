@@ -1,7 +1,7 @@
 {
-  "name": "@intenttext/pdf",
+  "name": "@dotit/pdf",
   "version": "1.0.0",
-  "description": "Server-side PDF generation for IntentText (.it) documents — merge, seal, and render real PDF bytes for emailing and archiving. Opt-in companion to @intenttext/core.",
+  "description": "Server-side PDF generation for IntentText (.it) documents \u2014 merge, seal, and render real PDF bytes for emailing and archiving. Opt-in companion to @dotit/core.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@intenttext/core": "workspace:^"
+    "@dotit/core": "workspace:^"
   },
   "peerDependencies": {
     "puppeteer": ">=21",

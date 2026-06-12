@@ -4,14 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build:core": "pnpm --filter @intenttext/core build",
+    "build:core": "pnpm --filter @dotit/core build",
     "build": "pnpm run build:core && next build",
     "start": "next start",
     "seed": "tsx lib/seed.ts",
     "lint": "next lint"
   },
   "dependencies": {
-    "@intenttext/core": "workspace:*",
+    "@dotit/core": "workspace:*",
     "mongodb": "^7.1.0",
     "next": "14.2.35",
     "react": "^18",

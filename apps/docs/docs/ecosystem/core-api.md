@@ -5,10 +5,10 @@ title: Core API
 
 # Core API
 
-TypeScript/JavaScript API reference for `@intenttext/core`.
+TypeScript/JavaScript API reference for `@dotit/core`.
 
 ```bash
-npm install @intenttext/core
+npm install @dotit/core
 ```
 
 ## Parser
@@ -18,7 +18,7 @@ npm install @intenttext/core
 Parse `.it` source into a document object.
 
 ```typescript
-import { parseIntentText } from "@intenttext/core";
+import { parseIntentText } from "@dotit/core";
 
 const doc = parseIntentText(`
 title: Quarterly Report
@@ -47,7 +47,7 @@ interface ParseOptions {
 Like `parseIntentText` but collects errors instead of throwing.
 
 ```typescript
-import { parseIntentTextSafe } from "@intenttext/core";
+import { parseIntentTextSafe } from "@dotit/core";
 
 const result = parseIntentTextSafe(source);
 if (result.errors.length > 0) {
@@ -64,7 +64,7 @@ if (result.errors.length > 0) {
 Render to themed HTML.
 
 ```typescript
-import { parseIntentText, renderHTML } from "@intenttext/core";
+import { parseIntentText, renderHTML } from "@dotit/core";
 
 const doc = parseIntentText(source);
 const html = renderHTML(doc, { theme: "corporate" });
@@ -75,7 +75,7 @@ const html = renderHTML(doc, { theme: "corporate" });
 Print-optimized HTML with `@page` rules, headers, footers, and watermarks.
 
 ```typescript
-import { renderPrint } from "@intenttext/core";
+import { renderPrint } from "@dotit/core";
 
 const printHtml = renderPrint(doc, { theme: "print" });
 ```
@@ -85,7 +85,7 @@ const printHtml = renderPrint(doc, { theme: "print" });
 Extract page, header, footer, and watermark blocks.
 
 ```typescript
-import { collectPrintLayout } from "@intenttext/core";
+import { collectPrintLayout } from "@dotit/core";
 
 const layout = collectPrintLayout(doc);
 // layout.page, layout.header, layout.footer, layout.watermark, layout.breaks
@@ -104,7 +104,7 @@ interface RenderOptions {
 ### `getBuiltinTheme(name)`
 
 ```typescript
-import { getBuiltinTheme, listBuiltinThemes } from "@intenttext/core";
+import { getBuiltinTheme, listBuiltinThemes } from "@dotit/core";
 
 const theme = getBuiltinTheme("corporate");
 const names = listBuiltinThemes();
@@ -116,7 +116,7 @@ const names = listBuiltinThemes();
 Generate CSS custom properties from a theme object.
 
 ```typescript
-import { generateThemeCSS } from "@intenttext/core";
+import { generateThemeCSS } from "@dotit/core";
 
 const css = generateThemeCSS(theme, "web"); // or 'print'
 ```
@@ -126,7 +126,7 @@ const css = generateThemeCSS(theme, "web"); // or 'print'
 Register a custom theme for use by name.
 
 ```typescript
-import { registerBuiltinTheme } from "@intenttext/core";
+import { registerBuiltinTheme } from "@dotit/core";
 
 registerBuiltinTheme({
   name: "brand",
@@ -216,7 +216,7 @@ interface ThemePrint {
 Execute a structured query against document blocks.
 
 ```typescript
-import { parseIntentText, queryBlocks } from "@intenttext/core";
+import { parseIntentText, queryBlocks } from "@dotit/core";
 
 const doc = parseIntentText(source);
 const result = queryBlocks(doc, "type=deadline sort:date:asc limit:10");
@@ -228,7 +228,7 @@ const result = queryBlocks(doc, "type=deadline sort:date:asc limit:10");
 Parse query syntax into a `QueryOptions` object.
 
 ```typescript
-import { parseQuery } from "@intenttext/core";
+import { parseQuery } from "@dotit/core";
 
 const opts = parseQuery(
   "type=task owner=Ahmed due<2026-03-01 sort:due:asc limit:10",
@@ -240,7 +240,7 @@ const opts = parseQuery(
 Simple field=value query helper.
 
 ```typescript
-import { queryDocument } from "@intenttext/core";
+import { queryDocument } from "@dotit/core";
 
 const tasks = queryDocument(doc, "type", "step");
 ```
@@ -250,7 +250,7 @@ const tasks = queryDocument(doc, "type", "step");
 Format query results as text or JSON.
 
 ```typescript
-import { formatQueryResult } from "@intenttext/core";
+import { formatQueryResult } from "@dotit/core";
 
 const text = formatQueryResult(result, "text");
 const json = formatQueryResult(result, "json");
@@ -300,7 +300,7 @@ interface QueryResult {
 Resolve `{{variable}}` interpolations (dot paths, array indices, `each:` table loops).
 
 ```typescript
-import { parseIntentText, mergeData } from "@intenttext/core";
+import { parseIntentText, mergeData } from "@dotit/core";
 
 const template = parseIntentText(`
 title: Invoice {{number}}
@@ -317,7 +317,7 @@ Parse and merge in one call. `options.missing` controls unresolved `{{fields}}`:
 empty — use for finished documents so an invoice never prints `{{customer.phone}}`).
 
 ```typescript
-import { parseAndMerge } from "@intenttext/core";
+import { parseAndMerge } from "@dotit/core";
 
 const doc = parseAndMerge(templateSource, invoiceData, { missing: "blank" });
 ```
@@ -332,7 +332,7 @@ this automatically; pass a custom `selectorMap` to apply the same rules to your 
 markup (the web editor does exactly this for its live canvas).
 
 ```typescript
-import { collectDocumentStyles, documentStyleCSS } from "@intenttext/core";
+import { collectDocumentStyles, documentStyleCSS } from "@dotit/core";
 
 collectDocumentStyles(doc);
 // [{ target: "section", declarations: "color: #0a7; font-weight: 600" }]
@@ -347,7 +347,7 @@ SHA-256 content hash. Returns the updated source — store it exactly as returne
 (the hash covers the exact bytes).
 
 ```typescript
-import { sealDocument } from "@intenttext/core";
+import { sealDocument } from "@dotit/core";
 
 const result = sealDocument(source, { signer: "Ahmed Al-Rashid", role: "CEO" });
 // result.success, result.hash ("sha256:…"), result.source (sealed text), result.at
@@ -358,7 +358,7 @@ const result = sealDocument(source, { signer: "Ahmed Al-Rashid", role: "CEO" });
 Verify document integrity against its seal.
 
 ```typescript
-import { verifyDocument } from "@intenttext/core";
+import { verifyDocument } from "@dotit/core";
 
 const result = verifyDocument(source);
 // result.intact, result.hash, result.frozen, result.signers
@@ -369,7 +369,7 @@ const result = verifyDocument(source);
 Compute SHA-256 hash of document content (above history boundary).
 
 ```typescript
-import { computeDocumentHash } from "@intenttext/core";
+import { computeDocumentHash } from "@dotit/core";
 
 const hash = computeDocumentHash(source);
 // "sha256:a1b2c3..."
@@ -380,7 +380,7 @@ const hash = computeDocumentHash(source);
 Compute semantic diff for trust history writing.
 
 ```typescript
-import { computeTrustDiff } from "@intenttext/core";
+import { computeTrustDiff } from "@dotit/core";
 
 const diff = computeTrustDiff(oldDoc, newDoc);
 // diff.added, diff.removed, diff.modified, diff.moved, diff.unchanged
@@ -433,7 +433,7 @@ interface TrustDiff {
 Compute diff between versions and write history section.
 
 ```typescript
-import { updateHistory } from "@intenttext/core";
+import { updateHistory } from "@dotit/core";
 
 const updated = updateHistory(oldSource, newSource, { by: "Ahmed" });
 ```
@@ -443,7 +443,7 @@ const updated = updateHistory(oldSource, newSource, { by: "Ahmed" });
 Parse a history section string into structured data.
 
 ```typescript
-import { parseHistorySection } from "@intenttext/core";
+import { parseHistorySection } from "@dotit/core";
 
 const { registry, revisions, registryIntact } =
   parseHistorySection(historyText);
@@ -456,7 +456,7 @@ const { registry, revisions, registryIntact } =
 Build a shallow `.it-index` for a folder.
 
 ```typescript
-import { buildShallowIndex } from "@intenttext/core";
+import { buildShallowIndex } from "@dotit/core";
 
 const index = buildShallowIndex("./contracts", filesMap, "3.1.0");
 ```
@@ -466,7 +466,7 @@ const index = buildShallowIndex("./contracts", filesMap, "3.1.0");
 Extract metadata and block summaries for a single file.
 
 ```typescript
-import { buildIndexEntry } from "@intenttext/core";
+import { buildIndexEntry } from "@dotit/core";
 
 const entry = buildIndexEntry(doc, source, "2026-03-15T10:00:00Z");
 ```
@@ -476,7 +476,7 @@ const entry = buildIndexEntry(doc, source, "2026-03-15T10:00:00Z");
 Merge multiple folder indexes into a flat result list.
 
 ```typescript
-import { composeIndexes, queryComposed } from "@intenttext/core";
+import { composeIndexes, queryComposed } from "@dotit/core";
 
 const all = composeIndexes([contractsIndex, invoicesIndex]);
 const deadlines = queryComposed(all, parseQuery("type=deadline"));
@@ -529,7 +529,7 @@ interface ComposedResult {
 Semantic diff between two parsed documents.
 
 ```typescript
-import { diffDocuments } from "@intenttext/core";
+import { diffDocuments } from "@dotit/core";
 
 const diff = diffDocuments(oldDoc, newDoc);
 // diff.added, diff.removed, diff.modified, diff.unchanged
@@ -543,7 +543,7 @@ const diff = diffDocuments(oldDoc, newDoc);
 Run a workflow document against a runtime. Policy enforcement and gate checks are applied before execution begins.
 
 ```typescript
-import { executeWorkflow } from "@intenttext/core";
+import { executeWorkflow } from "@dotit/core";
 
 const result = await executeWorkflow(doc, {
   executeStep: async (block) => {
@@ -634,7 +634,7 @@ const result = await executeWorkflow(doc, runtime);
 Extract a task DAG from step/gate/decision blocks without executing.
 
 ```typescript
-import { extractWorkflow } from "@intenttext/core";
+import { extractWorkflow } from "@dotit/core";
 
 const graph = extractWorkflow(doc);
 // graph.entryPoints, graph.steps, graph.executionOrder, graph.gatePositions
@@ -667,7 +667,7 @@ interface WorkflowStep {
 Convert a parsed document back to `.it` source text.
 
 ```typescript
-import { documentToSource } from "@intenttext/core";
+import { documentToSource } from "@dotit/core";
 
 const source = documentToSource(doc);
 ```
@@ -679,7 +679,7 @@ const source = documentToSource(doc);
 Convert Markdown to `.it` format.
 
 ```typescript
-import { convertMarkdownToIntentText } from "@intenttext/core";
+import { convertMarkdownToIntentText } from "@dotit/core";
 
 const itSource = convertMarkdownToIntentText("# My Doc\n\nSome text");
 ```
@@ -689,7 +689,7 @@ const itSource = convertMarkdownToIntentText("# My Doc\n\nSome text");
 Convert HTML to `.it` format.
 
 ```typescript
-import { convertHtmlToIntentText } from "@intenttext/core";
+import { convertHtmlToIntentText } from "@dotit/core";
 
 const itSource = convertHtmlToIntentText("<h1>My Doc</h1><p>Some text</p>");
 ```
@@ -701,7 +701,7 @@ const itSource = convertHtmlToIntentText("<h1>My Doc</h1><p>Some text</p>");
 Validate a document against a schema.
 
 ```typescript
-import { validateDocument, PREDEFINED_SCHEMAS } from "@intenttext/core";
+import { validateDocument, PREDEFINED_SCHEMAS } from "@dotit/core";
 
 const result = validateDocument(doc, PREDEFINED_SCHEMAS["project"]);
 // result.valid, result.errors, result.warnings
@@ -712,7 +712,7 @@ const result = validateDocument(doc, PREDEFINED_SCHEMAS["project"]);
 Semantic validation: cross-references, duplicate IDs, empty sections, unresolved variables.
 
 ```typescript
-import { validateDocumentSemantic } from "@intenttext/core";
+import { validateDocumentSemantic } from "@dotit/core";
 
 const result = validateDocumentSemantic(doc);
 // result.valid, result.issues
@@ -723,7 +723,7 @@ const result = validateDocumentSemantic(doc);
 Create a custom validation schema.
 
 ```typescript
-import { createSchema } from "@intenttext/core";
+import { createSchema } from "@dotit/core";
 
 const schema = createSchema("invoice", {
   requiredBlocks: ["title", "note"],
@@ -744,7 +744,7 @@ const schema = createSchema("invoice", {
 Natural language query over indexed documents. Requires `ANTHROPIC_API_KEY`.
 
 ```typescript
-import { askDocuments, composeIndexes } from "@intenttext/core";
+import { askDocuments, composeIndexes } from "@dotit/core";
 
 const all = composeIndexes([index1, index2]);
 const answer = await askDocuments(all, "Which contracts expire this quarter?");
@@ -870,18 +870,18 @@ Record mapping alias keywords to their canonical types. Includes callout aliases
 Array of all recognized keyword strings — 38 canonical keywords plus their registered aliases.
 
 
-## Server-side PDFs — `@intenttext/pdf`
+## Server-side PDFs — `@dotit/pdf`
 
 Core stays zero-dependency; real PDF **bytes** on a server (email attachments,
 compliance archiving, batch statement runs) come from the opt-in companion package:
 
 ```bash
-npm i @intenttext/pdf
+npm i @dotit/pdf
 npm i puppeteer        # or: puppeteer-core + your system Chrome (CHROME_PATH)
 ```
 
 ```typescript
-import { issuePDF } from "@intenttext/pdf";
+import { issuePDF } from "@dotit/pdf";
 
 const { source, hash, at, pdf } = await issuePDF(templateSource, data, {
   signer: "Acme Billing",

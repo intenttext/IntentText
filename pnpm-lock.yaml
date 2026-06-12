@@ -38,7 +38,7 @@ importers:
 
   apps/desktop:
     dependencies:
-      '@intenttext/core':
+      '@dotit/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@tauri-apps/api':
@@ -178,7 +178,7 @@ importers:
       '@dnd-kit/utilities':
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.6)
-      '@intenttext/core':
+      '@dotit/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@tiptap/core':
@@ -251,7 +251,7 @@ importers:
 
   apps/hub:
     dependencies:
-      '@intenttext/core':
+      '@dotit/core':
         specifier: workspace:*
         version: link:../../packages/core
       mongodb:
@@ -303,7 +303,7 @@ importers:
 
   demo/erp-integration:
     dependencies:
-      '@intenttext/core':
+      '@dotit/core':
         specifier: workspace:*
         version: link:../../packages/core
 
@@ -315,9 +315,9 @@ importers:
       '@actions/glob':
         specifier: ^0.4.0
         version: 0.4.0
-      '@intenttext/core':
-        specifier: ^3.3.1
-        version: 3.5.0
+      '@dotit/core':
+        specifier: workspace:*
+        version: link:../core
       minimatch:
         specifier: ^9.0.0
         version: 9.0.9
@@ -356,7 +356,7 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@intenttext/core':
+      '@dotit/core':
         specifier: workspace:*
         version: link:../core
       '@modelcontextprotocol/sdk':
@@ -384,7 +384,7 @@ importers:
 
   packages/pdf:
     dependencies:
-      '@intenttext/core':
+      '@dotit/core':
         specifier: workspace:^
         version: link:../core
       puppeteer:
@@ -406,7 +406,7 @@ importers:
 
   packages/vscode:
     dependencies:
-      '@intenttext/core':
+      '@dotit/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -1869,9 +1869,6 @@ packages:
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
-
-  '@intenttext/core@3.5.0':
-    resolution: {integrity: sha512-fpCQsZCPjrRNdRsD6MmN2WqQM2Ji+o6z/yeQ6gZieOESkUJ9zrLIeM/Gs0kjLaHEFv3DLQlavrsxIDKt46asqQ==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -10989,10 +10986,6 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/object-schema@2.0.3': {}
-
-  '@intenttext/core@3.5.0':
-    dependencies:
-      node-html-parser: 7.1.0
 
   '@isaacs/cliui@8.0.2':
     dependencies:

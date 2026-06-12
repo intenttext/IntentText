@@ -5,7 +5,7 @@ import {
   getBuiltinTheme,
   documentToSource,
   convertMarkdownToIntentText,
-} from "@intenttext/core";
+} from "@dotit/core";
 
 interface Props {
   content: string;

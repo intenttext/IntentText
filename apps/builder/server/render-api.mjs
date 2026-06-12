@@ -468,7 +468,7 @@ async function loadCore() {
   const candidates = [
     explicit,
     runtimeInstalledCore,
-    "@intenttext/core",
+    "@dotit/core",
   ].filter(Boolean);
   let lastErr = null;
   for (const spec of candidates) {
@@ -502,7 +502,7 @@ async function loadPdfRuntime() {
     "dist",
     "index.js",
   );
-  const candidates = [explicit, localDist, "@intenttext/pdf-runtime"].filter(
+  const candidates = [explicit, localDist, "@dotit/pdf-runtime"].filter(
     Boolean,
   );
   let lastErr = null;

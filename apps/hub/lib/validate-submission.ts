@@ -2,7 +2,7 @@ import {
   parseIntentTextSafe,
   validateDocumentSemantic,
   type IntentDocument,
-} from "@intenttext/core";
+} from "@dotit/core";
 
 export interface SubmissionValidationResult {
   valid: boolean;

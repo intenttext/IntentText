@@ -1,5 +1,5 @@
 const { MongoClient } = require("mongodb");
-const { parseIntentText } = require("@intenttext/core");
+const { parseIntentText } = require("@dotit/core");
 
 const uri =
   "mongodb+srv://emadjumaah1_db_user:99GNzlbJXl8E1u4c@cluster0.z4qzdog.mongodb.net/intenttext-hub?retryWrites=true&w=majority&appName=Cluster0";

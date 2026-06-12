@@ -28,16 +28,16 @@ jobs:
 
       # ── Core: build, test, and contract gates ──────────────────────────────
       - name: Build core
-        run: pnpm --filter @intenttext/core build
+        run: pnpm --filter @dotit/core build
 
       - name: Test core
-        run: pnpm --filter @intenttext/core test
+        run: pnpm --filter @dotit/core test
 
       - name: Keyword consistency gate (registry <-> BlockType)
-        run: pnpm --filter @intenttext/core keywords:check
+        run: pnpm --filter @dotit/core keywords:check
 
       - name: Consumer parity gate (registry <-> VSCode grammar)
-        run: pnpm --filter @intenttext/core parity:check
+        run: pnpm --filter @dotit/core parity:check
 
       - name: Example files clean (no deprecations / unknown keywords)
         run: node scripts/check-examples.mjs
@@ -53,10 +53,10 @@ jobs:
 
       # ── Supported downstream surface (build only — must compile against core) ─
       - name: Build MCP server
-        run: pnpm --filter @intenttext/mcp-server build
+        run: pnpm --filter @dotit/mcp build
 
       - name: Test MCP server
-        run: pnpm --filter @intenttext/mcp-server test
+        run: pnpm --filter @dotit/mcp test
 
       - name: Build VSCode extension
         run: pnpm --filter intenttext compile

@@ -5,7 +5,7 @@ import {
   renderHTML,
   renderPrint,
   documentToSource,
-} from "@intenttext/core";
+} from "@dotit/core";
 import { textResult } from "../types.js";
 
 export function registerMergeTools(server: McpServer): void {
@@ -27,9 +27,18 @@ export function registerMergeTools(server: McpServer): void {
         .describe(
           "Optionally render the merged result. Default: none (returns .it source)",
         ),
+      missing: z
+        .enum(["keep", "blank"])
+        .default("keep")
+        .describe(
+          "Unresolved {{placeholders}}: 'keep' leaves them visible (default), " +
+            "'blank' removes them so optional fields never print",
+        ),
     },
-    async ({ template, data, render }) => {
-      const doc = parseAndMerge(template, data as Record<string, unknown>);
+    async ({ template, data, render, missing }) => {
+      const doc = parseAndMerge(template, data as Record<string, unknown>, {
+        missing,
+      });
       if (render === "html") {
         return textResult(renderHTML(doc));
       }

@@ -2,7 +2,7 @@
 
 The IntentText wedge in one runnable file: the pipeline that normally needs a
 **template engine + a PDF library + a signing vendor + a query layer** collapses
-into one dependency — `@intenttext/core`.
+into one dependency — `@dotit/core`.
 
 ```bash
 node demo/business-doc/pipeline.mjs

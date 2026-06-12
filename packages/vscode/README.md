@@ -21,7 +21,7 @@ The preview updates automatically as you edit.
 
 ### Inline Validation
 
-Real-time diagnostics powered by `@intenttext/core`:
+Real-time diagnostics powered by `@dotit/core`:
 
 - Red squiggles for errors (broken step references, invalid properties)
 - Yellow squiggles for warnings
@@ -71,5 +71,5 @@ This extension does not add custom settings. It activates automatically for `.it
 ## Links
 
 - [IntentText Docs](https://itdocs.vercel.app/docs/reference)
-- [IntentText Core](https://www.npmjs.com/package/@intenttext/core)
-- [IntentText MCP Server](https://www.npmjs.com/package/@intenttext/mcp-server)
+- [IntentText Core](https://www.npmjs.com/package/@dotit/core)
+- [IntentText MCP Server](https://www.npmjs.com/package/@dotit/mcp)

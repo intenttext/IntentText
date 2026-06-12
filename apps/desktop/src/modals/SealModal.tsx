@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { sealDocument } from "@intenttext/core";
+import { sealDocument } from "@dotit/core";
 
 interface Props {
   content: string;

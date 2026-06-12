@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { VerifyResult } from "@intenttext/core";
+import type { VerifyResult } from "@dotit/core";
 import type { TrustState } from "../hooks/useTrustState";
 import type { DemoDoc } from "./demoVault";
 

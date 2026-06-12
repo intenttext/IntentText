@@ -1,5 +1,5 @@
 import type * as Monaco from "monaco-editor";
-import { ALIASES } from "@intenttext/core";
+import { ALIASES } from "@dotit/core";
 
 interface KwInfo {
   keyword: string;

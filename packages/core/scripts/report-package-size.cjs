@@ -39,7 +39,7 @@ const wasmFile = path.join(distDir, "rust-wasm", "intenttext_bg.wasm");
 const wasmBytes = fs.existsSync(wasmFile) ? fs.statSync(wasmFile).size : 0;
 
 const report = {
-  package: "@intenttext/core",
+  package: "@dotit/core",
   generatedAt: new Date().toISOString(),
   dist: {
     fileCount: files.length,

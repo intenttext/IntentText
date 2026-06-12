@@ -78,7 +78,7 @@ async function loadCore() {
     "dist",
     "index.js",
   );
-  const candidates = [explicit, localDefault, "@intenttext/core"].filter(
+  const candidates = [explicit, localDefault, "@dotit/core"].filter(
     Boolean,
   );
 

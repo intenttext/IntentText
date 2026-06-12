@@ -1,4 +1,4 @@
-import { listBuiltinThemes } from "@intenttext/core";
+import { listBuiltinThemes } from "@dotit/core";
 
 interface Props {
   active: string;

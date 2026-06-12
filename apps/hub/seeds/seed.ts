@@ -13,7 +13,7 @@
 
 import { config } from "dotenv";
 import { MongoClient } from "mongodb";
-import { parseIntentText } from "@intenttext/core";
+import { parseIntentText } from "@dotit/core";
 import * as fs from "fs";
 import * as path from "path";
 

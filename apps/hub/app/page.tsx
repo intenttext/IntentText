@@ -79,7 +79,7 @@ export default async function HomePage({
             </a>
             <span>·</span>
             <a
-              href="https://www.npmjs.com/package/@intenttext/core"
+              href="https://www.npmjs.com/package/@dotit/core"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-[var(--text)] transition-colors"

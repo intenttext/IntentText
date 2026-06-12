@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { parseIntentText } from "@intenttext/core";
-import type { RevisionEntry } from "@intenttext/core";
+import { parseIntentText } from "@dotit/core";
+import type { RevisionEntry } from "@dotit/core";
 
 interface Props {
   content: string;

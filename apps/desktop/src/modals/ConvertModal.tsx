@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   convertMarkdownToIntentText,
   convertHtmlToIntentText,
-} from "@intenttext/core";
+} from "@dotit/core";
 
 interface Props {
   onApply: (content: string) => void;

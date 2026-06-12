@@ -5,7 +5,7 @@
 // that's what makes the editor WYSIWYG. All values are CSS px at 96dpi
 // (1mm = 96/25.4 px), kept as floats to avoid drift across many pages.
 
-import { parseIntentText } from "@intenttext/core";
+import { parseIntentText } from "@dotit/core";
 
 export const MM = 96 / 25.4;
 

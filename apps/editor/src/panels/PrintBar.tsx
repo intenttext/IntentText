@@ -4,7 +4,7 @@ import {
   renderPrint,
   listBuiltinThemes,
   cssContentValue,
-} from "@intenttext/core";
+} from "@dotit/core";
 import { getPageGeometry } from "../visual/page-geometry";
 import { printHtmlViaIframe } from "./print-iframe";
 

@@ -36,7 +36,7 @@ unknown keywords pass through as `custom`.
 | **data** | `columns` `row` `metric` |
 | **print** | `page` `header` `footer` `watermark` `style` `break` `toc` |
 
-Exposed from `@intenttext/core` as `KEYWORD_TIERS`, `CORE_KEYWORDS`, and `tierOf`. See
+Exposed from `@dotit/core` as `KEYWORD_TIERS`, `CORE_KEYWORDS`, and `tierOf`. See
 the canonical [SPEC](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md).
 
 ## Properties

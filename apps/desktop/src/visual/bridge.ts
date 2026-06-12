@@ -1,7 +1,7 @@
 // Bridge: IntentText source ↔ TipTap JSON document
 // Converts .it source text to TipTap-compatible JSON and back
 
-import { parseIntentText } from "@intenttext/core";
+import { parseIntentText } from "@dotit/core";
 import type { JSONContent } from "@tiptap/core";
 
 // IT keywords that map to dedicated TipTap nodes

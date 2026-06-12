@@ -33,7 +33,7 @@ import {
   ITComment,
 } from "./extensions";
 import { DocsToolbar } from "./DocsToolbar";
-import { getBuiltinTheme, generateThemeCSS } from "@intenttext/core";
+import { getBuiltinTheme, generateThemeCSS } from "@dotit/core";
 
 interface Props {
   value: string;

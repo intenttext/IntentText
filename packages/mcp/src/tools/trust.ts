@@ -4,7 +4,7 @@ import {
   sealDocument,
   verifyDocument,
   parseIntentText,
-} from "@intenttext/core";
+} from "@dotit/core";
 import { jsonResult } from "../types.js";
 
 export function registerTrustTools(server: McpServer): void {

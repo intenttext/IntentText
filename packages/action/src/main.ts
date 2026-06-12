@@ -6,8 +6,8 @@ import {
   parseIntentTextSafe,
   validateDocumentSemantic,
   verifyDocument,
-} from "@intenttext/core";
-import type { SemanticIssue } from "@intenttext/core";
+} from "@dotit/core";
+import type { SemanticIssue } from "@dotit/core";
 
 interface FileResult {
   path: string;

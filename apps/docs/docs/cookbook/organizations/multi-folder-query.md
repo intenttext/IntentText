@@ -106,7 +106,7 @@ Each query reads only the relevant `.it-index` files. No full file parsing neede
 ## Programmatic composition
 
 ```javascript
-import { composeIndexes, queryComposed } from "@intenttext/core";
+import { composeIndexes, queryComposed } from "@dotit/core";
 
 const composed = composeIndexes(
   [contractsIndex, hrIndex, financeIndex],

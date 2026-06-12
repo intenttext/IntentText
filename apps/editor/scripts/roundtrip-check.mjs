@@ -18,7 +18,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseIntentText, documentToSource } from "@intenttext/core";
+import { parseIntentText, documentToSource } from "@dotit/core";
 // bridge.ts is type-only on @tiptap/core, so Node's type-stripping runs it directly.
 import { sourceToDoc, docToSource } from "../src/visual/bridge.ts";
 

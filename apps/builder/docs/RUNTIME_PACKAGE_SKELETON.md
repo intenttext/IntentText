@@ -4,7 +4,7 @@ Path: `packages/pdf-runtime`
 
 Purpose:
 
-- expose thin runtime wrappers around `@intenttext/core`
+- expose thin runtime wrappers around `@dotit/core`
 - define browser-pool controls for deterministic PDF generation
 - surface baseline observability fields
 

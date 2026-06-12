@@ -104,7 +104,7 @@ contracts/a.it,approve,Legal review,Terms,Sarah Chen
 ## Programmatic API
 
 ```javascript
-import { parseIntentText, queryDocument } from "@intenttext/core";
+import { parseIntentText, queryDocument } from "@dotit/core";
 
 const doc = parseIntentText(source);
 

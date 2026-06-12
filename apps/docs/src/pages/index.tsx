@@ -274,7 +274,7 @@ export default function Home(): React.ReactElement {
             <div className="ecosystem-item">
               <Package size={22} strokeWidth={1.5} />
               <strong>npm</strong>
-              <span>@intenttext/core</span>
+              <span>@dotit/core</span>
             </div>
             <div className="ecosystem-item">
               <Package size={22} strokeWidth={1.5} />

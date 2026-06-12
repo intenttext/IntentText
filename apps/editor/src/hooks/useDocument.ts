@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { parseIntentText, CANONICAL_KEYWORDS } from "@intenttext/core";
-import type { IntentDocument } from "@intenttext/core";
+import { parseIntentText, CANONICAL_KEYWORDS } from "@dotit/core";
+import type { IntentDocument } from "@dotit/core";
 
 interface DocState {
   doc: IntentDocument | null;

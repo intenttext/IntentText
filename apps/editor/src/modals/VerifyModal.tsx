@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { verifyDocument, type VerifyResult } from "@intenttext/core";
+import { verifyDocument, type VerifyResult } from "@dotit/core";
 
 interface Props {
   content: string;

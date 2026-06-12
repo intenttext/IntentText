@@ -55,7 +55,7 @@ One file. Both audiences. No conversion step.
 
 ## What's in the box
 
-IntentText ships as a core npm package (`@intenttext/core`) with:
+IntentText ships as a core npm package (`@dotit/core`) with:
 
 - **A stable canonical keyword core** with aliases and extensions for document identity, content, structure, data, agent workflows, trust, and print layout
 - **8 built-in themes** for professional rendering

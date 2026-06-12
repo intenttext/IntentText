@@ -138,7 +138,7 @@ Missing variables don't crash — the block gets marked `unresolved: 1` so you c
 ## Merge in code
 
 ```typescript
-import { parseAndMerge, renderHTML } from "@intenttext/core";
+import { parseAndMerge, renderHTML } from "@dotit/core";
 import data from "./invoice-data.json";
 import { readFileSync } from "fs";
 

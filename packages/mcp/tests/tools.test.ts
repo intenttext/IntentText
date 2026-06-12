@@ -10,8 +10,8 @@ import {
   queryDocument,
   diffDocuments,
   extractWorkflow,
-} from "@intenttext/core";
-import type { IntentDocument } from "@intenttext/core";
+} from "@dotit/core";
+import type { IntentDocument } from "@dotit/core";
 
 function withTsEngine<T>(fn: () => T): T {
   const prev = (globalThis as Record<string, unknown>).__INTENTTEXT_CORE_ENGINE;

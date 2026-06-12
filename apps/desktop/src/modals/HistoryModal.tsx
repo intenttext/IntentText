@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { parseHistorySection } from "@intenttext/core";
+import { parseHistorySection } from "@dotit/core";
 
 interface Props {
   content: string;

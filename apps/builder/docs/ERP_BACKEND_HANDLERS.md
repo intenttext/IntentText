@@ -15,13 +15,13 @@ Both examples expose:
 
 and orchestrate:
 
-- `@intenttext/core` for parse/merge/render HTML
+- `@dotit/core` for parse/merge/render HTML
 - runtime `createPdf` for HTML-to-PDF conversion
 
 ## How To Use
 
 1. Copy handlers into ERP backend service.
-2. Replace module loading with your package wiring (`@intenttext/core`, runtime package).
+2. Replace module loading with your package wiring (`@dotit/core`, runtime package).
 3. Replace placeholder migration function with your shared migration module.
 4. Add ERP authN/authZ middleware and tenant scoping.
 5. Add observability and retry policies aligned with your SLA.

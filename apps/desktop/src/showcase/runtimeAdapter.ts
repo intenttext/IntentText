@@ -1,4 +1,4 @@
-import { parseIntentText } from "@intenttext/core";
+import { parseIntentText } from "@dotit/core";
 
 export interface WorkflowNode {
   id: string;

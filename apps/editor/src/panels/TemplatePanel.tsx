@@ -9,7 +9,7 @@
 //    produces.
 
 import { useEffect, useMemo, useState } from "react";
-import { parseAndMerge, renderPrint, documentToSource } from "@intenttext/core";
+import { parseAndMerge, renderPrint, documentToSource } from "@dotit/core";
 import {
   extractTemplateVariables,
   buildSampleSkeleton,

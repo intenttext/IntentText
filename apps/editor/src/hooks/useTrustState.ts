@@ -3,8 +3,8 @@ import {
   parseIntentText,
   sealDocument,
   verifyDocument,
-} from "@intenttext/core";
-import type { IntentDocument } from "@intenttext/core";
+} from "@dotit/core";
+import type { IntentDocument } from "@dotit/core";
 
 export interface TrustState {
   lifecycle: "draft" | "tracked" | "approved" | "signed" | "sealed";

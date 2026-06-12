@@ -133,7 +133,7 @@
     "publish": "npx vsce publish"
   },
   "dependencies": {
-    "@intenttext/core": "workspace:*"
+    "@dotit/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

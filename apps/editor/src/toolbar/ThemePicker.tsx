@@ -1,4 +1,4 @@
-import { listBuiltinThemes } from "@intenttext/core";
+import { listBuiltinThemes } from "@dotit/core";
 import type { ReactNode } from "react";
 
 const svg = (d: string) => (

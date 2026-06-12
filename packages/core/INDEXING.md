@@ -41,7 +41,7 @@ intenttext query ./company "type=deadline"  # composes the tree, queries across 
 Programmatically:
 
 ```ts
-import { buildShallowIndex, composeIndexes, queryComposed } from "@intenttext/core";
+import { buildShallowIndex, composeIndexes, queryComposed } from "@dotit/core";
 
 const composed = composeIndexes([contractsIndex, hrIndex, financeIndex], "company");
 const overdue = queryComposed(composed, { type: "deadline" });

@@ -1,4 +1,4 @@
-import { validateDocument, PREDEFINED_SCHEMAS, parseIntentText } from "@intenttext/core";
+import { validateDocument, PREDEFINED_SCHEMAS, parseIntentText } from "@dotit/core";
 import type { ModalType } from "../App";
 
 interface Props {

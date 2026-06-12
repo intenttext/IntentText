@@ -83,6 +83,6 @@ See the [IntentText documentation](https://itdocs.vercel.app) for the full spec.
 ## Links
 
 - [IntentText Docs](https://itdocs.vercel.app)
-- [IntentText Core](https://www.npmjs.com/package/@intenttext/core)
-- [IntentText MCP Server](https://www.npmjs.com/package/@intenttext/mcp-server)
+- [IntentText Core](https://www.npmjs.com/package/@dotit/core)
+- [IntentText MCP Server](https://www.npmjs.com/package/@dotit/mcp)
 - [IntentText Python](https://pypi.org/project/intenttext/)

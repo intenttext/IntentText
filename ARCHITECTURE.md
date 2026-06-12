@@ -4,7 +4,7 @@ _Last updated: 2026-06-09_
 
 ## Single source of truth
 
-**`@intenttext/core` (TypeScript) is the one canonical implementation** of the
+**`@dotit/core` (TypeScript) is the one canonical implementation** of the
 IntentText language. The grammar, parser, merge, query, render, validation, and
 trust/freeze logic live in [`packages/core/src`](packages/core/src) and nowhere
 else. No other language or package re-implements the grammar.
@@ -23,7 +23,7 @@ the `BlockType` union, and the alias map in [`types.ts`](packages/core/src/types
 
 Downstream consumers (README table, VSCode snippets/grammar, docs reference) must not
 hand-maintain their own keyword lists. The consistency gate
-(`pnpm --filter @intenttext/core keywords:check`) enforces that they match the
+(`pnpm --filter @dotit/core keywords:check`) enforces that they match the
 registry; CI fails on drift.
 
 ## Packages — supported (v4.1)
@@ -33,7 +33,7 @@ registry; CI fails on drift.
 | `packages/core` | The language: parser, merge, query, render, trust. The only grammar implementation. |
 | `packages/mcp` | MCP server exposing `.it` parsing/querying to AI agents. |
 | `packages/vscode` | VSCode extension: syntax highlighting, snippets, hover. |
-| `apps/editor` | Web editor (the primary human-facing app). Imports `@intenttext/core` directly; pure TS, no WASM. |
+| `apps/editor` | Web editor (the primary human-facing app). Imports `@dotit/core` directly; pure TS, no WASM. |
 
 ## Packages — experimental (kept, not part of the supported release)
 

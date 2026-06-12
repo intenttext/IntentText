@@ -1,7 +1,7 @@
 # intenttext-builder
 
 
-> **Experimental** — not part of the supported IntentText v4 release surface. The canonical implementation is `@intenttext/core`. This app builds against the core but carries no stability or support promise.
+> **Experimental** — not part of the supported IntentText v4 release surface. The canonical implementation is `@dotit/core`. This app builds against the core but carries no stability or support promise.
 
 Online template builder shell for the IntentText PDF product track.
 
@@ -174,7 +174,7 @@ PDF_SMOKE_WRITE=1 PDF_SMOKE_ARTIFACT_DIR=artifacts/pdf-smoke npm run pdf:smoke
 
 Production model:
 
-- `@intenttext/core` for parse/merge/render HTML
+- `@dotit/core` for parse/merge/render HTML
 - runtime wrapper (`createPdf`) for HTML-to-PDF conversion
 
 Guide:

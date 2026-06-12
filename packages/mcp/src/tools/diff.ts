@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { parseIntentText, diffDocuments } from "@intenttext/core";
+import { parseIntentText, diffDocuments } from "@dotit/core";
 import { jsonResult } from "../types.js";
 
 export function registerDiffTools(server: McpServer): void {

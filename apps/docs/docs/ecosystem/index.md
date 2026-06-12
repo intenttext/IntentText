@@ -12,7 +12,7 @@ IntentText is more than a file format. It's a complete toolchain for structured 
 | Tool                       | Description                                          |
 | -------------------------- | ---------------------------------------------------- |
 | [Core Library](./core-api) | The npm package — parse, render, query, merge, trust |
-| `@intenttext/pdf`          | Server-side PDFs — issue (merge → seal) → real PDF bytes; opt-in companion |
+| `@dotit/pdf`          | Server-side PDFs — issue (merge → seal) → real PDF bytes; opt-in companion |
 | [CLI](./cli)               | Command-line tool for every operation                |
 
 ## Authoring

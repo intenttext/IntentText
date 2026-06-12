@@ -117,7 +117,7 @@ async function loadCore() {
     "index.js",
   );
   const core = await loadModule(
-    [explicit, "@intenttext/core", localCore].filter(Boolean),
+    [explicit, "@dotit/core", localCore].filter(Boolean),
   );
 
   if (
@@ -141,7 +141,7 @@ async function loadPdfRuntime() {
     "index.js",
   );
   const runtime = await loadModule(
-    [explicit, "@intenttext/pdf-runtime", localRuntime].filter(Boolean),
+    [explicit, "@dotit/pdf-runtime", localRuntime].filter(Boolean),
   );
 
   if (typeof runtime.createPdf !== "function") {

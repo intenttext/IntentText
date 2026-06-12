@@ -36,10 +36,10 @@ Looping, parallel execution, handoff, retry, wait, checkpoint, and other advance
 
 ## Executing a workflow
 
-Use `executeWorkflow()` from `@intenttext/core` to run a document against a runtime. The executor evaluates `policy:` blocks first — if a required gate is unmet, execution returns `policy_blocked` without running any steps.
+Use `executeWorkflow()` from `@dotit/core` to run a document against a runtime. The executor evaluates `policy:` blocks first — if a required gate is unmet, execution returns `policy_blocked` without running any steps.
 
 ```typescript
-import { parseIntentText, executeWorkflow } from "@intenttext/core";
+import { parseIntentText, executeWorkflow } from "@dotit/core";
 
 const doc = parseIntentText(source);
 
@@ -156,7 +156,7 @@ intenttext query ./logs --type audit --by DataBot --format table
 
 ## MCP server integration
 
-The IntentText MCP server gives agents direct access to `.it` files without the need to import `@intenttext/core` directly:
+The IntentText MCP server gives agents direct access to `.it` files without the need to import `@dotit/core` directly:
 
 ```bash
 npm install intenttext-mcp

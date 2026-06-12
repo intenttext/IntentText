@@ -1,4 +1,4 @@
-# @intenttext/pdf-runtime (skeleton)
+# @dotit/pdf-runtime (skeleton)
 
 M1 runtime package skeleton for `renderHtml` and `createPdf` with explicit browser-pool controls.
 

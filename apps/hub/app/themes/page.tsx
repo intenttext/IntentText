@@ -83,7 +83,7 @@ export default async function ThemesPage() {
         <p className="py-12 text-center text-[var(--text-muted)]">
           No themes available yet. The 8 built-in themes are included with{" "}
           <code className="rounded bg-[var(--surface-2)] px-1.5 py-0.5 font-mono text-xs">
-            @intenttext/core
+            @dotit/core
           </code>
           .
         </p>

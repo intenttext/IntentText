@@ -1,17 +1,17 @@
-# @intenttext/core
+# @dotit/core
 
 Parser, HTML renderer, and document generation engine for **IntentText** (`.it`) — a structured interchange format for AI agents and humans.
 
 ## Install
 
 ```bash
-npm install @intenttext/core
+npm install @dotit/core
 ```
 
 ## Quick Start
 
 ```typescript
-import { parseIntentText, renderHTML } from "@intenttext/core";
+import { parseIntentText, renderHTML } from "@dotit/core";
 
 const doc = parseIntentText(`
 title: Sprint Planning — Week 12
@@ -42,7 +42,7 @@ const html = renderHTML(doc); // Styled HTML output
 ### Parsing
 
 ```typescript
-import { parseIntentText } from "@intenttext/core";
+import { parseIntentText } from "@dotit/core";
 
 const doc = parseIntentText(source);
 // Returns: IntentDocument { version, metadata, blocks, diagnostics }
@@ -51,7 +51,7 @@ const doc = parseIntentText(source);
 ### Rendering
 
 ```typescript
-import { renderHTML, renderPrint } from "@intenttext/core";
+import { renderHTML, renderPrint } from "@dotit/core";
 
 // Inline HTML fragment (for embedding in a page)
 const html = renderHTML(doc);
@@ -66,7 +66,7 @@ const printHtml = renderPrint(doc);
 Resolve `{{variable}}` placeholders in a parsed document using a JSON data object.
 
 ```typescript
-import { mergeData, parseAndMerge } from "@intenttext/core";
+import { mergeData, parseAndMerge } from "@dotit/core";
 
 const data = {
   company: { name: "Acme Corp" },
@@ -92,14 +92,14 @@ const result = parseAndMerge(templateString, data);
 ### Server-side PDFs
 
 For real PDF bytes on a server (email attachments, archiving, batch runs) use the
-opt-in companion **[`@intenttext/pdf`](https://www.npmjs.com/package/@intenttext/pdf)** —
+opt-in companion **[`@dotit/pdf`](https://www.npmjs.com/package/@dotit/pdf)** —
 `issuePDF(template, data, { signer })` runs merge → **seal** (tamper-evident SHA-256) →
 PDF in one call. Core itself stays zero-dependency.
 
 ### Querying
 
 ```typescript
-import { queryBlocks } from "@intenttext/core";
+import { queryBlocks } from "@dotit/core";
 
 const result = queryBlocks(doc, "type:task owner:Ahmed sort:due:asc limit:5");
 console.log(result.blocks); // Filtered & sorted blocks
@@ -111,7 +111,7 @@ console.log(result.blocks); // Filtered & sorted blocks
 content with a SHA-256 hash; `verifyDocument` recomputes it and reports integrity.
 
 ```typescript
-import { sealDocument, verifyDocument } from "@intenttext/core";
+import { sealDocument, verifyDocument } from "@dotit/core";
 
 const sealed = sealDocument(source, { signer: "Sarah Chen", role: "Legal" });
 const result = verifyDocument(sealed.source);
@@ -124,7 +124,7 @@ library can verify independently.
 ### Converters
 
 ```typescript
-import { convertMarkdownToIntentText } from "@intenttext/core";
+import { convertMarkdownToIntentText } from "@dotit/core";
 
 const itSource = convertMarkdownToIntentText(markdownString);
 ```
