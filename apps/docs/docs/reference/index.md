@@ -34,7 +34,7 @@ unknown keywords pass through as `custom`.
 | **agent** | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` |
 | **contract** | `sign` `approve` `freeze` `track` `revision` `amendment` `history` `cite` |
 | **data** | `columns` `row` `metric` |
-| **print** | `page` `header` `footer` `watermark` `break` `toc` |
+| **print** | `page` `header` `footer` `watermark` `style` `break` `toc` |
 
 Exposed from `@intenttext/core` as `KEYWORD_TIERS`, `CORE_KEYWORDS`, and `tierOf`. See
 the canonical [SPEC](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md).

@@ -56,7 +56,7 @@ export default function Home(): React.ReactElement {
       {/* ── Hero ──────────────────────────────────────────── */}
       <div className="hero-section">
         <div className="container">
-          <div className="hero-badge">Open format &middot; v4.1</div>
+          <div className="hero-badge">Open format &middot; v4.3</div>
           <h1>Documents that think.</h1>
           <p className="hero-subtitle">
             IntentText (<code>.it</code>) is an open format for structured

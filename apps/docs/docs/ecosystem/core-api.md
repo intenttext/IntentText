@@ -295,9 +295,9 @@ interface QueryResult {
 
 ## Merge
 
-### `mergeData(document, data, agentName?)`
+### `mergeData(document, data, options?)`
 
-Resolve `{{variable}}` interpolations.
+Resolve `{{variable}}` interpolations (dot paths, array indices, `each:` table loops).
 
 ```typescript
 import { parseIntentText, mergeData } from "@intenttext/core";
@@ -312,25 +312,45 @@ const merged = mergeData(template, { number: "INV-2847", amount: "$5,000" });
 
 ### `parseAndMerge(source, data, options?)`
 
-Parse and merge in one call.
+Parse and merge in one call. `options.missing` controls unresolved `{{fields}}`:
+`"keep"` (default — shows the marker, good while authoring) or `"blank"` (renders
+empty — use for finished documents so an invoice never prints `{{customer.phone}}`).
 
 ```typescript
 import { parseAndMerge } from "@intenttext/core";
 
-const doc = parseAndMerge(templateSource, { client: "Acme Corp" });
+const doc = parseAndMerge(templateSource, invoiceData, { missing: "blank" });
+```
+
+## Document styles
+
+### `collectDocumentStyles(document)` / `documentStyleCSS(document, selectorMap?, prefix?)`
+
+Read a document's [`style:` rules](../reference/keywords/layout#style) (sanitized;
+unknown targets dropped) and build the CSS for them. `renderHTML`/`renderPrint` call
+this automatically; pass a custom `selectorMap` to apply the same rules to your own
+markup (the web editor does exactly this for its live canvas).
+
+```typescript
+import { collectDocumentStyles, documentStyleCSS } from "@intenttext/core";
+
+collectDocumentStyles(doc);
+// [{ target: "section", declarations: "color: #0a7; font-weight: 600" }]
 ```
 
 ## Trust
 
 ### `sealDocument(source, options)`
 
-Seal a document by adding a `freeze:` block with SHA-256 hash.
+Seal a document: appends a `sign:` line (optional) and a `freeze:` line carrying the
+SHA-256 content hash. Returns the updated source — store it exactly as returned
+(the hash covers the exact bytes).
 
 ```typescript
 import { sealDocument } from "@intenttext/core";
 
-const result = sealDocument(source, { by: "Ahmed Al-Rashid", role: "CEO" });
-// result.valid, result.freezeBlock, result.updatedSource
+const result = sealDocument(source, { signer: "Ahmed Al-Rashid", role: "CEO" });
+// result.success, result.hash ("sha256:…"), result.source (sealed text), result.at
 ```
 
 ### `verifyDocument(source)`
@@ -792,7 +812,7 @@ interface IntentDocumentMetadata {
 
 ### `BlockType`
 
-Union type covering all 37 canonical keywords plus extension namespace blocks.
+Union type covering all 38 canonical keywords plus extension namespace blocks.
 
 **Canonical (37 total):**
 
@@ -847,4 +867,29 @@ Record mapping alias keywords to their canonical types. Includes callout aliases
 
 ### `KEYWORDS`
 
-Array of all recognized keyword strings — 37 canonical keywords plus their registered aliases.
+Array of all recognized keyword strings — 38 canonical keywords plus their registered aliases.
+
+
+## Server-side PDFs — `@intenttext/pdf`
+
+Core stays zero-dependency; real PDF **bytes** on a server (email attachments,
+compliance archiving, batch statement runs) come from the opt-in companion package:
+
+```bash
+npm i @intenttext/pdf
+npm i puppeteer        # or: puppeteer-core + your system Chrome (CHROME_PATH)
+```
+
+```typescript
+import { issuePDF } from "@intenttext/pdf";
+
+const { source, hash, at, pdf } = await issuePDF(templateSource, data, {
+  signer: "Acme Billing",
+});
+// `source` is the SEALED .it text — store it on the record (the verifiable legal
+// artifact); `pdf` is the bytes you email/archive.
+```
+
+Also: `issueDocument()` (same flow minus Chrome — returns print-ready HTML for
+sidecars like Gotenberg), `renderPDF()`, `htmlToPDF()`, and `createPdfRenderer()`
+for batch runs. Full guide: [ERP / App Integration](./erp-integration).

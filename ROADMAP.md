@@ -35,7 +35,7 @@ locked by regression tests (888 passing, incl. 13 production-print guards in
 
 ## What's achieved (status)
 
-**Core (`@intenttext/core@4.2.1`, on npm):** one canonical TypeScript parser; 37 tiered
+**Core (`@intenttext/core@4.3.0`, on npm):** one canonical TypeScript parser; 38 tiered
 keywords; `parseAndMerge` (templates + `each:` loops, `MergeOptions`); `renderHTML` /
 `renderPrint` (shared `DOCUMENT_CSS`, `@page` layout, running header/footer with page
 counters); tamper-evidence trust (`sealDocument`/`verifyDocument`, SHA-256,
@@ -44,11 +44,14 @@ canonicalization spec'd in SPEC §4.1 and verified reproducible); folder indexin
 styling, rendered identically by every consumer; `underline`/`strike`/`valign` style
 keys; the production-print hardening above.
 
-**Editor (apps/editor):** visual (TipTap) + source (Monaco), faithful round-trip (7/7).
-**WYSIWYG PDF** (prints the editor's own DOM → PDF == on-screen). Native page breaks (no
-hidden content), table rendering, hidden metadata chips, **styled trust chips** + invoice
--grade **metric/totals**, **Trust** toolbar (sign/seal/verify/history). Inline styling is
-faithful end-to-end (per-run marks/spans, unified on core's style keys, fidelity guard).
+**Editor (apps/editor):** visual (TipTap) + source (Monaco), faithful round-trip.
+**Word-like WYSIWYG pages** — real page cards with header/footer bands on every page,
+geometry from the doc's own `page:` block, breaks land where print breaks (100% WYSIWYG
+incl. pages/headers/footers; receipts render as a continuous roll). **Template mode** —
+`{{var}}` chips, Template panel (variables, per-file sample data, "PDF with data" via
+the production merge pipeline), invoice-template starter. Styled trust chips +
+invoice-grade metric/totals, centered **Trust** panel (track/approve/sign/seal/verify/
+amend), live `style:` rules on canvas. Inline styling faithful end-to-end.
 
 **Demos / integration:** `pnpm demo:invoice` (template→merge→sign→query),
 `pnpm demo:search` (folder query), `pnpm demo:themes` (one `.it`, three themes),
@@ -57,7 +60,7 @@ see `ecosystem/erp-integration` docs). Examples + demos guarded by `pnpm check:e
 
 **Docs:** SPEC (incl. §4.1 canonicalization), `reference/style-properties` (incl. spans),
 `guide/trust-and-signing` (what sealing does/doesn't prove), `ecosystem/erp-integration`
-(now incl. 80mm receipts, missing-data, totals, Arabic), CHANGELOG through 4.2.1.
+(now incl. 80mm receipts, missing-data, totals, Arabic), CHANGELOG through 4.3.0.
 
 ## Possible next stages (pick up here)
 
@@ -82,8 +85,9 @@ Nothing is mid-flight — these are fresh, independent options, roughly by lever
    remains copy-paste (`demo/erp-integration/intenttext-print.mjs`; Jadwal embedded
    its own in `apps/dash/src/lib/print.ts`). A statement/report template type would
    still round out the kit.
-4. **VSCode `.vsix` refresh** — rebuild/republish the extension against core 4.2.1 if
-   distributing a new build (the extension esbuild-bundles core).
+4. ~~**VSCode `.vsix` refresh**~~ ✅ built (2026-06-12): `intenttext-1.5.0.vsix`
+   bundles core 4.3.0 (style: grammar/completion/snippets) — upload to the
+   Marketplace when ready.
 5. **Editor folder-workspace + on-save indexing**; **managed trust tiers** (RFC-3161 /
    PKI over the same canonical hash) — unchanged, not ERP-blocking.
 
