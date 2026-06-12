@@ -134,36 +134,46 @@ document.querySelector("#preview").srcdoc = html;   // <iframe id="preview">
 
 ### Option B — server, real PDF file (for emailing / archiving)
 
-Only if you need a PDF on disk. One extra dependency:
+Use **`@intenttext/pdf`** — the official opt-in companion for the moments no human is at
+a browser (email attachments, compliance archiving, batch statement runs):
 
 ```bash
-npm i puppeteer
+npm i @intenttext/pdf
+npm i puppeteer          # or: puppeteer-core + your system Chrome (CHROME_PATH)
 ```
+
+The enterprise **issue flow** in one call — merge → **seal** (tamper-evident SHA-256) →
+PDF bytes:
 
 ```js
-import { renderDocumentPrintHTML } from "./intenttext-print.mjs";
+import { issuePDF } from "@intenttext/pdf";
+import { verifyDocument } from "@intenttext/core";
 
-export async function renderDocumentPDF(templateSource, data, opts = {}) {
-  const html = renderDocumentPrintHTML(templateSource, data, opts);
-  const puppeteer = (await import("puppeteer")).default;
-  const browser = await puppeteer.launch();
-  try {
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
-    return await page.pdf({ printBackground: true, preferCSSPageSize: true });
-  } finally {
-    await browser.close();
-  }
-}
-
-// Express: stream the PDF
-app.get("/api/invoices/:id/pdf", async (req, res) => {
+app.post("/api/invoices/:id/send", async (req, res) => {
   const template = await db.collection("print-template").findOne({ key: "invtemplate", company });
   const invoice  = await db.collection("invoices").findOne({ _id: req.params.id });
-  const pdf = await renderDocumentPDF(template.source, invoice, { theme: template.theme });
-  res.type("application/pdf").send(pdf);
+
+  const { source, hash, at, pdf } = await issuePDF(template.source, invoice, {
+    signer: "Jadwal Billing", role: "Finance", theme: template.theme,
+  });
+
+  // 1) The sealed .it text is the LEGAL ARTIFACT — store it on the record (a few KB).
+  //    Years later: verifyDocument(source).intact proves it unaltered.
+  await db.collection("invoices").updateOne(
+    { _id: invoice._id },
+    { $set: { itSource: source, itHash: hash, issuedAt: at } },
+  );
+  // 2) Archive the exact bytes that were sent (object storage), then email.
+  await s3.putObject({ Key: `invoices/${invoice.number}.pdf`, Body: pdf });
+  await mailer.send({ attachments: [{ filename: `${invoice.number}.pdf`, content: pdf }] });
+  res.json({ ok: true, hash });
 });
 ```
+
+No Chrome in your API process? `issueDocument()` does the same merge→seal and returns
+print-ready `html` — POST it to a rendering sidecar (e.g. Gotenberg) instead. For batch
+runs use `createPdfRenderer()` (reuses one Chrome). Full API: the `@intenttext/pdf`
+README.
 
 ## Receipts (80mm thermal) and other page sizes
 

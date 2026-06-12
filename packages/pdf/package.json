@@ -1,0 +1,59 @@
+{
+  "name": "@intenttext/pdf",
+  "version": "1.0.0",
+  "description": "Server-side PDF generation for IntentText (.it) documents — merge, seal, and render real PDF bytes for emailing and archiving. Opt-in companion to @intenttext/core.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "test": "vitest run",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "intenttext",
+    "pdf",
+    "invoice",
+    "print",
+    "server",
+    "erp"
+  ],
+  "author": "IntentText Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/intenttext/IntentText.git",
+    "directory": "packages/pdf"
+  },
+  "homepage": "https://github.com/intenttext/IntentText#readme",
+  "bugs": {
+    "url": "https://github.com/intenttext/IntentText/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@intenttext/core": "workspace:^"
+  },
+  "peerDependencies": {
+    "puppeteer": ">=21",
+    "puppeteer-core": ">=21"
+  },
+  "peerDependenciesMeta": {
+    "puppeteer": {
+      "optional": true
+    },
+    "puppeteer-core": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "puppeteer-core": "^24.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
