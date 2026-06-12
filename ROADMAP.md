@@ -73,9 +73,13 @@ Nothing is mid-flight — these are fresh, independent options, roughly by lever
 2. **Scoped `style:` block** ("Styling & visual fidelity" below) — a designated theme/
    style region so a document can carry house styling without per-line props. The natural
    next step after inline spans.
-3. **ERP kit as a package** — optionally publish the kit as `@intenttext/print`
-   (it's currently copy-paste; Jadwal already embedded its own copy in
-   `apps/dash/src/lib/print.ts`). A statement/report template type would round it out.
+3. ~~**ERP kit as a package**~~ ✅ partly done (2026-06-12): **`@intenttext/pdf`**
+   ships the server-side half — `issuePDF`/`issueDocument` (merge → seal → PDF),
+   `renderPDF`/`htmlToPDF`, `createPdfRenderer` for batch; puppeteer or
+   puppeteer-core + system Chrome, both optional peers. The browser-print helper
+   remains copy-paste (`demo/erp-integration/intenttext-print.mjs`; Jadwal embedded
+   its own in `apps/dash/src/lib/print.ts`). A statement/report template type would
+   still round out the kit.
 4. **VSCode `.vsix` refresh** — rebuild/republish the extension against core 4.2.1 if
    distributing a new build (the extension esbuild-bundles core).
 5. **Editor folder-workspace + on-save indexing**; **managed trust tiers** (RFC-3161 /

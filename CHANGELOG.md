@@ -6,6 +6,26 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [@intenttext/pdf 1.0.0] - 2026-06-12
+
+New opt-in package for **server-side PDF generation** (core stays zero-dependency).
+For the moments no human is at a browser: emailing invoices, compliance archiving,
+batch statement runs.
+
+- `issuePDF(template, data, { signer, role?, theme? })` — the enterprise issue flow in
+  one call: merge (`missing: "blank"`) → **seal** the merged document (tamper-evident
+  SHA-256) → real PDF bytes. Returns `{ source, hash, at, pdf }`: store the sealed
+  `.it` source on the record (the queryable, verifiable legal artifact) and email/
+  archive the bytes.
+- `issueDocument()` — same flow minus Chrome (returns print-ready `html`) for
+  rendering sidecars like Gotenberg; `renderPDF()` / `htmlToPDF()` primitives;
+  `createPdfRenderer()` for batch runs (reuses one Chrome).
+- Engine resolution: `puppeteer` (bundled Chromium) → `puppeteer-core` + system Chrome
+  (`executablePath` / `$PUPPETEER_EXECUTABLE_PATH` / `$CHROME_PATH` / common paths) →
+  clear install guidance. Both are optional peers.
+- Tests incl. a real end-to-end (system Chrome): PDF magic bytes, seal verifies intact,
+  tamper detected, missing fields blanked, sealed source stays queryable.
+
 ## [4.2.1] - 2026-06-12
 
 Production hardening for embedding as an ERP print engine (invoices, receipts,
