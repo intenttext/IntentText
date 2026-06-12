@@ -30,6 +30,32 @@ export function validateDocumentSemantic(
   const issues: SemanticIssue[] = [];
   const allBlocks = flattenBlocks(doc.blocks);
 
+  // ── Date standard: date-bearing properties must be ISO 8601 ────────────────
+  // Locale formats like 09/03/2026 are ambiguous (March 9th vs September 3rd)
+  // and break date-range queries and sorting. Canonical: YYYY-MM-DD, optionally
+  // with a time (YYYY-MM-DDTHH:mm[:ss][Z]). Template placeholders are exempt —
+  // they resolve at merge time.
+  const DATE_KEYS = new Set(["date", "due", "at", "expires", "issued"]);
+  const ISO_DATE_RE =
+    /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{2}:?\d{2})?)?$/;
+  for (const block of allBlocks) {
+    if (!block.properties) continue;
+    for (const [key, raw] of Object.entries(block.properties)) {
+      if (!DATE_KEYS.has(key)) continue;
+      const value = String(raw).trim();
+      if (!value || value.includes("{{")) continue;
+      if (!ISO_DATE_RE.test(value)) {
+        issues.push({
+          blockId: block.id,
+          blockType: block.type,
+          type: "warning",
+          code: "DATE_NOT_ISO",
+          message: `'${key}: ${value}' is not ISO 8601 — use YYYY-MM-DD (e.g. 2026-03-09) so date queries and sorting work reliably`,
+        });
+      }
+    }
+  }
+
   // Build a set of all known step IDs (explicit id: property or auto-assigned)
   const stepIds = new Set<string>();
   const seenExplicitIds = new Map<string, IntentBlock>();

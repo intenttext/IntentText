@@ -6,6 +6,19 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+
+- **Unicode (Arabic, any-language) keywords and property keys.** The keyword grammar
+  is now `\p{L}` Unicode words, so Arabic domain keywords parse as typed `custom`
+  blocks exactly like ASCII ones — `مصروف: كراسي | المورد: ايكيا | فئة: أثاث` is
+  queryable by Arabic property (`فئة = أثاث`), by keyword, and by ISO date range.
+  Canonical keywords stay English; localized aliases can come via the registry.
+- **ISO 8601 date standard.** Date-bearing properties (`date`, `due`, `at`,
+  `expires`, `issued`) are canonically `YYYY-MM-DD` (or full ISO timestamps). The
+  semantic validator flags locale formats (`DATE_NOT_ISO` warning) — `09/03/2026`
+  is ambiguous and breaks the query engine's date-range comparisons, which work
+  out of the box with ISO values. Editor samples converted to ISO.
+
 ## [4.3.1] - 2026-06-12
 
 Hardening release — the start of the enterprise-hardening track.

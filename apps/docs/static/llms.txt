@@ -21,6 +21,9 @@ Every non-empty line is: `keyword: content | prop: value | prop: value`
 - Unknown keywords NEVER error — they parse as type:"custom" with the keyword
   preserved (`computer: mac | ram: 16GB` is valid and queryable). This means you can
   invent domain keywords freely.
+- Keywords and property keys are UNICODE words — Arabic (or any language) domain
+  keywords work exactly like ASCII ones: `مصروف: كراسي مكتب | المورد: ايكيا | فئة: أثاث`
+  is a typed, queryable block. Dates stay ISO (2026-03-09) regardless of language.
 - `x-ns:` prefixed keywords are namespaced extensions (e.g. `x-layout: divider`).
 
 ## 2. The 38 canonical keywords, by tier

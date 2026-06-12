@@ -247,7 +247,7 @@ function parseContextKeyValuePairs(rawContent: string): Record<string, string> {
       continue;
     }
     // Try pipe property syntax: key: value
-    const pipeMatch = cleaned.match(/^([\w][\w-]*):\s*(.*)$/);
+    const pipeMatch = cleaned.match(/^([\p{L}\p{N}_][\p{L}\p{N}_-]*):\s*(.*)$/u);
     if (pipeMatch) {
       const key = pipeMatch[1].trim();
       if (!DANGEROUS_KEYS.has(key)) result[key] = pipeMatch[2].trim();
@@ -712,8 +712,10 @@ function parseLine(
     };
   }
 
-  // Check for keyword blocks
-  const keywordMatch = trimmed.match(/^([a-zA-Z][a-zA-Z0-9-]*):\s*(.*)$/);
+  // Check for keyword blocks. Keywords are Unicode words (\p{L}) — Arabic,
+  // Chinese, etc. domain keywords (`مصروف: …`) parse as typed `custom` blocks
+  // exactly like ASCII ones, so non-English documents stay fully queryable.
+  const keywordMatch = trimmed.match(/^(\p{L}[\p{L}\p{N}-]*):\s*(.*)$/u);
   if (keywordMatch) {
     const keyword = keywordMatch[1].toLowerCase();
     const rest = keywordMatch[2];
@@ -1350,7 +1352,7 @@ export function parseIntentText(
             afterClosingFence.substring(1).trim(),
           );
           for (const fp of fenceProps) {
-            const fpm = fp.trim().match(/^([\w][\w-]*):\s*(.*)$/);
+            const fpm = fp.trim().match(/^([\p{L}\p{N}_][\p{L}\p{N}_-]*):\s*(.*)$/u);
             if (fpm && !pendingCodeProperties![fpm[1].trim()]) {
               pendingCodeProperties![fpm[1].trim()] = fpm[2].trim();
             }
@@ -1447,7 +1449,7 @@ export function parseIntentText(
           if (afterClose.startsWith("|")) {
             const parts = splitPipeMetadata(afterClose.substring(1).trim());
             for (const part of parts) {
-              const pm = part.trim().match(/^([\w][\w-]*):\s*(.*)$/);
+              const pm = part.trim().match(/^([\p{L}\p{N}_][\p{L}\p{N}_-]*):\s*(.*)$/u);
               if (pm) props[pm[1].trim()] = pm[2].trim();
             }
           }
@@ -1485,7 +1487,7 @@ export function parseIntentText(
         if (afterCode.startsWith("|")) {
           const parts = splitPipeMetadata(afterCode.substring(1).trim());
           for (const part of parts) {
-            const propMatch = part.trim().match(/^([\w][\w-]*):\s*(.*)$/);
+            const propMatch = part.trim().match(/^([\p{L}\p{N}_][\p{L}\p{N}_-]*):\s*(.*)$/u);
             if (propMatch) {
               props[propMatch[1].trim()] = propMatch[2].trim();
             }

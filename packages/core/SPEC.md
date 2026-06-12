@@ -37,6 +37,17 @@ that matches wins:
    keyword is preserved verbatim as `type: "custom"` with `keyword` retained.
 7. **Implicit text** — any remaining non-empty line becomes a `text` block.
 
+Keywords and property keys are **Unicode words** (`\p{L}` letters, then letters/
+digits/`-`/`_`) — Arabic, Chinese, or any-script domain keywords parse as typed
+`custom` blocks exactly like ASCII ones (`مصروف: كراسي | فئة: أثاث` is a queryable
+`custom` block with keyword `مصروف`). The 38 canonical keywords themselves remain
+English; localized *aliases* may be added through the registry's alias mechanism.
+
+**Dates are ISO 8601.** Date-bearing properties (`date`, `due`, `at`, `expires`,
+`issued`) canonically hold `YYYY-MM-DD` or `YYYY-MM-DDTHH:mm[:ss]Z` — locale forms
+like `09/03/2026` are ambiguous and break date-range queries; the semantic validator
+flags them (`DATE_NOT_ISO`, warning). Template placeholders are exempt.
+
 ### Properties
 
 After the content, ` | key: value` segments attach as `properties`:
