@@ -1,15 +1,14 @@
 # IntentText — Product Roadmap
 
-_Last updated: 2026-06-10. Forward plan. For the completed cleanup, see
-[FINALIZATION.md](FINALIZATION.md); for architecture, [ARCHITECTURE.md](ARCHITECTURE.md);
-for the format, [packages/core/SPEC.md](packages/core/SPEC.md)._
+_Forward plan. For shipped history see [CHANGELOG.md](CHANGELOG.md); for architecture,
+[ARCHITECTURE.md](ARCHITECTURE.md); for the format, [packages/core/SPEC.md](packages/core/SPEC.md)._
 
 ---
 
-# ▶ RESUME HERE — where we are
+# Current status
 
-_Snapshot: 2026-06-12. `@intenttext/core@4.2.1` live on npm; `main` tagged through
-v4.2.1. **Production-ready for enterprise printing** — audited and hardened as the
+_Snapshot: 2026-06-12. `@intenttext/core@4.3.0` and `@intenttext/pdf@1.0.0` live on npm;
+`main` tagged through v4.3.0. **Production-ready for enterprise printing** — audited and hardened as the
 embedded print/report engine for the Jadwal ERP (which is on 4.2.1 in three packages:
 dash, api, desktop-core; client-side printing live via `apps/dash/src/lib/print.ts`)._
 
@@ -88,12 +87,10 @@ Nothing is mid-flight — these are fresh, independent options, roughly by lever
 5. **Editor folder-workspace + on-save indexing**; **managed trust tiers** (RFC-3161 /
    PKI over the same canonical hash) — unchanged, not ERP-blocking.
 
-**Editor dev note:** the editor bundles core at build time — after any core change,
-**restart `pnpm --filter intenttext-editor dev`** (vite won't re-bundle a workspace dep on
-dist change). Several "it didn't work" moments were stale dev servers. Verify the editor by
-screenshotting the *running* editor (headless Chrome + CDP), not by theorizing. New TipTap
-atom nodes must be added to BOTH the import list AND the `extensions: [...]` array in
-`VisualEditor.tsx`.
+**Contributor note (editor):** the editor bundles core at build time — after any core
+change, **restart `pnpm --filter intenttext-editor dev`** (Vite won't re-bundle a workspace
+dependency on a `dist` change). New TipTap atom nodes must be registered in BOTH the import
+list AND the `extensions: [...]` array in `VisualEditor.tsx`.
 
 ## History — the 5 roadmap points + 4.2.0 styling work (all ✅ done 2026-06-10)
 
@@ -164,14 +161,7 @@ atom nodes must be added to BOTH the import list AND the `extensions: [...]` arr
    printed via core — now per-run marks/spans, built back from core's inline AST, unified
    on core's keys, with a fidelity guard. (c) Shipped the **ERP kit** (`demo/erp-
    integration/`, `pnpm demo:erp`) + the `ecosystem/erp-integration` guide. Published
-   `@intenttext/core@4.2.0`, tag v4.2.0. Full notes in `CHANGELOG.md` and memory
-   `intenttext-inline-styling-model`.
-
-**Testing the editor headlessly** (how I've been verifying): start dev, then
-`"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu
---screenshot=/tmp/x.png --window-size=1440,1000 "http://localhost:5173/"`. For PDF:
-`--print-to-pdf=/tmp/x.pdf --no-pdf-header-footer`. The `?source=<urlencoded .it>` param
-loads a doc (but autosave/localStorage can take precedence — use a fresh `--user-data-dir`).
+   `@intenttext/core@4.2.0`, tag v4.2.0. Full notes in `CHANGELOG.md`.
 
 ---
 
@@ -306,19 +296,18 @@ open work is the **5 open points** at the top.)_
 - [x] **Template-variable warning fixed (4.1.1)**, **styled PDF + page-break-safe
   tables (4.1.2)**.
 - [x] **VSCode**: grammar parity gate; example files fixed + `check:examples` CI guard;
-  `.vsix` at `packages/vscode/intenttext-1.4.8.vsix`.
+  `.vsix` at `packages/vscode/intenttext-1.5.0.vsix`.
 - [x] **Docs refresh** — Python doc corrected, tiers documented, obsolete removed,
   stale package names fixed.
 
 ## Done (earlier)
 
 - v4.1.0 finalization: one TS parser, tiered format (core 13 + profiles), parity gates,
-  focused supported surface (core/mcp/vscode/editor). See FINALIZATION.md.
+  focused supported surface (core/mcp/vscode/editor). See [CHANGELOG.md](CHANGELOG.md).
 - Fixed serializer round-trip (list/step bullets, custom keywords).
 - Fixed the editor history view (was always empty) + verified parser history handling.
 
 ## Background context
 
-- Product vision & use-cases: see memory `intenttext-product-vision`.
-- Supported surface = core, mcp, vscode, editor. Experimental = hub, desktop, docs,
+- Supported surface = core, pdf, mcp, vscode, editor. Experimental = hub, desktop, docs,
   builder, python.

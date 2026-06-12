@@ -88,7 +88,7 @@ export default async function HomePage({
             </a>
             <span>·</span>
             <a
-              href="https://iteditor.vercel.app/"
+              href="https://editor.uts.qa/"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-[var(--text)] transition-colors"

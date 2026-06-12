@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://itdocs.vercel.app">Docs</a> ·
   <a href="https://intenttext-hub.vercel.app">Hub</a> ·
-  <a href="https://iteditor.vercel.app">Editor</a> ·
+  <a href="https://editor.uts.qa">Editor</a> ·
   <a href="https://npmjs.com/package/@intenttext/core">npm</a> ·
   <a href="https://pypi.org/project/intenttext/">PyPI</a> ·
   <a href="https://x.com/IntentText">Twitter</a>
