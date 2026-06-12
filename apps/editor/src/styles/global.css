@@ -1914,6 +1914,42 @@ button {
   color: #777;
 }
 
+/* ─── Document style rule chip (style: blocks) ────────────── */
+.docs-page .tiptap .it-doc-stylerule {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 4px 10px;
+  border: 1px dashed #c5cae0;
+  border-radius: 6px;
+  background: #f7f8fd;
+  font-size: 12px;
+  color: #4a5170;
+  user-select: none;
+}
+.docs-page .tiptap .it-doc-stylerule__icon {
+  font-size: 11px;
+  line-height: 1;
+}
+.docs-page .tiptap .it-doc-stylerule__target {
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+}
+.docs-page .tiptap .it-doc-stylerule__decl {
+  font-family: ui-monospace, monospace;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Style-rule chips are editing aids — never print them. */
+@media print {
+  .it-doc-stylerule {
+    display: none !important;
+  }
+}
+
 /* ─── Metric / total row ──────────────────────────────────── */
 .docs-page .tiptap .it-doc-metric {
   display: flex;

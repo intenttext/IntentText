@@ -45,6 +45,12 @@ export type {
   ParseError,
 } from "./parser";
 export { renderPrint, collectPrintLayout, cssContentValue } from "./renderer";
+export {
+  collectDocumentStyles,
+  documentStyleCSS,
+  DOC_STYLE_TARGETS,
+} from "./renderer";
+export type { DocumentStyleRule } from "./renderer";
 export { mergeData, parseAndMerge } from "./merge";
 export type { MergeOptions } from "./merge";
 export { convertMarkdownToIntentText } from "./markdown";

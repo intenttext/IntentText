@@ -58,6 +58,19 @@ style="…">` via the same property→CSS mapping as block props, so partial sty
 reproduced identically by any renderer. It is distinct from `[label](url)` (link) and
 `[[note]]` (side-note), which are matched first.
 
+### Scoped document styles (v4.3)
+
+`style: <target> | key: value | …` declares house styling for a **block type** once,
+document-wide: `style: section | color: #0a7 | weight: 600`. Targets are a fixed set
+(`title summary section sub text quote callout info table table-header metric contact
+divider`; unknown targets ignored); values are the same constrained style-key vocabulary
+(never arbitrary CSS). Rules render as CSS scoped to the target's element classes —
+emitted **after** the theme stylesheet (rules override theme; per-line props and inline
+spans override rules). `style:` blocks are document-level metadata: invisible in the
+rendered body, byte-preserved on round-trip, values sanitized for the stylesheet context.
+`collectDocumentStyles()` / `documentStyleCSS()` are the single implementation; the
+editor applies the same rules to its canvas via a selector map.
+
 ## 3. Keyword tiers
 
 The format is **small by default**. A plain document needs only the **core** tier.

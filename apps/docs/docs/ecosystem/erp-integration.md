@@ -68,6 +68,18 @@ serialize step. Your template collection document is simply:
 e.g. `value: [17,325 QAR]{ size: 1.2em; weight: bold }` — it prints identically here as
 in the editor.
 
+**Per-tenant branding** goes in [`style:` rules](../reference/style-properties#house-styling-for-the-whole-document--style-blocks)
+(v4.3) at the top of the template — house styling declared once, no per-line
+repetition, content stays queryable:
+
+```
+style: section | color: #0a7 | weight: 600
+style: title | family: Georgia | size: 26pt
+```
+
+Each company's stored template carries its own look; the editor shows the rules as 🎨
+chips and applies them live, and core prints them identically.
+
 ### Saving a template from the editor
 
 The editor works on `.it` text — take that text and `PUT` it:

@@ -84,7 +84,17 @@ const result = parseAndMerge(templateString, data);
 - Dot notation: `{{company.name}}` → `data.company.name`
 - Array indices: `{{items.0.description}}` → `data.items[0].description`
 - System variables: `{{date}}`, `{{year}}` resolved automatically
-- Runtime variables: `{{page}}`, `{{pages}}` left as-is for the print renderer
+- Runtime variables: `{{page}}`, `{{pages}}` become CSS page counters in `renderPrint`
+- Missing fields: `parseAndMerge(src, data, { missing: "blank" })` renders an
+  unresolved `{{field}}` empty — use for finished documents so an invoice never
+  prints a literal `{{customer.phone}}` (default `"keep"` aids template authoring)
+
+### Server-side PDFs
+
+For real PDF bytes on a server (email attachments, archiving, batch runs) use the
+opt-in companion **[`@intenttext/pdf`](https://www.npmjs.com/package/@intenttext/pdf)** —
+`issuePDF(template, data, { signer })` runs merge → **seal** (tamper-evident SHA-256) →
+PDF in one call. Core itself stays zero-dependency.
 
 ### Querying
 
@@ -175,6 +185,18 @@ break:
 | Highlight     | `^text^`     |
 | Inline note   | `[[text]]`   |
 | Footnote ref  | `{1}`        |
+| Styled span   | `[text]{ color: #c00; weight: bold }` — style part of a line |
+
+### Styling (three layers)
+
+1. **Theme** — `renderHTML(doc, { theme: "corporate" })` (8 built-in document classes)
+2. **`style:` rules (v4.3)** — house styling per block type, declared once:
+   `style: section | color: #0a7 | weight: 600`
+   (targets: title, summary, section, sub, text, quote, callout/info, table,
+   table-header, metric, contact, divider; same constrained style keys — never
+   arbitrary CSS, content stays queryable)
+3. **Per-line props / inline spans** — exceptions: `text: hi | color: red`,
+   `[word]{ size: 1.2em }` (most-specific wins)
 
 ## CLI
 

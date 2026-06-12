@@ -316,5 +316,12 @@
       "watermark: ${1:DRAFT} | opacity: ${2:0.1}"
     ],
     "description": "Print layout watermark"
+  },
+  "Document style rule": {
+    "prefix": "style",
+    "body": [
+      "style: ${1|title,summary,section,sub,text,quote,callout,table,table-header,metric,contact,divider|} | ${2:color}: ${3:#0a7}"
+    ],
+    "description": "Scoped document style — house styling for a block type, declared once (v4.3)"
   }
 }

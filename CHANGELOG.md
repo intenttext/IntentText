@@ -6,6 +6,26 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [4.3.0] - 2026-06-12
+
+### Added
+
+- **Scoped document styles — the `style:` block.** House styling declared once,
+  document-wide, without per-line props and without arbitrary CSS:
+  `style: section | color: #0a7 | weight: 600`. Targets are block types
+  (`title summary section sub text quote callout info table table-header metric
+  contact divider`); values are the same constrained style-key vocabulary used
+  everywhere else. Rules are emitted after the theme (house style wins; per-line
+  props and inline spans still override). `style:` lines are invisible in the body,
+  round-trip byte-exact, and values are sanitized for the stylesheet context.
+- **Editor support, first-class:** each rule shows as a visible 🎨 chip (target +
+  declarations) and is applied **live** to the canvas — and therefore to the WYSIWYG
+  print export — via the same `documentStyleCSS()` engine core uses, with an editor
+  selector map. `style` appears in the editor's Insert menu (registry-driven) and the
+  VSCode grammar highlights it (parity gates pass: 38 canonical keywords).
+- New exports: `collectDocumentStyles()`, `documentStyleCSS(doc, selectorMap?, prefix?)`,
+  `DOC_STYLE_TARGETS`, `DocumentStyleRule`.
+
 ## [@intenttext/pdf 1.0.0] - 2026-06-12
 
 New opt-in package for **server-side PDF generation** (core stays zero-dependency).

@@ -484,6 +484,46 @@ export const ITMetric = Node.create({
   },
 });
 
+// ── Scoped document style rule ────────────────────────────────
+// `style: section | color: #0a7 | weight: 600` — house styling declared once,
+// document-wide. Shown as a visible chip (target + declarations) so authors can
+// SEE the rule; VisualEditor applies it live to the canvas via documentStyleCSS.
+// Raw line preserved verbatim for round-trip.
+export const ITStyleRule = Node.create({
+  name: "itStyleRule",
+  group: "block",
+  atom: true,
+
+  addAttributes() {
+    return {
+      raw: {
+        default: "",
+        parseHTML: (el) => el.getAttribute("data-raw") || "",
+        renderHTML: (attrs) => ({ "data-raw": attrs.raw }),
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "div[data-it-style-rule]" }];
+  },
+  renderHTML({ HTMLAttributes, node }) {
+    const { content, props } = parseTrustLine(String(node.attrs.raw || ""));
+    const decl = Object.entries(props)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(" · ");
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-it-style-rule": "",
+        class: "it-doc-stylerule",
+      }),
+      ["span", { class: "it-doc-stylerule__icon" }, "🎨"],
+      ["span", { class: "it-doc-stylerule__target" }, content || "?"],
+      ["span", { class: "it-doc-stylerule__decl" }, decl],
+    ];
+  },
+});
+
 // ── Page Break ────────────────────────────────────────────────
 export const ITBreak = Node.create({
   name: "itBreak",
