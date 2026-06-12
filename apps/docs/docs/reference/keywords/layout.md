@@ -213,6 +213,50 @@ Use `break:` for structural pagination. Use `x-layout: divider` for visible sect
 
 ---
 
+## `style:`
+
+**Category:** Layout
+**Since:** v4.3
+
+Scoped document style rule — house styling for a **block type**, declared once,
+document-wide. Keeps presentation out of the content body: lines stay clean and
+queryable while the document carries its own look (e.g. per-tenant branding in a
+stored template).
+
+### Syntax
+
+```
+style: target | key: value | key: value
+```
+
+### Properties
+
+The **target** (the content before the first `|`) is a block type:
+`title`, `summary`, `section`, `sub`, `text`, `quote`, `callout`, `info`, `table`,
+`table-header`, `metric`, `contact`, `divider`. Unknown targets are ignored.
+
+The values are the standard [style properties](../style-properties) — `color`, `size`,
+`family`, `weight`, `bg`, `align`, `indent`, `opacity`, `italic`, `border`,
+`underline`, `strike` — never arbitrary CSS.
+
+### Examples
+
+```intenttext
+style: section | color: #0a7 | weight: 600
+style: title | family: Georgia | size: 26pt
+style: metric | color: #333
+```
+
+### Notes
+
+- Rules apply **after the theme** (house style wins); per-line props and inline
+  `[text]{…}` spans still override a rule (most-specific wins).
+- `style:` lines never render as body content and round-trip byte-exact.
+- The web editor shows each rule as a 🎨 chip and applies it **live** to the canvas —
+  identical to print output.
+
+---
+
 ## Extension keywords
 
 Typography and decorative layout keywords are available in the `x-layout:` and `x-doc:` namespaces. These are rendered by the renderer but do not affect the core document model.

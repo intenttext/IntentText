@@ -16,49 +16,49 @@ The IntentText web editor at [editor.uts.qa](https://editor.uts.qa) is a browser
 
 ## Features
 
-### Live preview
+### Word-like WYSIWYG pages
 
-Write `.it` syntax on the left, see the rendered output on the right. Changes appear in real time.
+The visual editor shows your document as **real pages** — page size and margins come
+from the document's own `page:` block, the header and footer (with live
+`{{page}} of {{pages}}` numbers) are visible **on every page** exactly where print puts
+them, and page breaks fall where the printed PDF breaks. What you see while editing is
+what prints — 100% WYSIWYG, including pages, headers, and footers. Receipt sizes
+(`page: | size: 80mm auto`) render as a continuous roll.
+
+### Two modes: Visual and Source
+
+Edit visually (rich text, tables, totals, trust chips) or switch to **Source** for the
+raw `.it` text with full syntax highlighting and diagnostics — both stay in sync, and a
+visual-editor round-trip never changes your bytes (signed documents stay verifiable).
+
+### Template mode
+
+Author merge templates for your app or team without leaving the editor:
+
+- `{{path.to.value}}` placeholders render as **chips** in text, table cells, and totals.
+- The **Template** button (with a live variable-count badge) opens a panel showing every
+  detected variable — click to insert at the cursor.
+- Enter **sample data** (JSON, persisted per file; a skeleton is auto-built from your
+  variables) and produce a **PDF with data** — the exact `parseAndMerge → renderPrint`
+  pipeline your production app runs, so what you test is what ships.
+- Start from the **Invoice Template** sample (Samples menu).
 
 ### Theme picker
 
-A dropdown menu to select from all 8 built-in themes. The preview updates immediately. The selected theme is written to `meta:` automatically:
-
-```intenttext
-meta: | type: document | theme: warm
-```
+Select any of the 8 built-in themes; the view updates immediately. Per-document house
+styling goes in [`style:` rules](../reference/style-properties#house-styling-for-the-whole-document--style-blocks),
+which apply live on the canvas and identically in print.
 
 ### Trust UI
 
-Visual indicators for trust status:
-
-- **Approval stamps** — green badges showing who approved and when
-- **Signature badges** — signed blocks show the signer name and role
-- **Sealed banner** — frozen documents display a "Document Sealed" banner with the hash
-- **Amendment cards** — each amendment is displayed as a card with before/after values
-
-### History panel
-
-For tracked documents (`track: true`), the history panel shows:
-
-- Revision timeline
-- Who changed what and when
-- Before/after values for each change
+The **Trust** panel drives the full lifecycle — track → approve → sign → seal → verify →
+amend — and the document shows styled trust chips (signatures, approvals, frozen banner)
+that print exactly as displayed.
 
 ### Export
 
-- **HTML** — download the rendered HTML with the selected theme
-- **PDF** — export to PDF with full print layout
-- **JSON** — download the parsed AST
-
-### Block editor
-
-Point-and-click block addition:
-
-1. Click the **+** button between blocks
-2. Select a keyword from the menu
-3. Fill in the content and properties
-4. The `.it` source is updated automatically
+- **PDF** — prints the editor's own pages (true WYSIWYG) via the browser, no PDF library
+- **HTML** — self-contained document with the selected theme
 
 ### Syntax highlighting
 
@@ -77,8 +77,8 @@ IntentText keywords and aliases are highlighted by category:
 ## Getting started
 
 1. Go to [editor.uts.qa](https://editor.uts.qa)
-2. Start writing `.it` syntax — or use the block editor
+2. Write in the visual editor (or switch to Source) — or load a sample from **Samples**
 3. Select a theme from the dropdown
-4. Export to HTML or PDF when ready
+4. Export to PDF or HTML when ready
 
-No accounts required for basic editing. Sign in with GitHub to save and share documents.
+No account required — documents live in your files (Open/Save) and autosave locally.

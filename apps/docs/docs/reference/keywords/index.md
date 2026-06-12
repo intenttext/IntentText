@@ -7,7 +7,7 @@ import KeywordTable from '@site/src/components/KeywordTable';
 
 # Keywords
 
-IntentText has **37 canonical keywords** organized into eight categories. Each keyword maps to a typed block with a fixed syntax, a defined set of pipe properties, and predictable rendering behavior.
+IntentText has **38 canonical keywords** organized into eight categories. Each keyword maps to a typed block with a fixed syntax, a defined set of pipe properties, and predictable rendering behavior.
 
 <KeywordTable />
 
@@ -30,13 +30,13 @@ IntentText has **37 canonical keywords** organized into eight categories. Each k
 | Data              | 3     | Typed data — tables, rows, metrics                                       |
 | Agentic Workflow  | 7     | Executable workflows — steps, decisions, gates, policy enforcement       |
 | Trust             | 5     | Document integrity — approval, signing, sealing, amendments              |
-| Layout            | 5     | Print and PDF — page setup, headers, footers, watermarks                 |
+| Layout            | 6     | Print and PDF — page setup, headers, footers, watermarks, document styles |
 
 Each keyword has a dedicated entry in its category page with full syntax, properties table, examples, and behavioral notes.
 
 ## Extension keywords
 
-Beyond the 37 canonical keywords, IntentText supports **extension blocks** via a namespaced `x-ns:` prefix. Extensions cover domain-specific and advanced use cases without polluting the core keyword set.
+Beyond the 38 canonical keywords, IntentText supports **extension blocks** via a namespaced `x-ns:` prefix. Extensions cover domain-specific and advanced use cases without polluting the core keyword set.
 
 | Namespace   | Domain                       | Examples                                                                                                                                                              |
 | ----------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
