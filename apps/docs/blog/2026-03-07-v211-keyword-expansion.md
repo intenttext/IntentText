@@ -7,7 +7,7 @@ tags: [release, keywords]
 
 v2.11 adds eight keywords that close the gap between IntentText and the real documents organizations produce every day: `amendment`, `metric`, `contact`, `deadline`, `def`, `figure`, `signline`, and `cite`.
 
-<!-- truncate -->
+{/* truncate */}
 
 ## The amendment story
 

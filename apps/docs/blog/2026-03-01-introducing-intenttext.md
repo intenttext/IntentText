@@ -9,7 +9,7 @@ Every document format forces a choice. Binary formats (Word, PDF) give you layou
 
 IntentText is a new open format that refuses the tradeoff.
 
-<!-- truncate -->
+{/* truncate */}
 
 ## The problem
 

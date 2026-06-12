@@ -9,7 +9,7 @@ v2.8 introduces five keywords that turn IntentText documents into trustworthy re
 
 The philosophy: you own the format. The CLI gives it trust.
 
-<!-- truncate -->
+{/* truncate */}
 
 ## The problem with document trust
 

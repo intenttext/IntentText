@@ -92,7 +92,7 @@ document's house style) → **per-line props / inline spans** (exceptions).
 ## How style properties work
 
 1. The parser stores all pipe properties as key-value pairs
-2. The renderer checks each property against the 10 known style names
+2. The renderer checks each property against the known style names
 3. Known style properties are mapped to inline CSS styles
 4. `align:` additionally adds a CSS class (e.g., `.intent-align-center`)
 5. Unknown style values are silently ignored — the document remains valid

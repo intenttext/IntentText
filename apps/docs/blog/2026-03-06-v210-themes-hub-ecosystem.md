@@ -7,7 +7,7 @@ tags: [release, themes, hub]
 
 v2.10 is the ecosystem release. Eight built-in themes. The Hub — a platform for sharing templates and themes. Shallow indexes for folder-level querying. And 76 seeded templates across 8 domains.
 
-<!-- truncate -->
+{/* truncate */}
 
 ## Themes without npm
 

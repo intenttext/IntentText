@@ -7,7 +7,7 @@ tags: [release, print]
 
 v2.9 adds print-quality layout keywords: `page`, `font`, `header`, `footer`, `watermark`, and `break`. Your `.it` files now produce documents that look like they came from a design agency.
 
-<!-- truncate -->
+{/* truncate */}
 
 ## The print problem
 
