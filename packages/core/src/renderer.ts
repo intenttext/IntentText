@@ -246,18 +246,23 @@ const STYLE_PROPERTIES: Record<string, string> = {
 
 function extractInlineStyles(
   properties: Record<string, string | number>,
+  context: "attr" | "stylesheet" = "attr",
 ): string {
   const styles: string[] = [];
   const decorations: string[] = [];
   for (const [prop, css] of Object.entries(STYLE_PROPERTIES)) {
     const value = properties[prop];
     if (value === undefined || value === "") continue;
-    // The result is emitted inside a `style="…"` attribute. A value from merged
-    // data (e.g. `color: {{brandColor}}`) could otherwise contain a `"` and break
-    // out of the attribute → stored XSS, or a `;`/`{` to inject extra declarations.
-    // Strip declaration/block separators, then HTML-escape — so font-family quotes
-    // survive as entities (decode back to valid CSS) but an attribute breakout can't.
-    const strValue = escapeHtml(String(value).replace(/[;{}]/g, ""));
+    // Values can come from merged data (e.g. `color: {{brandColor}}`) — sanitize
+    // for the emission context:
+    //  - "attr": inside style="…" — strip `;{}` (declaration injection) then
+    //    HTML-escape so a `"` can't break out of the attribute (stored XSS).
+    //  - "stylesheet": inside a <style> element — entities do NOT decode there,
+    //    so instead strip `<>{};` (blocks `</style>` breakout and rule injection).
+    const strValue =
+      context === "attr"
+        ? escapeHtml(String(value).replace(/[;{}]/g, ""))
+        : String(value).replace(/[<>{};]/g, "");
     if (prop === "border" && strValue === "true") {
       styles.push("border: 1px solid currentColor");
     } else if (prop === "italic" && strValue === "true") {
@@ -275,10 +280,91 @@ function extractInlineStyles(
   return styles.join("; ");
 }
 
+/* ── Scoped document styles (`style:` blocks, v4.3) ───────────────────────────
+ *
+ * `style: <target> | color: … | weight: …` declares house styling for a block
+ * type ONCE, document-wide — content lines stay clean and queryable. The value
+ * vocabulary is the same constrained STYLE_PROPERTIES set (not arbitrary CSS).
+ */
+
+/** Block types a `style:` rule may target → their selectors in core's HTML. */
+export const DOC_STYLE_TARGETS: Record<string, string[]> = {
+  title: [".intent-title"],
+  summary: [".intent-summary"],
+  section: [".intent-section"],
+  sub: [".intent-sub"],
+  text: [".intent-text"],
+  quote: [".intent-quote"],
+  callout: [".intent-callout"],
+  info: [".intent-callout"],
+  table: [".intent-table-th", ".intent-table-td"],
+  "table-header": [".intent-table-th"],
+  metric: [".it-metric-row"],
+  contact: [".it-contact"],
+  divider: [".intent-divider"],
+};
+
+export interface DocumentStyleRule {
+  /** Validated target name (a key of DOC_STYLE_TARGETS). */
+  target: string;
+  /** Sanitized CSS declarations, e.g. `color: #0a7; font-weight: 600`. */
+  declarations: string;
+}
+
+/** Collect the document's `style:` rules (sanitized, unknown targets dropped). */
+export function collectDocumentStyles(doc: IntentDocument): DocumentStyleRule[] {
+  const rules: DocumentStyleRule[] = [];
+  const walk = (blocks: IntentBlock[]) => {
+    for (const b of blocks) {
+      if (b.type === "style" && b.content) {
+        const target = String(b.content).trim().toLowerCase();
+        if (DOC_STYLE_TARGETS[target]) {
+          const declarations = extractInlineStyles(
+            b.properties || {},
+            "stylesheet",
+          );
+          if (declarations) rules.push({ target, declarations });
+        }
+      }
+      if (b.children) walk(b.children);
+    }
+  };
+  walk(doc.blocks);
+  return rules;
+}
+
+/**
+ * Build the CSS for a document's `style:` rules. `selectorMap` lets a consumer
+ * with different markup (e.g. the visual editor's `.it-doc-*` classes) reuse the
+ * exact same collection/sanitization — single source of truth for what a rule
+ * means. Defaults to core's own selectors.
+ */
+export function documentStyleCSS(
+  doc: IntentDocument,
+  selectorMap: Record<string, string[]> = DOC_STYLE_TARGETS,
+  selectorPrefix = "",
+): string {
+  return collectDocumentStyles(doc)
+    .map((rule) => {
+      const sels = selectorMap[rule.target];
+      if (!sels || sels.length === 0) return "";
+      const scoped = sels.map((s) => `${selectorPrefix}${s}`).join(",");
+      return `${scoped}{${rule.declarations};}`;
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
 // Helper function to render a single block
 function renderBlock(block: IntentBlock): string {
-  // Pre-section metadata keywords — invisible in rendered output
-  if (block.type === "agent" || block.type === "model") {
+  // Pre-section metadata keywords — invisible in rendered output.
+  // `style:` rules are document-level styling, rendered as CSS (documentStyleCSS),
+  // never as body content.
+  if (
+    block.type === "agent" ||
+    block.type === "model" ||
+    block.type === "style"
+  ) {
     return "";
   }
 
@@ -1288,6 +1374,8 @@ export function renderHTML(
     options?.theme ?? document.metadata?.meta?.theme ?? undefined;
   const theme = resolveThemeSync(themeRef);
   const themeCSS = generateThemeCSS(theme, "web");
+  // v4.3: scoped `style:` rules — applied after the theme so house styling wins.
+  const docStyleCSS = documentStyleCSS(document);
 
   // Wrap in a container
   const direction =
@@ -1296,6 +1384,7 @@ export function renderHTML(
   return `<div class="intent-document" ${direction}>
 <style>
 ${DOCUMENT_CSS}${themeCSS}
+${docStyleCSS}
 </style>
 ${html}
 </div>`;
@@ -1449,6 +1538,7 @@ export function renderPrint(
 ${dynamicCSS}
 ${DOCUMENT_CSS}
 ${themeCSS}
+${documentStyleCSS(doc)}
 /* Print: the page box is handled by @page margins, so neutralise the screen
    document container's own max-width/centering/padding. */
 .intent-document{max-width:none;margin:0;padding:0;}

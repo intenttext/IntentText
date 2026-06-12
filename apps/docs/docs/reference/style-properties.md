@@ -59,6 +59,36 @@ core renderer (`renderHTML` / `renderPrint`). Use marks for plain emphasis and s
 color/size/font or combined styling; keep the systematic look (fonts, heading style) in
 the **theme** rather than repeating spans everywhere.
 
+## House styling for the whole document — `style:` blocks
+
+To style **every** block of a type — all section headers teal, all totals dark — don't
+repeat props on each line. Declare a scoped **`style:` rule** once (v4.3):
+
+```intenttext
+style: section | color: #0a7 | weight: 600
+style: title | family: Georgia | size: 26pt
+style: metric | color: #333
+
+title: Branded Invoice
+section: Items
+```
+
+- The **target** is a block type: `title`, `summary`, `section`, `sub`, `text`, `quote`,
+  `callout`/`info`, `table`, `table-header`, `metric`, `contact`, `divider`. Unknown
+  targets are ignored.
+- The **values** are the same constrained style keys as everywhere else (the table
+  above) — not arbitrary CSS, so content stays clean and queryable.
+- Rules apply **after the theme**, so house styling wins; per-line props and inline
+  spans still override a rule (most-specific wins).
+- In the **editor**, each rule shows as a 🎨 chip at the top of the document and is
+  applied **live** to the canvas — what you see while editing is what `renderPrint`
+  produces (the same `documentStyleCSS()` engine drives both).
+- `style:` lines never render as body content, and rule values are sanitized (a value
+  can't escape the stylesheet).
+
+This is the three-layer model: **theme** (document class) → **`style:` rules** (this
+document's house style) → **per-line props / inline spans** (exceptions).
+
 ## How style properties work
 
 1. The parser stores all pipe properties as key-value pairs

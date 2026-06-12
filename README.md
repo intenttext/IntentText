@@ -139,10 +139,48 @@ edit after `freeze:` is detectable.
 
 ---
 
+## Print, Templates & PDF — the report engine
+
+`.it` doubles as a **print/report engine** for apps (ERP invoices, receipts,
+statements) — one template, merged with a data row, printed with no PDF library:
+
+```ts
+import { parseAndMerge, renderPrint } from "@intenttext/core";
+
+const html = renderPrint(parseAndMerge(template, invoiceData, { missing: "blank" }));
+// → print-ready HTML: @page size/margins, running header/footer with page
+//   numbers, multi-page tables. Browser print dialog → PDF. Zero dependencies.
+```
+
+House styling is declared once per document with **`style:` rules** (constrained
+style keys — never arbitrary CSS, so content stays queryable):
+
+```
+style: section | color: #0a7 | weight: 600
+style: title   | family: Georgia | size: 26pt
+```
+
+For **server-side PDFs** (email attachments, compliance archiving, batch runs)
+add the opt-in companion — merge → **seal** (tamper-evident SHA-256) → PDF bytes:
+
+```ts
+import { issuePDF } from "@intenttext/pdf";
+
+const { source, hash, pdf } = await issuePDF(template, invoiceData, {
+  signer: "Acme Billing",
+});
+// store `source` (the sealed .it — the verifiable legal artifact), email `pdf`
+```
+
+Full integration guide: **ecosystem → ERP / App Integration** in the docs.
+
+---
+
 ## Install
 
 ```bash
-npm install @intenttext/core
+npm install @intenttext/core      # the format: parse, render, merge, query, trust
+npm install @intenttext/pdf       # optional: server-side PDFs (issue → seal → PDF)
 ```
 
 ```bash
@@ -161,9 +199,10 @@ The TypeScript core is the single canonical implementation of the format (see
 | Package               | Description                                                           |
 | --------------------- | --------------------------------------------------------------------- |
 | **@intenttext/core**  | TypeScript parser, renderer, query engine, and CLI — the format       |
+| **@intenttext/pdf**   | Server-side PDFs — issue (merge → seal) → real PDF bytes, opt-in      |
 | **intenttext-mcp**    | MCP server — AI agents and LLM clients read and write `.it`           |
 | **intenttext-vscode** | VS Code extension — syntax highlighting, snippets, diagnostics        |
-| **Editor**            | Web editor with live preview and theme picker                         |
+| **Editor**            | Web editor with live preview, WYSIWYG print, and theme picker         |
 
 **Experimental** — build against the core but carry no stability/support promise:
 Hub (registry), Desktop (Tauri), Docs site, Builder, and the Python client

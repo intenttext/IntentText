@@ -433,6 +433,15 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     aliases: [],
   },
   {
+    canonical: "style",
+    category: "layout",
+    since: "4.3",
+    status: "stable",
+    description:
+      "Scoped document style rule: maps a block type to style properties (house styling without per-line props)",
+    aliases: [],
+  },
+  {
     canonical: "break",
     category: "layout",
     since: "1.0",

@@ -329,7 +329,7 @@
       }
     },
     "keyword-docgen": {
-      "match": "^(font|page|break|byline|epigraph|caption|footnote|toc|dedication|header|footer|watermark|signline|signature-line|sign-here|sig)(:)\\s*(.*)",
+      "match": "^(font|page|break|byline|epigraph|caption|footnote|toc|dedication|header|footer|watermark|style|signline|signature-line|sign-here|sig)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "storage.type.docgen.intenttext"

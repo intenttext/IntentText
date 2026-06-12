@@ -578,6 +578,14 @@ export function sourceToDoc(source: string): JSONContent {
         if (pType && keywordsMatch(mkw, parsedBlockKeyword(pType))) blockIdx++;
         continue;
       }
+      // Scoped document style rule → visible chip; the rule itself is applied
+      // live to the canvas by VisualEditor (documentStyleCSS). Raw preserved.
+      if (mkw === "style") {
+        result.push({ type: "itStyleRule", attrs: { raw: trimmed } });
+        const pType = doc.blocks[blockIdx]?.type;
+        if (pType && keywordsMatch(mkw, parsedBlockKeyword(pType))) blockIdx++;
+        continue;
+      }
     }
 
     // Group a run of bullet/ordered list lines into one TipTap list node, so
@@ -941,6 +949,9 @@ function nodeToLine(node: JSONContent): string | null {
       return node.attrs?.raw || "";
 
     case "itMetric":
+      return node.attrs?.raw || "";
+
+    case "itStyleRule":
       return node.attrs?.raw || "";
 
     case "itBreak":

@@ -33,6 +33,7 @@ import {
   ITMeta,
   ITTrust,
   ITMetric,
+  ITStyleRule,
   ITBreak,
   ITGenericBlock,
   ITComment,
@@ -42,7 +43,27 @@ import {
   getBuiltinTheme,
   generateThemeCSS,
   parseIntentText,
+  documentStyleCSS,
 } from "@intenttext/core";
+
+// Where each `style:` target lives in the EDITOR's markup (.it-doc-* classes).
+// documentStyleCSS() does the collection/sanitization — same engine as core's
+// print path — so a rule means exactly the same thing on canvas and on paper.
+const EDITOR_STYLE_SELECTORS: Record<string, string[]> = {
+  title: [".it-doc-title"],
+  summary: [".it-doc-summary"],
+  section: [".it-doc-section"],
+  sub: [".it-doc-sub"],
+  text: ["p"],
+  quote: [".it-doc-quote"],
+  callout: [".it-doc-callout"],
+  info: [".it-doc-callout"],
+  table: [".it-doc-table th", ".it-doc-table td"],
+  "table-header": [".it-doc-table th"],
+  metric: [".it-doc-metric"],
+  contact: ['.it-doc-generic[data-keyword="contact"]'],
+  divider: [".it-doc-divider"],
+};
 
 interface Props {
   value: string;
@@ -110,6 +131,7 @@ export function VisualEditor({ value, onChange, theme }: Props) {
       ITMeta,
       ITTrust,
       ITMetric,
+      ITStyleRule,
       ITBreak,
       ITGenericBlock,
       ITComment,
@@ -243,6 +265,32 @@ export function VisualEditor({ value, onChange, theme }: Props) {
       return { header: "", footer: "", dir: "ltr" };
     }
   }, [value]);
+
+  // Live document styles: apply the doc's `style:` rules to the canvas so the
+  // author SEES the house styling while editing (and the WYSIWYG print export
+  // inherits it automatically, since it copies the page's <style> elements).
+  const docStyleRulesCSS = useMemo(() => {
+    try {
+      return documentStyleCSS(
+        parseIntentText(value),
+        EDITOR_STYLE_SELECTORS,
+        ".docs-page .tiptap ",
+      );
+    } catch {
+      return "";
+    }
+  }, [value]);
+  useEffect(() => {
+    let el = document.getElementById(
+      "it-doc-style-rules",
+    ) as HTMLStyleElement | null;
+    if (!el) {
+      el = document.createElement("style");
+      el.id = "it-doc-style-rules";
+      document.head.appendChild(el);
+    }
+    el.textContent = docStyleRulesCSS;
+  }, [docStyleRulesCSS]);
 
   const toggleRtl = useCallback(() => {
     const isRtl = docLayoutMeta.dir === "rtl";

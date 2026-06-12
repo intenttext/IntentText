@@ -70,9 +70,12 @@ Nothing is mid-flight — these are fresh, independent options, roughly by lever
    (`renderPdfTemplate`). Next: feed it IntentText output and add a headless-Chrome step
    (see the puppeteer recipe in `ecosystem/erp-integration`) for emailing/archiving
    invoices. This work lives in the Jadwal repo, not here.
-2. **Scoped `style:` block** ("Styling & visual fidelity" below) — a designated theme/
-   style region so a document can carry house styling without per-line props. The natural
-   next step after inline spans.
+2. ~~**Scoped `style:` block**~~ ✅ **DONE** (2026-06-12, core **4.3.0**).
+   `style: section | color: #0a7 | weight: 600` — house styling per block type,
+   declared once; constrained style-key vocabulary (never arbitrary CSS); emitted
+   after the theme; per-line props/spans still override. Editor: visible 🎨 chips +
+   **live** canvas application via the shared `documentStyleCSS()` engine (+ editor
+   selector map), so canvas == print. Registry/grammar gates pass (38 keywords).
 3. ~~**ERP kit as a package**~~ ✅ partly done (2026-06-12): **`@intenttext/pdf`**
    ships the server-side half — `issuePDF`/`issueDocument` (merge → seal → PDF),
    `renderPDF`/`htmlToPDF`, `createPdfRenderer` for batch; puppeteer or
@@ -208,7 +211,8 @@ semantic body:
    8 themes exist today → enrich them to enterprise quality.
 2. **Scoped `style:` block ("CSS done right").** A designated style region mapping
    block types / named classes to CSS-like rules, kept OUT of the content body. Full
-   visual control; content stays clean and queryable. _(to design/build)_
+   visual control; content stays clean and queryable. _(✅ built in 4.3.0 —
+   `style: <block-type> | <style keys>`; see SPEC §2 and reference/style-properties.)_
 3. **Small semantic inline vocabulary (exists).** `| align: right`, `| variant: …` —
    constrained, validated, not arbitrary CSS.
 

@@ -38,11 +38,12 @@ export const ALL_KEYWORDS = [
   "sign",
   "freeze",
   "amendment",
-  // Layout (5)
+  // Layout (6)
   "page",
   "header",
   "footer",
   "watermark",
+  "style",
   "break",
 ] as const;
 
@@ -405,6 +406,13 @@ export const BLOCK_SCHEMAS: Record<string, PropertySchema[]> = {
   watermark: [
     { key: "text", label: "Watermark text", placeholder: "DRAFT" },
     { key: "opacity", label: "Opacity", placeholder: "0.1" },
+  ],
+  style: [
+    { key: "color", label: "Text color", placeholder: "#0a7" },
+    { key: "weight", label: "Font weight", placeholder: "600" },
+    { key: "size", label: "Font size", placeholder: "26pt" },
+    { key: "family", label: "Font family", placeholder: "Georgia" },
+    { key: "bg", label: "Background", placeholder: "#fffde7" },
   ],
   text: [],
   cite: [],

@@ -120,6 +120,8 @@ export type BlockType =
   | "header"
   | "footer"
   | "watermark"
+  // v4.3 scoped document styles
+  | "style"
   // v2.11 keyword expansion
   | "def"
   | "metric"
