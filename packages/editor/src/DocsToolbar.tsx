@@ -4,7 +4,7 @@
 //
 // Every formatting control maps to a CORE `.it` property (size:/align:/leading:/
 // space-before:/space-after:/end:) through bridge.ts, so what you style here is
-// what core prints. Export actions are the WYSIWYG print path from panels/PrintBar.
+// what core prints. Export actions are the WYSIWYG print path from print.ts.
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import type { Editor } from "@tiptap/core";
@@ -46,8 +46,8 @@ import {
   exportDocumentPDF,
   exportDocumentHTML,
   builtinThemes,
-} from "../panels/PrintBar";
-import type { ModalType } from "../App";
+} from "./print";
+import type { TrustAction } from "./types";
 
 interface Props {
   editor: Editor | null;
@@ -57,8 +57,8 @@ interface Props {
   content: string;
   theme: string;
   onThemeChange: (theme: string) => void;
-  /** Open an app modal (seal / verify / trust panel). */
-  onModal: (m: ModalType) => void;
+  /** Trust actions (Seal / Sign / Verify). The group is hidden when omitted. */
+  onTrustAction?: (action: TrustAction) => void;
   /** Sealed documents are read-only — formatting groups are disabled. */
   locked?: boolean;
 }
@@ -241,7 +241,7 @@ export function DocsToolbar({
   content,
   theme,
   onThemeChange,
-  onModal,
+  onTrustAction,
   locked = false,
 }: Props) {
   const [styleOpen, setStyleOpen] = useState(false);
@@ -1005,37 +1005,41 @@ export function DocsToolbar({
         </Group>
       </div>
 
-      <GroupSep />
+      {onTrustAction && (
+        <>
+          <GroupSep />
 
-      {/* ── Trust ────────────────────────────────────────── */}
-      <Group label="Trust">
-        <Btn
-          onClick={() => onModal("seal")}
-          disabled={locked}
-          title={
-            locked
-              ? "Document is already sealed"
-              : "Seal — freeze the document with a tamper-evident hash"
-          }
-        >
-          <FileLock2 size={16} />
-          <span className="ribbon-btn-text">Seal</span>
-        </Btn>
-        <Btn
-          onClick={() => onModal("trust")}
-          title="Sign — add a signature (opens the Trust panel)"
-        >
-          <PenTool size={16} />
-          <span className="ribbon-btn-text">Sign</span>
-        </Btn>
-        <Btn
-          onClick={() => onModal("verify")}
-          title="Verify — check the document hash and signatures (⌘⇧V)"
-        >
-          <ShieldCheck size={16} />
-          <span className="ribbon-btn-text">Verify</span>
-        </Btn>
-      </Group>
+          {/* ── Trust ────────────────────────────────────── */}
+          <Group label="Trust">
+            <Btn
+              onClick={() => onTrustAction("seal")}
+              disabled={locked}
+              title={
+                locked
+                  ? "Document is already sealed"
+                  : "Seal — freeze the document with a tamper-evident hash"
+              }
+            >
+              <FileLock2 size={16} />
+              <span className="ribbon-btn-text">Seal</span>
+            </Btn>
+            <Btn
+              onClick={() => onTrustAction("sign")}
+              title="Sign — add a signature"
+            >
+              <PenTool size={16} />
+              <span className="ribbon-btn-text">Sign</span>
+            </Btn>
+            <Btn
+              onClick={() => onTrustAction("verify")}
+              title="Verify — check the document hash and signatures"
+            >
+              <ShieldCheck size={16} />
+              <span className="ribbon-btn-text">Verify</span>
+            </Btn>
+          </Group>
+        </>
+      )}
     </div>
   );
 }

@@ -1,6 +1,11 @@
 // Shared types for the visual editor
 
-export type EditorMode = "source" | "visual";
+/**
+ * Trust actions surfaced by the ribbon's Trust group. The host app decides
+ * what each action opens (a seal dialog, a signature flow, a verify panel…) —
+ * the editor only reports the intent.
+ */
+export type TrustAction = "seal" | "sign" | "verify";
 
 // Category metadata for UI grouping
 export interface CategoryInfo {

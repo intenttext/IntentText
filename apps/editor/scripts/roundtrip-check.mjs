@@ -1,7 +1,8 @@
 // Visual round-trip fidelity check.
 //
-// The live visual editor converts .it source ↔ TipTap JSON via visual/bridge.ts
-// (sourceToDoc / docToSource). This harness verifies the round-trip is lossless:
+// The live visual editor converts .it source ↔ TipTap JSON via the package's
+// bridge (packages/editor/src/bridge.ts, sourceToDoc / docToSource). This
+// harness verifies the round-trip is lossless:
 //
 //   source → sourceToDoc → docToSource → source'
 //   parse(source) and parse(source') must yield the same block types & content.
@@ -9,18 +10,14 @@
 // bridge.ts is type-only on @tiptap/core, so it bundles & runs headless. Bundle it
 // first (esbuild), then run this:
 //
-//   esbuild apps/editor/src/visual/bridge.ts --bundle --format=esm \
-//     --platform=node --outfile=/tmp/it-bridge.mjs
-//   node apps/editor/scripts/roundtrip-check.mjs
-//
-// (See package.json "roundtrip:check" which does both.)
+//   node --experimental-strip-types apps/editor/scripts/roundtrip-check.mjs
 
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseIntentText, documentToSource } from "@dotit/core";
 // bridge.ts is type-only on @tiptap/core, so Node's type-stripping runs it directly.
-import { sourceToDoc, docToSource } from "../src/visual/bridge.ts";
+import { sourceToDoc, docToSource } from "../../../packages/editor/src/bridge.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "..", "..", "..");

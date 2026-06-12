@@ -1,6 +1,7 @@
 packages:
   # Publishable packages (npm)
   - 'packages/core'
+  - 'packages/editor'
   - 'packages/pdf'
   - 'packages/mcp'
   - 'packages/vscode'

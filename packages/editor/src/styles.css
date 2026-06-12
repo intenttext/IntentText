@@ -1,0 +1,1364 @@
+/* @dotit/editor — stylesheet for the embeddable IntentText visual editor.
+ *
+ * Import once in your app:  import "@dotit/editor/style.css";
+ *
+ * Everything is scoped under .docs-container / .docs-page so it can sit inside
+ * any host page (ERP, portal) without leaking styles. The same stylesheet is
+ * cloned into the WYSIWYG print document, which is what makes the exported PDF
+ * match the on-screen pages exactly.
+ */
+
+/* ─── Scoped reset (the editor must not depend on host-page resets) ───────── */
+
+.docs-container {
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #1f2937;
+}
+.docs-container *,
+.docs-container *::before,
+.docs-container *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.docs-container button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GOOGLE DOCS – Visual Editor (TipTap)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Container fills the panel */
+.docs-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f8f9fa;
+}
+
+/* ─── Docs Toolbar (formatting bar) ───────────────────────── */
+
+.docs-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 12px;
+  background: rgba(108, 63, 197, 0.08);
+  border-bottom: 1px solid #dadce0;
+  flex-shrink: 0;
+  min-height: 40px;
+  flex-wrap: wrap;
+}
+.docs-toolbar button,
+.docs-toolbar select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #444746;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.docs-toolbar button:hover,
+.docs-toolbar select:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.docs-toolbar button.active {
+  background: rgba(108, 63, 197, 0.12);
+  color: #6c3fc5;
+}
+.docs-toolbar select {
+  padding: 0 4px;
+  font-family: inherit;
+  font-size: 13px;
+  width: 150px;
+  min-width: 150px;
+  appearance: auto;
+}
+.docs-toolbar-sep {
+  width: 1px;
+  height: 20px;
+  background: #c4c7c5;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Docs toolbar button styles */
+.docs-tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #444746;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.docs-tb-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.docs-tb-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.docs-tb-btn.active {
+  background: rgba(108, 63, 197, 0.12);
+  color: #6c3fc5;
+}
+.docs-tb-btn.active:hover {
+  background: rgba(108, 63, 197, 0.18);
+}
+.docs-tb-sep {
+  width: 1px;
+  height: 20px;
+  background: #c4c7c5;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+.docs-tb-dropdown {
+  position: relative;
+}
+.docs-tb-style-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #444746;
+  font-size: 13px;
+  cursor: pointer;
+  min-width: 120px;
+  transition: background 0.1s;
+}
+.docs-tb-style-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.docs-tb-insert-btn {
+  gap: 4px;
+  padding: 0 8px;
+  font-size: 13px;
+}
+.docs-tb-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow:
+    0 2px 6px rgba(60, 64, 67, 0.15),
+    0 1px 3px rgba(60, 64, 67, 0.08);
+}
+.docs-style-menu {
+  min-width: 220px;
+}
+.docs-insert-menu {
+  min-width: 260px;
+  max-width: 280px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.docs-tb-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #3c4043;
+  text-align: left;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  transition: background 0.1s;
+}
+.docs-tb-dropdown-item:hover {
+  background: #f1f3f4;
+}
+.docs-tb-dropdown-item.active {
+  background: rgba(108, 63, 197, 0.08);
+  color: #6c3fc5;
+}
+.docs-style-preview {
+  display: block;
+  white-space: nowrap;
+}
+.docs-style-preview.docs-style-itTitle {
+  font-size: 20px;
+  font-weight: 700;
+}
+.docs-style-preview.docs-style-itSection {
+  font-size: 16px;
+  font-weight: 600;
+}
+.docs-style-preview.docs-style-itSub {
+  font-size: 14px;
+  font-weight: 600;
+}
+.docs-style-preview.docs-style-itSummary {
+  font-size: 14px;
+  color: #5f6368;
+}
+.docs-style-preview.docs-style-itQuote {
+  font-style: italic;
+  color: #5f6368;
+}
+.docs-insert-icon {
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+  color: #5f6368;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Insert dropdown categories & items ───────────────────── */
+.docs-insert-category {
+  padding: 6px 12px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #80868b;
+}
+.docs-insert-divider {
+  height: 1px;
+  background: #e8eaed;
+  margin: 4px 8px;
+}
+.docs-insert-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  padding: 5px 12px;
+}
+.docs-insert-label {
+  flex: 1;
+  white-space: nowrap;
+}
+.docs-insert-kw {
+  font-size: 11px;
+  color: #9aa0a6;
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+/* ── Select‑style buttons (style / font / insert) ────────── */
+.docs-tb-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 6px 0 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #444746;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+  white-space: nowrap;
+  width: 150px;
+  min-width: 150px;
+}
+.docs-tb-select:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: #c4c7c5;
+}
+.docs-tb-select-label {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.docs-tb-font-select {
+  width: 150px;
+  min-width: 150px;
+}
+.docs-tb-insert-select {
+  min-width: unset;
+  gap: 3px;
+  padding: 0 6px;
+}
+.docs-font-menu {
+  min-width: 180px;
+}
+
+/* ── Font size indicator ──────────────────────────────────── */
+.docs-tb-fontsize {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 26px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #3c4043;
+  background: #fff;
+  text-align: center;
+}
+
+/* ── Color picker ─────────────────────────────────────────── */
+.docs-tb-color-dropdown {
+  display: inline-flex;
+}
+.docs-tb-color-btn {
+  position: relative;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 28px;
+  height: 30px;
+  padding: 3px 5px 2px;
+}
+.docs-tb-color-indicator {
+  display: block;
+  width: 16px;
+  height: 3px;
+  border-radius: 1px;
+}
+.docs-color-grid-menu {
+  padding: 10px;
+  min-width: 240px;
+}
+.docs-color-grid-label {
+  font-size: 12px;
+  color: #5f6368;
+  margin-bottom: 8px;
+}
+.docs-color-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 2px;
+  margin-bottom: 6px;
+}
+.docs-highlight-grid {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+.docs-color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition: transform 0.1s;
+  padding: 0;
+}
+.docs-color-swatch:hover {
+  transform: scale(1.25);
+  z-index: 1;
+  border-color: #6c3fc5;
+}
+
+/* ─── Canvas (scrollable area) ────────────────────────────── */
+
+.docs-canvas {
+  flex: 1;
+  overflow: auto;
+  padding: 20px 0 60px;
+}
+/* Auto-hide scrollbars — appear only when scrolling */
+.docs-canvas {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.docs-canvas:hover {
+  scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+}
+.docs-canvas::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.docs-canvas::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+.docs-canvas:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+}
+.docs-canvas::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ─── Zoom scaler wrapper ─────────────────────────────────── */
+
+.docs-page-scaler {
+  position: relative;
+  margin: 0 auto;
+}
+
+.docs-page-flow {
+  position: relative;
+  width: 794px;
+}
+
+/* ─── Page (Word-like paper) ──────────────────────────────────────────────────
+   One continuous editable sheet, visually cut into real pages. Vertical margins
+   are real bands (header/footer text lives in them, exactly like print's @page
+   margin boxes); horizontal margins are padding on the content (.tiptap).
+   Geometry (size + margins) comes inline from the document's page: block. */
+
+.docs-page {
+  background: #fff;
+  box-shadow:
+    0 1px 3px rgba(60, 64, 67, 0.15),
+    0 1px 2px rgba(60, 64, 67, 0.1);
+  border-radius: 2px;
+  position: relative;
+  overflow: visible;
+}
+
+.docs-page.docs-sheet {
+  margin: 0 auto;
+  overflow: visible;
+}
+
+/* Content column: horizontal page margins only — vertical space comes from the
+   header band above and the pagination spacers below. flow-root traps first/last
+   block margins inside the content box so page geometry stays exact (and matches
+   print, where the same stylesheet applies). */
+.docs-page .tiptap {
+  padding: 0 var(--page-mx-r, 75.6px) 0 var(--page-mx-l, 75.6px);
+  display: flow-root;
+}
+
+/* Page 1's top margin + header text (static, outside the editable content). */
+.docs-sheet-header {
+  position: relative;
+  user-select: none;
+}
+
+/* Header/footer band text — mirrors print's @page margin boxes:
+   10px, muted, centered both ways. */
+.docs-pb-header,
+.docs-pb-footer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 10px -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #9aa0a6;
+  pointer-events: none;
+  overflow: hidden;
+}
+.docs-pb-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+/* ─── Page-break spacer: filler + footer band + gap + next header band ────── */
+.docs-page-spacer {
+  position: relative;
+  /* span the full sheet width, past the content's horizontal margins */
+  margin-left: calc(-1 * var(--pb-mx-l, 75.6px));
+  margin-right: calc(-1 * var(--pb-mx-r, 75.6px));
+  user-select: none;
+}
+.docs-pb-fill {
+  background: #fff;
+}
+.docs-pb-margin {
+  position: relative;
+  background: #fff;
+}
+/* The gap reads as "space between two sheets of paper": canvas color with a
+   soft shadow edge on each page card. */
+.docs-pb-gap {
+  background: var(--bg-app, #eef0f3);
+  box-shadow:
+    inset 0 6px 5px -4px rgba(15, 23, 42, 0.14),
+    inset 0 -4px 4px -3px rgba(15, 23, 42, 0.1);
+}
+
+.docs-page-footer {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+  text-align: center;
+}
+.zoom-indicator {
+  color: var(--text-primary, #1f2937);
+  font-weight: 500;
+}
+
+/* Fidelity guard banner — shown only when styling can't be saved to .it. */
+.docs-fidelity-warning {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #8a5800;
+  background: #fff6e0;
+  border-bottom: 1px solid #f0d48a;
+}
+.docs-fidelity-warning code {
+  background: #fff;
+  border: 1px solid #f0d48a;
+  border-radius: 3px;
+  padding: 0 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TipTap Content Styles — inside .docs-page
+   ═══════════════════════════════════════════════════════════════ */
+
+.docs-page .tiptap {
+  position: relative;
+  z-index: 2;
+  outline: none;
+  min-height: 400px;
+  font-family: var(--it-font-body, "Inter", Arial, sans-serif);
+  font-size: var(--it-font-size, 15px);
+  line-height: var(--it-leading, 1.7);
+  color: var(--it-color-text, #202124);
+}
+
+/* Paragraph */
+.docs-page .tiptap p {
+  margin: 4px 0;
+  min-height: 1em;
+}
+
+/* Placeholder */
+.docs-page .tiptap .is-empty::before {
+  content: attr(data-placeholder);
+  color: #9aa0a6;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* ─── Title ───────────────────────────────────────────────── */
+
+.docs-page .tiptap .it-doc-title {
+  font-family: var(--it-font-heading, inherit);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+  color: var(--it-color-heading, #202124);
+}
+
+/* ─── Summary ─────────────────────────────────────────────── */
+
+.docs-page .tiptap .it-doc-summary {
+  font-size: 16px;
+  color: var(--it-color-muted, #5f6368);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+/* ─── Section (h2) ────────────────────────────────────────── */
+
+.docs-page .tiptap .it-doc-section {
+  font-family: var(--it-font-heading, inherit);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 24px;
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--it-color-border, #dadce0);
+  color: var(--it-color-heading, #202124);
+}
+
+/* ─── Sub (h3) ────────────────────────────────────────────── */
+
+.docs-page .tiptap .it-doc-sub {
+  font-family: var(--it-font-heading, inherit);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 16px;
+  margin-bottom: 2px;
+  color: var(--it-color-heading, #202124);
+}
+
+/* ─── Callouts ────────────────────────────────────────────── */
+
+.docs-page .tiptap .it-doc-callout {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 8px 0;
+}
+.docs-page .tiptap .it-doc-callout .it-doc-callout-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  user-select: none;
+  background-size: 18px 18px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+/* Lucide SVG icons via data URI */
+.docs-page .tiptap .it-doc-callout-icon-tip {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%231a73e8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5'/%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 22h4'/%3E%3C/svg%3E");
+}
+.docs-page .tiptap .it-doc-callout-icon-info {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%231a73e8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 16v-4'/%3E%3Cpath d='M12 8h.01'/%3E%3C/svg%3E");
+}
+.docs-page .tiptap .it-doc-callout-icon-warning {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23e8a300' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'/%3E%3Cpath d='M12 9v4'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
+}
+.docs-page .tiptap .it-doc-callout-icon-danger {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23d93025' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M12 16h.01'/%3E%3C/svg%3E");
+}
+.docs-page .tiptap .it-doc-callout-icon-success {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23188038' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E");
+}
+.docs-page .tiptap .it-doc-callout[data-variant="tip"] {
+  background: rgba(108, 63, 197, 0.08);
+  border: 1px solid rgba(108, 63, 197, 0.18);
+}
+.docs-page .tiptap .it-doc-callout[data-variant="info"] {
+  background: rgba(108, 63, 197, 0.08);
+  border: 1px solid rgba(108, 63, 197, 0.18);
+}
+.docs-page .tiptap .it-doc-callout[data-variant="warning"] {
+  background: #fef7e0;
+  border: 1px solid #fdd663;
+}
+.docs-page .tiptap .it-doc-callout[data-variant="danger"] {
+  background: #fce8e6;
+  border: 1px solid #f5c6c0;
+}
+.docs-page .tiptap .it-doc-callout[data-variant="success"] {
+  background: #e6f4ea;
+  border: 1px solid #ceead6;
+}
+
+/* ─── Quote ───────────────────────────────────────────────── */
+
+.docs-page .tiptap .it-doc-quote {
+  border-left: 3px solid var(--it-color-muted, #5f6368);
+  padding-left: 16px;
+  margin: 12px 0;
+  font-style: italic;
+  color: var(--it-color-muted, #3c4043);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ─── Code ────────────────────────────────────────────────── */
+
+.docs-page .tiptap .it-doc-code {
+  display: block;
+  background: var(--it-color-code-bg, #f8f9fa);
+  border: 1px solid var(--it-color-border, #dadce0);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 8px 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.docs-page .tiptap .it-doc-code code {
+  font-family: var(--it-font-mono, "JetBrains Mono", "Fira Code", monospace);
+  font-size: 13px;
+  line-height: 1.6;
+  color: #37474f;
+}
+
+/* ─── Divider ─────────────────────────────────────────────── */
+
+.docs-page .tiptap .it-doc-divider {
+  border: none;
+  border-top: 1px solid var(--it-color-border, #dadce0);
+  margin: 16px 0;
+}
+
+/* ─── Metadata (page:/meta:/font:/header:/footer:) ────────────
+   Document settings — kept in the model for round-trip, but hidden in the visual
+   editor (edit them in Source mode). Zero height so they never affect layout. */
+.docs-page .tiptap .it-doc-meta {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ─── Table ───────────────────────────────────────────────── */
+.docs-page .tiptap .it-doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 0.92em;
+}
+.docs-page .tiptap .it-doc-table th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
+  border-bottom: 2px solid var(--it-color-text, #333);
+}
+.docs-page .tiptap .it-doc-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--it-color-border, #ddd);
+  vertical-align: top;
+}
+
+/* ─── Trust blocks (sign / seal / approve / freeze / amendment) ─── */
+.docs-page .tiptap .it-doc-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 10px 0;
+  padding: 9px 14px;
+  border: 1px solid #daa520;
+  border-radius: 8px;
+  background: #fffdf5;
+  font-size: 0.9rem;
+  user-select: none;
+}
+.docs-page .tiptap .it-doc-trust--seal {
+  border: 2px solid #c62828;
+  background: #fdf5f5;
+  font-weight: 600;
+}
+.docs-page .tiptap .it-doc-trust--approve {
+  border-color: #4caf50;
+  background: #f6fbf6;
+}
+.docs-page .tiptap .it-doc-trust--freeze {
+  border-color: #5b8def;
+  background: #f5f8ff;
+}
+.docs-page .tiptap .it-doc-trust--amendment,
+.docs-page .tiptap .it-doc-trust--amend {
+  border-color: #b0b0b0;
+  background: #fafafa;
+}
+.docs-page .tiptap .it-doc-trust__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+.docs-page .tiptap .it-doc-trust__label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.docs-page .tiptap .it-doc-trust__name {
+  font-weight: 600;
+  color: #111;
+}
+.docs-page .tiptap .it-doc-trust__role {
+  color: #555;
+}
+.docs-page .tiptap .it-doc-trust__date {
+  color: #777;
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+.docs-page .tiptap .it-doc-trust__hash {
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  color: #444;
+}
+.docs-page .tiptap .it-doc-trust__meta {
+  font-size: 0.78rem;
+  color: #777;
+}
+
+/* ─── Template variables ({{path}}) ───────────────────────── */
+.docs-page .tiptap .it-doc-var {
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+  border-radius: 4px;
+  padding: 0 3px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.86em;
+}
+.docs-page .tiptap .it-doc-table .it-doc-var-cell {
+  background: #eef2ff;
+  color: #4338ca;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.85em;
+}
+/* Variable chips are an authoring aid — print plain (merged docs have real data). */
+@media print {
+  .it-doc-var,
+  .it-doc-table .it-doc-var-cell {
+    background: none !important;
+    border: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+  }
+}
+
+/* ─── Document style rule chip (style: blocks) ────────────── */
+.docs-page .tiptap .it-doc-stylerule {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 4px 10px;
+  border: 1px dashed #c5cae0;
+  border-radius: 6px;
+  background: #f7f8fd;
+  font-size: 12px;
+  color: #4a5170;
+  user-select: none;
+}
+.docs-page .tiptap .it-doc-stylerule__icon {
+  font-size: 11px;
+  line-height: 1;
+}
+.docs-page .tiptap .it-doc-stylerule__target {
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+}
+.docs-page .tiptap .it-doc-stylerule__decl {
+  font-family: ui-monospace, monospace;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Style-rule chips are editing aids — never print them. */
+@media print {
+  .it-doc-stylerule {
+    display: none !important;
+  }
+}
+
+/* ─── Metric / total row ──────────────────────────────────── */
+.docs-page .tiptap .it-doc-metric {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--it-color-border, #eee);
+}
+.docs-page .tiptap .it-doc-metric__label {
+  color: var(--it-color-muted, #555);
+}
+.docs-page .tiptap .it-doc-metric__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--it-color-text, #111);
+  white-space: nowrap;
+}
+/* A "Total Due" / "Balance" metric reads as the grand total. */
+.docs-page .tiptap .it-doc-metric--total {
+  border-bottom: none;
+  border-top: 2px solid var(--it-color-text, #333);
+  margin-top: 2px;
+  padding-top: 8px;
+  font-size: 1.05em;
+}
+.docs-page .tiptap .it-doc-metric--total .it-doc-metric__label {
+  color: var(--it-color-text, #111);
+  font-weight: 600;
+}
+
+/* ─── Page Break ──────────────────────────────────────────── */
+
+.docs-page .tiptap .it-doc-break {
+  text-align: center;
+  color: #9aa0a6;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 8px 0;
+  border-top: 1px dashed #dadce0;
+  border-bottom: 1px dashed #dadce0;
+  margin: 16px 0;
+  user-select: none;
+}
+
+/* ─── Generic Block ───────────────────────────────────────── */
+
+.docs-page .tiptap .it-doc-generic {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 12px;
+  margin: 6px 0;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  background: #fafafa;
+}
+.docs-page .tiptap .it-doc-generic-label {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  color: #6c3fc5;
+  background: rgba(108, 63, 197, 0.08);
+  border-radius: 4px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  user-select: none;
+  flex-shrink: 0;
+  line-height: 1.6;
+}
+
+/* ─ Link block URL indicator ───────────────────────────────────── */
+.docs-page .tiptap .it-doc-link-url {
+  font-size: 11px;
+  color: #9aa0a6;
+  font-family: "JetBrains Mono", monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+  flex-shrink: 1;
+  user-select: none;
+  margin-left: auto;
+  padding-left: 8px;
+}
+.docs-page .tiptap .it-doc-link-url::before {
+  content: "→ ";
+}
+
+/* ─── Comment ─────────────────────────────────────────────── */
+
+.docs-page .tiptap .it-doc-comment {
+  color: #9aa0a6;
+  font-size: 13px;
+  font-style: italic;
+  border-left: 2px solid #dadce0;
+  padding-left: 12px;
+  margin: 4px 0;
+}
+
+/* ─── Inline marks (from StarterKit) ──────────────────────── */
+
+.docs-page .tiptap strong {
+  font-weight: 700;
+}
+.docs-page .tiptap em {
+  font-style: italic;
+}
+.docs-page .tiptap s {
+  text-decoration: line-through;
+}
+.docs-page .tiptap code {
+  background: #f1f3f4;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9em;
+}
+
+/* ─── Lists (from StarterKit) ─────────────────────────────── */
+
+.docs-page .tiptap ul,
+.docs-page .tiptap ol {
+  padding-left: 24px;
+  margin: 4px 0;
+}
+.docs-page .tiptap li {
+  margin: 2px 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Plain Writing Overrides (no fancy keyword boxes)
+   ═══════════════════════════════════════════════════════════════ */
+
+.docs-page .tiptap .it-doc-callout {
+  display: block;
+  margin: 8px 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.docs-page .tiptap .it-doc-callout .it-doc-callout-icon {
+  display: none;
+}
+
+.docs-page .tiptap .it-doc-callout .it-doc-callout-text {
+  display: inline;
+}
+
+.docs-page .tiptap .it-doc-generic,
+.docs-page .tiptap .it-doc-generic[data-keyword] {
+  display: block;
+  margin: 8px 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  text-align: inherit;
+  justify-content: initial;
+}
+
+.docs-page .tiptap .it-doc-generic-label,
+.docs-page .tiptap .it-doc-link-url {
+  display: none;
+}
+
+.docs-page .tiptap .it-doc-inline-link,
+.docs-page .tiptap a {
+  color: #2563eb;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.docs-page .tiptap .it-doc-inline-link:hover,
+.docs-page .tiptap a:hover {
+  color: #1d4ed8;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Ribbon — ONE Word-like toolbar with labeled groups
+   (Edit | File | Text | Paragraph | Insert | Trust)
+   ═══════════════════════════════════════════════════════════════ */
+
+.docs-ribbon {
+  align-items: stretch;
+  gap: 0;
+  padding: 6px 10px 3px;
+}
+.ribbon-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+.ribbon-group-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.ribbon-group-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #9aa0a6;
+  margin-top: 2px;
+  user-select: none;
+  white-space: nowrap;
+}
+.ribbon-sep {
+  width: 1px;
+  align-self: stretch;
+  background: #d8d2c4;
+  margin: 2px 7px;
+  flex-shrink: 0;
+}
+.ribbon-btn-text {
+  font-size: 12px;
+  font-weight: 500;
+}
+.ribbon-theme-select {
+  height: 26px;
+  max-width: 110px;
+  margin-inline-start: 4px;
+  padding: 0 4px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  background: #fff;
+  color: #3c4043;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ribbon-theme-select:focus {
+  outline: none;
+  border-color: var(--accent, #2563eb);
+}
+/* The editable-formatting cluster (Text / Paragraph / Insert groups). */
+.ribbon-editing,
+.ribbon-locked {
+  display: flex;
+  align-items: stretch;
+}
+/* Sealed documents: formatting is read-only. */
+.ribbon-locked {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.docs-tb-paragraph-select {
+  width: 110px;
+  min-width: 110px;
+}
+.docs-spacing-menu {
+  min-width: 230px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Two-sided rows — core `end:` property (.it-split parity)
+   Content at line start, end-value at line end; flex start/end so
+   RTL documents mirror automatically, exactly like core's print CSS.
+   ═══════════════════════════════════════════════════════════════ */
+
+.docs-page .tiptap [data-it-end] {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.docs-page .tiptap [data-it-end] > .it-split-main {
+  min-width: 0;
+}
+.docs-page .tiptap [data-it-end]::after {
+  content: attr(data-it-end);
+  flex-shrink: 0;
+  white-space: pre-wrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Signature line — sign: blocks render like a signed paper document
+   (script autograph over a rule, printed name / role / date below)
+   ═══════════════════════════════════════════════════════════════ */
+
+.docs-page .tiptap .it-doc-sign {
+  display: inline-block;
+  min-width: 300px;
+  max-width: 420px;
+  margin: 22px 0 8px;
+  margin-inline-end: 28px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-weight: 400;
+  user-select: none;
+}
+.docs-page .tiptap .it-doc-sign__script {
+  font-family: "Snell Roundhand", "Savoye LET", "Segoe Script",
+    "Brush Script MT", cursive;
+  font-size: 23px;
+  line-height: 1.15;
+  color: #1a2a52;
+  padding: 0 6px 2px;
+  min-height: 27px;
+}
+.docs-page .tiptap .it-doc-sign__rule {
+  border-bottom: 1.5px solid #202124;
+}
+.docs-page .tiptap .it-doc-sign__row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 5px;
+  font-size: 0.85rem;
+}
+.docs-page .tiptap .it-doc-sign__name {
+  font-weight: 600;
+  color: #111;
+}
+.docs-page .tiptap .it-doc-sign__role {
+  color: #555;
+}
+.docs-page .tiptap .it-doc-sign__role::before {
+  content: "· ";
+  color: #9aa0a6;
+}
+.docs-page .tiptap .it-doc-sign__date {
+  margin-inline-start: auto;
+  color: #777;
+  font-size: 0.8rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Document status banner (trust) + document properties strip
+   ═══════════════════════════════════════════════════════════════ */
+
+.docs-trust-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  border-bottom: 1px solid transparent;
+}
+.docs-trust-banner__icon {
+  line-height: 1;
+}
+.docs-trust-banner__title {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.docs-trust-banner__text {
+  opacity: 0.85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.docs-trust-banner__verify {
+  margin-inline-start: auto;
+  flex-shrink: 0;
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.docs-trust-banner--sealed {
+  background: #fff8e7;
+  border-color: #eedaa6;
+  color: #7a5300;
+}
+.docs-trust-banner--signed {
+  background: #f3f6ff;
+  border-color: #d5def4;
+  color: #2c3e6b;
+}
+.docs-trust-banner--approved {
+  background: #f1f9f2;
+  border-color: #cfe8d4;
+  color: #1d6334;
+}
+.docs-trust-banner__verify--ok {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+}
+.docs-trust-banner__verify--bad {
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+}
+
+.docs-props-bar {
+  flex-shrink: 0;
+  background: #fbfaf7;
+  border-bottom: 1px solid #e9e4d8;
+  font-size: 12px;
+}
+.docs-props-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 14px;
+  border: none;
+  background: none;
+  color: #5f6368;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: start;
+}
+.docs-props-toggle:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+.docs-props-caret {
+  font-size: 9px;
+  width: 10px;
+}
+.docs-props-summary {
+  margin-inline-start: 8px;
+  font-weight: 400;
+  color: #9aa0a6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.docs-props-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 14px 9px;
+}
+.docs-props-chip {
+  border: 1px solid #e3decf;
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px 8px;
+  color: #4a5160;
+}
+.docs-props-chip b {
+  font-weight: 600;
+  font-size: 11px;
+  color: #8a7f63;
+  margin-inline-end: 4px;
+}
+
+/* ── Bidi isolation (WhatsApp-style) ─────────────────────────────────────
+   Mixed Arabic/English/number values resolve their own direction from their
+   first strong character, so `10,200 QAR` and `2026-06-20` keep their internal
+   order inside RTL lines — parity with core's dir="auto" rendered output. */
+.docs-page .tiptap .it-doc-table td,
+.docs-page .tiptap .it-doc-table th {
+  unicode-bidi: plaintext;
+}
+.docs-page .tiptap .it-doc-task-meta span,
+.docs-page .tiptap .it-doc-metric__value,
+.docs-page .tiptap [data-it-end]::after,
+.docs-page .tiptap .it-split-end {
+  unicode-bidi: plaintext;
+}
+
+/* ─── Look refresh (folded from the app's 2026 UI refresh overrides) ──────── */
+
+.docs-toolbar {
+  background: linear-gradient(90deg, rgba(15, 118, 110, 0.07), rgba(183, 106, 31, 0.08));
+  border-bottom: 1px solid rgba(216, 203, 181, 0.95);
+}
+
+.docs-toolbar button.active,
+.docs-tb-btn.active {
+  background: rgba(15, 118, 110, 0.16);
+  color: #0f766e;
+}
+
+/* ─── Mobile ──────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .docs-page {
+    width: 100% !important;
+    min-height: auto;
+    padding: 24px;
+    box-shadow: none;
+  }
+  .docs-canvas {
+    padding: 0;
+  }
+}

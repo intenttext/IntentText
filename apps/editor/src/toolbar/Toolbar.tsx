@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ThemePicker } from "./ThemePicker";
 import type { ModalType } from "../App";
-import type { EditorMode } from "../visual/types";
+import type { EditorMode } from "../types";
 
 interface Props {
   filename: string;

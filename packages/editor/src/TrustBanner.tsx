@@ -10,7 +10,7 @@
 
 import { useMemo, useState } from "react";
 import { parseIntentText } from "@dotit/core";
-import type { TrustState } from "../hooks/useTrustState";
+import type { TrustState } from "./trust-state";
 
 /* ── Trust status banner ─────────────────────────────────────── */
 

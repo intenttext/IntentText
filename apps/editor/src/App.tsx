@@ -1,12 +1,15 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import {
+  IntentTextEditor,
+  exportDocumentPDF,
+  exportDocumentHTML,
+  extractTemplateVariables,
+} from "@dotit/editor";
 import { Toolbar } from "./toolbar/Toolbar";
 import { StatusBar } from "./status/StatusBar";
 import { MonacoEditor } from "./editor/MonacoEditor";
-import { VisualEditor } from "./visual/VisualEditor";
-import { exportDocumentPDF, exportDocumentHTML } from "./panels/PrintBar";
 import { TrustPanel } from "./panels/TrustPanel";
 import { TemplatePanel } from "./panels/TemplatePanel";
-import { extractTemplateVariables } from "./visual/template-highlight";
 import { SealModal } from "./modals/SealModal";
 import { VerifyModal } from "./modals/VerifyModal";
 import { HistoryModal } from "./modals/HistoryModal";
@@ -19,7 +22,7 @@ import { useAutoSave } from "./hooks/useAutoSave";
 import { useDocument } from "./hooks/useDocument";
 import { useDocumentMeta } from "./hooks/useDocumentMeta";
 import { useTrustState } from "./hooks/useTrustState";
-import type { EditorMode } from "./visual/types";
+import type { EditorMode } from "./types";
 import type * as monaco from "monaco-editor";
 import {
   DEMO_DOCS,
@@ -86,6 +89,13 @@ export default function App() {
   }, [uiTheme]);
   useEffect(() => {
     localStorage.setItem("it-editor-mode", editorMode);
+  }, [editorMode]);
+  // The visual editor's canvas is a light, paper-like surface — force light
+  // chrome while it is active (previously done inside VisualEditor itself).
+  useEffect(() => {
+    if (editorMode === "visual") {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
   }, [editorMode]);
 
   // Load from URL ?source= parameter (hub "Open in Editor")
@@ -241,12 +251,14 @@ export default function App() {
                 editorRef={editorRef}
               />
             ) : (
-              <VisualEditor
+              <IntentTextEditor
                 value={content}
                 onChange={setContent}
                 theme={theme}
                 onThemeChange={setTheme}
-                onModal={setModal}
+                onTrustAction={(action) =>
+                  setModal(action === "sign" ? "trust" : action)
+                }
               />
             )}
           </div>

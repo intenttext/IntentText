@@ -1,8 +1,8 @@
 // Print / export engine for the editor.
 //
-// The UI for these actions lives in the ribbon (visual/DocsToolbar.tsx) and the
-// top toolbar's source-mode export buttons — this module owns the WYSIWYG print
-// path and the document export functions they trigger.
+// The UI for these actions lives in the ribbon (DocsToolbar.tsx); host apps can
+// also call exportDocumentPDF / exportDocumentHTML directly — this module owns
+// the WYSIWYG print path and the document export functions they trigger.
 
 import {
   parseIntentText,
@@ -10,7 +10,7 @@ import {
   listBuiltinThemes,
   cssContentValue,
 } from "@dotit/core";
-import { getPageGeometry } from "../visual/page-geometry";
+import { getPageGeometry } from "./page-geometry";
 import { printHtmlViaIframe } from "./print-iframe";
 
 export type PrintMode = "normal" | "minimal-ink";
@@ -35,7 +35,7 @@ const cssContent = cssContentValue;
  * WYSIWYG print: render the editor's OWN content DOM with its OWN stylesheets, so the
  * PDF looks exactly like the visual editor. Page size / margins / running header+footer
  * come from the document's page:/header:/footer: blocks via @page. Returns null when
- * the visual editor isn't mounted (source mode) — caller falls back to renderPrint.
+ * the visual editor isn't mounted — caller falls back to renderPrint.
  */
 function buildWysiwygPrint(content: string, printMode: string): string | null {
   const tiptap = document.querySelector(".docs-page .tiptap");
@@ -46,7 +46,7 @@ function buildWysiwygPrint(content: string, printMode: string): string | null {
   clone.querySelectorAll("[data-it-spacer]").forEach((e) => e.remove());
   const bodyHtml = clone.innerHTML;
 
-  // Copy the editor's stylesheets (bundled global.css + injected theme) verbatim.
+  // Copy the page's stylesheets (the bundled editor CSS + injected theme) verbatim.
   const styles = Array.from(
     document.querySelectorAll('style, link[rel="stylesheet"]'),
   )
@@ -91,7 +91,7 @@ function download(data: string, filename: string, mime: string) {
 }
 
 /** Build the print-ready HTML: WYSIWYG when the visual editor is mounted,
- *  core renderPrint otherwise (source mode). */
+ *  core renderPrint otherwise (e.g. a source-mode export). */
 function buildPrintHtml(
   content: string,
   theme: string,
@@ -106,7 +106,7 @@ function buildPrintHtml(
   return full;
 }
 
-/** Print / save-as-PDF via the browser's print dialog. */
+/** Print / save-as-PDF via the browser's print dialog. Browser-only. */
 export function exportDocumentPDF(
   content: string,
   theme: string,
@@ -119,7 +119,7 @@ export function exportDocumentPDF(
   }
 }
 
-/** Download the print-ready HTML document. */
+/** Download the print-ready HTML document. Browser-only. */
 export function exportDocumentHTML(
   content: string,
   theme: string,

@@ -41,7 +41,7 @@ import {
 import { ITParagraph, BlockProps } from "./block-props";
 import { DocsToolbar } from "./DocsToolbar";
 import { TrustBanner, DocPropsBar } from "./TrustBanner";
-import { extractTrustState } from "../hooks/useTrustState";
+import { extractTrustState } from "./trust-state";
 import {
   getBuiltinTheme,
   generateThemeCSS,
@@ -55,7 +55,7 @@ import {
   type PageGeometry,
 } from "./page-geometry";
 import { TemplateHighlight } from "./template-highlight";
-import type { ModalType } from "../App";
+import type { TrustAction } from "./types";
 
 /** Grey gap between page cards on the canvas (px). */
 const PAGE_GAP = 28;
@@ -84,7 +84,14 @@ interface Props {
   onChange: (source: string) => void;
   theme: string;
   onThemeChange: (theme: string) => void;
-  onModal: (m: ModalType) => void;
+  /** Force read-only (sealed documents are read-only regardless). */
+  readOnly?: boolean;
+  /** Show the formatting ribbon. Default true. */
+  showRibbon?: boolean;
+  /** Show the trust status banner + document properties strip. Default true. */
+  showTrustBanner?: boolean;
+  /** Ribbon Trust group (Seal / Sign / Verify). Group is hidden when omitted. */
+  onTrustAction?: (action: TrustAction) => void;
 }
 
 export function VisualEditor({
@@ -92,7 +99,10 @@ export function VisualEditor({
   onChange,
   theme,
   onThemeChange,
-  onModal,
+  readOnly = false,
+  showRibbon = true,
+  showTrustBanner = true,
+  onTrustAction,
 }: Props) {
   const lastSourceRef = useRef<string>("");
   const isInternalUpdate = useRef(false);
@@ -199,12 +209,8 @@ export function VisualEditor({
     }
   }, [value, editor]);
 
-  // Force light mode
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", "light");
-  }, []);
-
-  // Template panel "insert variable" → insert at the current caret.
+  // Host "insert text/variable" → insert at the current caret. Dispatch a
+  // window CustomEvent("it-insert-text", { detail: "{{customer.name}}" }).
   useEffect(() => {
     if (!editor) return;
     const handler = (e: Event) => {
@@ -279,11 +285,13 @@ export function VisualEditor({
 
   // Sealed documents are read-only — the canvas refuses edits and the ribbon's
   // formatting groups are disabled (clear professional indication via banner).
+  // Hosts can force the same with the readOnly prop.
+  const locked = trust.isSealed || readOnly;
   useEffect(() => {
     if (!editor) return;
-    if (editor.isEditable === !trust.isSealed) return;
-    editor.setEditable(!trust.isSealed);
-  }, [editor, trust.isSealed]);
+    if (editor.isEditable === !locked) return;
+    editor.setEditable(!locked);
+  }, [editor, locked]);
 
   // Live document styles: apply the doc's `style:` rules to the canvas so the
   // author SEES the house styling while editing (and the WYSIWYG print export
@@ -443,18 +451,20 @@ export function VisualEditor({
 
   return (
     <div className="docs-container">
-      <DocsToolbar
-        editor={editor}
-        isRtl={docLayoutMeta.dir === "rtl"}
-        onToggleRtl={toggleRtl}
-        content={value}
-        theme={theme}
-        onThemeChange={onThemeChange}
-        onModal={onModal}
-        locked={trust.isSealed}
-      />
-      <TrustBanner trust={trust} intact={sealIntact} />
-      <DocPropsBar source={value} />
+      {showRibbon && (
+        <DocsToolbar
+          editor={editor}
+          isRtl={docLayoutMeta.dir === "rtl"}
+          onToggleRtl={toggleRtl}
+          content={value}
+          theme={theme}
+          onThemeChange={onThemeChange}
+          onTrustAction={onTrustAction}
+          locked={locked}
+        />
+      )}
+      {showTrustBanner && <TrustBanner trust={trust} intact={sealIntact} />}
+      {showTrustBanner && <DocPropsBar source={value} />}
       {unsupported.length > 0 && (
         <div className="docs-fidelity-warning" role="status">
           ⚠ Some formatting ({unsupported.join(", ")}) can’t be saved to{" "}

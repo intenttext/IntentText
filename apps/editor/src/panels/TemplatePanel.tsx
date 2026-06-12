@@ -13,8 +13,8 @@ import { parseAndMerge, renderPrint, documentToSource } from "@dotit/core";
 import {
   extractTemplateVariables,
   buildSampleSkeleton,
-} from "../visual/template-highlight";
-import { printHtmlViaIframe } from "./print-iframe";
+  printHtmlViaIframe,
+} from "@dotit/editor";
 
 interface Props {
   content: string;
