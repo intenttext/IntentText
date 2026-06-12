@@ -40,6 +40,7 @@ import {
 } from "./extensions";
 import { ITParagraph, BlockProps } from "./block-props";
 import { DocsToolbar } from "./DocsToolbar";
+import { DocsRuler } from "./Ruler";
 import { TrustBanner, DocPropsBar } from "./TrustBanner";
 import { extractTrustState } from "./trust-state";
 import {
@@ -472,6 +473,7 @@ export function VisualEditor({
           remove it or use the toolbar’s color/size/style controls instead.
         </div>
       )}
+      <DocsRuler geometry={geometry} zoom={zoom} scrollEl={canvasRef} />
       <div className="docs-canvas" ref={canvasRef}>
         <div
           className="docs-page-scaler"

@@ -212,24 +212,29 @@ li{margin:3px 0;color:#222;}
 sup.it-fn-ref{font-size:0.7em;vertical-align:super;}
 sup.it-fn-ref a{color:#111;text-decoration:none;border-bottom:1px solid #999;}
 /* ── v2.8 Document Trust ───────────────────────────────── */
-.it-approval{display:flex;gap:10px;margin:10px 0;padding:10px 14px;border:1px solid #4caf50;background:#f8fdf8;}
-.it-approval__icon{font-size:1.2rem;color:#4caf50;flex-shrink:0;}
-.it-approval__body{display:flex;flex-direction:column;gap:2px;}
-.it-approval__label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#4caf50;}
-.it-approval__who{font-size:0.9rem;color:#222;}
-.it-approval__date{font-size:0.8rem;color:#666;}
-.it-signature{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0;padding:10px 14px;border:1px solid #daa520;background:#fffdf5;}
-.it-signature--valid{border-color:#4caf50;background:#f8fdf8;}
-.it-signature--invalid{border-color:#c62828;background:#fdf5f5;}
+/* Trust blocks are typeset like entries in a legal document — hairlines and
+   small-caps labels, no colored fills (ink-first; prints exactly as shown). */
+.it-approval{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;margin:12px 0;padding:7px 2px;border-bottom:1px solid #ddd;}
+.it-approval__icon{display:none;}
+.it-approval__body{display:contents;}
+.it-approval__label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2e7d32;flex-shrink:0;}
+.it-approval__label::before{content:'✓ ';}
+.it-approval__what{font-size:0.9rem;font-weight:600;color:#111;}
+.it-approval__who{font-size:0.9rem;color:#555;}
+.it-approval__date{font-size:0.8rem;color:#777;margin-inline-start:auto;font-variant-numeric:tabular-nums;}
+.it-signature{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;margin:14px 0 10px;padding:7px 2px 5px;border-top:1px solid #111;}
+.it-signature--valid{border-top-color:#111;}
+.it-signature--invalid{border-top-color:#c62828;}
 .it-signature__name{font-weight:600;font-size:0.95rem;color:#111;}
 .it-signature__role{font-size:0.85rem;color:#555;}
-.it-signature__date{font-size:0.8rem;color:#666;}
-.it-signature__status{font-size:0.8rem;font-weight:600;margin-inline-start:auto;}
-.it-sealed-banner{display:flex;gap:10px;align-items:center;margin:16px 0;padding:12px 16px;border:2px solid #c62828;background:#fdf5f5;font-weight:600;}
-.it-sealed-banner__icon{font-size:1.3rem;}
-.it-sealed-banner__text{font-size:1rem;color:#c62828;text-transform:uppercase;letter-spacing:0.04em;}
-.it-sealed-banner__date{font-size:0.8rem;color:#666;margin-inline-start:auto;}
-.it-sealed-banner__hash{font-size:0.72rem;color:#888;font-family:monospace;}
+.it-signature__date{font-size:0.8rem;color:#777;font-variant-numeric:tabular-nums;}
+.it-signature__status{font-size:0.72rem;font-weight:600;margin-inline-start:auto;text-transform:uppercase;letter-spacing:0.08em;color:#2e7d32;}
+.it-signature--invalid .it-signature__status{color:#c62828;}
+.it-sealed-banner{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;margin:18px 0;padding:8px 2px;border-top:1px solid #111;border-bottom:1px solid #111;}
+.it-sealed-banner__icon{display:none;}
+.it-sealed-banner__text{font-size:0.78rem;font-weight:700;color:#111;text-transform:uppercase;letter-spacing:0.14em;}
+.it-sealed-banner__date{font-size:0.8rem;color:#666;margin-inline-start:auto;font-variant-numeric:tabular-nums;}
+.it-sealed-banner__hash{font-size:0.72rem;color:#999;font-family:'SFMono-Regular',Consolas,monospace;}
 /* ── v2.11 Keyword Expansion ──────────────────────────── */
 .it-ref-card{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #ddd;margin:5px 0;}
 .it-ref-icon{font-size:1rem;flex-shrink:0;}

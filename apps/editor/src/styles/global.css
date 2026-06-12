@@ -15,7 +15,7 @@
   --warning: #ca8a04;
   --error: #dc2626;
 
-  --toolbar-h: 48px;
+  --toolbar-h: 40px;
   --status-h: 28px;
 }
 
@@ -33,7 +33,7 @@
   --warning: #d29922;
   --error: #f85149;
 
-  --toolbar-h: 48px;
+  --toolbar-h: 40px;
   --status-h: 28px;
 }
 
@@ -52,72 +52,21 @@ body {
   position: relative;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 12% 10%, rgba(37, 99, 235, 0.1), transparent 42%),
-    radial-gradient(circle at 88% 12%, rgba(14, 165, 233, 0.08), transparent 40%),
-    radial-gradient(circle at 70% 82%, rgba(148, 163, 184, 0.1), transparent 44%),
-    linear-gradient(180deg, #f6f8fb 0%, #eef3f8 100%);
-  z-index: -2;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
-  background-size: 22px 22px;
-  opacity: 0.22;
-  z-index: -1;
-}
-
-[data-theme="dark"] body::before {
-  background:
-    radial-gradient(circle at 12% 10%, rgba(245, 158, 11, 0.16), transparent 42%),
-    radial-gradient(circle at 88% 12%, rgba(88, 166, 255, 0.12), transparent 40%),
-    radial-gradient(circle at 70% 82%, rgba(188, 140, 255, 0.12), transparent 44%),
-    linear-gradient(180deg, #0d1117 0%, #111720 100%);
-}
-
-[data-theme="dark"] body::after {
-  background-image: linear-gradient(rgba(230, 237, 243, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(230, 237, 243, 0.03) 1px, transparent 1px);
-  opacity: 0.35;
-}
-
+/* Flat, full-bleed workspace (Google Docs): no inset padding, no card chrome —
+   the editor canvas stretches edge-to-edge under the toolbar. */
 #root {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  padding: 0;
 }
 
 .app-shell {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 248, 251, 0.96));
-  border: 1px solid rgba(216, 224, 234, 0.92);
-  border-radius: 18px;
+  background: var(--bg-app);
   overflow: hidden;
-  box-shadow:
-    0 12px 36px rgba(15, 23, 42, 0.15),
-    0 1px 6px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(4px);
-}
-
-[data-theme="dark"] .app-shell {
-  background: linear-gradient(180deg, rgba(17, 23, 32, 0.96), rgba(13, 17, 23, 0.96));
-  border: 1px solid rgba(48, 54, 61, 0.92);
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.42),
-    0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* ─── Buttons ─────────────────────────────────────────────── */
@@ -200,6 +149,28 @@ button {
   height: 1px;
   background: var(--border);
   margin: 4px 0;
+}
+.dropdown-menu--left {
+  left: 0;
+  right: auto;
+  min-width: 240px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+.dropdown-title {
+  padding: 6px 12px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.menu-kbd {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: inherit;
+  padding-left: 16px;
 }
 
 /* ─── Theme Picker ────────────────────────────────────────── */
@@ -410,39 +381,73 @@ button {
   display: flex;
   min-height: 0;
   position: relative;
-  gap: 10px;
-  padding: 10px;
+  gap: 0;
+  padding: 0;
 }
 .panel-editor {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid rgba(48, 54, 61, 0.9);
-  border-radius: 14px;
-  background: #0f141b;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 .panel-editor .monaco-container {
   width: 100%;
   height: 100%;
 }
 
+/* ─── Title bar (slim Docs-style chrome) ──────────────────────
+   One compact row: logo mark + editable filename + File menu, mode switch on
+   the right. Everything else lives in the File menu or the ribbon below. */
+
+.titlebar {
+  height: var(--toolbar-h);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.titlebar-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  flex-shrink: 0;
+  user-select: none;
+}
+[data-theme="dark"] .titlebar-logo {
+  background: var(--accent);
+  color: #1a1a1a;
+}
+
 /* ─── Filename Input ──────────────────────────────────────── */
 
 .filename-input {
   background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 13px;
+  border: 1px solid transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
   font-family: inherit;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: 4px;
-  max-width: 200px;
+  max-width: 260px;
+}
+.filename-input:hover {
+  border-color: var(--border);
 }
 .filename-input:focus {
   outline: none;
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--text-primary);
+  border-color: var(--accent);
+  background: var(--bg-panel);
 }
 
 /* ─── Help Overlay ────────────────────────────────────────── */
@@ -488,51 +493,6 @@ button {
   padding: 1px 6px;
   font-size: 12px;
   font-family: "JetBrains Mono", monospace;
-}
-
-/* ─── Restore Toast (floating, non-intrusive) ─────────────── */
-
-.restore-toast {
-  position: fixed;
-  bottom: 48px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 300;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px 8px 16px;
-  background: #323232;
-  color: #fff;
-  border-radius: 8px;
-  font-size: 13px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
-  animation: toast-in 0.25s ease-out;
-}
-.restore-toast-btn {
-  font-size: 13px;
-  font-weight: 600;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  padding: 4px 12px;
-  font-family: inherit;
-}
-.restore-toast-btn.restore-yes {
-  background: #8ab4f8;
-  color: #202124;
-}
-.restore-toast-btn.restore-yes:hover {
-  background: #aecbfa;
-}
-.restore-toast-btn.restore-no {
-  background: transparent;
-  color: #9aa0a6;
-  padding: 4px 6px;
-  font-size: 15px;
-}
-.restore-toast-btn.restore-no:hover {
-  color: #fff;
 }
 
 /* ─── Mode Switch (segmented control) ─────────────────────── */
@@ -1273,20 +1233,20 @@ button {
 }
 
 .tbtn:hover {
-  background: rgba(15, 118, 110, 0.08);
-  border-color: rgba(15, 118, 110, 0.18);
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--border);
 }
 
 .tbtn.active,
 .panel-toggle-btn.active {
-  background: rgba(15, 118, 110, 0.14);
-  color: #0f766e;
-  border-color: rgba(15, 118, 110, 0.28);
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--accent);
+  border-color: rgba(37, 99, 235, 0.25);
 }
 
 .mode-switch {
-  background: rgba(15, 118, 110, 0.08);
-  border: 1px solid rgba(15, 118, 110, 0.2);
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
 }
 
 .mode-switch-indicator {
@@ -1294,7 +1254,7 @@ button {
 }
 
 .mode-switch-btn.active {
-  color: #0f766e;
+  color: var(--accent);
 }
 
 .side-panel {
@@ -1339,22 +1299,6 @@ button {
 
 .trust-sealed-badge {
   color: #8f4f11;
-}
-
-@media (max-width: 768px) {
-  #root {
-    padding: 0;
-  }
-
-  .app-shell {
-    border-radius: 0;
-    border: none;
-  }
-
-  .panels {
-    padding: 6px;
-    gap: 6px;
-  }
 }
 
 /* ─── Mobile ──────────────────────────────────────────────── */

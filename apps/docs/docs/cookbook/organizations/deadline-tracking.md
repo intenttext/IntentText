@@ -117,5 +117,5 @@ Every `deadline:` in every contract, project plan, and review cycle is automatic
 ## Next steps
 
 - [Contact Directory](./contact-directory) — the same pattern for contacts
-- [Querying Documents](./querying-documents) — query syntax reference
-- [Invoice](../documents/invoice) — invoice with payment deadlines
+- [Query reference](../../reference/query) — query syntax
+- [Your First Document](../../guide/first-document) — invoice with payment deadlines

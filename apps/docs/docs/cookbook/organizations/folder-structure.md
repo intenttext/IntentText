@@ -118,6 +118,5 @@ dotit query ./company --type meta --content "template" --format json
 
 ## Next steps
 
-- [Querying Documents](./querying-documents) — query syntax and output formats
-- [Indexing Folders](./indexing-folders) — build and maintain indexes
-- [Multi-Folder Query](./multi-folder-query) — how cross-folder queries work
+- [A Folder Is a Database](../../guide/folder-as-database) — querying and indexing the structure
+- [Index File reference](../../reference/index-file) — shallow indexes, composition, staleness

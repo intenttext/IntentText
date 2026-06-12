@@ -19,6 +19,16 @@ const PAPER_MM: Record<string, [number, number]> = {
   Tabloid: [279.4, 431.8],
 };
 
+/** Ruler unit per named paper size — metric sheets read in cm, US sheets in inches. */
+const PAPER_UNIT: Record<string, "cm" | "in"> = {
+  A4: "cm",
+  A5: "cm",
+  A3: "cm",
+  LETTER: "in",
+  LEGAL: "in",
+  TABLOID: "in",
+};
+
 /** Default print margin — MUST match core renderPrint's default (20mm). */
 const DEFAULT_MARGIN_MM = 20;
 /** Narrow pages (receipts) default tight margins — matches core (≤120mm → 4mm). */
@@ -42,6 +52,8 @@ export interface PageGeometry {
   header: string;
   /** Footer text ('' if none). Supports {{page}}/{{pages}} tokens. */
   footer: string;
+  /** Ruler unit derived from the page size (A-series → cm, Letter/Legal → in). */
+  unit: "cm" | "in";
 }
 
 function parseLength(v: string): number | null {
@@ -102,14 +114,18 @@ export function getPageGeometry(source: string): PageGeometry {
   let width = PAPER_MM.A4[0] * MM;
   let height: number = PAPER_MM.A4[1] * MM;
   let autoHeight = false;
+  let unit: "cm" | "in" = "cm";
   const named = PAPER_MM[size] || PAPER_MM[size.toUpperCase?.() as string];
   if (named) {
     width = named[0] * MM;
     height = named[1] * MM;
+    unit = PAPER_UNIT[size.toUpperCase()] || "cm";
   } else {
     const parts = size.trim().split(/\s+/);
     const w = parts[0] ? parseLength(parts[0]) : null;
     if (w) width = w;
+    // Custom sizes declared in inches read in inches; everything else metric.
+    if (/(\d)\s*in\b/.test(size)) unit = "in";
     if (parts[1] === "auto") {
       autoHeight = true;
       height = Infinity;
@@ -136,6 +152,7 @@ export function getPageGeometry(source: string): PageGeometry {
     contentHeight: autoHeight ? Infinity : height - mt - mb,
     header,
     footer,
+    unit,
   };
 }
 

@@ -1,11 +1,14 @@
 ---
 sidebar_position: 4
-title: Web Editor
+title: Editor
 ---
 
-# Web Editor
+# Editor
 
-The IntentText web editor at [editor.uts.qa](https://editor.uts.qa) is a browser-based authoring tool for `.it` files. No CLI, no terminal, no installation.
+The IntentText editor comes in two forms, same engine:
+
+- **The web editor** at [editor.uts.qa](https://editor.uts.qa) — a browser-based authoring tool for `.it` files. No CLI, no terminal, no installation.
+- **[`@dotit/editor`](#embed-it-in-your-app--dotiteditor)** — the same WYSIWYG editor as an embeddable React component for your own app (ERPs, portals, back offices).
 
 ## Who it's for
 
@@ -82,3 +85,78 @@ IntentText keywords and aliases are highlighted by category:
 4. Export to PDF or HTML when ready
 
 No account required — documents live in your files (Open/Save) and autosave locally.
+
+---
+
+## Embed it in your app — `@dotit/editor`
+
+Everything above ships as an npm package: a **controlled React component over plain `.it` source text**. You pass the source in, you get the edited source back — no editor-specific format ever touches your data, and a document printed through `@dotit/core` always matches what the user saw on screen.
+
+### Install
+
+```bash
+npm install @dotit/editor @dotit/core react react-dom
+```
+
+Peer dependencies: `react >= 18`, `react-dom >= 18`.
+
+### Quick start
+
+```tsx
+import { useState } from "react";
+import { IntentTextEditor, exportDocumentPDF } from "@dotit/editor";
+import "@dotit/editor/style.css";
+
+export function InvoiceEditor() {
+  const [source, setSource] = useState("title: Invoice INV-001\ntext: Hello");
+  return (
+    <div style={{ height: "100vh" }}>
+      <IntentTextEditor value={source} onChange={setSource} theme="corporate" />
+      <button onClick={() => exportDocumentPDF(source, "corporate")}>PDF</button>
+    </div>
+  );
+}
+```
+
+The editor fills its parent — give the wrapper an explicit height.
+
+### Props
+
+| Prop              | Type                                    | Default       | Description                                                                                                           |
+| ----------------- | --------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `value`           | `string`                                | — (required)  | Current `.it` source text (controlled).                                                                                |
+| `onChange`        | `(source: string) => void`              | — (required)  | Called with the updated `.it` source on every edit.                                                                    |
+| `theme`           | `string`                                | `"corporate"` | Document theme id (see `builtinThemes()`). Pair with `onThemeChange`.                                                   |
+| `onThemeChange`   | `(theme: string) => void`               | —             | Called when the user picks a theme in the ribbon.                                                                       |
+| `readOnly`        | `boolean`                               | `false`       | Force read-only. Sealed documents (`freeze:` block) are read-only automatically.                                        |
+| `showRibbon`      | `boolean`                               | `true`        | Show the formatting ribbon.                                                                                             |
+| `showTrustBanner` | `boolean`                               | `true`        | Show the trust status banner + document properties strip.                                                               |
+| `onTrustAction`   | `(a: "seal"\|"sign"\|"verify") => void` | —             | Handle the ribbon's Trust group — wire it to your own dialogs (e.g. core's `sealDocument`). Hidden when omitted.        |
+
+### Key exports
+
+Besides `IntentTextEditor`: `exportDocumentPDF(source, theme)` / `exportDocumentHTML(source, theme)` (WYSIWYG print / print-ready HTML download), `builtinThemes()`, `extractTemplateVariables(source)` / `buildSampleSkeleton(vars)` for `{{variable}}` authoring, `extractTrustState(parsedDoc)` for the trust lifecycle snapshot, and `sourceToDoc` / `docToSource` (the lossless `.it` ↔ editor bridge). Full list in the [package README](https://github.com/intenttext/IntentText/tree/main/packages/editor).
+
+### SSR / Next.js
+
+The editor is **browser-only** (it measures the DOM to paginate). With Next.js or any SSR framework, load it dynamically with SSR disabled:
+
+```tsx
+"use client";
+import dynamic from "next/dynamic";
+import "@dotit/editor/style.css";
+
+const IntentTextEditor = dynamic(
+  () => import("@dotit/editor").then((m) => m.IntentTextEditor),
+  { ssr: false },
+);
+```
+
+`exportDocumentPDF` / `exportDocumentHTML` must also only be called in the browser. For server-side PDF bytes use `@dotit/pdf`.
+
+### Notes for ERP embedding
+
+- Store the `.it` source string wherever you store documents — a DB column is fine.
+- Styling is scoped and ships in one stylesheet (`@dotit/editor/style.css`); one editor instance per page is the supported setup.
+- Insert at caret from your own UI: `window.dispatchEvent(new CustomEvent("it-insert-text", { detail: "{{customer.name}}" }))`.
+- For the full template → merge → print pipeline around the editor, see [ERP / App Integration](./erp-integration).

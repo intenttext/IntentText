@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "@docusaurus/Link";
+import useBaseUrl from "@docusaurus/useBaseUrl";
 import Layout from "@theme/Layout";
 import {
   ArrowRight,
@@ -683,6 +684,21 @@ export default function Home(): React.ReactElement {
               </ul>
             </div>
             <div className={styles.codeStack}>
+              <figure className={styles.shotFig}>
+                <div className={styles.shot}>
+                  <img
+                    src={useBaseUrl("/img/landing-invoice.png")}
+                    alt="Invoice rendered by @dotit/core — corporate theme, two-sided title row, line-item table, totals, and payment deadline"
+                    width={1440}
+                    height={1276}
+                    loading="lazy"
+                  />
+                </div>
+                <figcaption className={styles.shotCaption}>
+                  Real renderer output — <code>dotit invoice.it --print --theme
+                  corporate</code>
+                </figcaption>
+              </figure>
               <ItSource title="report.it — page setup" code={PRINT_SRC} />
               <DarkCode title="issue-invoice.ts — @dotit/pdf" code={PDF_SRC} />
             </div>
@@ -740,7 +756,24 @@ export default function Home(): React.ReactElement {
                 </li>
               </ul>
             </div>
-            <TerminalPane title="trust — dotit CLI" lines={TRUST_TERM} />
+            <div className={styles.codeStack}>
+              <figure className={styles.shotFig}>
+                <div className={styles.shot}>
+                  <img
+                    src={useBaseUrl("/img/landing-trust.png")}
+                    alt="Trust chain rendered by @dotit/core — two approvals, a verified signature, and a sealed-document entry with its hash"
+                    width={1360}
+                    height={650}
+                    loading="lazy"
+                  />
+                </div>
+                <figcaption className={styles.shotCaption}>
+                  The trust chain as it prints — hairline entries, like a legal
+                  document, not an app
+                </figcaption>
+              </figure>
+              <TerminalPane title="trust — dotit CLI" lines={TRUST_TERM} />
+            </div>
           </div>
         </div>
       </section>

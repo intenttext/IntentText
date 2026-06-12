@@ -18,7 +18,7 @@ import { ConvertModal } from "./modals/ConvertModal";
 import { HelpOverlay } from "./modals/HelpOverlay";
 import { useWorkspace } from "./hooks/useWorkspace";
 import { useFile } from "./hooks/useFile";
-import { useAutoSave } from "./hooks/useAutoSave";
+import { useAutoSave, readDraft } from "./hooks/useAutoSave";
 import { useDocument } from "./hooks/useDocument";
 import { useDocumentMeta } from "./hooks/useDocumentMeta";
 import { useTrustState } from "./hooks/useTrustState";
@@ -63,7 +63,7 @@ export default function App() {
 
   const docState = useDocument(content);
   const { openFile, saveFile, newFile } = useFile(workspace);
-  const { hasRestore, restore, dismiss } = useAutoSave(content, setContent);
+  useAutoSave(content, filename);
   const docMeta = useDocumentMeta(content, setContent);
   const trustState = useTrustState(content, setContent);
 
@@ -109,7 +109,16 @@ export default function App() {
       window.history.replaceState({}, "", window.location.pathname);
       return;
     }
-    if (!content && !hasRestore) {
+    if (!content) {
+      // Silent auto-restore: the editor is opening with the default/empty doc,
+      // so a newer autosaved draft can never clobber a deliberately opened
+      // file — just load it and keep autosaving. No prompt.
+      const draft = readDraft();
+      if (draft) {
+        setContent(draft.content);
+        if (draft.filename) setFilename(draft.filename);
+        return; // restored work is unsaved by definition
+      }
       const defaultDoc = getDemoDocById(DEFAULT_DEMO_DOC_ID);
       setContent(defaultDoc?.source || WELCOME);
       setFilename(defaultDoc ? `${defaultDoc.id}.it` : "untitled.it");
@@ -207,18 +216,6 @@ export default function App() {
 
   return (
     <>
-      {hasRestore && (
-        <div className="restore-toast">
-          <span>Restore unsaved work?</span>
-          <button className="restore-toast-btn restore-yes" onClick={restore}>
-            Restore
-          </button>
-          <button className="restore-toast-btn restore-no" onClick={dismiss}>
-            ✕
-          </button>
-        </div>
-      )}
-
       <div className="app-shell">
         <Toolbar
           filename={filename}

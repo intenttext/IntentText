@@ -111,6 +111,10 @@ function formatTrustDate(isoStr: string): string {
     const day = d.getUTCDate();
     const month = months[d.getUTCMonth()];
     const year = d.getUTCFullYear();
+    // Date-only inputs (YYYY-MM-DD) read better without a midnight timestamp
+    if (/^\d{4}-\d{2}-\d{2}$/.test(isoStr.trim())) {
+      return `${day} ${month} ${year}`;
+    }
     const hours = String(d.getUTCHours()).padStart(2, "0");
     const minutes = String(d.getUTCMinutes()).padStart(2, "0");
     return `${day} ${month} ${year}, ${hours}:${minutes} UTC`;
@@ -1028,12 +1032,10 @@ function renderBlock(block: IntentBlock): string {
       const approveRole = props.role ? escapeHtml(String(props.role)) : "";
       const approveAt = props.at ? formatTrustDate(String(props.at)) : "";
       return `<div class="it-approval">
-        <span class="it-approval__icon">✓</span>
-        <div class="it-approval__body">
-          <span class="it-approval__label">APPROVED</span>
-          <span class="it-approval__who">${approveBy}${approveRole ? ` — ${approveRole}` : ""}</span>
-          ${approveAt ? `<span class="it-approval__date">${approveAt}</span>` : ""}
-        </div>
+        <span class="it-approval__label">Approved</span>
+        ${content ? `<span class="it-approval__what">${content}</span>` : ""}
+        <span class="it-approval__who">${approveBy}${approveRole ? `, ${approveRole}` : ""}</span>
+        ${approveAt ? `<span class="it-approval__date">${approveAt}</span>` : ""}
       </div>`;
     }
 
@@ -1046,7 +1048,7 @@ function renderBlock(block: IntentBlock): string {
         <span class="it-signature__name">${signerName}</span>
         ${signRole ? `<span class="it-signature__role">${signRole}</span>` : ""}
         ${signAt ? `<span class="it-signature__date">${signAt}</span>` : ""}
-        <span class="it-signature__status">${signValid ? "✅ Verified" : "❌ Invalid"}</span>
+        <span class="it-signature__status">${signValid ? "Signed · verified" : "Unverified"}</span>
       </div>`;
     }
 
@@ -1056,8 +1058,7 @@ function renderBlock(block: IntentBlock): string {
         ? escapeHtml(String(props.hash)).slice(0, 20) + "..."
         : "";
       return `<div class="it-sealed-banner">
-        <span class="it-sealed-banner__icon">🔒</span>
-        <span class="it-sealed-banner__text">Sealed Document</span>
+        <span class="it-sealed-banner__text">Sealed document</span>
         ${freezeAt ? `<span class="it-sealed-banner__date">${freezeAt}</span>` : ""}
         ${freezeHash ? `<span class="it-sealed-banner__hash">${freezeHash}</span>` : ""}
       </div>`;

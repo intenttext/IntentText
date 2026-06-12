@@ -289,4 +289,4 @@ Editorial and document cross-reference blocks are available as extension keyword
 | `x-doc: ref`        | Cross-document reference with relationship  |
 | `x-doc: signline`   | Signature line for print documents          |
 
-See [Extension Keywords →](./extensions) for full syntax documentation.
+See the extensions overview in [Keywords →](./index.md#extension-keywords) for full syntax.

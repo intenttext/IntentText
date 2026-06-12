@@ -104,4 +104,4 @@ Document cross-reference and annotation blocks are available in the `x-doc:` nam
 | `x-doc: contact`    | Person or organization contact information       |
 | `x-doc: signline`   | Signature line for print documents               |
 
-See [Extension Keywords →](./extensions) for full syntax documentation.
+See the extensions overview in [Keywords →](./index.md#extension-keywords) for full syntax.

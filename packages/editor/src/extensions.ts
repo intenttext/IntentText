@@ -412,66 +412,60 @@ export const ITTrust = Node.create({
     return [{ tag: "div[data-it-trust]" }];
   },
   renderHTML({ HTMLAttributes, node }) {
+    // Ink-first typesetting, exactly mirroring core's print design
+    // (document-css.ts .it-approval / .it-signature / .it-sealed-banner):
+    // hairlines + small-caps labels, no colored fills - editor display = print.
     const { keyword, content, props } = parseTrustLine(
       String(node.attrs.raw || ""),
     );
     const role = props.role || props.title || "";
-    const date = props.at || props.date || props.time || "";
+    const date = (props.at || props.date || props.time || "").slice(0, 10);
     const parts: (string | (string | object)[])[] = [];
 
-    if (keyword === "seal") {
-      const hash = content || props.hash || "";
-      const algo = props.algo || "sha-256";
-      parts.push(
-        ["span", { class: "it-doc-trust__icon" }, "🔒"],
-        ["span", { class: "it-doc-trust__label" }, "Sealed"],
-        ["span", { class: "it-doc-trust__meta" }, algo],
-        ...(hash
-          ? [["code", { class: "it-doc-trust__hash" }, hash.slice(0, 16) + "…"]]
-          : []),
-      );
+    if (keyword === "seal" || keyword === "freeze") {
+      // SEALED band - thin top+bottom rules, mono hash (core .it-sealed-banner).
+      const hash =
+        (keyword === "seal" ? content || props.hash : props.hash) || "";
+      parts.push(["span", { class: "it-doc-trust__label" }, "Sealed document"]);
+      if (date) parts.push(["span", { class: "it-doc-trust__date" }, date]);
+      if (hash)
+        parts.push([
+          "code",
+          { class: "it-doc-trust__hash" },
+          hash.length > 20 ? hash.slice(0, 20) + "..." : hash,
+        ]);
     } else if (keyword === "approve") {
-      parts.push(
-        ["span", { class: "it-doc-trust__icon" }, "✓"],
-        ["span", { class: "it-doc-trust__label" }, "Approved"],
-        ["span", { class: "it-doc-trust__name" }, content],
-        ...(role ? [["span", { class: "it-doc-trust__role" }, role]] : []),
-        ...(date ? [["span", { class: "it-doc-trust__date" }, date]] : []),
-      );
-    } else if (keyword === "freeze") {
-      parts.push(
-        ["span", { class: "it-doc-trust__icon" }, "❄"],
-        ["span", { class: "it-doc-trust__label" }, "Frozen"],
-        ...(content ? [["span", { class: "it-doc-trust__name" }, content]] : []),
-        ...(date ? [["span", { class: "it-doc-trust__date" }, date]] : []),
-      );
+      // Single hairline row: CHECK APPROVED | what | who | date(right) - the
+      // check mark comes from CSS ::before, matching core's .it-approval__label.
+      const who = props.by || content;
+      const what = props.by ? content : "";
+      parts.push(["span", { class: "it-doc-trust__label" }, "Approved"]);
+      if (what) parts.push(["span", { class: "it-doc-trust__what" }, what]);
+      if (who)
+        parts.push([
+          "span",
+          { class: "it-doc-trust__who" },
+          role ? `${who}, ${role}` : who,
+        ]);
+      if (date) parts.push(["span", { class: "it-doc-trust__date" }, date]);
     } else if (keyword === "amend" || keyword === "amendment") {
-      parts.push(
-        ["span", { class: "it-doc-trust__icon" }, "✎"],
-        ["span", { class: "it-doc-trust__label" }, "Amendment"],
-        ["span", { class: "it-doc-trust__name" }, content],
-        ...(date ? [["span", { class: "it-doc-trust__date" }, date]] : []),
-      );
+      parts.push(["span", { class: "it-doc-trust__label" }, "Amendment"]);
+      if (content)
+        parts.push(["span", { class: "it-doc-trust__what" }, content]);
+      if (date) parts.push(["span", { class: "it-doc-trust__date" }, date]);
     } else {
-      // sign — render as a real signature line (script name over a rule, with
-      // printed name / role / date beneath), like a signed paper document.
-      return [
-        "div",
-        mergeAttributes(HTMLAttributes, {
-          "data-it-trust": "",
-          "data-trust": keyword,
-          class: "it-doc-trust it-doc-sign",
-        }),
-        ["div", { class: "it-doc-sign__script" }, content || " "],
-        ["div", { class: "it-doc-sign__rule" }],
-        [
-          "div",
-          { class: "it-doc-sign__row" },
-          ["span", { class: "it-doc-sign__name" }, content],
-          ...(role ? [["span", { class: "it-doc-sign__role" }, role]] : []),
-          ...(date ? [["span", { class: "it-doc-sign__date" }, date]] : []),
-        ],
-      ];
+      // sign - a signature rule line (core .it-signature): hairline rule on
+      // top, name / role / date with a status flag at the line end.
+      const name = content || props.by || "";
+      const valid = !!props.hash;
+      parts.push(["span", { class: "it-doc-trust__name" }, name]);
+      if (role) parts.push(["span", { class: "it-doc-trust__role" }, role]);
+      if (date) parts.push(["span", { class: "it-doc-trust__date" }, date]);
+      parts.push([
+        "span",
+        { class: "it-doc-trust__status" },
+        valid ? "Signed \u00b7 verified" : "Signed",
+      ]);
     }
 
     return [

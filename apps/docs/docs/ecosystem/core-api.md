@@ -11,7 +11,7 @@ TypeScript/JavaScript API reference for `@dotit/core`.
 npm install @dotit/core
 ```
 
-Current version: **1.0.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
+Current version: **1.1.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
 
 ## Parser
 
@@ -870,7 +870,7 @@ Union type covering all 38 canonical keywords plus extension namespace blocks.
 
 **Extension blocks:**
 
-Extension blocks have the form `x-ns: type` (e.g., `x-agent: loop`, `x-doc: def`). They are typed as `{ type: string; namespace: string }` and passed through the renderer without core evaluation. See [Extension Keywords →](/docs/reference/keywords/extensions).
+Extension blocks have the form `x-ns: type` (e.g., `x-agent: loop`, `x-doc: def`). They are typed as `{ type: string; namespace: string }` and passed through the renderer without core evaluation. See [Extension keywords →](/docs/reference/keywords/#extension-keywords).
 
 ### `InlineNode`
 

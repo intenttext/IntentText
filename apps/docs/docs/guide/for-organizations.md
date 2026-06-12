@@ -145,6 +145,6 @@ dotit query ./reports --type metric --format csv > metrics.csv
 **Related:**
 
 - [Folder Structure →](../cookbook/organizations/folder-structure)
-- [Multi-Folder Query →](../cookbook/organizations/multi-folder-query)
+- [Query reference →](../reference/query)
 - [Contact Directory →](../cookbook/organizations/contact-directory)
 - [Deadline Tracking →](../cookbook/organizations/deadline-tracking)

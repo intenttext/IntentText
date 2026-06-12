@@ -108,5 +108,5 @@ Add `contact:` to the documents you already write. The directory builds itself.
 ## Next steps
 
 - [Deadline Tracking](./deadline-tracking) — the same pattern for deadlines
-- [Querying Documents](./querying-documents) — query syntax reference
+- [Query reference](../../reference/query) — query syntax
 - [Contract](../documents/contract) — complete contract with contacts

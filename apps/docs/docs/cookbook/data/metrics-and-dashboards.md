@@ -112,4 +112,4 @@ dotit query ./agent-logs --type metric --content "Error rate" --format csv
 
 - [Report](../documents/report) — full report with metric grid
 - [Cross-Document References](./cross-document-refs) — link metrics across reports
-- [Querying Documents](../organizations/querying-documents) — query syntax
+- [Query reference](../../reference/query) — query syntax

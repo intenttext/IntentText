@@ -33,12 +33,14 @@
    GOOGLE DOCS – Visual Editor (TipTap)
    ═══════════════════════════════════════════════════════════════ */
 
-/* Container fills the panel */
+/* Container fills the panel — a flat, full-bleed Docs-style workspace:
+   light-gray canvas, white page sheet floating on it, no rounded corners. */
 .docs-container {
+  --docs-canvas-bg: #f9fbfd;
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #f8f9fa;
+  background: var(--docs-canvas-bg);
 }
 
 /* ─── Docs Toolbar (formatting bar) ───────────────────────── */
@@ -48,7 +50,7 @@
   align-items: center;
   gap: 2px;
   padding: 4px 12px;
-  background: rgba(108, 63, 197, 0.08);
+  background: #fff;
   border-bottom: 1px solid #dadce0;
   flex-shrink: 0;
   min-height: 40px;
@@ -75,8 +77,8 @@
   background: rgba(0, 0, 0, 0.06);
 }
 .docs-toolbar button.active {
-  background: rgba(108, 63, 197, 0.12);
-  color: #6c3fc5;
+  background: rgba(26, 115, 232, 0.12);
+  color: #1a73e8;
 }
 .docs-toolbar select {
   padding: 0 4px;
@@ -119,11 +121,11 @@
   cursor: default;
 }
 .docs-tb-btn.active {
-  background: rgba(108, 63, 197, 0.12);
-  color: #6c3fc5;
+  background: rgba(26, 115, 232, 0.12);
+  color: #1a73e8;
 }
 .docs-tb-btn.active:hover {
-  background: rgba(108, 63, 197, 0.18);
+  background: rgba(26, 115, 232, 0.18);
 }
 .docs-tb-sep {
   width: 1px;
@@ -202,8 +204,8 @@
   background: #f1f3f4;
 }
 .docs-tb-dropdown-item.active {
-  background: rgba(108, 63, 197, 0.08);
-  color: #6c3fc5;
+  background: rgba(26, 115, 232, 0.08);
+  color: #1a73e8;
 }
 .docs-style-preview {
   display: block;
@@ -386,7 +388,8 @@
 .docs-canvas {
   flex: 1;
   overflow: auto;
-  padding: 20px 0 60px;
+  background: var(--docs-canvas-bg, #f9fbfd);
+  padding: 14px 0 72px;
 }
 /* Auto-hide scrollbars — appear only when scrolling */
 .docs-canvas {
@@ -430,12 +433,15 @@
    margin boxes); horizontal margins are padding on the content (.tiptap).
    Geometry (size + margins) comes inline from the document's page: block. */
 
+/* The white sheet: hairline edge + soft 1px shadow, square corners (Docs).
+   The hairline is a box-shadow ring (NOT a border) so it never shifts the
+   content box — page geometry must stay identical to print. */
 .docs-page {
   background: #fff;
   box-shadow:
-    0 1px 3px rgba(60, 64, 67, 0.15),
-    0 1px 2px rgba(60, 64, 67, 0.1);
-  border-radius: 2px;
+    0 0 0 1px rgba(60, 64, 67, 0.14),
+    0 1px 3px rgba(60, 64, 67, 0.12);
+  border-radius: 0;
   position: relative;
   overflow: visible;
 }
@@ -499,7 +505,7 @@
 /* The gap reads as "space between two sheets of paper": canvas color with a
    soft shadow edge on each page card. */
 .docs-pb-gap {
-  background: var(--bg-app, #eef0f3);
+  background: var(--docs-canvas-bg, #f9fbfd);
   box-shadow:
     inset 0 6px 5px -4px rgba(15, 23, 42, 0.14),
     inset 0 -4px 4px -3px rgba(15, 23, 42, 0.1);
@@ -743,66 +749,124 @@
   vertical-align: top;
 }
 
-/* ─── Trust blocks (sign / seal / approve / freeze / amendment) ─── */
+/* ─── Trust blocks (sign / seal / approve / freeze / amendment) ──────────────
+   Ink-first, exactly mirroring core's print CSS (document-css.ts .it-approval /
+   .it-signature / .it-sealed-banner): hairlines + small-caps labels, no colored
+   fills — what you see in the editor is what core prints. */
+
 .docs-page .tiptap .it-doc-trust {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  margin: 10px 0;
-  padding: 9px 14px;
-  border: 1px solid #daa520;
-  border-radius: 8px;
-  background: #fffdf5;
+  gap: 10px;
+  align-items: baseline;
   font-size: 0.9rem;
   user-select: none;
 }
-.docs-page .tiptap .it-doc-trust--seal {
-  border: 2px solid #c62828;
-  background: #fdf5f5;
-  font-weight: 600;
-}
+
+/* approve → core .it-approval: single hairline row, ✓ APPROVED label. */
 .docs-page .tiptap .it-doc-trust--approve {
-  border-color: #4caf50;
-  background: #f6fbf6;
+  margin: 12px 0;
+  padding: 7px 2px;
+  border-bottom: 1px solid #ddd;
 }
-.docs-page .tiptap .it-doc-trust--freeze {
-  border-color: #5b8def;
-  background: #f5f8ff;
+.docs-page .tiptap .it-doc-trust--approve .it-doc-trust__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #2e7d32;
+  flex-shrink: 0;
 }
-.docs-page .tiptap .it-doc-trust--amendment,
-.docs-page .tiptap .it-doc-trust--amend {
-  border-color: #b0b0b0;
-  background: #fafafa;
+.docs-page .tiptap .it-doc-trust--approve .it-doc-trust__label::before {
+  content: "✓ ";
 }
-.docs-page .tiptap .it-doc-trust__icon {
-  font-size: 1rem;
-  line-height: 1;
-}
-.docs-page .tiptap .it-doc-trust__label {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-.docs-page .tiptap .it-doc-trust__name {
+.docs-page .tiptap .it-doc-trust__what {
+  font-size: 0.9rem;
   font-weight: 600;
   color: #111;
 }
-.docs-page .tiptap .it-doc-trust__role {
+.docs-page .tiptap .it-doc-trust__who {
+  font-size: 0.9rem;
   color: #555;
 }
+
+/* sign → core .it-signature: signature rule line (hairline on top). */
+.docs-page .tiptap .it-doc-trust--sign {
+  margin: 14px 0 10px;
+  padding: 7px 2px 5px;
+  border-top: 1px solid #111;
+}
+.docs-page .tiptap .it-doc-trust__name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #111;
+}
+.docs-page .tiptap .it-doc-trust__role {
+  font-size: 0.85rem;
+  color: #555;
+}
+.docs-page .tiptap .it-doc-trust__status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-inline-start: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #2e7d32;
+}
+
+/* seal / freeze → core .it-sealed-banner: SEALED band, thin top+bottom rules. */
+.docs-page .tiptap .it-doc-trust--seal,
+.docs-page .tiptap .it-doc-trust--freeze {
+  gap: 12px;
+  margin: 18px 0;
+  padding: 8px 2px;
+  border-top: 1px solid #111;
+  border-bottom: 1px solid #111;
+}
+.docs-page .tiptap .it-doc-trust--seal .it-doc-trust__label,
+.docs-page .tiptap .it-doc-trust--freeze .it-doc-trust__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #111;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+.docs-page .tiptap .it-doc-trust--seal .it-doc-trust__date,
+.docs-page .tiptap .it-doc-trust--freeze .it-doc-trust__date {
+  margin-inline-start: auto;
+}
+.docs-page .tiptap .it-doc-trust__hash {
+  font-family: "SFMono-Regular", ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
+  color: #999;
+}
+
+/* amendment → muted hairline row. */
+.docs-page .tiptap .it-doc-trust--amendment,
+.docs-page .tiptap .it-doc-trust--amend {
+  margin: 12px 0;
+  padding: 7px 2px;
+  border-bottom: 1px solid #ddd;
+}
+.docs-page .tiptap .it-doc-trust--amendment .it-doc-trust__label,
+.docs-page .tiptap .it-doc-trust--amend .it-doc-trust__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #555;
+  flex-shrink: 0;
+}
+
 .docs-page .tiptap .it-doc-trust__date {
   color: #777;
   font-size: 0.8rem;
-  margin-left: auto;
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
 }
-.docs-page .tiptap .it-doc-trust__hash {
-  font-family: ui-monospace, monospace;
-  font-size: 0.78rem;
-  color: #444;
-}
-.docs-page .tiptap .it-doc-trust__meta {
-  font-size: 0.78rem;
-  color: #777;
+/* sign rows: status sits at the end — date stays inline. */
+.docs-page .tiptap .it-doc-trust--sign .it-doc-trust__date {
+  margin-inline-start: 0;
 }
 
 /* ─── Template variables ({{path}}) ───────────────────────── */
@@ -1053,42 +1117,26 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Ribbon — ONE Word-like toolbar with labeled groups
+   Ribbon — ONE compact Docs-style toolbar row
    (Edit | File | Text | Paragraph | Insert | Trust)
    ═══════════════════════════════════════════════════════════════ */
 
 .docs-ribbon {
-  align-items: stretch;
+  align-items: center;
   gap: 0;
-  padding: 6px 10px 3px;
+  padding: 4px 10px;
 }
 .ribbon-group {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 2px;
-}
-.ribbon-group-row {
-  display: flex;
   align-items: center;
   gap: 2px;
-}
-.ribbon-group-label {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: #9aa0a6;
-  margin-top: 2px;
-  user-select: none;
-  white-space: nowrap;
+  padding: 0 2px;
 }
 .ribbon-sep {
   width: 1px;
-  align-self: stretch;
-  background: #d8d2c4;
-  margin: 2px 7px;
+  height: 22px;
+  background: #dadce0;
+  margin: 0 6px;
   flex-shrink: 0;
 }
 .ribbon-btn-text {
@@ -1116,7 +1164,7 @@
 .ribbon-editing,
 .ribbon-locked {
   display: flex;
-  align-items: stretch;
+  align-items: center;
 }
 /* Sealed documents: formatting is read-only. */
 .ribbon-locked {
@@ -1150,59 +1198,6 @@
   content: attr(data-it-end);
   flex-shrink: 0;
   white-space: pre-wrap;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   Signature line — sign: blocks render like a signed paper document
-   (script autograph over a rule, printed name / role / date below)
-   ═══════════════════════════════════════════════════════════════ */
-
-.docs-page .tiptap .it-doc-sign {
-  display: inline-block;
-  min-width: 300px;
-  max-width: 420px;
-  margin: 22px 0 8px;
-  margin-inline-end: 28px;
-  padding: 0;
-  border: none;
-  background: none;
-  font-weight: 400;
-  user-select: none;
-}
-.docs-page .tiptap .it-doc-sign__script {
-  font-family: "Snell Roundhand", "Savoye LET", "Segoe Script",
-    "Brush Script MT", cursive;
-  font-size: 23px;
-  line-height: 1.15;
-  color: #1a2a52;
-  padding: 0 6px 2px;
-  min-height: 27px;
-}
-.docs-page .tiptap .it-doc-sign__rule {
-  border-bottom: 1.5px solid #202124;
-}
-.docs-page .tiptap .it-doc-sign__row {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: 5px;
-  font-size: 0.85rem;
-}
-.docs-page .tiptap .it-doc-sign__name {
-  font-weight: 600;
-  color: #111;
-}
-.docs-page .tiptap .it-doc-sign__role {
-  color: #555;
-}
-.docs-page .tiptap .it-doc-sign__role::before {
-  content: "· ";
-  color: #9aa0a6;
-}
-.docs-page .tiptap .it-doc-sign__date {
-  margin-inline-start: auto;
-  color: #777;
-  font-size: 0.8rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1336,17 +1331,59 @@
   unicode-bidi: plaintext;
 }
 
-/* ─── Look refresh (folded from the app's 2026 UI refresh overrides) ──────── */
-
-.docs-toolbar {
-  background: linear-gradient(90deg, rgba(15, 118, 110, 0.07), rgba(183, 106, 31, 0.08));
-  border-bottom: 1px solid rgba(216, 203, 181, 0.95);
-}
+/* ─── Active-control accent (Docs blue) ───────────────────── */
 
 .docs-toolbar button.active,
 .docs-tb-btn.active {
-  background: rgba(15, 118, 110, 0.16);
-  color: #0f766e;
+  background: rgba(26, 115, 232, 0.12);
+  color: #1a73e8;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Horizontal ruler — Google Docs strip above the page
+   ═══════════════════════════════════════════════════════════════ */
+
+.docs-ruler {
+  flex-shrink: 0;
+  height: 20px;
+  background: #fff;
+  border-bottom: 1px solid #dadce0;
+  overflow: hidden;
+  user-select: none;
+}
+/* Exactly as wide as the page sheet (geometry.width × zoom), centered the same
+   way; translated by the canvas' scrollLeft so it stays glued to the sheet. */
+.docs-ruler-track {
+  position: relative;
+  height: 100%;
+  margin: 0 auto;
+}
+.docs-ruler-margin {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(60, 64, 67, 0.1);
+}
+.docs-ruler-tick {
+  position: absolute;
+  bottom: 4px;
+  width: 1px;
+  background: #9aa0a6;
+}
+.docs-ruler-tick--minor {
+  height: 4px;
+}
+.docs-ruler-tick--major {
+  height: 7px;
+}
+.docs-ruler-num {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
+  line-height: 1;
+  color: #80868b;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ─── Mobile ──────────────────────────────────────────────── */
@@ -1360,5 +1397,8 @@
   }
   .docs-canvas {
     padding: 0;
+  }
+  .docs-ruler {
+    display: none;
   }
 }

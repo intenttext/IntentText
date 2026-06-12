@@ -1,4 +1,4 @@
-// The editor ribbon — ONE coherent, Word-like toolbar with labeled groups:
+// The editor ribbon — ONE compact, Google-Docs-style toolbar row with groups:
 //
 //   Edit | File (PDF / HTML / theme) | Text | Paragraph | Insert | Trust
 //
@@ -22,8 +22,6 @@ import {
   AlignJustify,
   List,
   ListOrdered,
-  Subscript,
-  Superscript,
   Minus,
   Plus,
   Palette,
@@ -212,7 +210,7 @@ function Btn({
   );
 }
 
-/** A labeled ribbon group (controls row + small caption underneath). */
+/** A ribbon group — one compact Docs-style row (the label is a11y-only). */
 function Group({
   label,
   children,
@@ -223,9 +221,12 @@ function Group({
   className?: string;
 }) {
   return (
-    <div className={`ribbon-group ${className}`.trim()}>
-      <div className="ribbon-group-row">{children}</div>
-      <div className="ribbon-group-label">{label}</div>
+    <div
+      className={`ribbon-group ${className}`.trim()}
+      role="group"
+      aria-label={label}
+    >
+      {children}
     </div>
   );
 }
@@ -744,20 +745,6 @@ export function DocsToolbar({
             )}
           </div>
 
-          <Btn
-            onClick={() => editor.chain().focus().toggleSubscript().run()}
-            active={editor.isActive("subscript")}
-            title="Subscript"
-          >
-            <Subscript size={16} />
-          </Btn>
-          <Btn
-            onClick={() => editor.chain().focus().toggleSuperscript().run()}
-            active={editor.isActive("superscript")}
-            title="Superscript"
-          >
-            <Superscript size={16} />
-          </Btn>
           <Btn
             onClick={() => editor.chain().focus().toggleCode().run()}
             active={editor.isActive("code")}

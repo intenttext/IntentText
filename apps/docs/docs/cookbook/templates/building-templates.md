@@ -141,6 +141,5 @@ The template becomes available for anyone to browse, fork, and use.
 
 ## Next steps
 
-- [Dynamic Tables](./dynamic-tables) — deep dive on `each:` and singularization
-- [Merging Data](./merge-data) — nested data, API merge, error handling
-- [Template Library](./template-library) — browse the 76 Hub templates
+- [Templates reference](../../reference/templates) — variable syntax, `each:` tables, merge API, missing values
+- [IntentText Hub](../../ecosystem/hub) — browse the official template library

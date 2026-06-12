@@ -12,13 +12,25 @@ Build a complete, professional invoice from scratch — with contacts, deadlines
 Every `.it` file starts with what the document _is_:
 
 ```intenttext
-title: Invoice INV-2026-042
+title: Invoice INV-2026-042 | end: 2026-03-01
 summary: Consulting services — Acme Corp — Q2 2026
 meta: | type: invoice | currency: USD | ref: INV-2026-042
 track: | version: 1.0 | by: Ahmed Al-Rashid
 ```
 
 `title:` becomes the H1. `summary:` is the subtitle. `meta:` holds machine-readable metadata. `track:` activates change history.
+
+The `end:` property makes a **two-sided row** — content at the line start, value at the
+line end. That's the classic "invoice number left, date right" header, and it works on
+`title:`, `section:`, `sub:`, and `text:` too:
+
+```intenttext
+text: Bill To | end: GlobalTech Inc.
+text: Payment Terms | end: Net 30
+```
+
+In an Arabic (RTL) document the sides flip automatically. See
+[Pipe Properties → Two-sided rows](../reference/pipe-properties#two-sided-rows--end).
 
 ## Add the parties
 
@@ -141,7 +153,7 @@ Every keyword you used above has a registered Arabic alias with identical semant
 ## The complete file
 
 ```intenttext
-title: Invoice INV-2026-042
+title: Invoice INV-2026-042 | end: 2026-03-01
 summary: Consulting services — Acme Corp — Q2 2026
 meta: | type: invoice | currency: USD | ref: INV-2026-042
 track: | version: 1.0 | by: Ahmed Al-Rashid

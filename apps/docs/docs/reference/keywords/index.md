@@ -63,6 +63,15 @@ Beyond the 38 canonical keywords, IntentText supports **extension blocks** via a
 | `x-layout:` | Advanced typography          | `font`, `divider`                                                                                                                                                     |
 | `x-exp:`    | Experimental                 | `assert`, `secret`, `input`, `output`                                                                                                                                 |
 
-Extension blocks follow the same pipe-property syntax as canonical blocks. They are parsed, rendered, and queryable through all core APIs.
+Extension blocks follow the same pipe-property syntax as canonical blocks — `x-<namespace>: <type> | key: value` — and are parsed, rendered, and queryable through all core APIs:
 
-See [Extension Keywords →](./extensions) for full documentation.
+```intenttext
+x-writer: byline | date: 2026-03-09
+x-doc: ref | file: ./policy.it | rel: supersedes
+x-agent: loop | over: invoices
+x-trust: revision | version: 1.1 | by: Ahmed
+x-layout: divider | style: dashed
+x-exp: assert | expr: total > 0
+```
+
+Some extension blocks (notably `x-trust:` history entries) are machine-managed — don't edit them by hand. Bare legacy forms may still parse for compatibility, but the namespaced form is canonical.

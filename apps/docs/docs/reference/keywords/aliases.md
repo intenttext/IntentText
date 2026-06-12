@@ -196,7 +196,7 @@ A few extension keywords also have registered aliases that resolve to the extens
 | `figure`          | `fig:`, `diagram:`, `chart:`, `illustration:`, `visual:`           |
 | `signline`        | `signature-line:`, `sign-here:`                                    |
 
-Namespaced forms (`x-ns: type`) do not take aliases — the full `x-ns: type` form is always used. See [Extension Keywords →](./extensions).
+Namespaced forms (`x-ns: type`) do not take aliases — the full `x-ns: type` form is always used. See the extensions overview in [Keywords →](./index.md#extension-keywords).
 
 ---
 

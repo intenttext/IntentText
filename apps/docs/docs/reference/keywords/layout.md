@@ -154,10 +154,18 @@ watermark: CONFIDENTIAL | opacity: 0.2 | color: red
 watermark: For Review Only | opacity: 0.1 | angle: 30
 ```
 
+In a template, make the watermark a variable — pass empty data to skip it, or different
+values per version:
+
+```intenttext
+watermark: {{watermark_text}} | color: {{watermark_color}}
+```
+
 ### Notes
 
 - Printed diagonally across every page in print/PDF output
 - Visible in web rendering as a CSS background layer
+- Opacity guide: `0.03–0.05` very subtle, `0.06–0.10` standard, `0.10–0.15` strong, above that it obscures content
 - Remove by deleting the `watermark:` block — sealing the document with `freeze:` prevents removal
 
 ---
@@ -266,4 +274,4 @@ Typography and decorative layout keywords are available in the `x-layout:` and `
 | `x-layout: divider` | Visual horizontal rule, shown in both web and print             |
 | `x-doc: signline`   | Physical signature line for printed/PDF contracts               |
 
-See [Extension Keywords →](./extensions) for full syntax documentation.
+See the extensions overview in [Keywords →](./index.md#extension-keywords) for full syntax.

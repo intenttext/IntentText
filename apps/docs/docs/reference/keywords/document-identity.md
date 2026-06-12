@@ -83,6 +83,7 @@ meta: | key: value | key: value
 | `domain`  | string | Business domain (e.g., `finance`, `legal`)             |
 | `tags`    | string | Comma-separated tags                                   |
 | `theme`   | string | Default theme for rendering                            |
+| `dir`     | string | Explicit text direction: `rtl` or `ltr` — overrides auto-detection |
 
 ### Examples
 
@@ -90,6 +91,7 @@ meta: | key: value | key: value
 meta: | type: template | domain: finance | author: Ahmed Al-Rashid
 meta: | type: contract | lang: en | tags: consulting, q2-2026
 meta: | theme: corporate | version: 2.1
+meta: | dir: rtl
 ```
 
 ### Notes

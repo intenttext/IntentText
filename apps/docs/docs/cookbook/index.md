@@ -5,25 +5,19 @@ title: Cookbook
 
 # Cookbook
 
-Complete, working examples for every common IntentText use case. Each recipe gives you a real problem, a working solution, and the commands to make it happen.
+Complete, working examples for common IntentText use cases. Each recipe gives you a real problem, a working solution, and the commands to make it happen. (Fundamentals live in the [Guide](../guide/index.md) and exact syntax in the [Reference](../reference/index.md) — recipes here don't repeat them.)
 
 ## Documents
 
-Build real documents — invoices, contracts, reports, newsletters.
+Build real documents — contracts, reports, newsletters. For an invoice walkthrough, see [Your First Document](../guide/first-document).
 
-- [Invoice](./documents/invoice) — professional invoice with line items and PDF export
 - [Contract](./documents/contract) — verifiable contract with approval trail and signatures
 - [Report](./documents/report) — monthly report with metrics and figures
 - [Newsletter](./documents/newsletter) — editorial newsletter with images and pull quotes
 
 ## Templates
 
-Turn documents into reusable templates and merge them with data.
-
-- [Building Templates](./templates/building-templates) — from document to reusable template
-- [Dynamic Tables](./templates/dynamic-tables) — `each:` property, singularization, empty arrays
-- [Merging Data](./templates/merge-data) — CLI and API merge, nested data, missing values
-- [Template Library](./templates/template-library) — the 76 Hub templates by domain
+- [Building Templates](./templates/building-templates) — from document to reusable template. Variable syntax, `each:` tables, and the merge API live in the [Templates reference](../reference/templates).
 
 ## Trust
 
@@ -45,22 +39,16 @@ AI agent pipelines, task planning, and MCP integration.
 
 ## Organizations
 
-Folder structures, queries, indexes, and team workflows.
+Folder structures and team workflows. Query syntax and `.it-index` mechanics live in [A Folder Is a Database](../guide/folder-as-database), the [Query reference](../reference/query), and the [Index File reference](../reference/index-file).
 
 - [Folder Structure](./organizations/folder-structure) — recommended structure for organizations
-- [Querying Documents](./organizations/querying-documents) — single file, folder, glob, natural language
-- [Indexing Folders](./organizations/indexing-folders) — `.it-index` setup and management
-- [Multi-Folder Query](./organizations/multi-folder-query) — shallow architecture explained
 - [Contact Directory](./organizations/contact-directory) — build a contact directory from existing files
 - [Deadline Tracking](./organizations/deadline-tracking) — track deadlines across hundreds of documents
 
 ## Print
 
-Print-ready documents, watermarks, and PDF export.
-
 - [Print-Ready Documents](./print/print-ready-documents) — full print layout with headers and signatures
-- [Watermarks](./print/watermarks) — CONFIDENTIAL, DRAFT, VOID overlays
-- [PDF Export](./print/pdf-export) — CLI export with themes and metadata
+- [PDF Export](./print/pdf-export) — CLI export with themes and metadata. Watermark syntax is in the [Layout reference](../reference/keywords/layout#watermark).
 
 ## Data
 

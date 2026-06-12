@@ -6,6 +6,17 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [1.1.1] — 2026-06-12
+
+### Changed
+
+- **Trust blocks typeset like a legal document.** `approve:`, `sign:`, and `freeze:`
+  now render as hairline entries with small-caps labels (✓ APPROVED row, signature
+  rule line, SEALED DOCUMENT band) instead of colored boxes — ink-first, identical
+  in HTML and PDF. Approve now shows its content; sign status is text, not emoji.
+- Date-only trust dates (`at: 2026-03-10`) render without a midnight "00:00 UTC".
+- llms.txt: full Arabic alias table (33) + complete Arabic quotation example.
+
 ## [1.1.0] — 2026-06-12
 
 > **Rebrand:** packages are now published as **`@dotit/core`**, **`@dotit/pdf`**, and

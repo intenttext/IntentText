@@ -143,6 +143,43 @@ Each keyword documents its own properties on its reference page. Here is a cross
 | `color:`       | `watermark:`                                         | Color value               |
 | `opacity:`     | `watermark:`                                         | Opacity (0–1)             |
 | `angle:`       | `watermark:`                                         | Rotation angle            |
+| `end:`         | `title:`, `section:`, `sub:`, `text:`, prose         | Two-sided row — value rendered at the line end |
+| `leading:`     | Any text-bearing block                               | Line height (`leading: 1.9`) |
+| `space-before:` | Any text-bearing block                              | Space above the block     |
+| `space-after:` | Any text-bearing block                               | Space below the block     |
+
+## Two-sided rows — `end:`
+
+`end:` renders a block as a two-sided row: the content sits at the line **start**, the
+`end:` value at the line **end** — the invoice/report "label left, value right" pattern:
+
+```intenttext
+title: Invoice INV-2026-042 | end: 2026-06-12
+text: Customer | end: Acme Corp
+section: Payment Terms | end: Net 30
+```
+
+It works on `title:`, `section:`, `sub:`, `text:`, and prose blocks. The row is flex
+start/end, so RTL documents flip it automatically — no extra markup. The `end:` value is
+bidi-isolated (`dir="auto"`), so a date or amount keeps its internal order inside an
+Arabic line. `leading:`, `space-before:`, and `space-after:` are spacing props — see
+[Style Properties](./style-properties) for the full mapping.
+
+## Direction — RTL and bidi isolation
+
+Direction is automatic and per-value:
+
+- A document with Arabic (or other RTL) content flips to `dir="rtl"` automatically; all
+  built-in CSS uses logical properties, so tables, quotes, callouts, and splits mirror
+  correctly without configuration.
+- **Override explicitly** with `meta: | dir: rtl` (or `dir: ltr`) — the explicit value
+  beats auto-detection in either direction. The Arabic alias works too:
+  `بيانات: | dir: rtl`.
+- **Mixed-language values stay readable.** Table cells, task owner/due dates, metric
+  values, deadline dates, contact email/phone, and `end:` values carry `dir="auto"` —
+  each value resolves its own direction from its first strong character, so
+  `10,200 QAR` and `2026-06-20` keep their internal order inside RTL lines. Never
+  manually reorder or pad mixed-language values.
 
 ## Open-ended properties
 

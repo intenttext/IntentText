@@ -1,3 +1,12 @@
+// Slim Docs-style title bar — the app's ONLY chrome row above the ribbon:
+//
+//   [logo] [filename] [File ▾]            …            [SEALED] [Visual|Source]
+//
+// Everything that used to be scattered across the old header (New / Open /
+// Save / Samples / Template / Help / exports) lives in the File menu. In
+// visual mode the ribbon (inside @dotit/editor) renders directly underneath;
+// in source mode a Theme picker is surfaced here since there is no ribbon.
+
 import { useState, useRef, useEffect } from "react";
 import { ThemePicker } from "./ThemePicker";
 import type { ModalType } from "../App";
@@ -14,7 +23,6 @@ interface Props {
   onOpen: () => void;
   onSave: () => void;
   onModal: (m: ModalType) => void;
-  /** Export actions — shown here only in source mode (the ribbon owns them in visual mode). */
   onExportPDF: () => void;
   onExportHTML: () => void;
   isSealed?: boolean;
@@ -60,49 +68,106 @@ export function Toolbar({
   const toggle = (name: string) =>
     setOpenMenu((cur) => (cur === name ? null : name));
 
-  return (
-    <div
-      ref={toolbarRef}
-      style={{
-        height: "var(--toolbar-h)",
-        background: "var(--bg-toolbar)",
-        borderBottom: "1px solid var(--border)",
-        display: "flex",
-        alignItems: "center",
-        padding: "0 12px",
-        gap: 4,
-        flexShrink: 0,
+  const item = (
+    label: string,
+    action: () => void,
+    opts?: { kbd?: string; badge?: number },
+  ) => (
+    <button
+      className="dropdown-item"
+      onClick={() => {
+        action();
+        setOpenMenu(null);
       }}
     >
-      {/* Left — file controls */}
-      <button className="tbtn" onClick={onNew} title="New file (Cmd+N)">
-        <svg viewBox="0 0 16 16" fill="currentColor">
-          <path d="M3 1h7l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1zm6.5 1H3v12h9V4.5L9.5 2z" />
-        </svg>
-        New
-      </button>
-      <button className="tbtn" onClick={onOpen} title="Open file (Cmd+O)">
-        <svg viewBox="0 0 16 16" fill="currentColor">
-          <path d="M1 3.5A1.5 1.5 0 012.5 2h3.879a1.5 1.5 0 011.06.44L8.56 3.56A.5.5 0 008.854 3.5H13.5A1.5 1.5 0 0115 5v7.5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 011 12.5v-9zM2.5 3a.5.5 0 00-.5.5V6h12V5a.5.5 0 00-.5-.5H8.854a1.5 1.5 0 01-1.06-.44L6.672 2.94A.5.5 0 006.379 3H2.5z" />
-        </svg>
-        Open
-      </button>
-      <button className="tbtn" onClick={onSave} title="Save file (Cmd+S)">
-        <svg viewBox="0 0 16 16" fill="currentColor">
-          <path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 01-.927-.928l.929-3.25a1.75 1.75 0 01.445-.758l8.61-8.61zM11.986 3L13 4.014 11.014 6 10 4.986 11.986 3z" />
-        </svg>
-        Save
-      </button>
+      {label}
+      {opts?.badge ? <span className="tbtn-badge">{opts.badge}</span> : null}
+      {opts?.kbd ? <span className="menu-kbd">{opts.kbd}</span> : null}
+    </button>
+  );
+
+  return (
+    <div ref={toolbarRef} className="titlebar">
+      {/* Logo mark */}
+      <span className="titlebar-logo" title="IntentText Editor">
+        .it
+      </span>
+
+      {/* Editable document name */}
       <input
         className="filename-input"
         value={filename}
         onChange={(e) => onFilenameChange(e.target.value)}
         spellCheck={false}
+        aria-label="Document name"
       />
+
+      {/* File menu — New / Open / Save / exports / samples / tools */}
+      <div className="dropdown">
+        <button
+          className={`tbtn${openMenu === "file" ? " active" : ""}`}
+          onClick={() => toggle("file")}
+        >
+          File ▾
+        </button>
+        {openMenu === "file" && (
+          <div className="dropdown-menu dropdown-menu--left">
+            {item("New", onNew, { kbd: "⌘N" })}
+            {item("Open…", onOpen, { kbd: "⌘O" })}
+            {item("Save", onSave, { kbd: "⌘S" })}
+            <div className="dropdown-sep" />
+            {item("Export PDF", onExportPDF)}
+            {item("Export HTML", onExportHTML)}
+            <div className="dropdown-sep" />
+            {item("Template & merge…", () => onModal("template"), {
+              badge: templateVarCount,
+            })}
+            {item("Trust — sign, seal, verify…", () => onModal("trust"))}
+            {samples && samples.length > 0 && onLoadSample && (
+              <>
+                <div className="dropdown-sep" />
+                <div className="dropdown-title">Samples</div>
+                {samples.map((s) =>
+                  item(s.title, () => onLoadSample(s.id)),
+                )}
+              </>
+            )}
+            <div className="dropdown-sep" />
+            {item("Keyboard shortcuts", () => onModal("help"))}
+          </div>
+        )}
+      </div>
 
       <div style={{ flex: 1 }} />
 
-      {/* Center — mode switch */}
+      {isSealed && (
+        <span className="sealed-badge">
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+            <path d="M8 1a4 4 0 00-4 4v2H3a1 1 0 00-1 1v6a1 1 0 001 1h10a1 1 0 001-1V8a1 1 0 00-1-1h-1V5a4 4 0 00-4-4zm-2 4a2 2 0 114 0v2H6V5z" />
+          </svg>{" "}
+          SEALED
+        </span>
+      )}
+
+      {/* Source mode has no ribbon — surface the theme picker here. */}
+      {editorMode === "source" && (
+        <div className="dropdown">
+          <button className="tbtn" onClick={() => toggle("theme")}>
+            Theme ▾
+          </button>
+          {openMenu === "theme" && (
+            <ThemePicker
+              active={theme}
+              onSelect={(t) => {
+                onThemeChange(t);
+                setOpenMenu(null);
+              }}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Mode switch */}
       <div className="mode-switch">
         <div
           className="mode-switch-indicator"
@@ -116,10 +181,6 @@ export function Toolbar({
           onClick={() => onEditorModeChange("visual")}
           title="Visual mode"
         >
-          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
-            <path d="M8 3C4.5 3 1.7 5.1.5 8c1.2 2.9 4 5 7.5 5s6.3-2.1 7.5-5c-1.2-2.9-4-5-7.5-5zm0 8.3a3.3 3.3 0 110-6.6 3.3 3.3 0 010 6.6z" />
-            <circle cx="8" cy="8" r="2" />
-          </svg>
           Visual
         </button>
         <button
@@ -127,112 +188,9 @@ export function Toolbar({
           onClick={() => onEditorModeChange("source")}
           title="Source mode"
         >
-          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
-            <path d="M5.854 4.146a.5.5 0 010 .708L3.207 7.5l2.647 2.646a.5.5 0 01-.708.708l-3-3a.5.5 0 010-.708l3-3a.5.5 0 01.708 0zm4.292 0a.5.5 0 00-.146.354.5.5 0 00.146.354L12.793 7.5l-2.647 2.646a.5.5 0 00.708.708l3-3a.5.5 0 000-.708l-3-3a.5.5 0 00-.354-.146z" />
-          </svg>
           Source
         </button>
       </div>
-
-      <div style={{ flex: 1 }} />
-
-      {/* Right — panel toggles + theme */}
-      {isSealed && (
-        <span className="sealed-badge">
-          <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
-            <path d="M8 1a4 4 0 00-4 4v2H3a1 1 0 00-1 1v6a1 1 0 001 1h10a1 1 0 001-1V8a1 1 0 00-1-1h-1V5a4 4 0 00-4-4zm-2 4a2 2 0 114 0v2H6V5z" />
-          </svg>{" "}
-          SEALED
-        </span>
-      )}
-
-      {/* Source mode has no ribbon — surface export / theme / trust here so
-          nothing is more than one click away in either mode. */}
-      {editorMode === "source" && (
-        <>
-          <button
-            className="tbtn"
-            onClick={onExportPDF}
-            title="Print / Export PDF"
-          >
-            PDF
-          </button>
-          <button
-            className="tbtn"
-            onClick={onExportHTML}
-            title="Export HTML"
-          >
-            HTML
-          </button>
-          <div className="dropdown">
-            <button className="tbtn" onClick={() => toggle("theme")}>
-              Theme ▾
-            </button>
-            {openMenu === "theme" && (
-              <ThemePicker
-                active={theme}
-                onSelect={(t) => {
-                  onThemeChange(t);
-                  setOpenMenu(null);
-                }}
-              />
-            )}
-          </div>
-          <button
-            className="tbtn"
-            onClick={() => onModal("trust")}
-            title="Trust — track, sign, seal, verify, history"
-          >
-            {isSealed ? "🔒 Trust" : "Trust"}
-          </button>
-        </>
-      )}
-
-      {samples && samples.length > 0 && onLoadSample && (
-        <div className="dropdown">
-          <button className="tbtn" onClick={() => toggle("samples")}>
-            Samples ▾
-          </button>
-          {openMenu === "samples" && (
-            <div className="dropdown-menu">
-              {samples.map((s) => (
-                <button
-                  key={s.id}
-                  className="dropdown-item"
-                  onClick={() => {
-                    onLoadSample(s.id);
-                    setOpenMenu(null);
-                  }}
-                >
-                  {s.title}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      <button
-        className="tbtn"
-        onClick={() => onModal("template")}
-        title="Template — variables, sample data, merged preview/PDF"
-      >
-        Template
-        {templateVarCount > 0 && (
-          <span className="tbtn-badge">{templateVarCount}</span>
-        )}
-      </button>
-
-      <button
-        className="tbtn"
-        onClick={() => onModal("help")}
-        title="Keyboard shortcuts"
-      >
-        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-          <path d="M1 4a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2H3a2 2 0 01-2-2V4zm2-1a1 1 0 00-1 1v6a1 1 0 001 1h10a1 1 0 001-1V4a1 1 0 00-1-1H3z" />
-          <path d="M4 5h1v1H4V5zm2 0h1v1H6V5zm2 0h1v1H8V5zm2 0h1v1h-1V5zm-6 2h1v1H4V7zm2 0h1v1H6V7zm2 0h1v1H8V7zm2 0h1v1h-1V7zm-4 2h4v1H6V9z" />
-        </svg>
-      </button>
     </div>
   );
 }

@@ -15,6 +15,8 @@ draft → tracked → approved → signed → frozen → amended (optional)
 
 Each step is a keyword. Each keyword is a line in the document. No external system required.
 
+When rendered, trust blocks print **ink-first** — approvals, signatures, and the seal appear as hairline legal-document entries, not colored boxes, and date-only timestamps render as plain dates (`12 June 2026`, no `00:00 UTC`). A sealed document reads like a contract, not an app.
+
 ## Step 1: Track changes
 
 ```intenttext

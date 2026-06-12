@@ -134,4 +134,4 @@ Experimental I/O blocks are available in the `x-exp:` namespace.
 | `x-exp: assert` | Testable assertion — evaluable by CI         |
 | `x-exp: secret` | Secret or credential reference (always redacted) |
 
-See [Extension Keywords →](./extensions) for full syntax documentation.
+See the extensions overview in [Keywords →](./index.md#extension-keywords) for full syntax.

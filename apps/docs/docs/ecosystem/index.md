@@ -11,7 +11,7 @@ IntentText is more than a file format. It's a complete toolchain for structured 
 
 | Tool                       | Description                                          |
 | -------------------------- | ---------------------------------------------------- |
-| [Core Library](./core-api) | `@dotit/core` 1.0.0 — parse, render, query, merge, trust |
+| [Core Library](./core-api) | `@dotit/core` 1.1 — parse, render, query, merge, trust |
 | `@dotit/pdf`          | Server-side PDFs — issue (merge → seal) → real PDF bytes; opt-in companion |
 | [CLI](./cli)               | Command-line tool for every operation                |
 
@@ -20,13 +20,13 @@ IntentText is more than a file format. It's a complete toolchain for structured 
 | Tool                                    | Description                                               |
 | --------------------------------------- | --------------------------------------------------------- |
 | [VS Code Extension](./vscode-extension) | Syntax highlighting, snippets, hover docs, trust commands |
-| [Web Editor](./editor)                  | Word-like WYSIWYG pages, template mode, trust UI, print/PDF |
+| [Editor](./editor)                      | Word-like WYSIWYG pages, template mode, trust UI, print/PDF — web app **and** embeddable React component (`@dotit/editor`) |
 
 ## Distribution
 
 | Tool               | Description                                                                            |
 | ------------------ | -------------------------------------------------------------------------------------- |
-| [Hub](./hub)       | Template marketplace with 76 curated templates and 8 themes                            |
+| [Hub](./hub)       | Template gallery with 76 official templates                                            |
 | [Themes](./themes) | 8 built-in themes — corporate, minimal, warm, technical, print, legal, editorial, dark |
 
 ## Integration

@@ -30,7 +30,7 @@ Seven canonical keywords cover the full agent workflow lifecycle:
 
 **Extended workflow keywords** (for complex orchestration):
 
-Looping, parallel execution, handoff, retry, wait, checkpoint, and other advanced workflow primitives are available in the `x-agent:` extension namespace. See [Extension Keywords →](../reference/keywords/extensions).
+Looping, parallel execution, handoff, retry, wait, checkpoint, and other advanced workflow primitives are available in the `x-agent:` extension namespace. See [Extension keywords →](../reference/keywords/#extension-keywords).
 
 ---
 

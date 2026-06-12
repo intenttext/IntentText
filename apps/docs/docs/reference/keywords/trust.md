@@ -266,4 +266,4 @@ Automated history and revision blocks are available in the `x-trust:` namespace.
 | `x-trust: history`   | History boundary marker — separates live document from machine-managed history section |
 | `x-trust: revision`  | Auto-generated change record written by `dotit seal` and `dotit amend` |
 
-See [Extension Keywords →](./extensions) for full syntax documentation.
+See the extensions overview in [Keywords →](./index.md#extension-keywords) for full syntax.

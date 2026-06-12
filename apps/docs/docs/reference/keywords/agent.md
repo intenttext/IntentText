@@ -438,4 +438,4 @@ Advanced orchestration primitives are available in the `x-agent:` namespace. The
 | `x-agent: agent`      | Agent name or identifier metadata        |
 | `x-agent: model`      | Default LLM model for the document       |
 
-See [Extension Keywords →](./extensions) for full syntax documentation.
+See the extensions overview in [Keywords →](./index.md#extension-keywords) for full syntax.

@@ -127,5 +127,5 @@ done
 ## Next steps
 
 - [Print-Ready Documents](./print-ready-documents) — full print layout configuration
-- [Watermarks](./watermarks) — marking drafts and confidential documents
+- [Watermark reference](../../reference/keywords/layout#watermark) — marking drafts and confidential documents
 - [Contract](../documents/contract) — complete contract with PDF-ready layout

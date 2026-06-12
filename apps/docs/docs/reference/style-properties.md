@@ -24,6 +24,23 @@ Style properties control the visual appearance of blocks when rendered to HTML o
 | `underline:` | `text-decoration: underline`     | `true`                           | Boolean — combines with `strike:`           |
 | `strike:`    | `text-decoration: line-through`  | `true`                           | Boolean — combines with `underline:`        |
 | `valign:`    | `vertical-align`                 | `sub`, `super`                   | Subscript / superscript positioning         |
+| `leading:`   | `line-height`                    | `1.9`, `2`, `28px`               | Word-parity line spacing                    |
+| `space-before:` | `margin-top`                  | `12px`, `1em`                    | Space above the block                       |
+| `space-after:`  | `margin-bottom`               | `24px`, `1.5em`                  | Space below the block                       |
+
+## Paragraph spacing — `leading:`, `space-before:`, `space-after:`
+
+The three spacing props give Word-parity paragraph control, per block or document-wide:
+
+```intenttext
+text: Double-spaced legal clause | leading: 1.9 | space-after: 24px
+```
+
+Document-wide via a `style:` rule (see below):
+
+```intenttext
+style: text | leading: 1.9 | space-after: 24px
+```
 
 ## Usage examples
 

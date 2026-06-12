@@ -133,6 +133,6 @@ dotit contract.it --pdf --theme corporate
 
 ## Next steps
 
-- [Watermarks](./watermarks) — DRAFT, CONFIDENTIAL, VOID overlays
+- [Watermark reference](../../reference/keywords/layout#watermark) — DRAFT, CONFIDENTIAL, VOID overlays
 - [PDF Export](./pdf-export) — PDF export with themes
 - [Contract](../documents/contract) — complete contract example

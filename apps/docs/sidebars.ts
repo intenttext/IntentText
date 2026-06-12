@@ -57,21 +57,15 @@ const sidebars: SidebarsConfig = {
       type: "category",
       label: "Documents",
       items: [
-        "cookbook/documents/invoice",
         "cookbook/documents/contract",
         "cookbook/documents/report",
         "cookbook/documents/newsletter",
       ],
     },
     {
-      type: "category",
-      label: "Templates",
-      items: [
-        "cookbook/templates/building-templates",
-        "cookbook/templates/dynamic-tables",
-        "cookbook/templates/merge-data",
-        "cookbook/templates/template-library",
-      ],
+      type: "doc",
+      id: "cookbook/templates/building-templates",
+      label: "Building Templates",
     },
     {
       type: "category",
@@ -98,9 +92,6 @@ const sidebars: SidebarsConfig = {
       label: "Organizations",
       items: [
         "cookbook/organizations/folder-structure",
-        "cookbook/organizations/querying-documents",
-        "cookbook/organizations/indexing-folders",
-        "cookbook/organizations/multi-folder-query",
         "cookbook/organizations/contact-directory",
         "cookbook/organizations/deadline-tracking",
       ],
@@ -110,7 +101,6 @@ const sidebars: SidebarsConfig = {
       label: "Print & PDF",
       items: [
         "cookbook/print/print-ready-documents",
-        "cookbook/print/watermarks",
         "cookbook/print/pdf-export",
       ],
     },

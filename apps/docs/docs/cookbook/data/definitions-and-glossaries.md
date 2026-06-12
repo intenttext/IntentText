@@ -112,4 +112,4 @@ dotit query ./company --type def --format json > glossary.json
 
 - [Cross-Document References](./cross-document-refs) — link definitions across documents
 - [Contract](../documents/contract) — complete contract with defined terms
-- [Querying Documents](../organizations/querying-documents) — query syntax
+- [Query reference](../../reference/query) — query syntax
