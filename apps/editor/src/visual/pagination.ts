@@ -1,37 +1,55 @@
-// Native page pagination for the visual editor.
+// Word-like page pagination for the visual editor.
 //
-// Instead of masking/clipping content (which HID rows that fell in a page break),
-// this inserts a real spacer at each page boundary via ProseMirror widget
-// decorations. The spacer occupies the footer + gap + header space and pushes the
-// following content onto the next page — content is never hidden, the caret stays in
-// document order, and there is no margin-shifting hack.
+// One continuous contenteditable sheet is visually cut into real pages:
+// at each page boundary a non-editable spacer widget renders
+//   [filler to the page bottom + footer band] [page gap] [header band]
+// and a terminal spacer closes the LAST page with its filler + footer band,
+// so every page — first, middle, last — shows its header/footer and keeps its
+// exact print height. Content is never hidden or clipped (the old masking bug);
+// the caret stays in document order.
 //
-// Page breaks are computed from the natural heights of the top-level blocks, which
-// are independent of the spacers themselves, so the computation is stable (idempotent)
-// and does not loop.
+// Geometry comes from page-geometry.ts (the document's own `page:` block) — the
+// same numbers core's @page print CSS uses, which is what makes the editor view
+// match the printed PDF page-for-page.
 
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
+import type { PageGeometry } from "./page-geometry";
+import { resolvePageTokens } from "./page-geometry";
 
 export interface PaginationOptions {
-  pageHeight: number; // full page height (px)
-  marginTop: number; // header space (px)
-  marginBottom: number; // footer space (px)
-  gap: number; // grey gap between pages (px)
-  header: () => string;
-  footer: () => string;
+  /** Live geometry — read on every layout pass so doc edits apply instantly. */
+  geometry: () => PageGeometry;
+  /** Grey gap between page cards (px). */
+  gap: number;
+  /** Called with the resulting page count after each layout pass. */
+  onPages?: (pages: number) => void;
 }
 
 const paginationKey = new PluginKey("pagination");
 
-function blockOuterHeight(el: HTMLElement): number {
-  const cs = getComputedStyle(el);
-  return (
-    el.offsetHeight +
-    parseFloat(cs.marginTop || "0") +
-    parseFloat(cs.marginBottom || "0")
-  );
+// Renders exactly what print's @page margin box shows: the resolved text,
+// horizontally centered, vertically centered in the margin area. No extra
+// auto page number — print shows one only when the footer contains {{page}}.
+function bandHtml(
+  kind: "header" | "footer",
+  text: string,
+  page: number,
+  pages: number,
+): string {
+  const resolved = resolvePageTokens(text, page, pages);
+  return `<div class="docs-pb-${kind}">
+      <span class="docs-pb-text">${escapeHtml(resolved)}</span>
+    </div>`;
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 export const Pagination = Extension.create<PaginationOptions>({
@@ -39,19 +57,26 @@ export const Pagination = Extension.create<PaginationOptions>({
 
   addOptions() {
     return {
-      pageHeight: 1123,
-      marginTop: 96,
-      marginBottom: 96,
-      gap: 24,
-      header: () => "",
-      footer: () => "",
+      geometry: () =>
+        ({
+          width: 794,
+          height: 1122.52,
+          autoHeight: false,
+          marginTop: 75.59,
+          marginRight: 75.59,
+          marginBottom: 75.59,
+          marginLeft: 75.59,
+          contentHeight: 971.34,
+          header: "",
+          footer: "",
+        }) as PageGeometry,
+      gap: 28,
+      onPages: undefined,
     };
   },
 
   addProseMirrorPlugins() {
     const opts = this.options;
-    const contentHeight = opts.pageHeight - opts.marginTop - opts.marginBottom;
-    const deadZone = opts.marginBottom + opts.gap + opts.marginTop;
 
     return [
       new Plugin({
@@ -73,67 +98,143 @@ export const Pagination = Extension.create<PaginationOptions>({
           let raf = 0;
           let lastSig = "";
 
-          const makeSpacer = (
+          // Interior break: close page N (filler + footer), gap, open page N+1 (header).
+          const makeBreak = (
+            g: PageGeometry,
             restHeight: number,
-            pageNum: number,
+            page: number,
+            pages: number,
           ): HTMLElement => {
             const el = document.createElement("div");
             el.className = "docs-page-spacer";
             el.contentEditable = "false";
             el.setAttribute("data-it-spacer", "");
-            el.style.height = `${restHeight + deadZone}px`;
+            el.style.setProperty("--pb-mx-l", `${g.marginLeft}px`);
+            el.style.setProperty("--pb-mx-r", `${g.marginRight}px`);
             el.innerHTML = `
-              <div class="docs-pb-rest" style="height:${restHeight + opts.marginBottom}px">
-                <div class="docs-pb-footer">
-                  <span class="docs-pb-text">${opts.footer()}</span>
-                  <span class="docs-pb-num">${pageNum}</span>
-                </div>
+              <div class="docs-pb-fill" style="height:${restHeight}px"></div>
+              <div class="docs-pb-margin docs-pb-margin-bottom" style="height:${g.marginBottom}px">
+                ${bandHtml("footer", g.footer, page, pages)}
               </div>
               <div class="docs-pb-gap" style="height:${opts.gap}px"></div>
-              <div class="docs-pb-header" style="height:${opts.marginTop}px">
-                <span class="docs-pb-text">${opts.header()}</span>
+              <div class="docs-pb-margin docs-pb-margin-top" style="height:${g.marginTop}px">
+                ${bandHtml("header", g.header, page + 1, pages)}
+              </div>`;
+            return el;
+          };
+
+          // Terminal spacer: close the LAST page so it is exactly page-height and
+          // shows its footer like every other page.
+          const makeTail = (
+            g: PageGeometry,
+            restHeight: number,
+            page: number,
+            pages: number,
+          ): HTMLElement => {
+            const el = document.createElement("div");
+            el.className = "docs-page-spacer docs-page-tail";
+            el.contentEditable = "false";
+            el.setAttribute("data-it-spacer", "");
+            el.style.setProperty("--pb-mx-l", `${g.marginLeft}px`);
+            el.style.setProperty("--pb-mx-r", `${g.marginRight}px`);
+            el.innerHTML = `
+              <div class="docs-pb-fill" style="height:${restHeight}px"></div>
+              <div class="docs-pb-margin docs-pb-margin-bottom" style="height:${g.marginBottom}px">
+                ${bandHtml("footer", g.footer, page, pages)}
               </div>`;
             return el;
           };
 
           const recompute = () => {
+            const g = opts.geometry();
             const dom = view.dom as HTMLElement;
-            const children = Array.from(dom.children).filter(
-              (c) => !(c as HTMLElement).hasAttribute?.("data-it-spacer"),
-            ) as HTMLElement[];
             const doc = view.state.doc;
-            const decos: Decoration[] = [];
-            const breaks: number[] = [];
 
-            let pos = 0;
-            let used = 0;
-            let pageNum = 1;
-            for (let i = 0; i < children.length && i < doc.childCount; i++) {
-              const h = blockOuterHeight(children[i]);
-              const nodeSize = doc.child(i).nodeSize;
-              if (used > 0 && used + h > contentHeight) {
-                const rest = Math.max(0, contentHeight - used);
-                const spacerPos = pos;
-                const pn = pageNum; // capture value (footer shows the page ending here)
-                breaks.push(spacerPos);
-                decos.push(
-                  Decoration.widget(spacerPos, () => makeSpacer(rest, pn), {
-                    side: -1,
-                    key: `pb-${pn}`,
-                  }),
+            // Continuous mode (e.g. `80mm auto` receipts): no pagination at all.
+            if (g.autoHeight) {
+              if (lastSig !== "auto") {
+                lastSig = "auto";
+                view.dispatch(
+                  view.state.tr.setMeta(paginationKey, DecorationSet.empty),
                 );
-                pageNum += 1;
-                used = 0;
+                opts.onPages?.(1);
               }
-              used += h;
-              pos += nodeSize;
+              return;
             }
 
-            const sig = breaks.join(",");
+            // Pass 1 — measure where the breaks fall, using RECT positions so
+            // CSS margin collapsing is accounted for exactly (summing heights +
+            // margins overestimates and drifts off the print engine's breaks).
+            // Spacer heights above each block are subtracted to recover each
+            // block's "natural" position — stable across re-layouts.
+            const domTop = dom.getBoundingClientRect().top;
+            const all = Array.from(dom.children) as HTMLElement[];
+            const blocks: { natTop: number; natBottom: number }[] = [];
+            let spacerAbove = 0;
+            for (const c of all) {
+              if (c.hasAttribute?.("data-it-spacer")) {
+                spacerAbove += c.offsetHeight;
+                continue;
+              }
+              const r = c.getBoundingClientRect();
+              blocks.push({
+                natTop: r.top - domTop - spacerAbove,
+                natBottom: r.bottom - domTop - spacerAbove,
+              });
+            }
+
+            const breaks: { pos: number; rest: number }[] = [];
+            let pos = 0;
+            let pageStart = blocks.length ? blocks[0].natTop : 0;
+            let lastBottom = pageStart;
+            for (let i = 0; i < blocks.length && i < doc.childCount; i++) {
+              const b = blocks[i];
+              const nodeSize = doc.child(i).nodeSize;
+              if (
+                b.natTop > pageStart && // never break before the page's first block
+                b.natBottom - pageStart > g.contentHeight
+              ) {
+                breaks.push({
+                  pos,
+                  rest: Math.max(0, g.contentHeight - (b.natTop - pageStart)),
+                });
+                pageStart = b.natTop;
+              }
+              lastBottom = b.natBottom;
+              pos += nodeSize;
+            }
+            const pages = breaks.length + 1;
+            const lastRest = Math.max(
+              0,
+              g.contentHeight - (lastBottom - pageStart),
+            );
+
+            const sig =
+              breaks.map((b) => `${b.pos}:${Math.round(b.rest)}`).join(",") +
+              `|${Math.round(lastRest)}|${pages}|${g.header}|${g.footer}|${Math.round(g.contentHeight)}`;
             if (sig === lastSig) return;
             lastSig = sig;
+
+            // Pass 2 — build decorations with the final page count (so {{pages}}
+            // and per-page numbers are correct).
+            const decos: Decoration[] = breaks.map((b, idx) =>
+              Decoration.widget(
+                b.pos,
+                () => makeBreak(g, b.rest, idx + 1, pages),
+                { side: -1, key: `pb-${idx + 1}-${Math.round(b.rest)}` },
+              ),
+            );
+            decos.push(
+              Decoration.widget(
+                doc.content.size,
+                () => makeTail(g, lastRest, pages, pages),
+                { side: 1, key: `pb-tail-${pages}-${Math.round(lastRest)}` },
+              ),
+            );
+
             const set = DecorationSet.create(view.state.doc, decos);
             view.dispatch(view.state.tr.setMeta(paginationKey, set));
+            opts.onPages?.(pages);
           };
 
           const schedule = () => {

@@ -5,6 +5,8 @@ import {
   listBuiltinThemes,
   cssContentValue,
 } from "@intenttext/core";
+import { getPageGeometry } from "../visual/page-geometry";
+import { printHtmlViaIframe } from "./print-iframe";
 
 /** Inject extra CSS before </head> of an HTML document string. */
 function injectCss(html: string, css: string): string {
@@ -44,25 +46,20 @@ function buildWysiwygPrint(content: string, printMode: string): string | null {
     .map((e) => e.outerHTML)
     .join("\n");
 
-  const doc = parseIntentText(content);
-  const page =
-    (doc.blocks.find((b) => b.type === "page")?.properties as
-      | Record<string, string>
-      | undefined) || {};
-  // Header/footer may be a standalone block (`header: …`) OR a property of the
-  // `page:` block (`page: | footer: …`). Support both.
-  const header =
-    doc.blocks.find((b) => b.type === "header")?.content || page.header || "";
-  const footer =
-    doc.blocks.find((b) => b.type === "footer")?.content || page.footer || "";
-  const size = page.size || "A4";
-  const margin = page.margin || page.margins || "18mm 16mm 20mm 16mm";
+  // Use the SAME geometry the on-screen pages use (the doc's page: block parsed
+  // by page-geometry.ts) — identical px numbers in @page is what makes the PDF
+  // paginate exactly where the editor shows the breaks.
+  const g = getPageGeometry(content);
+  const sizeCss = g.autoHeight
+    ? `${g.width}px auto`
+    : `${g.width}px ${g.height}px`;
+  const marginCss = `${g.marginTop}px ${g.marginRight}px ${g.marginBottom}px ${g.marginLeft}px`;
 
-  let pageCss = `@page{size:${size};margin:${margin};}`;
-  if (header)
-    pageCss += `@page{@top-center{content:${cssContent(header)};font:10px -apple-system,sans-serif;color:#9aa0a6;}}`;
-  if (footer)
-    pageCss += `@page{@bottom-center{content:${cssContent(footer)};font:10px -apple-system,sans-serif;color:#9aa0a6;}}`;
+  let pageCss = `@page{size:${sizeCss};margin:${marginCss};}`;
+  if (g.header)
+    pageCss += `@page{@top-center{content:${cssContent(g.header)};font:10px -apple-system,sans-serif;color:#9aa0a6;}}`;
+  if (g.footer)
+    pageCss += `@page{@bottom-center{content:${cssContent(g.footer)};font:10px -apple-system,sans-serif;color:#9aa0a6;}}`;
 
   // Strip the on-screen sheet chrome so only the page content prints.
   const overrides = `
@@ -110,34 +107,7 @@ export function PrintBar({ content, theme, onThemeChange }: Props) {
         full = renderPrint(doc, { theme });
         if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
       }
-
-      // A zero-size iframe prints blank/unstyled in Chrome — give it real (A4)
-      // dimensions, hidden off-screen, and print only after it has loaded.
-      const iframe = document.createElement("iframe");
-      iframe.setAttribute("aria-hidden", "true");
-      iframe.style.cssText =
-        "position:fixed;right:0;bottom:0;width:210mm;height:297mm;border:0;visibility:hidden;";
-      document.body.appendChild(iframe);
-
-      let printed = false;
-      const doPrint = () => {
-        if (printed) return;
-        printed = true;
-        try {
-          iframe.contentWindow!.focus();
-          iframe.contentWindow!.print();
-        } finally {
-          setTimeout(() => iframe.remove(), 1000);
-        }
-      };
-      iframe.onload = () => window.setTimeout(doPrint, 120);
-
-      const idoc = iframe.contentWindow!.document;
-      idoc.open();
-      idoc.write(full);
-      idoc.close();
-      // Fallback if onload doesn't fire for a written document.
-      if (idoc.readyState === "complete") window.setTimeout(doPrint, 250);
+      printHtmlViaIframe(full);
     } catch {
       /* ignore */
     }

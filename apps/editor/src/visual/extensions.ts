@@ -333,11 +333,27 @@ export const ITTable = Node.create({
         "data-it-table": "",
         class: "it-doc-table",
       }),
-      ["thead", ["tr", ...head.map((c) => ["th", String(c)])]],
-      ["tbody", ...body.map((r) => ["tr", ...r.map((c) => ["td", String(c)])])],
+      [
+        "thead",
+        ["tr", ...head.map((c) => ["th", tableCellAttrs(c), String(c)])],
+      ],
+      [
+        "tbody",
+        ...body.map((r) => [
+          "tr",
+          ...r.map((c) => ["td", tableCellAttrs(c), String(c)]),
+        ]),
+      ],
     ];
   },
 });
+
+/** Template cells ({{var}} or each:) get the variable-chip highlight. */
+function tableCellAttrs(cell: string): Record<string, string> {
+  return /\{\{[^}]+\}\}|^each:/.test(String(cell).trim())
+    ? { class: "it-doc-var-cell" }
+    : {};
+}
 
 // ── Trust block (sign / seal / approve / freeze / amendment) ──
 // Renders tamper-evidence lines as proper styled chips instead of leaking raw
@@ -472,6 +488,7 @@ export const ITMetric = Node.create({
     const value = [props.value, props.unit].filter(Boolean).join(" ");
     // A "total"/"grand total"/"balance due" label reads as the summary line.
     const isTotal = /\b(total|balance due|amount due|grand)\b/i.test(content);
+    const valueIsVar = /\{\{[^}]+\}\}/.test(value);
     return [
       "div",
       mergeAttributes(HTMLAttributes, {
@@ -479,7 +496,11 @@ export const ITMetric = Node.create({
         class: `it-doc-metric${isTotal ? " it-doc-metric--total" : ""}`,
       }),
       ["span", { class: "it-doc-metric__label" }, content],
-      ["span", { class: "it-doc-metric__value" }, value],
+      [
+        "span",
+        { class: `it-doc-metric__value${valueIsVar ? " it-doc-var" : ""}` },
+        value,
+      ],
     ];
   },
 });

@@ -15,6 +15,7 @@ interface Props {
   onSave: () => void;
   onModal: (m: ModalType) => void;
   isSealed?: boolean;
+  templateVarCount?: number;
   samples?: { id: string; title: string }[];
   onLoadSample?: (id: string) => void;
 }
@@ -31,6 +32,7 @@ export function Toolbar({
   onSave,
   onModal,
   isSealed,
+  templateVarCount = 0,
   samples,
   onLoadSample,
 }: Props) {
@@ -177,6 +179,17 @@ export function Toolbar({
           )}
         </div>
       )}
+
+      <button
+        className="tbtn"
+        onClick={() => onModal("template")}
+        title="Template — variables, sample data, merged preview/PDF"
+      >
+        Template
+        {templateVarCount > 0 && (
+          <span className="tbtn-badge">{templateVarCount}</span>
+        )}
+      </button>
 
       <button
         className="tbtn"

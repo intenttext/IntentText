@@ -45,6 +45,15 @@ import {
   parseIntentText,
   documentStyleCSS,
 } from "@intenttext/core";
+import {
+  getPageGeometry,
+  resolvePageTokens,
+  type PageGeometry,
+} from "./page-geometry";
+import { TemplateHighlight } from "./template-highlight";
+
+/** Grey gap between page cards on the canvas (px). */
+const PAGE_GAP = 28;
 
 // Where each `style:` target lives in the EDITOR's markup (.it-doc-* classes).
 // documentStyleCSS() does the collection/sanitization — same engine as core's
@@ -77,21 +86,17 @@ export function VisualEditor({ value, onChange, theme }: Props) {
   const isHydrating = useRef(true);
   // Styling that can't be saved to .it / won't print through core (regression guard).
   const [unsupported, setUnsupported] = useState<string[]>([]);
-  // Current header/footer text for the page-break spacers (read live by the plugin).
-  const layoutMetaRef = useRef<{ header: string; footer: string }>({
-    header: "",
-    footer: "",
-  });
+  // Live page geometry from the document's own page:/header:/footer: blocks —
+  // the same numbers the print path uses (that's what makes the view WYSIWYG).
+  const geometryRef = useRef<PageGeometry>(getPageGeometry(""));
+  const [pageCount, setPageCount] = useState(1);
 
   const editor = useEditor({
     extensions: [
       Pagination.configure({
-        pageHeight: 1123,
-        marginTop: 96,
-        marginBottom: 96,
-        gap: 24,
-        header: () => layoutMetaRef.current.header,
-        footer: () => layoutMetaRef.current.footer,
+        geometry: () => geometryRef.current,
+        gap: PAGE_GAP,
+        onPages: setPageCount,
       }),
       StarterKit.configure({
         heading: false,
@@ -135,6 +140,7 @@ export function VisualEditor({ value, onChange, theme }: Props) {
       ITBreak,
       ITGenericBlock,
       ITComment,
+      TemplateHighlight,
     ],
     content: sourceToDoc(value),
     onUpdate: ({ editor: ed }) => {
@@ -184,53 +190,25 @@ export function VisualEditor({ value, onChange, theme }: Props) {
     document.documentElement.setAttribute("data-theme", "light");
   }, []);
 
-  // Multi-page: track content height and compute page count
-  // A4: 210mm × 297mm. At 96 DPI → 794px × 1123px
-  const PAGE_WIDTH = 794;
-  const PAGE_HEIGHT = 1123;
-  const PAGE_GAP = 24;
-  const PAGE_MARGIN_TOP = 96;
-  const PAGE_MARGIN_BOTTOM = 96;
-  const PAGE_CONTENT_HEIGHT =
-    PAGE_HEIGHT - PAGE_MARGIN_TOP - PAGE_MARGIN_BOTTOM;
-  const PAGE_STRIDE = PAGE_HEIGHT + PAGE_GAP;
-  const pageRef = useRef<HTMLDivElement>(null);
-  const [pageCount, setPageCount] = useState(1);
-
-  // Page breaks are handled natively by the Pagination plugin (real spacers that
-  // push content to the next page — nothing is ever hidden). Here we only count the
-  // spacers to show "N pages" in the footer.
-  const recalcPages = useCallback(() => {
-    const tiptap = pageRef.current?.querySelector(
-      ".tiptap",
-    ) as HTMLElement | null;
-    if (!tiptap) return;
-    const spacers = tiptap.querySelectorAll("[data-it-spacer]").length;
-    setPageCount(spacers + 1);
-  }, []);
-
+  // Template panel "insert variable" → insert at the current caret.
   useEffect(() => {
     if (!editor) return;
-    const handler = () => requestAnimationFrame(recalcPages);
-    editor.on("update", handler);
-    handler();
-    return () => {
-      editor.off("update", handler);
+    const handler = (e: Event) => {
+      const text = (e as CustomEvent<string>).detail;
+      if (text) editor.chain().focus().insertContent(text).run();
     };
-  }, [editor, recalcPages]);
+    window.addEventListener("it-insert-text", handler);
+    return () => window.removeEventListener("it-insert-text", handler);
+  }, [editor]);
 
-  // Keep the spacer header/footer text in sync with the document.
+  // Geometry derived from the document itself (page:/header:/footer: blocks).
+  const geometry = useMemo(() => getPageGeometry(value), [value]);
   useEffect(() => {
-    try {
-      const doc = parseIntentText(value);
-      layoutMetaRef.current = {
-        header: doc.blocks.find((b) => b.type === "header")?.content || "",
-        footer: doc.blocks.find((b) => b.type === "footer")?.content || "",
-      };
-    } catch {
-      /* keep previous */
-    }
-  }, [value]);
+    geometryRef.current = geometry;
+    // Nudge the pagination plugin to re-layout with the new geometry.
+    editor?.view.dispatch(editor.state.tr);
+  }, [geometry, editor]);
+  const pageRef = useRef<HTMLDivElement>(null);
 
   // Word count for the page indicator
   const getWordCount = useCallback(() => {
@@ -439,7 +417,7 @@ export function VisualEditor({ value, onChange, theme }: Props) {
       <div className="docs-canvas" ref={canvasRef}>
         <div
           className="docs-page-scaler"
-          style={{ width: PAGE_WIDTH * zoom }}
+          style={{ width: geometry.width * zoom }}
         >
           <div
             className="docs-page-flow"
@@ -449,10 +427,35 @@ export function VisualEditor({ value, onChange, theme }: Props) {
               transformOrigin: "top left",
             }}
           >
-            {/* One continuous sheet. The Pagination plugin inserts real page-break
-                spacers (footer + gap + header) so content flows onto each page —
-                nothing is hidden and the caret stays in document order. */}
-            <div className="docs-page docs-sheet" ref={pageRef}>
+            {/* One continuous editable sheet, visually cut into Word-like pages.
+                The static band below is page 1's top margin + header; the
+                Pagination plugin closes every page with its footer band (incl.
+                the last) and opens the next with its header band. */}
+            <div
+              className="docs-page docs-sheet"
+              ref={pageRef}
+              style={
+                {
+                  width: geometry.width,
+                  minHeight: geometry.autoHeight ? geometry.width : undefined,
+                  "--page-mx-l": `${geometry.marginLeft}px`,
+                  "--page-mx-r": `${geometry.marginRight}px`,
+                } as React.CSSProperties
+              }
+            >
+              <div
+                className="docs-sheet-header"
+                data-it-spacer=""
+                style={{ height: geometry.autoHeight ? undefined : geometry.marginTop }}
+              >
+                <div className="docs-pb-header">
+                  <span className="docs-pb-text">
+                    {geometry.autoHeight
+                      ? ""
+                      : resolvePageTokens(geometry.header, 1, pageCount)}
+                  </span>
+                </div>
+              </div>
               <EditorContent editor={editor} />
             </div>
           </div>
