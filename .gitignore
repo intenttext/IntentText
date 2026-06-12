@@ -86,6 +86,9 @@ jspm_packages/
 # Output files (except demo files)
 *.html
 sample-output.html
+# …but Vite apps' entry HTML is SOURCE, not output — must be committed or the
+# production build can't resolve its entry module (e.g. on Vercel).
+!apps/*/index.html
 
 # Temporary files
 *.tmp
