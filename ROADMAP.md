@@ -62,6 +62,31 @@ see `ecosystem/erp-integration` docs). Examples + demos guarded by `pnpm check:e
 `guide/trust-and-signing` (what sealing does/doesn't prove), `ecosystem/erp-integration`
 (now incl. 80mm receipts, missing-data, totals, Arabic), CHANGELOG through 4.3.0.
 
+## TOP PRIORITY — the enterprise-hardening track
+
+_Decision (2026-06-12): winning one enterprise on the format is the goal; hardening is
+the top priority over new features._ The bar: a hostile or malformed document must never
+crash, corrupt, mis-render, or escape (XSS) — anywhere in the pipeline.
+
+Started (4.3.1): fuzz/property suite (random structured docs + byte soup + pathological
+cases; the full pipeline never throws) — it immediately found and fixed a parser
+stack-overflow DoS (a `- - - …` line). Earlier hardening: stored-XSS via style props,
+CSS-string escaping, style-value sanitization (4.2.1+).
+
+Next hardening steps, in order:
+1. **Grow the fuzz corpus** — mutation fuzzing of the real example/demo docs; merge
+   fuzzing (hostile data values into every template position); seal/verify round-trip
+   fuzzing.
+2. **Resource limits** — define max input size / block count / table size behavior so
+   pathological inputs degrade predictably (diagnostic, never hang); add a perf budget
+   test (e.g. 1MB doc parses under a fixed time).
+3. **Round-trip property test** — parse→serialize→parse is a fixpoint over a generated
+   corpus (today only the examples are guarded).
+4. **Versioned stability contract** — frozen fixture corpus per minor version that every
+   future version must parse identically (makes SPEC §5 enforceable).
+5. **External eyes** — when an enterprise deal is near: third-party review of the render
+   path (HTML injection surface) and the trust path (canonicalization).
+
 ## Possible next stages (pick up here)
 
 Nothing is mid-flight — these are fresh, independent options, roughly by leverage:

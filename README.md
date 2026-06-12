@@ -214,6 +214,11 @@ Hub (registry), Desktop (Tauri), Docs site, Builder, and the Python client
 
 Full guide, reference, cookbook, and spec at [itdocs.vercel.app](https://itdocs.vercel.app).
 
+**For AI agents:** point any LLM at [`/llms.txt`](https://itdocs.vercel.app/llms.txt) —
+a complete machine reference that teaches the format in one read (grammar, keywords,
+templates, trust, generation rules). An agent that has read it can author valid `.it`
+documents, merge templates, and workflows immediately.
+
 ---
 
 ## License

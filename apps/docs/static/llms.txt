@@ -1,0 +1,196 @@
+# IntentText (.it) — Format Reference for LLMs
+
+You are reading the canonical machine reference for IntentText, an open plain-text
+document format. After reading this file you can author, edit, and reason about `.it`
+files correctly. One `.it` file is simultaneously: a human-readable document, a
+queryable typed database, a print/PDF-ready artifact, and a tamper-evident signable
+record.
+
+Site: https://itdocs.vercel.app · npm: @intenttext/core · Editor: https://editor.uts.qa
+
+## 1. Line grammar — everything is one line, one intent
+
+Every non-empty line is: `keyword: content | prop: value | prop: value`
+
+- The text before the first `:` is the keyword (block type).
+- Content is everything after `:` up to the first ` | `.
+- Pipe properties are `key: value` pairs separated by ` | `. The `|` character is
+  RESERVED as the property delimiter — it cannot appear inside content or values.
+- Blank lines separate blocks visually; they are not significant.
+- `// comment` lines are comments.
+- Unknown keywords NEVER error — they parse as type:"custom" with the keyword
+  preserved (`computer: mac | ram: 16GB` is valid and queryable). This means you can
+  invent domain keywords freely.
+- `x-ns:` prefixed keywords are namespaced extensions (e.g. `x-layout: divider`).
+
+## 2. The 38 canonical keywords, by tier
+
+CORE (a plain document needs only these):
+  title:    Document title (one per doc).            title: Service Agreement
+  summary:  Subtitle / abstract.                     summary: Q2 consulting
+  meta:     Document metadata (props only).          meta: | author: A | tags: x, y | theme: corporate | dir: rtl
+  section:  H2-level heading.                        section: Scope
+  sub:      H3-level heading.                        sub: Payment Terms
+  text:     Body paragraph.                          text: Plain prose here.
+  info:     Callout. type: tip|info|warning|danger|success.  info: Check this | type: warning
+  quote:    Quotation.                               quote: Stay hungry | by: Jobs
+  code:     Code. Prefer fenced: ```lang … ```
+  image:    Image.                                   image: Alt text | src: logo.png | caption: Our logo
+  link:     Hyperlink block.                         link: Docs | to: https://example.com
+  task:     Open task.                               task: Ship auth | owner: Ahmed | due: 2026-07-01 | priority: high
+  done:     Completed item.                          done: Deploy staging | time: 2026-03-01
+  divider:  Horizontal rule.                         divider:
+  (lists)   `- item` bullets and `1. item` ordered lines are native.
+  (tables)  Pipe rows: `| Cell | Cell |` — first row = header. Or `headers:`/`row:` keywords.
+
+DATA tier:
+  metric:   KPI or document total.                   metric: Total Due | value: 17,325 QAR
+            Plain metric renders as a label→value total row (invoice style); with
+            target:/trend:/period: it renders as a KPI card.
+  columns:, row:  Tabular data alternative.
+  def:      Definition/glossary term.                def: Force Majeure | meaning: Events beyond control
+  contact:  Person/org card.                         contact: Acme LLC | email: a@b.c | vat: VAT-300
+  deadline: Dated obligation.                        deadline: Payment due | date: 2026-03-20 | consequence: late fee
+  ref:      Cross-document reference.                ref: QT-104 | to: quotations/qt-104.it
+
+CONTRACT (trust) tier:
+  track:    Start version tracking.                  track: | id: DOC-1 | by: Ahmed
+  approve:  Named approval (HASHED with body).       approve: Legal ok | by: Sara | role: Counsel | at: 2026-03-28
+  sign:     Tamper-evident signature.                sign: Ahmed | role: CEO | at: 2026-04-01T09:00:00Z | hash: sha256:…
+  freeze:   Seal the document (locks content).       freeze: | at: … | hash: sha256:… | status: locked
+  amendment: Additive change to a sealed doc.        amendment: Terms updated | was: Net 30 | now: Net 15 | by: Ahmed
+  history:  Boundary line — everything below is the append-only audit log (never hashed).
+  revision: History entry (below history:).
+  cite:     Citation.
+
+AGENT tier (workflows for AI agents):
+  step:     Workflow step.                           step: Validate input | tool: validate | id: s1
+  decision: Branch.                                  decision: Valid? | then: s2 | else: s9
+  gate:     Human checkpoint.                        gate: Manager approval | approver: Ops Lead
+  trigger:, result:, policy:, audit:, ask:, context:  — agent runtime keywords.
+
+PRINT (layout) tier:
+  page:     Page setup.                              page: | size: A4 | margin: 20mm
+            size: A4|A5|Letter|Legal or custom "80mm auto" (receipt roll, no pagination).
+  header:   Running page header.                     header: ACME — Confidential
+  footer:   Running page footer.                     footer: INV-1 · Page {{page}} of {{pages}}
+  watermark: Watermark overlay.                      watermark: DRAFT | opacity: 0.1
+  style:    Scoped document style rule (see §4).
+  break:    Forced page break.                       break:
+  toc:      Table of contents.
+
+## 3. Inline formatting (inside content)
+
+  *bold*  _italic_  ~strike~  ^highlight^  `code`  [text](https://url)  [[side note]]
+  @mention  #tag  @2026-05-01 (date)  {Label} (badge pill)
+
+Styled span — style PART of a line with the same style keys as block props, but
+SEMICOLON-separated (| is reserved for line props):
+  text: Payment is [overdue]{ color: #c00; weight: bold } — act now.
+  metric: Total | value: [17,325 QAR]{ size: 1.2em; weight: bold }
+
+## 4. Styling — three layers (never write raw CSS)
+
+1. Theme (document class): meta: | theme: corporate|legal|editorial|technical|minimal|warm|dark|print
+2. style: rules — house styling per block type, declared once, document-wide:
+     style: section | color: #0a7 | weight: 600
+     style: title | family: Georgia | size: 26pt
+   Targets: title summary section sub text quote callout info table table-header
+   metric contact divider. Rules apply after the theme; per-line props win over rules.
+3. Per-line style props and [text]{…} spans for exceptions.
+
+Style property keys (the ONLY style vocabulary — never arbitrary CSS):
+  color, size, family, weight, align(center|right|justify), bg, indent, opacity,
+  italic: true, border: true, underline: true, strike: true, valign(sub|super)
+
+## 5. Templates and merge
+
+Placeholders: {{path.to.value}} (dot paths, array indices: {{items.0.qty}}).
+Repeating table rows — add `each: <arrayPath>` to the header row; the next row is the
+item template, with each element bound to `item`:
+
+  | Description | Qty | Total | each: items |
+  | {{item.description}} | {{item.qty}} | {{item.total}} |
+
+Runtime print tokens: {{page}} and {{pages}} in header:/footer: become live page
+numbers in print and in the editor. {{date}} {{year}} resolve automatically.
+
+API: parseAndMerge(templateSource, data, { missing: "blank" }) — "blank" renders
+unresolved fields empty (finished documents); default "keep" shows the marker
+(authoring). Never hand-interpolate; use the merge engine.
+
+Complete invoice template:
+
+  page: | size: A4
+  header: {{company.name}}
+  footer: {{invoice.number}} · Page {{page}} of {{pages}}
+
+  title: Invoice {{invoice.number}}
+  summary: {{company.name}} → {{customer.name}}
+  meta: | date: {{invoice.date}} | status: {{invoice.status}}
+
+  section: Bill To
+  contact: {{customer.name}} | email: {{customer.email}}
+
+  section: Line Items
+  | Description | Qty | Unit Price | Total | each: items |
+  | {{item.description}} | {{item.qty}} | {{item.unitPrice}} | {{item.total}} |
+
+  section: Totals
+  metric: Subtotal | value: {{totals.subtotal}}
+  metric: Tax ({{totals.taxRate}}%) | value: {{totals.tax}}
+  metric: Total Due | value: {{totals.due}}
+
+## 6. Trust — sign, seal, verify (tamper-evidence, not PKI)
+
+Lifecycle: track → approve → sign → freeze (seal) → verify → amendment.
+
+The document hash = SHA-256 over the source ABOVE the `history:` boundary, EXCLUDING
+lines that start with sign:/freeze:/amendment: (approve: IS included), joined with LF,
+trimmed, UTF-8. Anyone can recompute it — no vendor needed. APIs:
+  sealDocument(source, { signer, role? }) → { success, hash, source, at }
+  verifyDocument(source) → { intact, frozen, signers, hash, expectedHash }
+CRITICAL: store sealed source EXACTLY as returned (no trimming/CRLF conversion — the
+hash covers exact bytes). Never edit above history: after sealing; use amendment:.
+
+## 7. Rendering and PDFs
+
+  renderHTML(doc, { theme })   → complete self-contained HTML document
+  renderPrint(doc, { theme })  → print-ready HTML: @page size/margins, running
+                                 header/footer with page counters, multi-page tables
+Browser: print renderPrint output via an iframe → native dialog → PDF (zero deps).
+Server PDFs: npm i @intenttext/pdf →
+  issuePDF(template, data, { signer }) → { source (sealed .it), hash, at, pdf (bytes) }
+
+## 8. Query — a folder of .it files is a database
+
+  queryBlocks(doc, "type:task owner:Ahmed sort:due:asc limit:5")
+  CLI: intenttext query ./docs "type:invoice status:Unpaid"
+Folder indexing is shallow, per-folder (.it-index), self-healing on query.
+
+## 9. Generation rules (follow these exactly)
+
+1. NEVER put `|` inside content or property values — it is the delimiter.
+2. One intent per line. No HTML, no Markdown headings (#), no raw CSS anywhere.
+3. Use semantic keywords over text: — a task is `task:`, a decision is `decision:`,
+   money totals are `metric: Label | value: …`.
+4. Dates: ISO format (2026-04-01 or 2026-04-01T09:00:00Z).
+5. Tables: keep header and rows the same column count; `each:` goes on the header row.
+6. Styled spans use `;` between props: [text]{ color: #c00; weight: bold }.
+7. RTL documents: `meta: | dir: rtl` (full right-to-left layout incl. tables/footers).
+8. For templates, leave {{placeholders}} untouched; never resolve them yourself.
+9. Don't invent style values — only the keys in §4. Don't invent trust hashes — only
+   sealDocument() computes them.
+10. Receipts: `page: | size: 80mm auto | margin: 4mm`, 2–3 narrow table columns.
+
+## 10. Minimal valid documents
+
+Simplest:                       Agent workflow:
+  title: Hello                    title: Onboarding Agent
+  text: World.                    step: Validate form | tool: validate | id: s1
+                                  decision: Valid? | then: s2 | else: fail
+Meeting notes:                    gate: Human review | approver: Ops
+  title: Sprint Planning          step: Provision | tool: infra | id: s2
+  done: OAuth shipped             result: Done | status: success
+  task: Index builder | owner: A
+  decision: Perf over features | by: Ahmed
