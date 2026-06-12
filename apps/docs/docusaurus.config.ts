@@ -144,7 +144,7 @@ const config: Config = {
           title: "Ecosystem",
           items: [
             { label: "Hub", href: "https://intenttext-hub.vercel.app" },
-            { label: "Editor", href: "https://iteditor.vercel.app" },
+            { label: "Editor", href: "https://editor.uts.qa" },
             {
               label: "npm",
               href: "https://npmjs.com/package/@intenttext/core",

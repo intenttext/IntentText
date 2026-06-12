@@ -118,7 +118,7 @@ export default function TemplateDetail({
               Download .it
             </button>
             <a
-              href={`https://iteditor.vercel.app?source=${encodeURIComponent(template.source)}`}
+              href={`https://editor.uts.qa?source=${encodeURIComponent(template.source)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-center text-sm font-medium text-[var(--text)] hover:border-[var(--purple)]"

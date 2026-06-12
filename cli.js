@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-const { spawnSync } = require("child_process");
-
 const {
   parseIntentText,
   renderHTML,
@@ -30,8 +28,6 @@ const {
   formatCSV,
   serializeContext,
   findHistoryBoundaryInSource,
-  getRustCoreFallbackTelemetry,
-  resetRustCoreFallbackTelemetry,
 } = require("./packages/core/dist");
 const readline = require("readline");
 const fs = require("fs");
@@ -39,73 +35,12 @@ const path = require("path");
 
 const CORE_VERSION = require("./packages/core/package.json").version;
 
-const RUST_ELIGIBLE_SUBCOMMANDS = new Set([
-  "validate",
-  "query",
-  "index",
-  "ask",
-  "seal",
-  "verify",
-  "history",
-  "amend",
-]);
-
-const JS_ONLY_COMMANDS = new Set(["theme", "telemetry"]);
-const JS_ONLY_FLAGS = new Set([
-  "--pdf",
-  "--print",
-  "--theme",
-  "--data",
-  "--query",
-  "--validate",
-]);
-
-function shouldUseRustCli(args) {
-  if (args.length === 0) return false;
-  const first = args[0];
-  if (JS_ONLY_COMMANDS.has(first)) return false;
-  if (RUST_ELIGIBLE_SUBCOMMANDS.has(first)) return true;
-  if (first === "--help" || first === "-h") return true;
-  for (const a of args) {
-    if (JS_ONLY_FLAGS.has(a)) return false;
-  }
-  return true;
-}
-
-function tryRustCliHandoff(args) {
-  const engine = process.env.INTENTTEXT_CLI_ENGINE;
-  if (engine === "js") return false;
-
-  const forceRust = engine === "rust";
-  if (!forceRust && !shouldUseRustCli(args)) return false;
-
-  const rustBin = process.env.INTENTTEXT_RUST_CLI_BIN || "intenttext-cli";
-  const child = spawnSync(rustBin, args, { stdio: "inherit" });
-
-  if (child.error) {
-    if (forceRust) {
-      console.error(
-        `❌ Failed to execute Rust CLI (${rustBin}): ${child.error.message}`,
-      );
-      process.exit(1);
-    }
-    return false;
-  }
-
-  process.exit(child.status ?? 0);
-}
-
 function main() {
   const args = process.argv.slice(2);
 
-  // Step 7 default path: Rust CLI first, JS stays as compatibility fallback.
-  if (tryRustCliHandoff(args)) {
-    return;
-  }
-
   if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
     console.log(`
-🚀 IntentText CLI v3.1.0
+🚀 IntentText CLI v${CORE_VERSION}
 
 Usage:
   node cli.js <file.it>                     Parse and show JSON
@@ -137,9 +72,6 @@ Query (v2.10):
   node cli.js query <dir> --type task --format csv      CSV output
 
 Runtime Telemetry:
-  node cli.js telemetry                                 Show Rust-core fallback counters
-  node cli.js telemetry --json                          JSON output
-  node cli.js telemetry --reset                         Reset counters before showing
 
 Index (v2.10):
   node cli.js index <dir>                               Build shallow index
@@ -216,37 +148,6 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
       "❌ Unknown theme command. Use: theme list | theme info <name>",
     );
     process.exit(1);
-  }
-
-  if (inputFile === "telemetry") {
-    if (
-      typeof getRustCoreFallbackTelemetry !== "function" ||
-      typeof resetRustCoreFallbackTelemetry !== "function"
-    ) {
-      console.error(
-        "❌ Telemetry API unavailable. Rebuild @intenttext/core to use this command.",
-      );
-      process.exit(1);
-    }
-
-    const shouldReset = args.includes("--reset");
-    const asJson = args.includes("--json");
-
-    if (shouldReset) {
-      resetRustCoreFallbackTelemetry();
-    }
-
-    const telemetry = getRustCoreFallbackTelemetry();
-    if (asJson) {
-      console.log(JSON.stringify(telemetry, null, 2));
-      return;
-    }
-
-    console.log("Rust core fallback telemetry:");
-    for (const [key, value] of Object.entries(telemetry)) {
-      console.log(`  ${key}: ${value}`);
-    }
-    return;
   }
 
   // v2.10: Folder / glob query command

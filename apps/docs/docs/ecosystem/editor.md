@@ -5,7 +5,7 @@ title: Web Editor
 
 # Web Editor
 
-The IntentText web editor at [iteditor.vercel.app](https://iteditor.vercel.app) is a browser-based authoring tool for `.it` files. No CLI, no terminal, no installation.
+The IntentText web editor at [editor.uts.qa](https://editor.uts.qa) is a browser-based authoring tool for `.it` files. No CLI, no terminal, no installation.
 
 ## Who it's for
 
@@ -76,7 +76,7 @@ IntentText keywords and aliases are highlighted by category:
 
 ## Getting started
 
-1. Go to [iteditor.vercel.app](https://iteditor.vercel.app)
+1. Go to [editor.uts.qa](https://editor.uts.qa)
 2. Start writing `.it` syntax — or use the block editor
 3. Select a theme from the dropdown
 4. Export to HTML or PDF when ready
