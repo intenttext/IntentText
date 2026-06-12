@@ -3,7 +3,7 @@ import { Toolbar } from "./toolbar/Toolbar";
 import { StatusBar } from "./status/StatusBar";
 import { MonacoEditor } from "./editor/MonacoEditor";
 import { VisualEditor } from "./visual/VisualEditor";
-import { PrintBar } from "./panels/PrintBar";
+import { exportDocumentPDF, exportDocumentHTML } from "./panels/PrintBar";
 import { TrustPanel } from "./panels/TrustPanel";
 import { TemplatePanel } from "./panels/TemplatePanel";
 import { extractTemplateVariables } from "./visual/template-highlight";
@@ -221,6 +221,8 @@ export default function App() {
           onOpen={openFile}
           onSave={saveFile}
           onModal={setModal}
+          onExportPDF={() => exportDocumentPDF(content, theme)}
+          onExportHTML={() => exportDocumentHTML(content, theme)}
           isSealed={trustState.trust.isSealed}
           templateVarCount={templateVarCount}
           samples={DEMO_DOCS.map((d) => ({ id: d.id, title: d.title }))}
@@ -243,12 +245,12 @@ export default function App() {
                 value={content}
                 onChange={setContent}
                 theme={theme}
+                onThemeChange={setTheme}
+                onModal={setModal}
               />
             )}
           </div>
         </div>
-
-        <PrintBar content={content} theme={theme} onThemeChange={setTheme} />
 
         <StatusBar
           blocks={docState.blocks}

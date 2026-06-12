@@ -1,71 +1,515 @@
 import React from "react";
 import Link from "@docusaurus/Link";
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
-import CodeBlock from "@theme/CodeBlock";
 import {
-  Building2,
+  ArrowRight,
   Bot,
-  PenLine,
-  ShieldCheck,
-  Lock,
-  FilePen,
-  Package,
-  Terminal,
-  Server,
+  Clock,
   Code2,
+  Database,
+  FileCheck,
+  FileText,
+  GitBranch,
   Globe,
   LayoutDashboard,
-  GitBranch,
-  ArrowRight,
+  Lock,
+  Package,
+  PenLine,
+  Printer,
   Search,
-  FileCheck,
-  Zap,
-  Clock,
+  Server,
+  ShieldCheck,
   Users,
-  Mail,
-  ChevronRight,
 } from "lucide-react";
+import styles from "./index.module.css";
 
-const LANDING_EXAMPLE = `title: Service Agreement
-summary: Consulting services Q2 2026
-meta: | client: Acme Corp | ref: CONTRACT-2026-042
-track: | version: 1.0 | by: Ahmed
+/* ── Static .it source rendering (no runtime parsing — just display) ── */
 
-section: Scope
-text: Consulting services April–June 2026
-text: Value: USD 24,000 | weight: bold
-deadline: Payment due | date: 2026-04-30 | consequence: Late fee applies
+const TRUST_KEYWORDS = new Set([
+  "sign",
+  "approve",
+  "freeze",
+  "track",
+  "amendment",
+  "history",
+  "revision",
+  "توقيع",
+  "اعتماد",
+  "تجميد",
+  "تتبع",
+  "تعديل",
+]);
 
-section: Parties
-contact: Ahmed Al-Rashid | role: CEO | email: ahmed@acme.com | org: Acme Corp
-contact: James Miller | role: COO | email: j.miller@client.co | org: Client Co.
-
-approve: Reviewed by legal | by: Sarah Chen | role: Legal Counsel
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z
-freeze: | status: locked`;
-
-function FeatureIcon({ children }: { children: React.ReactNode }) {
-  return <div className="feature-icon">{children}</div>;
+function Tok({ text }: { text: string }) {
+  const parts = text.split(/(\{\{[^}]*\}\})/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.startsWith("{{") ? (
+          <span key={i} className={styles.srcToken}>
+            {p}
+          </span>
+        ) : (
+          <React.Fragment key={i}>{p}</React.Fragment>
+        ),
+      )}
+    </>
+  );
 }
 
-export default function Home(): React.ReactElement {
-  const { siteConfig } = useDocusaurusContext();
+function ItLine({ line }: { line: string }) {
+  if (!line.trim()) return <div className={styles.srcLine}>&nbsp;</div>;
+  if (line.trimStart().startsWith("//")) {
+    return (
+      <div className={`${styles.srcLine} ${styles.srcComment}`}>{line}</div>
+    );
+  }
+  if (/^\s*\|/.test(line.trimStart())) {
+    const parts = line.split("|");
+    return (
+      <div className={styles.srcLine}>
+        {parts.map((p, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && <span className={styles.srcPipe}>|</span>}
+            <Tok text={p} />
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+  const m = line.match(/^([\p{L}][\p{L}\p{N}_-]*):(.*)$/u);
+  if (!m) return <div className={styles.srcLine}>{line}</div>;
+  const kw = m[1];
+  const rest = m[2];
+  const kwClass = TRUST_KEYWORDS.has(kw) ? styles.srcTrustKw : styles.srcKw;
+  const segments = rest.split(" | ");
   return (
-    <Layout title="Home" description={siteConfig.tagline}>
-      {/* ── Hero ──────────────────────────────────────────── */}
-      <div className="hero-section">
+    <div className={styles.srcLine}>
+      <span className={kwClass}>{kw}:</span>
+      {segments.map((seg, i) => {
+        const pm = i > 0 ? seg.match(/^(\s*[\p{L}][\p{L}\p{N}_-]*):\s?(.*)$/u) : null;
+        return (
+          <React.Fragment key={i}>
+            {i > 0 && <span className={styles.srcPipe}>{" | "}</span>}
+            {pm ? (
+              <>
+                <span className={styles.srcProp}>{pm[1]}:</span>{" "}
+                <Tok text={pm[2]} />
+              </>
+            ) : (
+              <Tok text={seg} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+function ItSource({
+  title,
+  code,
+  rtl,
+}: {
+  title: string;
+  code: string;
+  rtl?: boolean;
+}) {
+  return (
+    <div className={styles.srcPane}>
+      <div className={styles.paneHeader}>
+        <span className={styles.paneDots}>
+          <i />
+          <i />
+          <i />
+        </span>
+        {title}
+      </div>
+      <pre className={styles.srcBody} dir={rtl ? "rtl" : "ltr"}>
+        {code.split("\n").map((l, i) => (
+          <ItLine key={i} line={l} />
+        ))}
+      </pre>
+    </div>
+  );
+}
+
+function DarkCode({ title, code }: { title: string; code: string }) {
+  return (
+    <div className={styles.srcPane}>
+      <div className={styles.paneHeader}>
+        <span className={styles.paneDots}>
+          <i />
+          <i />
+          <i />
+        </span>
+        {title}
+      </div>
+      <pre className={styles.srcBody}>{code}</pre>
+    </div>
+  );
+}
+
+type TermLine = {
+  t: "cmd" | "ok" | "err" | "out" | "comment" | "blank";
+  s?: string;
+};
+
+function TerminalPane({ title, lines }: { title: string; lines: TermLine[] }) {
+  const cls: Record<string, string> = {
+    cmd: styles.termCmd,
+    ok: styles.termOk,
+    err: styles.termErr,
+    out: styles.termOut,
+    comment: styles.termComment,
+    blank: styles.termBlank,
+  };
+  return (
+    <div className={styles.terminal}>
+      <div className={styles.paneHeader}>
+        <span className={styles.paneDots}>
+          <i />
+          <i />
+          <i />
+        </span>
+        {title}
+      </div>
+      <pre className={styles.termBody}>
+        {lines.map((l, i) => (
+          <div key={i} className={cls[l.t]}>
+            {l.t === "blank" ? " " : l.s}
+          </div>
+        ))}
+      </pre>
+    </div>
+  );
+}
+
+/* ── Example sources (static text, hand-rendered next to them) ──────── */
+
+const INVOICE_SRC = `page: | size: A4 | margin: 20mm
+header: Horizon Consulting
+footer: INV-2026-042 · Page {{page}} of {{pages}}
+
+title: Invoice INV-2026-042 | end: 2026-06-01
+summary: Horizon Consulting → Acme Corp
+meta: | theme: corporate | status: Unpaid
+
+section: Bill To
+contact: Acme Corp | email: accounts@acme.com | vat: VAT-300214
+
+section: Line Items
+| Description | Qty | Unit | Total |
+| Consulting — May 2026 | 40 | 150.00 | 6,000.00 |
+| Systems integration | 12 | 175.00 | 2,100.00 |
+
+metric: Subtotal | value: 8,100.00 USD
+metric: Tax (5%) | value: 405.00 USD
+metric: Total Due | value: [8,505.00 USD]{ weight: bold }
+
+deadline: Payment due | date: 2026-06-30 | consequence: 2% monthly late fee
+sign: Layla Hassan | role: Finance Director | at: 2026-06-01T09:30:00Z
+freeze: | status: locked`;
+
+const ARABIC_SRC = `عنوان: عقد خدمات استشارية
+ملخص: بين شركة الأفق للاستشارات ومؤسسة النور التجارية
+بيانات: | التاريخ: 2026-06-01 | الحالة: ساري
+
+قسم: الأطراف
+جهة: شركة الأفق للاستشارات | البريد: info@alufuq.qa | السجل: CR-10442
+جهة: مؤسسة النور التجارية | البريد: contact@alnoor.qa | السجل: CR-22871
+
+قسم: نطاق العمل
+نص: يقدّم الطرف الأول خدمات استشارية إدارية خلال الربع الثالث من عام 2026.
+مؤشر: قيمة العقد | value: 45,000 ر.ق
+مهلة: سداد الدفعة الأولى | date: 2026-07-15 | consequence: غرامة تأخير 2%
+
+قسم: الجدول الزمني
+أعمدة: المرحلة | التسليم | الموعد
+صف: الأولى | دراسة الوضع الراهن | 2026-07-01
+صف: الثانية | التقرير النهائي | 2026-09-30
+
+اعتماد: روجع من الإدارة القانونية | by: سارة المنصوري | role: مستشارة قانونية
+توقيع: أحمد الجابر | role: المدير التنفيذي | at: 2026-06-01T10:00:00Z
+تجميد: | status: locked`;
+
+const PRINT_SRC = `page: | size: A4 | margin: 20mm
+header: ACME Holdings — Confidential
+footer: Page {{page}} of {{pages}}
+watermark: DRAFT | opacity: 0.1
+
+style: text | leading: 1.6 | space-after: 12px
+style: section | color: #1e3a5f | weight: 600`;
+
+const PDF_SRC = `import { issuePDF } from "@dotit/pdf";
+
+const { source, hash, pdf } = await issuePDF(template, data, {
+  signer: "Layla Hassan",
+  role: "Finance Director",
+  theme: "corporate",
+});
+// source — the sealed .it: the queryable, verifiable record
+// pdf    — real PDF bytes, ready to email or archive`;
+
+const MCP_SRC = `{
+  "mcpServers": {
+    "intenttext": {
+      "command": "npx",
+      "args": ["-y", "-p", "@dotit/mcp", "intenttext-mcp"]
+    }
+  }
+}`;
+
+const MCP_TOOLS = [
+  "parse_intent_text",
+  "render_html",
+  "render_print",
+  "merge_template",
+  "validate_document",
+  "query_document",
+  "diff_documents",
+  "document_to_source",
+  "extract_workflow",
+  "seal_document",
+  "verify_document",
+  "get_document_history",
+];
+
+const TRUST_TERM: TermLine[] = [
+  { t: "cmd", s: 'dotit seal contract.it --signer "Ahmed Al-Jaber" --role "CEO"' },
+  { t: "ok", s: "✅  Document sealed" },
+  { t: "out", s: "    Signer:   Ahmed Al-Jaber (CEO)" },
+  { t: "out", s: "    Hash:     sha256:9f1c2ab87d…" },
+  { t: "out", s: "    Frozen:   2026-06-12T10:02:11Z" },
+  { t: "blank" },
+  { t: "cmd", s: "dotit verify contract.it" },
+  { t: "ok", s: "✅  Document intact" },
+  { t: "out", s: "    Sealed:   2026-06-12T10:02:11Z" },
+  { t: "out", s: "    Signers:  Ahmed Al-Jaber (CEO) ✅" },
+  { t: "blank" },
+  { t: "comment", s: "// a payment term is edited after sealing…" },
+  { t: "cmd", s: "dotit verify contract.it" },
+  { t: "err", s: "❌  Document has been modified since sealing" },
+  { t: "out", s: "    Expected: sha256:9f1c2ab87d…" },
+  { t: "out", s: "    Current:  sha256:3e8d41c09a…" },
+];
+
+const QUERY_TERM: TermLine[] = [
+  { t: "cmd", s: "dotit query ./contracts --type deadline" },
+  { t: "blank" },
+  { t: "out", s: "FILE            TYPE      CONTENT             PROPERTIES" },
+  { t: "out", s: "--------------  --------  ------------------  --------------------------" },
+  { t: "out", s: "acme-2026.it    deadline  Payment due         date: 2026-06-30 | consequence: 2% monthly late fee" },
+  { t: "out", s: "alnoor-svc.it   deadline  سداد الدفعة الأولى   date: 2026-07-15 | consequence: غرامة تأخير 2%" },
+  { t: "out", s: "orbit-nda.it    deadline  Renewal notice      date: 2026-09-01" },
+  { t: "blank" },
+  { t: "comment", s: "// build per-folder indexes once — queries self-heal them afterwards" },
+  { t: "cmd", s: "dotit index ./contracts --recursive" },
+  { t: "blank" },
+  { t: "comment", s: "// or ask in natural language" },
+  { t: "cmd", s: 'dotit ask ./contracts "which contracts renew this quarter?"' },
+];
+
+/* ── Rendered document panes (static, hand-rendered) ─────────────────── */
+
+function InvoicePaper() {
+  return (
+    <div className={styles.paper}>
+      <div className={styles.paperZone}>Horizon Consulting</div>
+      <div className={styles.paperBody}>
+        <div className={styles.twoSided}>
+          <h3 className={styles.docTitle}>Invoice INV-2026-042</h3>
+          <span className={styles.docTitleEnd}>2026-06-01</span>
+        </div>
+        <p className={styles.docSummary}>Horizon Consulting → Acme Corp</p>
+        <div className={styles.metaChips}>
+          <span className={styles.metaChip}>theme: corporate</span>
+          <span className={styles.metaChip}>status: Unpaid</span>
+        </div>
+        <div className={styles.docSection}>Bill To</div>
+        <div className={styles.contactCard}>
+          <Users size={15} />
+          <div>
+            <strong>Acme Corp</strong>
+            <div className={styles.contactMeta}>
+              accounts@acme.com · VAT-300214
+            </div>
+          </div>
+        </div>
+        <div className={styles.docSection}>Line Items</div>
+        <table className={styles.docTable}>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th className={styles.numCell}>Qty</th>
+              <th className={styles.numCell}>Unit</th>
+              <th className={styles.numCell}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Consulting — May 2026</td>
+              <td className={styles.numCell}>40</td>
+              <td className={styles.numCell}>150.00</td>
+              <td className={styles.numCell}>6,000.00</td>
+            </tr>
+            <tr>
+              <td>Systems integration</td>
+              <td className={styles.numCell}>12</td>
+              <td className={styles.numCell}>175.00</td>
+              <td className={styles.numCell}>2,100.00</td>
+            </tr>
+          </tbody>
+        </table>
+        <div className={styles.totalRow}>
+          <span>Subtotal</span>
+          <strong>8,100.00 USD</strong>
+        </div>
+        <div className={styles.totalRow}>
+          <span>Tax (5%)</span>
+          <strong>405.00 USD</strong>
+        </div>
+        <div className={`${styles.totalRow} ${styles.totalRowGrand}`}>
+          <span>Total Due</span>
+          <strong>8,505.00 USD</strong>
+        </div>
+        <div className={styles.deadlineBox}>
+          <Clock size={14} />
+          <span>
+            <strong>Payment due</strong> — 2026-06-30 · 2% monthly late fee
+          </span>
+        </div>
+        <div className={styles.trustChips}>
+          <span className={`${styles.trustChip} ${styles.trustSign}`}>
+            <PenLine size={14} /> Signed — Layla Hassan, Finance Director
+          </span>
+          <span className={`${styles.trustChip} ${styles.trustSeal}`}>
+            <Lock size={14} /> Sealed · sha256:9f1c2ab87d…
+          </span>
+        </div>
+      </div>
+      <div className={styles.paperZone}>INV-2026-042 · Page 1 of 1</div>
+    </div>
+  );
+}
+
+function ArabicPaper() {
+  return (
+    <div className={styles.paper} dir="rtl" lang="ar">
+      <div className={styles.paperBody}>
+        <h3 className={styles.docTitle}>عقد خدمات استشارية</h3>
+        <p className={styles.docSummary}>
+          بين شركة الأفق للاستشارات ومؤسسة النور التجارية
+        </p>
+        <div className={styles.metaChips}>
+          <span className={styles.metaChip}>
+            التاريخ: <span dir="ltr">2026-06-01</span>
+          </span>
+          <span className={styles.metaChip}>الحالة: ساري</span>
+        </div>
+        <div className={styles.docSection}>الأطراف</div>
+        <div className={styles.contactCard}>
+          <Users size={15} />
+          <div>
+            <strong>شركة الأفق للاستشارات</strong>
+            <div className={styles.contactMeta}>
+              <span dir="ltr">info@alufuq.qa</span> · السجل CR-10442
+            </div>
+          </div>
+        </div>
+        <div className={styles.contactCard}>
+          <Users size={15} />
+          <div>
+            <strong>مؤسسة النور التجارية</strong>
+            <div className={styles.contactMeta}>
+              <span dir="ltr">contact@alnoor.qa</span> · السجل CR-22871
+            </div>
+          </div>
+        </div>
+        <div className={styles.docSection}>نطاق العمل</div>
+        <p className={styles.docText}>
+          يقدّم الطرف الأول خدمات استشارية إدارية خلال الربع الثالث من عام 2026.
+        </p>
+        <div className={`${styles.totalRow} ${styles.totalRowGrand}`}>
+          <span>قيمة العقد</span>
+          <strong>45,000 ر.ق</strong>
+        </div>
+        <div className={styles.deadlineBox}>
+          <Clock size={14} />
+          <span>
+            <strong>سداد الدفعة الأولى</strong> —{" "}
+            <span dir="ltr">2026-07-15</span> · غرامة تأخير 2%
+          </span>
+        </div>
+        <div className={styles.docSection}>الجدول الزمني</div>
+        <table className={styles.docTable}>
+          <thead>
+            <tr>
+              <th>المرحلة</th>
+              <th>التسليم</th>
+              <th>الموعد</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>الأولى</td>
+              <td>دراسة الوضع الراهن</td>
+              <td dir="ltr">2026-07-01</td>
+            </tr>
+            <tr>
+              <td>الثانية</td>
+              <td>التقرير النهائي</td>
+              <td dir="ltr">2026-09-30</td>
+            </tr>
+          </tbody>
+        </table>
+        <div className={styles.trustChips}>
+          <span className={`${styles.trustChip} ${styles.trustApprove}`}>
+            <ShieldCheck size={14} /> اعتماد — سارة المنصوري، مستشارة قانونية
+          </span>
+          <span className={`${styles.trustChip} ${styles.trustSign}`}>
+            <PenLine size={14} /> توقيع — أحمد الجابر، المدير التنفيذي
+          </span>
+          <span className={`${styles.trustChip} ${styles.trustSeal}`}>
+            <Lock size={14} /> الوثيقة مختومة
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Page ─────────────────────────────────────────────────────────────── */
+
+export default function Home(): React.ReactElement {
+  return (
+    <Layout
+      title="Documents, data, PDF, and trust in one plain-text file"
+      description="IntentText (.it) is an open plain-text format: human-readable documents that are also a queryable database, printable to enterprise PDF, and cryptographically sealable. Arabic-native, agent-ready."
+    >
+      {/* ── 1 · Hero ─────────────────────────────────────── */}
+      <header className={styles.hero}>
         <div className="container">
-          <div className="hero-badge">
-            Open format &middot; v1.0 &middot; <code>@dotit</code> on npm
+          <div className={styles.heroBadge}>
+            <code>.it</code> — IntentText · v1.x · open format
           </div>
-          <h1>Documents that think.</h1>
-          <p className="hero-subtitle">
-            IntentText (<code>.it</code>) is an open format for structured
-            documents — readable by humans, queryable by code, trustworthy by
-            design.
+          <h1 className={styles.heroTitle}>
+            One plain-text file. A <em>document</em>, a <em>database</em>,
+            a <em>PDF</em>, a <em>sealed record</em>.
+          </h1>
+          <p className={styles.heroSub}>
+            IntentText (<code>.it</code>) is an open format for business
+            documents. Write contracts, invoices, and reports as readable text
+            — query them like a database, print them to enterprise-grade PDF,
+            and seal them with a tamper-evident hash. In English or Arabic, by
+            people or AI agents.
           </p>
-          <div className="hero-buttons">
+          <div className={styles.installRow}>
+            <code className={styles.installCmd}>
+              <span>$</span> npm install -g @dotit/core
+            </code>
+          </div>
+          <div className={styles.heroButtons}>
             <Link
               className="button button--primary button--lg"
               to="/docs/guide/quick-start"
@@ -74,315 +518,440 @@ export default function Home(): React.ReactElement {
             </Link>
             <Link
               className="button button--secondary button--lg"
-              href="https://intenttext-hub.vercel.app"
+              href="https://editor.uts.qa"
             >
-              Browse templates
+              Open the editor
+            </Link>
+            <Link
+              className="button button--link button--lg"
+              to="pathname:///llms.txt"
+            >
+              llms.txt for AI agents
             </Link>
           </div>
-          <div className="hero-stats">
-            <div className="hero-stat">
-              <strong>38</strong>
-              <span>canonical keywords</span>
-            </div>
-            <div className="hero-stat">
-              <strong>8</strong>
-              <span>themes</span>
-            </div>
-            <div className="hero-stat">
-              <strong>5</strong>
-              <span>SDKs</span>
-            </div>
-            <div className="hero-stat">
-              <strong>76</strong>
-              <span>templates</span>
-            </div>
-          </div>
+          <nav className={styles.pillars}>
+            <a className={styles.pillar} href="#example">
+              <FileText size={22} strokeWidth={1.6} />
+              <strong>A document you read</strong>
+              <span>Plain text, one intent per line</span>
+            </a>
+            <a className={styles.pillar} href="#query">
+              <Database size={22} strokeWidth={1.6} />
+              <strong>A database you query</strong>
+              <span>Typed blocks, folder indexes</span>
+            </a>
+            <a className={styles.pillar} href="#print">
+              <Printer size={22} strokeWidth={1.6} />
+              <strong>A PDF you ship</strong>
+              <span>Themes, page headers, watermarks</span>
+            </a>
+            <a className={styles.pillar} href="#trust">
+              <ShieldCheck size={22} strokeWidth={1.6} />
+              <strong>A record you trust</strong>
+              <span>Sign, seal, verify, amend</span>
+            </a>
+          </nav>
         </div>
-      </div>
+      </header>
 
-      {/* ── Live Example ──────────────────────────────────── */}
-      <div className="container section">
-        <h2 className="section-title">One format. Every audience.</h2>
-        <p className="section-subtitle">
-          Human-readable source on the left. Rendered output on the right. Same
-          file.
-        </p>
-        <div className="live-example">
-          <div className="live-source">
-            <CodeBlock language="bash">{LANDING_EXAMPLE}</CodeBlock>
-          </div>
-          <div className="live-render">
-            <h3 style={{ margin: "0 0 0.25rem" }}>Service Agreement</h3>
-            <p className="render-summary">Consulting services Q2 2026</p>
-            <div className="render-meta">
-              <span>client: Acme Corp</span>
-              <span>ref: CONTRACT-2026-042</span>
-            </div>
-            <div className="render-track">
-              <FileCheck size={13} /> Tracked — version: 1.0 — by: Ahmed
-            </div>
-            <h4 className="render-section">Scope</h4>
-            <p className="render-text">Consulting services April–June 2026</p>
-            <p className="render-text" style={{ fontWeight: 700 }}>
-              Value: USD 24,000
-            </p>
-            <div className="render-deadline">
-              <Clock size={14} /> <strong>Payment due</strong> — 2026-04-30
-            </div>
-            <h4 className="render-section">Parties</h4>
-            <div className="render-contact">
-              <Users size={14} />
-              <div>
-                <strong>Ahmed Al-Rashid</strong>
-                <span className="render-role"> — CEO at Acme Corp</span>
-                <div className="render-email">
-                  <Mail size={12} /> ahmed@acme.com
-                </div>
-              </div>
-            </div>
-            <div className="render-contact">
-              <Users size={14} />
-              <div>
-                <strong>James Miller</strong>
-                <span className="render-role"> — COO at Client Co.</span>
-                <div className="render-email">
-                  <Mail size={12} /> j.miller@client.co
-                </div>
-              </div>
-            </div>
-            <div className="render-trust">
-              <div className="trust-approve">
-                <ShieldCheck size={14} /> Reviewed by legal — Sarah Chen, Legal
-                Counsel
-              </div>
-              <div className="trust-sign">
-                <PenLine size={14} /> Signed by Ahmed Al-Rashid — CEO
-              </div>
-              <div className="trust-seal">
-                <Lock size={14} /> Document sealed
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Three Audiences ───────────────────────────────── */}
-      <div className="alt-bg">
-        <div className="container section">
-          <h2 className="section-title">Built for three audiences</h2>
-          <div className="audience-grid">
-            <div className="audience-card">
-              <FeatureIcon>
-                <Building2 size={28} strokeWidth={1.5} />
-              </FeatureIcon>
-              <h3>Organizations</h3>
-              <p>
-                Contracts, policies, reports — all in queryable <code>.it</code>{" "}
-                files. Find every deadline across 500 documents. Track who
-                approved what. Seal contracts with cryptographic trust.
-              </p>
-              <Link to="/docs/guide/for-organizations" className="card-link">
-                For organizations <ChevronRight size={16} />
-              </Link>
-            </div>
-            <div className="audience-card">
-              <FeatureIcon>
-                <Bot size={28} strokeWidth={1.5} />
-              </FeatureIcon>
-              <h3>AI Agents</h3>
-              <p>
-                Seven workflow keywords. Pipeline definitions agents can read
-                and execute. Gates, decisions, handoffs. An MCP server (
-                <code>@dotit/mcp</code>) ships ready. Agents produce{" "}
-                <code>.it</code> files, not just Markdown.
-              </p>
-              <Link to="/docs/guide/for-agents" className="card-link">
-                For agents <ChevronRight size={16} />
-              </Link>
-            </div>
-            <div className="audience-card">
-              <FeatureIcon>
-                <PenLine size={28} strokeWidth={1.5} />
-              </FeatureIcon>
-              <h3>Writers</h3>
-              <p>
-                Write in plain text. Get professional output. 8 built-in themes
-                — corporate, editorial, legal, minimal. Figures with
-                auto-numbering. Citations. PDF export in one command.
-              </p>
-              <Link to="/docs/guide/for-writers" className="card-link">
-                For writers <ChevronRight size={16} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Why IntentText ────────────────────────────────── */}
-      <div className="container section">
-        <h2 className="section-title">Why IntentText?</h2>
-        <div className="why-grid">
-          <div className="why-item">
-            <Search size={20} strokeWidth={1.5} />
-            <div>
-              <strong>Queryable</strong>
-              <p>
-                Find every <code>deadline:</code> across hundreds of documents.
-                Extract contacts, metrics, approvals — programmatically.
-              </p>
-            </div>
-          </div>
-          <div className="why-item">
-            <ShieldCheck size={20} strokeWidth={1.5} />
-            <div>
-              <strong>Trustworthy</strong>
-              <p>
-                Built-in approve, sign, freeze, and amend keywords. Documents
-                carry their own chain of custody.
-              </p>
-            </div>
-          </div>
-          <div className="why-item">
-            <Zap size={20} strokeWidth={1.5} />
-            <div>
-              <strong>Zero dependencies</strong>
-              <p>
-                Plain text files. No database, no cloud, no vendor. Parse with a
-                single function. Works offline.
-              </p>
-            </div>
-          </div>
-          <div className="why-item">
-            <FileCheck size={20} strokeWidth={1.5} />
-            <div>
-              <strong>Portable</strong>
-              <p>
-                One <code>.it</code> file renders to HTML, PDF, JSON. The format
-                is open. No lock-in, ever.
-              </p>
-            </div>
-          </div>
-          <div className="why-item">
-            <Globe size={20} strokeWidth={1.5} />
-            <div>
-              <strong>Multilingual</strong>
-              <p>
-                Write <code>مهمة:</code> instead of <code>task:</code> — Arabic
-                keyword aliases carry full semantics, round-trip as written, and
-                RTL layout works out of the box.
-              </p>
-            </div>
-          </div>
-          <div className="why-item">
-            <Lock size={20} strokeWidth={1.5} />
-            <div>
-              <strong>Hardened</strong>
-              <p>
-                Fuzz-tested parser that never throws on untrusted input.
-                Escaping that survives round-trips. Sealed documents keep their
-                hash.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Ecosystem ─────────────────────────────────────── */}
-      <div className="alt-bg">
-        <div className="container section">
-          <h2 className="section-title">The ecosystem</h2>
-          <p className="section-subtitle">
-            Everything you need to create, validate, and distribute structured
-            documents.
+      {/* ── 2 · Live-feel example ────────────────────────── */}
+      <section className={styles.section} id="example">
+        <div className="container">
+          <span className={styles.kicker}>The format</span>
+          <h2 className={styles.sectionTitle}>Write this. Ship this.</h2>
+          <p className={styles.sectionSub}>
+            Every line is one intent: <code>keyword: content | prop: value</code>.
+            The source on the left is the single artifact — the invoice on the
+            right is <code>dotit invoice.it --html --theme corporate</code>.
           </p>
-          <div className="ecosystem-grid">
-            <div className="ecosystem-item">
-              <Package size={22} strokeWidth={1.5} />
-              <strong>npm</strong>
-              <span>@dotit/core</span>
+          <div className={styles.duo}>
+            <ItSource title="invoice.it" code={INVOICE_SRC} />
+            <InvoicePaper />
+          </div>
+          <div className={styles.captionRow}>
+            <span className={styles.captionChip}>
+              Two-sided rows — <code>end:</code>
+            </span>
+            <span className={styles.captionChip}>
+              Inline styled spans — <code>[text]&#123;…&#125;</code>
+            </span>
+            <span className={styles.captionChip}>
+              Running header / footer with page counters
+            </span>
+            <span className={styles.captionChip}>
+              Typed blocks — <code>metric:</code>, <code>deadline:</code>,{" "}
+              <code>contact:</code>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 3 · Arabic-native ────────────────────────────── */}
+      <section className={`${styles.section} ${styles.sectionAlt}`} id="arabic">
+        <div className="container">
+          <span className={styles.kicker}>عربي أصيل</span>
+          <h2 className={styles.sectionTitle}>Arabic is a first language</h2>
+          <p className={styles.sectionSub}>
+            Not translated — native. Write the keywords themselves in Arabic:{" "}
+            <code>عنوان:</code> <code>قسم:</code> <code>جهة:</code>{" "}
+            <code>مهلة:</code> <code>توقيع:</code>. The document below is a
+            complete, sealable services contract.
+          </p>
+          <div className={styles.duo} dir="rtl">
+            <ItSource title="عقد-الخدمات.it" code={ARABIC_SRC} rtl />
+            <ArabicPaper />
+          </div>
+          <div className={styles.captionRow}>
+            <span className={styles.captionChip}>
+              33 Arabic keyword aliases — full canonical semantics
+            </span>
+            <span className={styles.captionChip}>
+              RTL automatic — layout mirrors via CSS logical properties
+            </span>
+            <span className={styles.captionChip}>
+              Keywords round-trip as written — sealed Arabic docs keep their
+              hash
+            </span>
+            <span className={styles.captionChip}>
+              One query spans languages — <code>--type deadline</code> finds{" "}
+              <code>مهلة:</code> too
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4 · Enterprise print / PDF ───────────────────── */}
+      <section className={styles.section} id="print">
+        <div className="container">
+          <div className={styles.split}>
+            <div className={styles.splitCopy}>
+              <span className={styles.kicker}>Print &amp; PDF</span>
+              <h2>Enterprise paper, from plain text</h2>
+              <p>
+                The page is part of the document. Paper size, margins, running
+                headers and footers, watermarks, and house typography are all
+                declared in the same <code>.it</code> file — no CSS, no Word
+                template drift.
+              </p>
+              <ul className={styles.featureList}>
+                <li>
+                  <LayoutDashboard size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>WYSIWYG editor</strong>
+                    <p>
+                      Word-like pages at{" "}
+                      <Link href="https://editor.uts.qa">editor.uts.qa</Link> —
+                      what you see on the canvas is what prints.
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <Printer size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>@page control with live counters</strong>
+                    <p>
+                      <code>header:</code> / <code>footer:</code> render in the
+                      print margins with <code>&#123;&#123;page&#125;&#125;</code> /{" "}
+                      <code>&#123;&#123;pages&#125;&#125;</code> resolved per
+                      page. <code>watermark: DRAFT</code> overlays every page.
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <FileText size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>8 themes, Word-parity typography</strong>
+                    <p>
+                      corporate, legal, editorial, technical, minimal, warm,
+                      dark, print — plus <code>leading:</code>,{" "}
+                      <code>space-before:</code>, <code>space-after:</code> per
+                      block or document-wide via <code>style:</code> rules.
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <Server size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>Server-side PDF bytes</strong>
+                    <p>
+                      Browser printing needs zero dependencies. For invoicing
+                      pipelines and archives, <code>@dotit/pdf</code> merges,
+                      seals, and returns real PDF bytes in one call.
+                    </p>
+                  </div>
+                </li>
+              </ul>
             </div>
-            <div className="ecosystem-item">
-              <Package size={22} strokeWidth={1.5} />
-              <strong>PyPI</strong>
-              <span>intenttext</span>
+            <div className={styles.codeStack}>
+              <ItSource title="report.it — page setup" code={PRINT_SRC} />
+              <DarkCode title="issue-invoice.ts — @dotit/pdf" code={PDF_SRC} />
             </div>
-            <div className="ecosystem-item">
-              <Terminal size={22} strokeWidth={1.5} />
-              <strong>CLI</strong>
-              <span>Parse, render, seal</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5 · Trust ────────────────────────────────────── */}
+      <section className={`${styles.section} ${styles.sectionAlt}`} id="trust">
+        <div className="container">
+          <div className={styles.split}>
+            <div className={styles.splitCopy}>
+              <span className={styles.kicker}>Trust</span>
+              <h2>Seal it. Anyone can verify it.</h2>
+              <p>
+                The trust lifecycle lives inside the file:{" "}
+                <code>track</code> → <code>approve</code> → <code>sign</code> →{" "}
+                <code>freeze</code> → verify → <code>amendment</code>. No
+                platform, no account, no vendor.
+              </p>
+              <ul className={styles.featureList}>
+                <li>
+                  <Lock size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>Tamper-evident, not proprietary</strong>
+                    <p>
+                      The seal is a SHA-256 hash over the canonical source.
+                      Anyone with the file can recompute it — twenty years from
+                      now, with any SHA-256 implementation.
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <FileCheck size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>Approvals are hashed with the body</strong>
+                    <p>
+                      <code>approve:</code> lines are part of what gets sealed.
+                      The append-only audit log below the <code>history:</code>{" "}
+                      boundary never disturbs the hash.
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <GitBranch size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>Formal amendments</strong>
+                    <p>
+                      Sealed documents change only through{" "}
+                      <code>amendment:</code> — <code>was:</code> /{" "}
+                      <code>now:</code> records the change while the original
+                      seal stays intact.
+                    </p>
+                  </div>
+                </li>
+              </ul>
             </div>
-            <div className="ecosystem-item">
-              <Server size={22} strokeWidth={1.5} />
-              <strong>MCP Server</strong>
-              <span>For AI agents</span>
+            <TerminalPane title="trust — dotit CLI" lines={TRUST_TERM} />
+          </div>
+        </div>
+      </section>
+
+      {/* ── 6 · A folder is a database ───────────────────── */}
+      <section className={styles.section} id="query">
+        <div className="container">
+          <div className={styles.split}>
+            <div className={styles.splitCopy}>
+              <span className={styles.kicker}>Query</span>
+              <h2>A folder of documents is a database</h2>
+              <p>
+                Every block is typed and every property is queryable — so a
+                directory of contracts answers questions without a database,
+                an importer, or a server.
+              </p>
+              <ul className={styles.featureList}>
+                <li>
+                  <Search size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>Query files, folders, or globs</strong>
+                    <p>
+                      Filter by type, author, status, section, or content;
+                      output as table, JSON, or CSV. Date ranges work because
+                      dates are ISO 8601.
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <Database size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>Self-healing indexes</strong>
+                    <p>
+                      Each folder owns a shallow <code>.it-index</code> that
+                      refreshes lazily on query. The <code>.it</code> files
+                      stay the source of truth — greppable and git-diffable.
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <Code2 size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>Same engine in code</strong>
+                    <p>
+                      <code>
+                        queryBlocks(doc, "type:task owner:Ahmed sort:due:asc
+                        limit:5")
+                      </code>{" "}
+                      — one function, no schema migration, works offline.
+                    </p>
+                  </div>
+                </li>
+              </ul>
             </div>
-            <div className="ecosystem-item">
-              <Code2 size={22} strokeWidth={1.5} />
-              <strong>VS Code</strong>
-              <span>Syntax + snippets</span>
+            <TerminalPane title="query — dotit CLI" lines={QUERY_TERM} />
+          </div>
+        </div>
+      </section>
+
+      {/* ── 7 · For AI agents ────────────────────────────── */}
+      <section className={`${styles.section} ${styles.sectionAlt}`} id="agents">
+        <div className="container">
+          <span className={styles.kicker}>For AI agents</span>
+          <h2 className={styles.sectionTitle}>
+            Agents learn the format from one URL
+          </h2>
+          <p className={styles.sectionSub}>
+            IntentText is designed to be authored by models as much as by
+            people — deterministic grammar, no layout ambiguity, and trust
+            operations an agent can run.
+          </p>
+          <div className={styles.cardGrid}>
+            <div className={styles.card}>
+              <h3>
+                <Globe size={20} strokeWidth={1.7} /> /llms.txt — the whole
+                format, one request
+              </h3>
+              <div className={styles.llmsUrl}>dotit.uts.qa/llms.txt</div>
+              <p>
+                The complete machine reference: line grammar, all 38 canonical
+                keywords, styling layers, templates and merge, the trust
+                model, and generation rules. Point any LLM at it and it writes
+                valid <code>.it</code> — documents, templates, and workflows —
+                immediately.
+              </p>
+              <div className={styles.cardFooter}>
+                <Link
+                  className="button button--primary"
+                  to="pathname:///llms.txt"
+                >
+                  Open /llms.txt <ArrowRight size={16} />
+                </Link>
+              </div>
             </div>
-            <div className="ecosystem-item">
-              <Globe size={22} strokeWidth={1.5} />
-              <strong>Hub</strong>
-              <span>76 templates, 8 themes</span>
+            <div className={styles.card}>
+              <h3>
+                <Bot size={20} strokeWidth={1.7} /> @dotit/mcp — 12 tools, any
+                agent
+              </h3>
+              <div className={styles.toolChips}>
+                {MCP_TOOLS.map((t) => (
+                  <span key={t} className={styles.toolChip}>
+                    {t}
+                  </span>
+                ))}
+              </div>
+              <DarkCode title="mcp.json" code={MCP_SRC} />
             </div>
-            <div className="ecosystem-item">
-              <LayoutDashboard size={22} strokeWidth={1.5} />
+          </div>
+          <p className={styles.agentKeywords}>
+            And agents don&apos;t just read <code>.it</code> — they run on it:{" "}
+            <code>step:</code>, <code>decision:</code>, <code>gate:</code>,{" "}
+            <code>trigger:</code>, <code>result:</code>, <code>policy:</code>,{" "}
+            <code>audit:</code> define executable workflows with human
+            checkpoints.{" "}
+            <Link to="/docs/guide/for-agents">Read the agent guide →</Link>
+          </p>
+        </div>
+      </section>
+
+      {/* ── 8 · Ecosystem ────────────────────────────────── */}
+      <section className={styles.section} id="ecosystem">
+        <div className="container">
+          <span className={styles.kicker}>Ecosystem</span>
+          <h2 className={styles.sectionTitle}>Everything ships under @dotit</h2>
+          <p className={styles.sectionSub}>
+            A zero-dependency core, opt-in companions, and tooling for every
+            surface you work on.
+          </p>
+          <div className={styles.ecoGrid}>
+            <Link
+              className={styles.ecoCard}
+              href="https://npmjs.com/package/@dotit/core"
+            >
+              <Package size={20} strokeWidth={1.7} />
+              <strong>@dotit/core</strong>
+              <span>
+                Parser, HTML/print renderer, query, trust, templates — and the{" "}
+                <code>dotit</code> CLI. Zero dependencies.
+              </span>
+            </Link>
+            <Link
+              className={styles.ecoCard}
+              href="https://npmjs.com/package/@dotit/pdf"
+            >
+              <Printer size={20} strokeWidth={1.7} />
+              <strong>@dotit/pdf</strong>
+              <span>
+                Server-side PDF bytes: merge → seal → render in one{" "}
+                <code>issuePDF()</code> call.
+              </span>
+            </Link>
+            <Link
+              className={styles.ecoCard}
+              href="https://npmjs.com/package/@dotit/mcp"
+            >
+              <Server size={20} strokeWidth={1.7} />
+              <strong>@dotit/mcp</strong>
+              <span>
+                MCP server with 12 tools — parse, render, query, seal, verify
+                from any AI agent.
+              </span>
+            </Link>
+            <Link
+              className={styles.ecoCard}
+              href="https://github.com/intenttext/IntentText/tree/main/packages/vscode"
+            >
+              <Code2 size={20} strokeWidth={1.7} />
+              <strong>VS Code extension</strong>
+              <span>
+                Syntax highlighting from the same keyword registry the parser
+                uses.
+              </span>
+            </Link>
+            <Link className={styles.ecoCard} href="https://editor.uts.qa">
+              <LayoutDashboard size={20} strokeWidth={1.7} />
               <strong>Editor</strong>
-              <span>Web-based WYSIWYG</span>
-            </div>
-            <div className="ecosystem-item">
-              <GitBranch size={22} strokeWidth={1.5} />
-              <strong>GitHub Action</strong>
-              <span>CI validation</span>
-            </div>
+              <span>
+                Word-like WYSIWYG pages, template mode, trust chips, print
+                preview — in the browser.
+              </span>
+            </Link>
+            <Link
+              className={styles.ecoCard}
+              href="https://github.com/intenttext/IntentText"
+            >
+              <GitBranch size={20} strokeWidth={1.7} />
+              <strong>GitHub</strong>
+              <span>
+                The spec, the source, the issues. The format is open — the
+                file is yours.
+              </span>
+            </Link>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── Trust ─────────────────────────────────────────── */}
-      <div className="container section">
-        <h2 className="section-title">Trust, built in</h2>
-        <p className="section-subtitle">
-          Documents carry their own chain of custody. No external system
-          required.
-        </p>
-        <div className="trust-steps">
-          <div className="trust-step">
-            <div className="trust-step-number">1</div>
-            <h3>Approve & Sign</h3>
-            <p>
-              Named approvals and cryptographic signatures live in the document
-              itself. Not in metadata. Not in a separate system.
-            </p>
-          </div>
-          <div className="trust-step">
-            <div className="trust-step-number">2</div>
-            <h3>Seal</h3>
-            <p>
-              One command: <code>dotit seal</code>. The document is frozen.
-              Any tampering breaks the hash. Verify anytime.
-            </p>
-          </div>
-          <div className="trust-step">
-            <div className="trust-step-number">3</div>
-            <h3>Amend</h3>
-            <p>
-              Frozen documents can be formally amended. The original seal is
-              preserved. The amendment carries its own approval chain.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* ── CTA ───────────────────────────────────────────── */}
-      <div className="alt-bg cta-section">
-        <div className="container" style={{ textAlign: "center" }}>
-          <h2>Start writing documents that think.</h2>
-          <p className="section-subtitle">
-            Open format. No lock-in. The <code>.it</code> file is yours.
+      {/* ── CTA ──────────────────────────────────────────── */}
+      <section className={`${styles.cta} ${styles.sectionAlt}`}>
+        <div className="container">
+          <h2>One file. The whole document lifecycle.</h2>
+          <p className={styles.sectionSub}>
+            Author → merge → print → sign → seal → query → verify. Open
+            format, no lock-in.
           </p>
-          <div className="hero-buttons">
+          <div className={styles.installRow}>
+            <code className={styles.installCmd}>
+              <span>$</span> npm install -g @dotit/core
+            </code>
+          </div>
+          <div className={styles.heroButtons}>
             <Link
               className="button button--primary button--lg"
               to="/docs/guide/quick-start"
@@ -391,13 +960,13 @@ export default function Home(): React.ReactElement {
             </Link>
             <Link
               className="button button--secondary button--lg"
-              href="https://intenttext-hub.vercel.app"
+              to="/docs/guide/concepts"
             >
-              Browse the Hub
+              Read the docs
             </Link>
           </div>
         </div>
-      </div>
+      </section>
     </Layout>
   );
 }

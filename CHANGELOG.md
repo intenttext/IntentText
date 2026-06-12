@@ -6,6 +6,8 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-06-12
+
 > **Rebrand:** packages are now published as **`@dotit/core`**, **`@dotit/pdf`**, and
 > **`@dotit/mcp`**, starting at **1.0.0**. Same code, same format (`.it`), same team —
 > the `@intenttext/*` packages are deprecated with pointers. History below refers to
@@ -24,6 +26,25 @@ The format is based on Keep a Changelog.
   fixpoint.
 
 ### Added
+
+- **Bidi isolation for mixed Arabic/English/numbers (the WhatsApp fix).** Table
+  cells, task owner/due/time, metric values, deadline dates, contact email/phone,
+  context values, and `end:` values now carry `dir="auto"` — each value resolves
+  its own direction from its first strong character, so `10,200 QAR` and
+  `2026-06-20` keep their internal order inside RTL lines instead of scrambling.
+- **Explicit direction override.** `meta: | dir: rtl` (or `بيانات: | dir: rtl`)
+  forces document direction, beating Arabic auto-detection in either direction.
+
+- **Two-sided rows.** `end:` property on `title:`/`section:`/`sub:`/`text:`/prose:
+  `text: Customer Name | end: 2026-06-12` renders content at the line start and the
+  value at the line end — the invoice/report "label left, date right" pattern.
+  Flex start/end, so RTL flips it automatically.
+- **Word-parity paragraph spacing.** `leading:` (line-height), `space-before:`,
+  `space-after:` style properties — per block or document-wide via `style:` rules.
+- **RTL is now fully native.** All built-in CSS (document, print, all 8 themes)
+  converted to logical properties (`text-align: start`, `border-inline-start`,
+  `padding-inline-start`, …) so Arabic documents mirror correctly everywhere:
+  tables, quotes, callouts, asks, audits, deadlines, splits.
 
 - **`dotit` CLI now ships with `@dotit/core`** (1.0.1). `npm install -g @dotit/core`
   gives you the `dotit` command (parse, render, query, seal, verify, amend, index,

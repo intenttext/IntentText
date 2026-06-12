@@ -1828,6 +1828,17 @@ export function parseIntentText(
   const titleBlock = blocks.find((b) => b.type === "title");
   const summaryBlock = blocks.find((b) => b.type === "summary");
   const hasArabic = blocks.some((b) => detectArabic(b.content));
+  // Explicit direction override: `meta: | dir: rtl` (or any block carrying a
+  // dir: property) beats auto-detection.
+  const dirOverride = (() => {
+    const m = metaAccumulator?.dir;
+    if (m === "rtl" || m === "ltr") return m;
+    for (const b of blocks) {
+      const d = b.properties?.dir;
+      if (d === "rtl" || d === "ltr") return d;
+    }
+    return undefined;
+  })();
 
   // Determine version based on presence of agentic blocks/metadata
   const allBlocks = blocks.flatMap(function collect(
@@ -1854,7 +1865,7 @@ export function parseIntentText(
   const metadata: IntentDocumentMetadata = {
     title: titleBlock?.content,
     summary: summaryBlock?.content,
-    language: hasArabic ? "rtl" : "ltr",
+    language: dirOverride ?? (hasArabic ? "rtl" : "ltr"),
     ...(agenticMetadata.agent != null && { agent: agenticMetadata.agent }),
     ...(agenticMetadata.model != null && { model: agenticMetadata.model }),
     ...(agenticMetadata.context != null && {

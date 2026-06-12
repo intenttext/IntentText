@@ -37,15 +37,15 @@
       "margin-top": "2em"
     },
     "warning": {
-      "border-left": "4px solid",
+      "border-inline-start": "4px solid",
       "border-color": "trust-warning",
-      "padding-left": "1em",
+      "padding-inline-start": "1em",
       "background": "#fef2f2"
     },
     "quote": {
-      "border-left": "3px solid",
+      "border-inline-start": "3px solid",
       "border-color": "accent",
-      "padding-left": "1em",
+      "padding-inline-start": "1em",
       "font-style": "italic",
       "color": "muted"
     },

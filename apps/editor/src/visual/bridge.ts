@@ -759,11 +759,21 @@ function blockToNode(block: {
     };
   }
 
-  // Text / body-text → paragraph
+  // Text / body-text → paragraph. Core block properties (end/leading/
+  // space-before/space-after) become real paragraph attributes so the
+  // visual editor renders them AND serializes them back (see block-props.ts).
   if (type === "text" || type === "body-text") {
+    const attrs: Record<string, string> = {};
+    if (textAlign) attrs.textAlign = textAlign;
+    if (properties?.end) attrs.end = String(properties.end);
+    if (properties?.leading) attrs.leading = String(properties.leading);
+    if (properties?.["space-before"])
+      attrs.spaceBefore = String(properties["space-before"]);
+    if (properties?.["space-after"])
+      attrs.spaceAfter = String(properties["space-after"]);
     return {
       type: "paragraph",
-      ...(textAlign && { attrs: { textAlign } }),
+      ...(Object.keys(attrs).length && { attrs }),
       content: textContent.length ? textContent : undefined,
     };
   }
@@ -900,8 +910,17 @@ function nodeToLine(node: JSONContent): string | null {
       return `sub: ${text}${formatProps(merged)}`;
     }
 
-    case "paragraph":
-      return `text: ${text}${formatProps(markProps)}`;
+    case "paragraph": {
+      // Core block properties stored as paragraph attributes (block-props.ts)
+      // → written back onto the line so PDF output matches the screen.
+      const a = node.attrs || {};
+      const blockProps: Record<string, string> = {};
+      if (a.end) blockProps.end = String(a.end);
+      if (a.leading) blockProps.leading = String(a.leading);
+      if (a.spaceBefore) blockProps["space-before"] = String(a.spaceBefore);
+      if (a.spaceAfter) blockProps["space-after"] = String(a.spaceAfter);
+      return `text: ${text}${formatProps({ ...blockProps, ...markProps })}`;
+    }
 
     case "itCallout": {
       const variant = node.attrs?.variant || "tip";

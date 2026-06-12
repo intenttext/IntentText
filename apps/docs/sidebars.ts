@@ -17,6 +17,11 @@ const sidebars: SidebarsConfig = {
         "guide/for-writers",
       ],
     },
+    {
+      type: "doc",
+      id: "guide/folder-as-database",
+      label: "A Folder Is a Database",
+    },
     { type: "doc", id: "guide/trust-and-signing", label: "Trust & Signing" },
   ],
 

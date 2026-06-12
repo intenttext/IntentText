@@ -2250,122 +2250,6 @@ button {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Print / Export Bar (bottom)
-   ═══════════════════════════════════════════════════════════════ */
-
-.print-bar {
-  background: var(--bg-toolbar);
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.print-bar-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 14px;
-  min-height: 36px;
-}
-.print-bar-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  white-space: nowrap;
-  letter-spacing: 0.3px;
-}
-.print-bar-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-.print-bar-theme {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-.print-bar-theme select {
-  padding: 3px 6px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--bg-panel);
-  font-size: 12px;
-  font-family: inherit;
-  color: var(--text-primary);
-  cursor: pointer;
-}
-.print-bar-theme select:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-.print-bar-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: transparent;
-  font-size: 12px;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.print-bar-btn:hover {
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--text-primary);
-  border-color: #bbb;
-}
-.print-bar-toggle {
-  padding: 4px 8px;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  font-size: 11px;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-family: inherit;
-  margin-left: auto;
-}
-.print-bar-toggle:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.print-bar-expanded {
-  padding: 10px 14px 14px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-.print-bar-section {
-  min-width: 160px;
-}
-.print-bar-section-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  margin-bottom: 8px;
-}
-.print-bar-action-row {
-  display: flex;
-  gap: 8px;
-}
-.print-bar-action-row .btn-primary {
-  font-size: 12px;
-  padding: 6px 14px;
-}
-
-/* ═══════════════════════════════════════════════════════════════
    Toolbar additions
    ═══════════════════════════════════════════════════════════════ */
 
@@ -2522,11 +2406,291 @@ button {
   .side-panel {
     display: none;
   }
-  .print-bar-expanded {
-    flex-direction: column;
-    gap: 12px;
-  }
   .mobile-hidden {
     display: none !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Ribbon — ONE Word-like toolbar with labeled groups
+   (Edit | File | Text | Paragraph | Insert | Trust)
+   ═══════════════════════════════════════════════════════════════ */
+
+.docs-ribbon {
+  align-items: stretch;
+  gap: 0;
+  padding: 6px 10px 3px;
+}
+.ribbon-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+.ribbon-group-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.ribbon-group-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #9aa0a6;
+  margin-top: 2px;
+  user-select: none;
+  white-space: nowrap;
+}
+.ribbon-sep {
+  width: 1px;
+  align-self: stretch;
+  background: #d8d2c4;
+  margin: 2px 7px;
+  flex-shrink: 0;
+}
+.ribbon-btn-text {
+  font-size: 12px;
+  font-weight: 500;
+}
+.ribbon-theme-select {
+  height: 26px;
+  max-width: 110px;
+  margin-inline-start: 4px;
+  padding: 0 4px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  background: #fff;
+  color: #3c4043;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ribbon-theme-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+/* The editable-formatting cluster (Text / Paragraph / Insert groups). */
+.ribbon-editing,
+.ribbon-locked {
+  display: flex;
+  align-items: stretch;
+}
+/* Sealed documents: formatting is read-only. */
+.ribbon-locked {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.docs-tb-paragraph-select {
+  width: 110px;
+  min-width: 110px;
+}
+.docs-spacing-menu {
+  min-width: 230px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Two-sided rows — core `end:` property (.it-split parity)
+   Content at line start, end-value at line end; flex start/end so
+   RTL documents mirror automatically, exactly like core's print CSS.
+   ═══════════════════════════════════════════════════════════════ */
+
+.docs-page .tiptap [data-it-end] {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.docs-page .tiptap [data-it-end] > .it-split-main {
+  min-width: 0;
+}
+.docs-page .tiptap [data-it-end]::after {
+  content: attr(data-it-end);
+  flex-shrink: 0;
+  white-space: pre-wrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Signature line — sign: blocks render like a signed paper document
+   (script autograph over a rule, printed name / role / date below)
+   ═══════════════════════════════════════════════════════════════ */
+
+.docs-page .tiptap .it-doc-sign {
+  display: inline-block;
+  min-width: 300px;
+  max-width: 420px;
+  margin: 22px 0 8px;
+  margin-inline-end: 28px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-weight: 400;
+  user-select: none;
+}
+.docs-page .tiptap .it-doc-sign__script {
+  font-family: "Snell Roundhand", "Savoye LET", "Segoe Script",
+    "Brush Script MT", cursive;
+  font-size: 23px;
+  line-height: 1.15;
+  color: #1a2a52;
+  padding: 0 6px 2px;
+  min-height: 27px;
+}
+.docs-page .tiptap .it-doc-sign__rule {
+  border-bottom: 1.5px solid #202124;
+}
+.docs-page .tiptap .it-doc-sign__row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 5px;
+  font-size: 0.85rem;
+}
+.docs-page .tiptap .it-doc-sign__name {
+  font-weight: 600;
+  color: #111;
+}
+.docs-page .tiptap .it-doc-sign__role {
+  color: #555;
+}
+.docs-page .tiptap .it-doc-sign__role::before {
+  content: "· ";
+  color: #9aa0a6;
+}
+.docs-page .tiptap .it-doc-sign__date {
+  margin-inline-start: auto;
+  color: #777;
+  font-size: 0.8rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Document status banner (trust) + document properties strip
+   ═══════════════════════════════════════════════════════════════ */
+
+.docs-trust-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  border-bottom: 1px solid transparent;
+}
+.docs-trust-banner__icon {
+  line-height: 1;
+}
+.docs-trust-banner__title {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.docs-trust-banner__text {
+  opacity: 0.85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.docs-trust-banner__verify {
+  margin-inline-start: auto;
+  flex-shrink: 0;
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.docs-trust-banner--sealed {
+  background: #fff8e7;
+  border-color: #eedaa6;
+  color: #7a5300;
+}
+.docs-trust-banner--signed {
+  background: #f3f6ff;
+  border-color: #d5def4;
+  color: #2c3e6b;
+}
+.docs-trust-banner--approved {
+  background: #f1f9f2;
+  border-color: #cfe8d4;
+  color: #1d6334;
+}
+.docs-trust-banner__verify--ok {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+}
+.docs-trust-banner__verify--bad {
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+}
+
+.docs-props-bar {
+  flex-shrink: 0;
+  background: #fbfaf7;
+  border-bottom: 1px solid #e9e4d8;
+  font-size: 12px;
+}
+.docs-props-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 14px;
+  border: none;
+  background: none;
+  color: #5f6368;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: start;
+}
+.docs-props-toggle:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+.docs-props-caret {
+  font-size: 9px;
+  width: 10px;
+}
+.docs-props-summary {
+  margin-inline-start: 8px;
+  font-weight: 400;
+  color: #9aa0a6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.docs-props-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 14px 9px;
+}
+.docs-props-chip {
+  border: 1px solid #e3decf;
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px 8px;
+  color: #4a5160;
+}
+.docs-props-chip b {
+  font-weight: 600;
+  font-size: 11px;
+  color: #8a7f63;
+  margin-inline-end: 4px;
+}
+
+/* ── Bidi isolation (WhatsApp-style) ─────────────────────────────────────
+   Mixed Arabic/English/number values resolve their own direction from their
+   first strong character, so `10,200 QAR` and `2026-06-20` keep their internal
+   order inside RTL lines — parity with core's dir="auto" rendered output. */
+.docs-page .tiptap .it-doc-table td,
+.docs-page .tiptap .it-doc-table th {
+  unicode-bidi: plaintext;
+}
+.docs-page .tiptap .it-doc-task-meta span,
+.docs-page .tiptap .it-doc-metric__value,
+.docs-page .tiptap [data-it-end]::after,
+.docs-page .tiptap .it-split-end {
+  unicode-bidi: plaintext;
 }

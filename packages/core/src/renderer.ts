@@ -227,6 +227,25 @@ function getAlignmentClass(props: Record<string, string | number>): string {
   return "";
 }
 
+/**
+ * Two-sided row: `text: Customer Name | end: 2026-06-12` puts the content at the
+ * line start and the `end:` value at the line end (flex space-between). Uses
+ * flex start/end, so it is RTL-native — sides flip automatically under dir="rtl".
+ */
+function splitEnd(
+  content: string,
+  props: Record<string, string | number>,
+): { inner: string; splitClass: string } {
+  const end = props.end;
+  if (end === undefined || end === "") {
+    return { inner: content, splitClass: "" };
+  }
+  return {
+    inner: `<span class="it-split-main">${content}</span><span class="it-split-end" dir="auto">${escapeHtml(String(end))}</span>`,
+    splitClass: " it-split",
+  };
+}
+
 // v2.8.1: Known style properties that map to CSS
 const STYLE_PROPERTIES: Record<string, string> = {
   color: "color",
@@ -235,7 +254,10 @@ const STYLE_PROPERTIES: Record<string, string> = {
   weight: "font-weight",
   align: "text-align",
   bg: "background-color",
-  indent: "padding-left",
+  indent: "padding-inline-start",
+  leading: "line-height",
+  "space-before": "margin-top",
+  "space-after": "margin-bottom",
   opacity: "opacity",
   italic: "font-style",
   border: "border",
@@ -378,18 +400,20 @@ function renderBlock(block: IntentBlock): string {
   const inlineStyle = extractInlineStyles(props);
   const styleAttr = inlineStyle ? ` style="${inlineStyle}"` : "";
 
+  const { inner: splitContent, splitClass } = splitEnd(content, props);
+
   switch (block.type) {
     case "title":
-      return `<h1 class="intent-title${alignClass}"${styleAttr}>${content}</h1>`;
+      return `<h1 class="intent-title${alignClass}${splitClass}"${styleAttr}>${splitContent}</h1>`;
 
     case "summary":
       return `<div class="intent-summary${alignClass}"${styleAttr}>${content}</div>`;
 
     case "section":
-      return `<h2 id="${slugify(block.content)}" class="intent-section${alignClass}"${styleAttr}>${content}</h2>`;
+      return `<h2 id="${slugify(block.content)}" class="intent-section${alignClass}${splitClass}"${styleAttr}>${splitContent}</h2>`;
 
     case "sub":
-      return `<h3 id="${slugify(block.content)}" class="intent-sub${alignClass}"${styleAttr}>${content}</h3>`;
+      return `<h3 id="${slugify(block.content)}" class="intent-sub${alignClass}${splitClass}"${styleAttr}>${splitContent}</h3>`;
 
     case "divider":
       const dividerStyle = props.style
@@ -404,9 +428,9 @@ function renderBlock(block: IntentBlock): string {
       </div>`;
 
     case "text":
-      return `<p class="intent-text${alignClass}"${styleAttr}>${content}</p>`;
+      return `<p class="intent-text${alignClass}${splitClass}"${styleAttr}>${splitContent}</p>`;
     case "body-text":
-      return `<p class="intent-prose${alignClass}"${styleAttr}>${content}</p>`;
+      return `<p class="intent-prose${alignClass}${splitClass}"${styleAttr}>${splitContent}</p>`;
 
     case "info": {
       const CALLOUT_VARIANTS: Record<string, string> = {
@@ -433,9 +457,9 @@ function renderBlock(block: IntentBlock): string {
         <input class="intent-task-checkbox" type="checkbox"${isDone ? " checked" : ""} />
         <span class="intent-task-text${isDone ? " intent-task-text-done" : ""}">${content}</span>
         <span class="intent-task-meta">
-          ${props.owner ? `<span class="intent-task-owner">${escapeHtml(String(props.owner))}</span>` : ""}
-          ${props.due ? `<span class="intent-task-due">${escapeHtml(String(props.due))}</span>` : ""}
-          ${props.time ? `<span class="intent-task-time">${escapeHtml(String(props.time))}</span>` : ""}
+          ${props.owner ? `<span class="intent-task-owner" dir="auto">${escapeHtml(String(props.owner))}</span>` : ""}
+          ${props.due ? `<span class="intent-task-due" dir="auto">${escapeHtml(String(props.due))}</span>` : ""}
+          ${props.time ? `<span class="intent-task-time" dir="auto">${escapeHtml(String(props.time))}</span>` : ""}
         </span>
       </div>`;
     }
@@ -537,7 +561,7 @@ function renderBlock(block: IntentBlock): string {
 
       const thead = headers
         ? `<thead><tr>${headers
-            .map((h) => `<th class="intent-table-th">${escapeHtml(h)}</th>`)
+            .map((h) => `<th class="intent-table-th" dir="auto">${escapeHtml(h)}</th>`)
             .join("")}</tr></thead>`
         : "";
 
@@ -545,7 +569,7 @@ function renderBlock(block: IntentBlock): string {
         .map(
           (row) =>
             `<tr class="intent-row">${row
-              .map((c) => `<td class="intent-table-td">${escapeHtml(c)}</td>`)
+              .map((c) => `<td class="intent-table-td" dir="auto">${escapeHtml(c)}</td>`)
               .join("")}</tr>`,
         )
         .join("")}</tbody>`;
@@ -557,9 +581,9 @@ function renderBlock(block: IntentBlock): string {
       const listItemProps = block.properties || {};
       const listItemMeta = [
         listItemProps.owner &&
-          `<span class="intent-task-owner">${escapeHtml(String(listItemProps.owner))}</span>`,
+          `<span class="intent-task-owner" dir="auto">${escapeHtml(String(listItemProps.owner))}</span>`,
         listItemProps.due &&
-          `<span class="intent-task-due">${escapeHtml(String(listItemProps.due))}</span>`,
+          `<span class="intent-task-due" dir="auto">${escapeHtml(String(listItemProps.due))}</span>`,
       ]
         .filter(Boolean)
         .join(" ");
@@ -659,7 +683,7 @@ function renderBlock(block: IntentBlock): string {
       const ctxRows = ctxEntries
         .map(
           ([k, v]) =>
-            `<tr><td class="intent-context-key">${escapeHtml(k)}</td><td class="intent-context-val">${escapeHtml(String(v))}</td></tr>`,
+            `<tr><td class="intent-context-key" dir="auto">${escapeHtml(k)}</td><td class="intent-context-val" dir="auto">${escapeHtml(String(v))}</td></tr>`,
         )
         .join("");
       return `<table class="intent-context-table"><tbody>${ctxRows}</tbody></table>`;
@@ -1074,7 +1098,7 @@ function renderBlock(block: IntentBlock): string {
         const valueText = [val, unit].filter(Boolean).join(" ");
         return `<div class="it-metric-row${isTotal ? " it-metric-row--total" : ""}">
         <span class="it-metric-row__label">${content}</span>
-        <span class="it-metric-row__value">${valueText}</span>
+        <span class="it-metric-row__value" dir="auto">${valueText}</span>
       </div>`;
       }
 
@@ -1094,7 +1118,7 @@ function renderBlock(block: IntentBlock): string {
 
       return `<div class="it-metric ${colorClass}">
         <div class="it-metric-name">${content}</div>
-        <div class="it-metric-value">${val}<span class="it-metric-unit">${unit}</span></div>
+        <div class="it-metric-value" dir="auto">${val}<span class="it-metric-unit">${unit}</span></div>
         ${target ? `<div class="it-metric-target">Target: ${escapeHtml(target)}</div>` : ""}
         ${trendIcon ? `<div class="it-metric-trend">${trendIcon}</div>` : ""}
         ${period ? `<div class="it-metric-period">${period}</div>` : ""}
@@ -1172,8 +1196,8 @@ function renderBlock(block: IntentBlock): string {
         <div class="it-contact-name">${content}</div>
         ${cRole ? `<div class="it-contact-role">${cRole}</div>` : ""}
         ${cOrg ? `<div class="it-contact-org">${cOrg}</div>` : ""}
-        ${cEmail ? `<div class="it-contact-email"><a href="mailto:${escapeHtml(cEmail)}">${escapeHtml(cEmail)}</a></div>` : ""}
-        ${cPhone ? `<div class="it-contact-phone"><a href="tel:${escapeHtml(cPhone)}">${escapeHtml(cPhone)}</a></div>` : ""}
+        ${cEmail ? `<div class="it-contact-email" dir="auto"><a href="mailto:${escapeHtml(cEmail)}">${escapeHtml(cEmail)}</a></div>` : ""}
+        ${cPhone ? `<div class="it-contact-phone" dir="auto"><a href="tel:${escapeHtml(cPhone)}">${escapeHtml(cPhone)}</a></div>` : ""}
         ${cUrl2 ? `<div class="it-contact-url"><a href="${escapeHtml(sanitizeUrl(cUrl2))}">${escapeHtml(cUrl2)}</a></div>` : ""}
       </div>`;
     }
@@ -1201,7 +1225,7 @@ function renderBlock(block: IntentBlock): string {
 
       return `<div class="it-deadline ${dlColorClass}">
         <div class="it-deadline-name">${content}</div>
-        ${dlDate ? `<div class="it-deadline-date">${escapeHtml(dlDate)}</div>` : ""}
+        ${dlDate ? `<div class="it-deadline-date" dir="auto">${escapeHtml(dlDate)}</div>` : ""}
         ${dlConsequence ? `<div class="it-deadline-consequence">${dlConsequence}</div>` : ""}
         ${dlOwner ? `<div class="it-deadline-owner">${dlOwner}</div>` : ""}
         ${dlAuthority ? `<div class="it-deadline-authority">${dlAuthority}</div>` : ""}
@@ -1560,7 +1584,7 @@ body.it-print h2{font-size:1.3em;margin-top:1.5em;}
 body.it-print h3{font-size:1.1em;}
 body.it-print p{margin:0 0 0.8em 0;orphans:3;widows:3;}
 body.it-print table{width:100%;border-collapse:collapse;margin:1em 0;}
-body.it-print th{border-bottom:2px solid #000;padding:4pt 8pt;text-align:left;}
+body.it-print th{border-bottom:2px solid #000;padding:4pt 8pt;text-align:start;}
 body.it-print td{border-bottom:1px solid #ccc;padding:4pt 8pt;}
 /* Keep table rows whole across page breaks so they aren't clipped behind the
    running footer/header, and repeat the table header on every page. */
@@ -1570,20 +1594,20 @@ body.it-print tfoot{display:table-footer-group;}
 /* Sections may legitimately span pages; only avoid splitting their headings. */
 body.it-print section{break-inside:auto;}
 body.it-print h1,body.it-print h2,body.it-print h3{break-after:avoid;page-break-after:avoid;}
-body.it-print .intent-callout{border-left:3pt solid #000;padding-left:10pt;margin:1em 0;}
+body.it-print .intent-callout{border-inline-start:3pt solid #000;padding-inline-start:10pt;margin:1em 0;}
 body.it-print .intent-quote{font-style:italic;margin:1em 2em;}
 body.it-print .it-byline{font-size:0.9em;color:#333;margin-bottom:1.5em;}
 body.it-print .it-byline .it-byline-author{font-weight:bold;display:block;}
 body.it-print .it-byline .it-byline-meta{font-size:0.85em;color:#666;}
 body.it-print .it-epigraph{font-style:italic;text-align:center;margin:2em 3em;border:none;padding:0;}
-body.it-print .it-epigraph .it-epigraph-by{display:block;text-align:right;font-size:0.9em;margin-top:0.5em;}
+body.it-print .it-epigraph .it-epigraph-by{display:block;text-align:end;font-size:0.9em;margin-top:0.5em;}
 body.it-print .it-caption{font-size:0.85em;font-style:italic;text-align:center;color:#444;margin-top:0.3em;margin-bottom:1em;}
 body.it-print .it-dedication{font-style:italic;text-align:center;margin:4em auto;page-break-after:always;}
 body.it-print .it-toc{margin:2em 0;}
 body.it-print .it-toc ol{list-style:none;padding:0;}
 body.it-print .it-toc li{margin:0.3em 0;}
 body.it-print .it-footnotes{border-top:1pt solid #ccc;margin-top:2em;padding-top:0.5em;font-size:0.85em;}
-body.it-print .it-footnotes ol{padding-left:1.5em;margin:0;}
+body.it-print .it-footnotes ol{padding-inline-start:1.5em;margin:0;}
 body.it-print .it-footnotes li{margin:0.3em 0;}
 body.it-print sup.it-fn-ref{font-size:0.7em;vertical-align:super;}
 body.it-print .it-page-break{page-break-after:always;break-after:page;height:0;}
@@ -1594,7 +1618,7 @@ body.it-print .intent-task-done::before{content:"\\2611 ";}
 body.it-print .it-ref-card{border:none;padding:0;margin:0.5em 0;font-style:italic;}
 body.it-print .it-def{margin:0.3em 0;}
 body.it-print .it-def-term{font-weight:bold;}
-body.it-print .it-def-meaning{padding-left:1.5em;}
+body.it-print .it-def-meaning{padding-inline-start:1.5em;}
 body.it-print .it-metric{border:1pt solid #ccc;padding:6pt 10pt;display:inline-block;min-width:100pt;margin:4pt;vertical-align:top;}
 body.it-print .it-amendment{border:2pt solid #000;padding:8pt 12pt;margin:1em 0;}
 body.it-print .it-amendment-ref{border:1pt solid #000;color:#000;}
@@ -1604,7 +1628,7 @@ body.it-print .it-figure-caption{font-size:0.85em;font-style:italic;text-align:c
 body.it-print .it-signline{display:inline-block;width:45%;margin:2em 2%;vertical-align:top;}
 body.it-print .it-signline-rule{border-bottom:1pt solid #000;margin-bottom:4pt;}
 body.it-print .it-contact{border:none;padding:0;margin:0.3em 0;}
-body.it-print .it-deadline{border-left:3pt solid #000;padding-left:8pt;margin:0.5em 0;}
+body.it-print .it-deadline{border-inline-start:3pt solid #000;padding-inline-start:8pt;margin:0.5em 0;}
 body.it-print .it-deadline-date{font-weight:bold;text-decoration:underline;}
 </style></head><body class="${bodyClass}"><div class="intent-document">${watermarkHtml}${html}</div></body></html>`;
 }

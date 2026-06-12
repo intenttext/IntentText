@@ -37,6 +37,21 @@ that matches wins:
    keyword is preserved verbatim as `type: "custom"` with `keyword` retained.
 7. **Implicit text** — any remaining non-empty line becomes a `text` block.
 
+### Two-sided rows (`end:`) and paragraph spacing
+
+- **`end:`** on `title:`, `section:`, `sub:`, `text:`, and prose blocks renders a
+  two-sided row: the content sits at the line start, the `end:` value at the line
+  end (`text: Customer Name | end: 2026-06-12`). Implemented with flex start/end,
+  so the sides flip automatically in RTL documents — no extra markup.
+- **`leading:`** → `line-height`, **`space-before:`** → space above, and
+  **`space-after:`** → space below a block (`text: … | leading: 1.9 |
+  space-after: 24px`). All three also work document-wide via `style:` rules
+  (`style: text | leading: 1.9`).
+- **RTL is native.** Any Arabic content flips the document to `dir="rtl"`
+  automatically, and all built-in CSS (including themes and print) uses logical
+  properties (`text-align: start`, `border-inline-start`, …) so tables, quotes,
+  callouts, and splits mirror correctly without configuration.
+
 **Reserved characters.** ` | ` (space-pipe-space) is the property delimiter; write a
 literal pipe as `\|` (and a literal backslash as `\\`) — the parser unescapes them
 anywhere in content and property values, and the serializer re-escapes on output, so

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 220" width="760" height="220">
+  <!-- dotit wordmark — geometric letterforms, no font dependency.
+       Stroke width 34; x-height circle r=53; baseline y=170. -->
+  <g fill="none" stroke="#0F172A" stroke-width="34" stroke-linecap="round">
+    <!-- d: bowl + ascender stem -->
+    <circle cx="97" cy="117" r="53"/>
+    <line x1="167" y1="30" x2="167" y2="170"/>
+    <!-- o -->
+    <circle cx="262" cy="117" r="53"/>
+    <!-- t: stem + crossbar -->
+    <line x1="370" y1="30" x2="370" y2="170"/>
+    <line x1="324" y1="74" x2="416" y2="74"/>
+    <!-- i: stem (tittle below as fill) -->
+    <line x1="470" y1="81" x2="470" y2="170"/>
+    <!-- t -->
+    <line x1="560" y1="30" x2="560" y2="170"/>
+    <line x1="514" y1="74" x2="606" y2="74"/>
+  </g>
+  <!-- i-tittle + terminal dot: the colon motif, in brand blue -->
+  <circle cx="470" cy="28" r="20" fill="#2563EB"/>
+  <circle cx="650" cy="153" r="20" fill="#2563EB"/>
+</svg>

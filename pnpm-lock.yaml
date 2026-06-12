@@ -193,6 +193,9 @@ importers:
       '@tiptap/extension-highlight':
         specifier: ^3.20.1
         version: 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))
+      '@tiptap/extension-paragraph':
+        specifier: ^3.20.1
+        version: 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))
       '@tiptap/extension-placeholder':
         specifier: ^3.20.1
         version: 3.23.6(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))

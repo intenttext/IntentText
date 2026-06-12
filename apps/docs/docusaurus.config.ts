@@ -11,7 +11,7 @@ const config: Config = {
     v4: true,
   },
 
-  url: "https://docs.intenttext.io",
+  url: "https://dotit.uts.qa",
   baseUrl: "/",
   organizationName: "intenttext",
   projectName: "intenttext-docs",
@@ -115,6 +115,11 @@ const config: Config = {
         },
         { to: "/blog", label: "Blog", position: "left" },
         {
+          to: "pathname:///llms.txt",
+          label: "llms.txt",
+          position: "right",
+        },
+        {
           href: "https://github.com/intenttext/IntentText",
           label: "GitHub",
           position: "right",
@@ -138,6 +143,7 @@ const config: Config = {
             { label: "All Keywords", to: "/docs/reference/keywords" },
             { label: "CLI", to: "/docs/reference/cli" },
             { label: "Core API", to: "/docs/ecosystem/core-api" },
+            { label: "llms.txt", to: "pathname:///llms.txt" },
           ],
         },
         {

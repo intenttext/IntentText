@@ -38,9 +38,9 @@
       "border-bottom": true
     },
     "quote": {
-      "border-left": "4px solid",
+      "border-inline-start": "4px solid",
       "border-color": "accent",
-      "padding-left": "1em",
+      "padding-inline-start": "1em",
       "font-size": "1.15em",
       "font-style": "italic"
     }

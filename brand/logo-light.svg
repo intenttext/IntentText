@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- dotit — ".it" mark, light variant (for light backgrounds, no tile). -->
+  <circle cx="132" cy="344" r="30" fill="#2563EB"/>
+  <rect x="204" y="216" width="36" height="158" rx="18" fill="#0F172A"/>
+  <circle cx="222" cy="158" r="24" fill="#2563EB"/>
+  <rect x="304" y="128" width="36" height="246" rx="18" fill="#0F172A"/>
+  <rect x="268" y="216" width="132" height="36" rx="18" fill="#0F172A"/>
+</svg>

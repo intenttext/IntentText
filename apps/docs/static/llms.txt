@@ -199,3 +199,14 @@ Meeting notes:                    gate: Human review | approver: Ops
   done: OAuth shipped             result: Done | status: success
   task: Index builder | owner: A
   decision: Perf over features | by: Ahmed
+
+TWO-SIDED ROWS + SPACING (1.1):
+- `text: Customer Name | end: 2026-06-12` — content at line start, value at line
+  end (invoice/report rows). RTL-aware automatically.
+- `leading: 1.9` (line-height), `space-before: 6px`, `space-after: 24px` on any
+  text-bearing block, or document-wide: `style: text | leading: 1.9`.
+- RTL: any Arabic content makes the document RTL automatically; all layout
+  mirrors via CSS logical properties. Write Arabic documents naturally.
+BIDI (mixed Arabic/English): rendered values (table cells, dates, amounts,
+owners) are direction-isolated automatically (dir="auto") — never reorder or
+pad mixed-language values. Force document direction with `meta: | dir: rtl`.

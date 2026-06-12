@@ -44,9 +44,9 @@
       "border-color": "border"
     },
     "warning": {
-      "border-left": "4px solid",
+      "border-inline-start": "4px solid",
       "border-color": "trust-warning",
-      "padding-left": "1em",
+      "padding-inline-start": "1em",
       "background": "#fef2f2"
     }
   },

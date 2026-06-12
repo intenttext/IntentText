@@ -14,6 +14,9 @@ interface Props {
   onOpen: () => void;
   onSave: () => void;
   onModal: (m: ModalType) => void;
+  /** Export actions — shown here only in source mode (the ribbon owns them in visual mode). */
+  onExportPDF: () => void;
+  onExportHTML: () => void;
   isSealed?: boolean;
   templateVarCount?: number;
   samples?: { id: string; title: string }[];
@@ -31,6 +34,8 @@ export function Toolbar({
   onOpen,
   onSave,
   onModal,
+  onExportPDF,
+  onExportHTML,
   isSealed,
   templateVarCount = 0,
   samples,
@@ -141,20 +146,47 @@ export function Toolbar({
         </span>
       )}
 
-      <div className="dropdown">
-        <button className="tbtn" onClick={() => toggle("theme")}>
-          Theme ▾
-        </button>
-        {openMenu === "theme" && (
-          <ThemePicker
-            active={theme}
-            onSelect={(t) => {
-              onThemeChange(t);
-              setOpenMenu(null);
-            }}
-          />
-        )}
-      </div>
+      {/* Source mode has no ribbon — surface export / theme / trust here so
+          nothing is more than one click away in either mode. */}
+      {editorMode === "source" && (
+        <>
+          <button
+            className="tbtn"
+            onClick={onExportPDF}
+            title="Print / Export PDF"
+          >
+            PDF
+          </button>
+          <button
+            className="tbtn"
+            onClick={onExportHTML}
+            title="Export HTML"
+          >
+            HTML
+          </button>
+          <div className="dropdown">
+            <button className="tbtn" onClick={() => toggle("theme")}>
+              Theme ▾
+            </button>
+            {openMenu === "theme" && (
+              <ThemePicker
+                active={theme}
+                onSelect={(t) => {
+                  onThemeChange(t);
+                  setOpenMenu(null);
+                }}
+              />
+            )}
+          </div>
+          <button
+            className="tbtn"
+            onClick={() => onModal("trust")}
+            title="Trust — track, sign, seal, verify, history"
+          >
+            {isSealed ? "🔒 Trust" : "Trust"}
+          </button>
+        </>
+      )}
 
       {samples && samples.length > 0 && onLoadSample && (
         <div className="dropdown">
@@ -189,14 +221,6 @@ export function Toolbar({
         {templateVarCount > 0 && (
           <span className="tbtn-badge">{templateVarCount}</span>
         )}
-      </button>
-
-      <button
-        className="tbtn"
-        onClick={() => onModal("trust")}
-        title="Trust — track, sign, seal, verify, history"
-      >
-        {isSealed ? "🔒 Trust" : "Trust"}
       </button>
 
       <button

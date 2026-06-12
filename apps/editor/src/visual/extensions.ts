@@ -7,9 +7,21 @@ import { computeKeywordStyles } from "./keyword-styles";
 // Helper: build inline style string from pipe properties
 function buildStyle(keyword: string, props: Record<string, string>): string {
   const styles = computeKeywordStyles(keyword, props);
+  // Word-parity spacing — universal core style props on every block type,
+  // mirroring core's STYLE_PROPERTIES (leading/space-before/space-after).
+  if (props.leading) styles.lineHeight = props.leading;
+  if (props["space-before"]) styles.marginTop = props["space-before"];
+  if (props["space-after"]) styles.marginBottom = props["space-after"];
   return Object.entries(styles)
     .map(([k, v]) => `${k.replace(/([A-Z])/g, "-$1").toLowerCase()}:${v}`)
     .join(";");
+}
+
+// Two-sided row (`end:` property — core renders it on title/section/sub/text):
+// expose the end value as data-it-end so CSS turns the block into a flex
+// split row (`.it-split` parity) with the value as generated content.
+function endAttrs(props: Record<string, string>): Record<string, string> {
+  return props.end ? { "data-it-end": props.end } : {};
 }
 
 // ── Title ─────────────────────────────────────────────────────
@@ -33,15 +45,15 @@ export const ITTitle = Node.create({
   },
   renderHTML({ HTMLAttributes, node }) {
     const props = safeParse(node.attrs.props);
-    return [
-      "h1",
-      mergeAttributes(HTMLAttributes, {
-        "data-it-type": "title",
-        class: "it-doc-title",
-        style: buildStyle("title", props),
-      }),
-      0,
-    ];
+    const attrs = mergeAttributes(HTMLAttributes, {
+      "data-it-type": "title",
+      class: "it-doc-title",
+      style: buildStyle("title", props),
+      ...endAttrs(props),
+    });
+    return props.end
+      ? ["h1", attrs, ["span", { class: "it-split-main" }, 0]]
+      : ["h1", attrs, 0];
   },
 });
 
@@ -93,15 +105,15 @@ export const ITSection = Node.create({
   },
   renderHTML({ HTMLAttributes, node }) {
     const props = safeParse(node.attrs.props);
-    return [
-      "h2",
-      mergeAttributes(HTMLAttributes, {
-        "data-it-type": "section",
-        class: "it-doc-section",
-        style: buildStyle("section", props),
-      }),
-      0,
-    ];
+    const attrs = mergeAttributes(HTMLAttributes, {
+      "data-it-type": "section",
+      class: "it-doc-section",
+      style: buildStyle("section", props),
+      ...endAttrs(props),
+    });
+    return props.end
+      ? ["h2", attrs, ["span", { class: "it-split-main" }, 0]]
+      : ["h2", attrs, 0];
   },
 });
 
@@ -123,15 +135,15 @@ export const ITSub = Node.create({
   },
   renderHTML({ HTMLAttributes, node }) {
     const props = safeParse(node.attrs.props);
-    return [
-      "h3",
-      mergeAttributes(HTMLAttributes, {
-        "data-it-type": "sub",
-        class: "it-doc-sub",
-        style: buildStyle("sub", props),
-      }),
-      0,
-    ];
+    const attrs = mergeAttributes(HTMLAttributes, {
+      "data-it-type": "sub",
+      class: "it-doc-sub",
+      style: buildStyle("sub", props),
+      ...endAttrs(props),
+    });
+    return props.end
+      ? ["h3", attrs, ["span", { class: "it-split-main" }, 0]]
+      : ["h3", attrs, 0];
   },
 });
 
@@ -441,13 +453,25 @@ export const ITTrust = Node.create({
         ...(date ? [["span", { class: "it-doc-trust__date" }, date]] : []),
       );
     } else {
-      // sign
-      parts.push(
-        ["span", { class: "it-doc-trust__icon" }, "✒"],
-        ["span", { class: "it-doc-trust__name" }, content],
-        ...(role ? [["span", { class: "it-doc-trust__role" }, role]] : []),
-        ...(date ? [["span", { class: "it-doc-trust__date" }, date]] : []),
-      );
+      // sign — render as a real signature line (script name over a rule, with
+      // printed name / role / date beneath), like a signed paper document.
+      return [
+        "div",
+        mergeAttributes(HTMLAttributes, {
+          "data-it-trust": "",
+          "data-trust": keyword,
+          class: "it-doc-trust it-doc-sign",
+        }),
+        ["div", { class: "it-doc-sign__script" }, content || " "],
+        ["div", { class: "it-doc-sign__rule" }],
+        [
+          "div",
+          { class: "it-doc-sign__row" },
+          ["span", { class: "it-doc-sign__name" }, content],
+          ...(role ? [["span", { class: "it-doc-sign__role" }, role]] : []),
+          ...(date ? [["span", { class: "it-doc-sign__date" }, date]] : []),
+        ],
+      ];
     }
 
     return [

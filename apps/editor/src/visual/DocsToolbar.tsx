@@ -1,3 +1,11 @@
+// The editor ribbon — ONE coherent, Word-like toolbar with labeled groups:
+//
+//   Edit | File (PDF / HTML / theme) | Text | Paragraph | Insert | Trust
+//
+// Every formatting control maps to a CORE `.it` property (size:/align:/leading:/
+// space-before:/space-after:/end:) through bridge.ts, so what you style here is
+// what core prints. Export actions are the WYSIWYG print path from panels/PrintBar.
+
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import type { Editor } from "@tiptap/core";
 import {
@@ -22,61 +30,37 @@ import {
   Highlighter,
   RemoveFormatting,
   ChevronDown,
-  SeparatorHorizontal,
-  Scissors,
+  Printer,
   FileCode2,
-  Lightbulb,
-  Info,
-  AlertTriangle,
-  ShieldAlert,
-  CircleCheck,
-  ImageIcon,
-  Link2,
-  UserRound,
-  BarChart3,
-  CalendarClock,
-  BookOpen,
-  Type,
-  Quote,
-  BookMarked,
-  PenLine,
-  Hash,
-  Heading1,
-  Heading2,
-  Heading3,
-  FileText,
-  MessageSquareQuote,
-  Frame,
-  Star,
-  Footprints,
-  Heart,
-  TableProperties,
+  Droplets,
   Rows3,
-  Gauge,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  ListTree,
-  Workflow,
-  ShieldCheck,
+  AlignHorizontalSpaceBetween,
   FileLock2,
-  RotateCcw,
-  FileEdit,
-  Clock,
-  Bookmark,
   PenTool,
-  HelpCircle,
-  CheckSquare,
-  KeyRound,
-  Scale,
-  Columns3,
+  ShieldCheck,
 } from "lucide-react";
 import { LANGUAGE_REGISTRY } from "@dotit/core";
 import { CATEGORY_META } from "./types";
+import { getBlockProp } from "./block-props";
+import {
+  exportDocumentPDF,
+  exportDocumentHTML,
+  builtinThemes,
+} from "../panels/PrintBar";
+import type { ModalType } from "../App";
 
 interface Props {
   editor: Editor | null;
   isRtl?: boolean;
   onToggleRtl?: () => void;
+  /** Current .it source — used by the export actions. */
+  content: string;
+  theme: string;
+  onThemeChange: (theme: string) => void;
+  /** Open an app modal (seal / verify / trust panel). */
+  onModal: (m: ModalType) => void;
+  /** Sealed documents are read-only — formatting groups are disabled. */
+  locked?: boolean;
 }
 
 /* ── Style options that map to IT keywords ──────────────────── */
@@ -131,7 +115,10 @@ const FONT_FAMILIES = [
   { label: "Trebuchet MS", value: "Trebuchet MS" },
 ] as const;
 
-const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 72];
+// Word-style line spacing presets → core `leading:` (line-height).
+const LINE_SPACINGS = ["1", "1.15", "1.5", "2", "2.5", "3"] as const;
+// One Word "spacing step" → core `space-before:` / `space-after:`.
+const SPACE_STEP = "12px";
 
 const TEXT_COLORS = [
   "#000000",
@@ -225,22 +212,52 @@ function Btn({
   );
 }
 
-function Sep() {
-  return <div className="docs-tb-sep" />;
+/** A labeled ribbon group (controls row + small caption underneath). */
+function Group({
+  label,
+  children,
+  className = "",
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`ribbon-group ${className}`.trim()}>
+      <div className="ribbon-group-row">{children}</div>
+      <div className="ribbon-group-label">{label}</div>
+    </div>
+  );
 }
 
-export function DocsToolbar({ editor, isRtl = false, onToggleRtl }: Props) {
+function GroupSep() {
+  return <div className="ribbon-sep" />;
+}
+
+export function DocsToolbar({
+  editor,
+  isRtl = false,
+  onToggleRtl,
+  content,
+  theme,
+  onThemeChange,
+  onModal,
+  locked = false,
+}: Props) {
   const [styleOpen, setStyleOpen] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
   const [fontOpen, setFontOpen] = useState(false);
   const [textColorOpen, setTextColorOpen] = useState(false);
   const [highlightColorOpen, setHighlightColorOpen] = useState(false);
+  const [spacingOpen, setSpacingOpen] = useState(false);
+  const [inkSaver, setInkSaver] = useState(false);
 
   const styleRef = useRef<HTMLDivElement>(null);
   const insertRef = useRef<HTMLDivElement>(null);
   const fontRef = useRef<HTMLDivElement>(null);
   const textColorRef = useRef<HTMLDivElement>(null);
   const highlightColorRef = useRef<HTMLDivElement>(null);
+  const spacingRef = useRef<HTMLDivElement>(null);
 
   // Close all dropdowns on outside click
   useEffect(() => {
@@ -255,6 +272,8 @@ export function DocsToolbar({ editor, isRtl = false, onToggleRtl }: Props) {
         setTextColorOpen(false);
       if (highlightColorRef.current && !highlightColorRef.current.contains(t))
         setHighlightColorOpen(false);
+      if (spacingRef.current && !spacingRef.current.contains(t))
+        setSpacingOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -266,6 +285,7 @@ export function DocsToolbar({ editor, isRtl = false, onToggleRtl }: Props) {
     setFontOpen(false);
     setTextColorOpen(false);
     setHighlightColorOpen(false);
+    setSpacingOpen(false);
   };
 
   /* ── Queries ─────────────────────────────────────────────── */
@@ -293,6 +313,8 @@ export function DocsToolbar({ editor, isRtl = false, onToggleRtl }: Props) {
   }, [editor]);
 
   const [fontSize, setFontSize] = useState(11);
+  // Re-render on selection moves so active states (align, spacing, end) track the caret.
+  const [, setSelTick] = useState(0);
 
   const insertGroups = useMemo<InsertGroup[]>(() => {
     const grouped = new Map<string, InsertOption[]>();
@@ -327,7 +349,7 @@ export function DocsToolbar({ editor, isRtl = false, onToggleRtl }: Props) {
     return result;
   }, []);
 
-  // Sync font size from editor selection
+  // Sync font size + selection tick from editor selection
   useEffect(() => {
     if (!editor) return;
     const updateFontSize = () => {
@@ -336,6 +358,7 @@ export function DocsToolbar({ editor, isRtl = false, onToggleRtl }: Props) {
         const n = parseInt(attrs.fontSize, 10);
         if (!isNaN(n)) setFontSize(n);
       }
+      setSelTick((t) => t + 1);
     };
     editor.on("selectionUpdate", updateFontSize);
     editor.on("transaction", updateFontSize);
@@ -383,6 +406,8 @@ export function DocsToolbar({ editor, isRtl = false, onToggleRtl }: Props) {
     [editor],
   );
 
+  // Font size — selection-based; serializes to core `size:` (line-level when the
+  // whole line is styled, an inline [text]{ size: … } span otherwise).
   const changeFontSize = useCallback(
     (delta: number) => {
       const next = Math.min(96, Math.max(8, fontSize + delta));
@@ -392,389 +417,625 @@ export function DocsToolbar({ editor, isRtl = false, onToggleRtl }: Props) {
     [editor, fontSize],
   );
 
+  // Paragraph spacing — writes core `leading:` / `space-before:` / `space-after:`
+  // onto every block in the selection (multi-block selections supported).
+  const setLeading = useCallback(
+    (v: string | null) => {
+      editor?.chain().focus().setBlockProp("leading", v).run();
+      closeAll();
+    },
+    [editor],
+  );
+
+  const toggleSpace = useCallback(
+    (key: "space-before" | "space-after") => {
+      if (!editor) return;
+      const cur = getBlockProp(editor, key);
+      editor
+        .chain()
+        .focus()
+        .setBlockProp(key, cur ? null : SPACE_STEP)
+        .run();
+      closeAll();
+    },
+    [editor],
+  );
+
+  const customSpacing = useCallback(() => {
+    if (!editor) return;
+    const before = window.prompt(
+      "Space before block (e.g. 12px, 1em — empty for none):",
+      getBlockProp(editor, "space-before") || "",
+    );
+    if (before === null) return;
+    const after = window.prompt(
+      "Space after block (e.g. 12px, 1em — empty for none):",
+      getBlockProp(editor, "space-after") || "",
+    );
+    if (after === null) return;
+    editor
+      .chain()
+      .focus()
+      .setBlockProp("space-before", before.trim() || null)
+      .setBlockProp("space-after", after.trim() || null)
+      .run();
+    closeAll();
+  }, [editor]);
+
+  // Two-sided row — writes the core `end:` property (`text: … | end: …`):
+  // content at the line start, value at the line end (flex split, RTL-native).
+  const editSplitEnd = useCallback(() => {
+    if (!editor) return;
+    const cur = getBlockProp(editor, "end");
+    const next = window.prompt(
+      "Line-end text (shown at the end of the line — empty to remove):",
+      cur || "",
+    );
+    if (next === null) return;
+    editor
+      .chain()
+      .focus()
+      .setBlockProp("end", next.trim() || null)
+      .run();
+  }, [editor]);
+
+  const insertSplitRow = useCallback(() => {
+    if (!editor) return;
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: "paragraph",
+        attrs: { end: "End text" },
+        content: [{ type: "text", text: "Start text" }],
+      })
+      .run();
+    closeAll();
+  }, [editor]);
+
+  /* ── Export (WYSIWYG print path) ─────────────────────────── */
+  const themes = useMemo(() => builtinThemes(), []);
+  const printMode = inkSaver ? "minimal-ink" : "normal";
+  const doExportPDF = useCallback(
+    () => exportDocumentPDF(content, theme, printMode),
+    [content, theme, printMode],
+  );
+  const doExportHTML = useCallback(
+    () => exportDocumentHTML(content, theme, printMode),
+    [content, theme, printMode],
+  );
+
   if (!editor) return null;
 
+  const currentLeading = getBlockProp(editor, "leading");
+  const hasEnd = !!getBlockProp(editor, "end");
+
   return (
-    <div className="docs-toolbar">
-      {/* ── Undo / Redo ──────────────────────────────────── */}
-      <Btn
-        onClick={() => editor.chain().focus().undo().run()}
-        disabled={!editor.can().undo()}
-        title="Undo (⌘Z)"
-      >
-        <Undo2 size={16} />
-      </Btn>
-      <Btn
-        onClick={() => editor.chain().focus().redo().run()}
-        disabled={!editor.can().redo()}
-        title="Redo (⌘⇧Z)"
-      >
-        <Redo2 size={16} />
-      </Btn>
-
-      <Sep />
-
-      {/* ── Paragraph Style Dropdown ─────────────────────── */}
-      <div className="docs-tb-dropdown" ref={styleRef}>
-        <button
-          className="docs-tb-select"
-          onClick={() => {
-            closeAll();
-            setStyleOpen(!styleOpen);
-          }}
+    <div className="docs-toolbar docs-ribbon">
+      {/* ── Edit ─────────────────────────────────────────── */}
+      <Group label="Edit">
+        <Btn
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={locked || !editor.can().undo()}
+          title="Undo (⌘Z)"
         >
-          <span className="docs-tb-select-label">{getCurrentStyle()}</span>
-          <ChevronDown size={14} />
-        </button>
-        {styleOpen && (
-          <div className="docs-tb-dropdown-menu docs-style-menu">
-            {STYLE_OPTIONS.map((opt) => (
-              <button
-                key={opt.node}
-                className={`docs-tb-dropdown-item${getCurrentStyle() === opt.label ? " active" : ""}`}
-                onClick={() => setStyle(opt.node)}
-              >
-                <span className={`docs-style-preview docs-style-${opt.node}`}>
-                  {opt.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <Sep />
-
-      {/* ── Font Family Dropdown ─────────────────────────── */}
-      <div className="docs-tb-dropdown" ref={fontRef}>
-        <button
-          className="docs-tb-select docs-tb-font-select"
-          onClick={() => {
-            closeAll();
-            setFontOpen(!fontOpen);
-          }}
+          <Undo2 size={16} />
+        </Btn>
+        <Btn
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={locked || !editor.can().redo()}
+          title="Redo (⌘⇧Z)"
         >
-          <span className="docs-tb-select-label">{getCurrentFont()}</span>
-          <ChevronDown size={14} />
-        </button>
-        {fontOpen && (
-          <div className="docs-tb-dropdown-menu docs-font-menu">
-            {FONT_FAMILIES.map((f) => (
-              <button
-                key={f.value || "default"}
-                className={`docs-tb-dropdown-item${getCurrentFont() === f.label ? " active" : ""}`}
-                style={{ fontFamily: f.value || "inherit" }}
-                onClick={() => {
-                  if (f.value) {
-                    editor.chain().focus().setFontFamily(f.value).run();
-                  } else {
-                    editor.chain().focus().unsetFontFamily().run();
-                  }
-                  closeAll();
-                }}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+          <Redo2 size={16} />
+        </Btn>
+      </Group>
 
-      <Sep />
+      <GroupSep />
 
-      {/* ── Font Size ────────────────────────────────────── */}
-      <Btn onClick={() => changeFontSize(-1)} title="Decrease font size">
-        <Minus size={14} />
-      </Btn>
-      <span className="docs-tb-fontsize">{fontSize}</span>
-      <Btn onClick={() => changeFontSize(1)} title="Increase font size">
-        <Plus size={14} />
-      </Btn>
-
-      <Sep />
-
-      {/* ── Text Formatting ──────────────────────────────── */}
-      <Btn
-        onClick={() => editor.chain().focus().toggleBold().run()}
-        active={editor.isActive("bold")}
-        title="Bold (⌘B)"
-      >
-        <Bold size={16} />
-      </Btn>
-      <Btn
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-        active={editor.isActive("italic")}
-        title="Italic (⌘I)"
-      >
-        <Italic size={16} />
-      </Btn>
-      <Btn
-        onClick={() => editor.chain().focus().toggleUnderline().run()}
-        active={editor.isActive("underline")}
-        title="Underline (⌘U)"
-      >
-        <Underline size={16} />
-      </Btn>
-      <Btn
-        onClick={() => editor.chain().focus().toggleStrike().run()}
-        active={editor.isActive("strike")}
-        title="Strikethrough (⌘⇧X)"
-      >
-        <Strikethrough size={16} />
-      </Btn>
-
-      {/* ── Text Color ───────────────────────────────────── */}
-      <div
-        className="docs-tb-dropdown docs-tb-color-dropdown"
-        ref={textColorRef}
-      >
-        <button
-          className="docs-tb-btn docs-tb-color-btn"
-          onClick={() => {
-            closeAll();
-            setTextColorOpen(!textColorOpen);
-          }}
-          title="Text color"
+      {/* ── File / Export ────────────────────────────────── */}
+      <Group label="File">
+        <Btn onClick={doExportPDF} title="Print / Export PDF (WYSIWYG)">
+          <Printer size={16} />
+          <span className="ribbon-btn-text">PDF</span>
+        </Btn>
+        <Btn onClick={doExportHTML} title="Export HTML">
+          <FileCode2 size={16} />
+          <span className="ribbon-btn-text">HTML</span>
+        </Btn>
+        <Btn
+          onClick={() => setInkSaver((v) => !v)}
+          active={inkSaver}
+          title="Minimal ink mode (plain callouts when printing)"
         >
-          <Palette size={16} />
-          <span
-            className="docs-tb-color-indicator"
-            style={{
-              background: editor.getAttributes("textStyle")?.color || "#000000",
-            }}
-          />
-        </button>
-        {textColorOpen && (
-          <div className="docs-tb-dropdown-menu docs-color-grid-menu">
-            <div className="docs-color-grid-label">Text color</div>
-            <div className="docs-color-grid">
-              {TEXT_COLORS.map((c) => (
-                <button
-                  key={c}
-                  className="docs-color-swatch"
-                  style={{ background: c }}
-                  title={c}
-                  onClick={() => {
-                    editor.chain().focus().setColor(c).run();
-                    closeAll();
-                  }}
-                />
-              ))}
-            </div>
+          <Droplets size={16} />
+        </Btn>
+        <select
+          className="ribbon-theme-select"
+          value={theme}
+          onChange={(e) => onThemeChange(e.target.value)}
+          title="Document theme (used by print/export)"
+        >
+          {themes.map((t) => (
+            <option key={t} value={t}>
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+            </option>
+          ))}
+        </select>
+      </Group>
+
+      <GroupSep />
+
+      <div className={locked ? "ribbon-locked" : "ribbon-editing"}>
+        {/* ── Text ─────────────────────────────────────────── */}
+        <Group label="Text">
+          {/* Font family */}
+          <div className="docs-tb-dropdown" ref={fontRef}>
             <button
-              className="docs-tb-dropdown-item"
+              className="docs-tb-select docs-tb-font-select"
               onClick={() => {
-                editor.chain().focus().unsetColor().run();
                 closeAll();
+                setFontOpen(!fontOpen);
               }}
             >
-              <RemoveFormatting size={14} /> Reset
+              <span className="docs-tb-select-label">{getCurrentFont()}</span>
+              <ChevronDown size={14} />
             </button>
+            {fontOpen && (
+              <div className="docs-tb-dropdown-menu docs-font-menu">
+                {FONT_FAMILIES.map((f) => (
+                  <button
+                    key={f.value || "default"}
+                    className={`docs-tb-dropdown-item${getCurrentFont() === f.label ? " active" : ""}`}
+                    style={{ fontFamily: f.value || "inherit" }}
+                    onClick={() => {
+                      if (f.value) {
+                        editor.chain().focus().setFontFamily(f.value).run();
+                      } else {
+                        editor.chain().focus().unsetFontFamily().run();
+                      }
+                      closeAll();
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* ── Highlight Color ──────────────────────────────── */}
-      <div
-        className="docs-tb-dropdown docs-tb-color-dropdown"
-        ref={highlightColorRef}
-      >
-        <button
-          className="docs-tb-btn docs-tb-color-btn"
-          onClick={() => {
-            closeAll();
-            setHighlightColorOpen(!highlightColorOpen);
-          }}
-          title="Highlight color"
-        >
-          <Highlighter size={16} />
-          <span
-            className="docs-tb-color-indicator"
-            style={{
-              background:
-                editor.getAttributes("highlight")?.color || "transparent",
-            }}
-          />
-        </button>
-        {highlightColorOpen && (
-          <div className="docs-tb-dropdown-menu docs-color-grid-menu">
-            <div className="docs-color-grid-label">Highlight color</div>
-            <div className="docs-color-grid docs-highlight-grid">
-              {HIGHLIGHT_COLORS.map((c) => (
+          {/* Font size → core `size:` */}
+          <Btn onClick={() => changeFontSize(-1)} title="Decrease font size">
+            <Minus size={14} />
+          </Btn>
+          <span className="docs-tb-fontsize">{fontSize}</span>
+          <Btn onClick={() => changeFontSize(1)} title="Increase font size">
+            <Plus size={14} />
+          </Btn>
+
+          <Btn
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            active={editor.isActive("bold")}
+            title="Bold (⌘B)"
+          >
+            <Bold size={16} />
+          </Btn>
+          <Btn
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            active={editor.isActive("italic")}
+            title="Italic (⌘I)"
+          >
+            <Italic size={16} />
+          </Btn>
+          <Btn
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            active={editor.isActive("underline")}
+            title="Underline (⌘U)"
+          >
+            <Underline size={16} />
+          </Btn>
+          <Btn
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            active={editor.isActive("strike")}
+            title="Strikethrough (⌘⇧X)"
+          >
+            <Strikethrough size={16} />
+          </Btn>
+
+          {/* Text Color */}
+          <div
+            className="docs-tb-dropdown docs-tb-color-dropdown"
+            ref={textColorRef}
+          >
+            <button
+              className="docs-tb-btn docs-tb-color-btn"
+              onClick={() => {
+                closeAll();
+                setTextColorOpen(!textColorOpen);
+              }}
+              title="Text color"
+            >
+              <Palette size={16} />
+              <span
+                className="docs-tb-color-indicator"
+                style={{
+                  background:
+                    editor.getAttributes("textStyle")?.color || "#000000",
+                }}
+              />
+            </button>
+            {textColorOpen && (
+              <div className="docs-tb-dropdown-menu docs-color-grid-menu">
+                <div className="docs-color-grid-label">Text color</div>
+                <div className="docs-color-grid">
+                  {TEXT_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      className="docs-color-swatch"
+                      style={{ background: c }}
+                      title={c}
+                      onClick={() => {
+                        editor.chain().focus().setColor(c).run();
+                        closeAll();
+                      }}
+                    />
+                  ))}
+                </div>
                 <button
-                  key={c}
-                  className="docs-color-swatch"
-                  style={{ background: c }}
-                  title={c}
+                  className="docs-tb-dropdown-item"
                   onClick={() => {
-                    if (c === "#ffffff") {
-                      editor.chain().focus().unsetHighlight().run();
-                    } else {
-                      editor
-                        .chain()
-                        .focus()
-                        .toggleHighlight({ color: c })
-                        .run();
-                    }
+                    editor.chain().focus().unsetColor().run();
                     closeAll();
                   }}
-                />
-              ))}
-            </div>
+                >
+                  <RemoveFormatting size={14} /> Reset
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      <Sep />
+          {/* Highlight Color */}
+          <div
+            className="docs-tb-dropdown docs-tb-color-dropdown"
+            ref={highlightColorRef}
+          >
+            <button
+              className="docs-tb-btn docs-tb-color-btn"
+              onClick={() => {
+                closeAll();
+                setHighlightColorOpen(!highlightColorOpen);
+              }}
+              title="Highlight color"
+            >
+              <Highlighter size={16} />
+              <span
+                className="docs-tb-color-indicator"
+                style={{
+                  background:
+                    editor.getAttributes("highlight")?.color || "transparent",
+                }}
+              />
+            </button>
+            {highlightColorOpen && (
+              <div className="docs-tb-dropdown-menu docs-color-grid-menu">
+                <div className="docs-color-grid-label">Highlight color</div>
+                <div className="docs-color-grid docs-highlight-grid">
+                  {HIGHLIGHT_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      className="docs-color-swatch"
+                      style={{ background: c }}
+                      title={c}
+                      onClick={() => {
+                        if (c === "#ffffff") {
+                          editor.chain().focus().unsetHighlight().run();
+                        } else {
+                          editor
+                            .chain()
+                            .focus()
+                            .toggleHighlight({ color: c })
+                            .run();
+                        }
+                        closeAll();
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
-      {/* ── Subscript / Superscript ──────────────────────── */}
-      <Btn
-        onClick={() => editor.chain().focus().toggleSubscript().run()}
-        active={editor.isActive("subscript")}
-        title="Subscript"
-      >
-        <Subscript size={16} />
-      </Btn>
-      <Btn
-        onClick={() => editor.chain().focus().toggleSuperscript().run()}
-        active={editor.isActive("superscript")}
-        title="Superscript"
-      >
-        <Superscript size={16} />
-      </Btn>
-      <Btn
-        onClick={() => editor.chain().focus().toggleCode().run()}
-        active={editor.isActive("code")}
-        title="Inline code"
-      >
-        <Code size={16} />
-      </Btn>
+          <Btn
+            onClick={() => editor.chain().focus().toggleSubscript().run()}
+            active={editor.isActive("subscript")}
+            title="Subscript"
+          >
+            <Subscript size={16} />
+          </Btn>
+          <Btn
+            onClick={() => editor.chain().focus().toggleSuperscript().run()}
+            active={editor.isActive("superscript")}
+            title="Superscript"
+          >
+            <Superscript size={16} />
+          </Btn>
+          <Btn
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            active={editor.isActive("code")}
+            title="Inline code"
+          >
+            <Code size={16} />
+          </Btn>
+          <Btn
+            onClick={() =>
+              editor.chain().focus().unsetAllMarks().clearNodes().run()
+            }
+            title="Clear formatting"
+          >
+            <RemoveFormatting size={16} />
+          </Btn>
+        </Group>
 
-      <Sep />
+        <GroupSep />
 
-      {/* ── Alignment ────────────────────────────────────── */}
-      <Btn
-        onClick={() => editor.chain().focus().setTextAlign("left").run()}
-        active={editor.isActive({ textAlign: "left" })}
-        title="Align left"
-      >
-        <AlignLeft size={16} />
-      </Btn>
-      <Btn
-        onClick={() => editor.chain().focus().setTextAlign("center").run()}
-        active={editor.isActive({ textAlign: "center" })}
-        title="Align center"
-      >
-        <AlignCenter size={16} />
-      </Btn>
-      <Btn
-        onClick={() => editor.chain().focus().setTextAlign("right").run()}
-        active={editor.isActive({ textAlign: "right" })}
-        title="Align right"
-      >
-        <AlignRight size={16} />
-      </Btn>
-      <Btn
-        onClick={() => editor.chain().focus().setTextAlign("justify").run()}
-        active={editor.isActive({ textAlign: "justify" })}
-        title="Justify"
-      >
-        <AlignJustify size={16} />
-      </Btn>
-      <Btn
-        onClick={() => onToggleRtl?.()}
-        active={isRtl}
-        title={
-          isRtl
-            ? "Switch to LTR (left-to-right)"
-            : "Switch to RTL (right-to-left)"
-        }
-      >
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: -0.5,
-            lineHeight: 1,
-          }}
-        >
-          {isRtl ? "LTR" : "RTL"}
-        </span>
-      </Btn>
-
-      <Sep />
-
-      {/* ── Lists ────────────────────────────────────────── */}
-      <Btn
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
-        active={editor.isActive("bulletList")}
-        title="Bullet list"
-      >
-        <List size={16} />
-      </Btn>
-      <Btn
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        active={editor.isActive("orderedList")}
-        title="Numbered list"
-      >
-        <ListOrdered size={16} />
-      </Btn>
-
-      <Sep />
-
-      {/* ── Clear Formatting ─────────────────────────────── */}
-      <Btn
-        onClick={() =>
-          editor.chain().focus().unsetAllMarks().clearNodes().run()
-        }
-        title="Clear formatting"
-      >
-        <RemoveFormatting size={16} />
-      </Btn>
-
-      <Sep />
-
-      {/* ── Insert Dropdown ──────────────────────────────── */}
-      <div className="docs-tb-dropdown" ref={insertRef}>
-        <button
-          className="docs-tb-select docs-tb-insert-select"
-          onClick={() => {
-            closeAll();
-            setInsertOpen(!insertOpen);
-          }}
-        >
-          <Plus size={15} />
-          <span>Insert</span>
-          <ChevronDown size={14} />
-        </button>
-        {insertOpen && (
-          <div className="docs-tb-dropdown-menu docs-insert-menu">
-            {insertGroups.map((group, gi) => (
-              <div key={group.category}>
-                {gi > 0 && <div className="docs-insert-divider" />}
-                <div className="docs-insert-category">{group.category}</div>
-                {group.items.map((opt) => (
+        {/* ── Paragraph ────────────────────────────────────── */}
+        <Group label="Paragraph">
+          {/* Block style (Title / Section / …) */}
+          <div className="docs-tb-dropdown" ref={styleRef}>
+            <button
+              className="docs-tb-select docs-tb-paragraph-select"
+              onClick={() => {
+                closeAll();
+                setStyleOpen(!styleOpen);
+              }}
+            >
+              <span className="docs-tb-select-label">{getCurrentStyle()}</span>
+              <ChevronDown size={14} />
+            </button>
+            {styleOpen && (
+              <div className="docs-tb-dropdown-menu docs-style-menu">
+                {STYLE_OPTIONS.map((opt) => (
                   <button
-                    key={opt.keyword}
-                    className="docs-tb-dropdown-item docs-insert-item"
-                    onClick={() => insertBlock(opt.keyword)}
-                    disabled={opt.isReadOnly}
-                    title={opt.description}
+                    key={opt.node}
+                    className={`docs-tb-dropdown-item${getCurrentStyle() === opt.label ? " active" : ""}`}
+                    onClick={() => setStyle(opt.node)}
                   >
-                    <span className="docs-insert-icon">
-                      {CATEGORY_META[opt.category]?.icon || "•"}
-                    </span>
-                    <span className="docs-insert-label">{opt.label}</span>
-                    <span className="docs-insert-kw">
-                      {opt.isReadOnly ? "locked" : `.${opt.keyword}`}
+                    <span
+                      className={`docs-style-preview docs-style-${opt.node}`}
+                    >
+                      {opt.label}
                     </span>
                   </button>
                 ))}
               </div>
-            ))}
+            )}
           </div>
-        )}
+
+          {/* Alignment → core `align:` */}
+          <Btn
+            onClick={() => editor.chain().focus().setTextAlign("left").run()}
+            active={editor.isActive({ textAlign: "left" })}
+            title="Align left"
+          >
+            <AlignLeft size={16} />
+          </Btn>
+          <Btn
+            onClick={() => editor.chain().focus().setTextAlign("center").run()}
+            active={editor.isActive({ textAlign: "center" })}
+            title="Align center"
+          >
+            <AlignCenter size={16} />
+          </Btn>
+          <Btn
+            onClick={() => editor.chain().focus().setTextAlign("right").run()}
+            active={editor.isActive({ textAlign: "right" })}
+            title="Align right"
+          >
+            <AlignRight size={16} />
+          </Btn>
+          <Btn
+            onClick={() =>
+              editor.chain().focus().setTextAlign("justify").run()
+            }
+            active={editor.isActive({ textAlign: "justify" })}
+            title="Justify"
+          >
+            <AlignJustify size={16} />
+          </Btn>
+          <Btn
+            onClick={() => onToggleRtl?.()}
+            active={isRtl}
+            title={
+              isRtl
+                ? "Switch to LTR (left-to-right)"
+                : "Switch to RTL (right-to-left)"
+            }
+          >
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: -0.5,
+                lineHeight: 1,
+              }}
+            >
+              {isRtl ? "LTR" : "RTL"}
+            </span>
+          </Btn>
+
+          {/* Line & paragraph spacing → core `leading:` / `space-before:` / `space-after:` */}
+          <div className="docs-tb-dropdown" ref={spacingRef}>
+            <button
+              className={`docs-tb-btn${currentLeading ? " active" : ""}`}
+              onClick={() => {
+                closeAll();
+                setSpacingOpen(!spacingOpen);
+              }}
+              title="Line & paragraph spacing"
+            >
+              <Rows3 size={16} />
+              <ChevronDown size={12} />
+            </button>
+            {spacingOpen && (
+              <div className="docs-tb-dropdown-menu docs-spacing-menu">
+                <div className="docs-insert-category">Line spacing</div>
+                <button
+                  className={`docs-tb-dropdown-item${!currentLeading ? " active" : ""}`}
+                  onClick={() => setLeading(null)}
+                >
+                  Default
+                </button>
+                {LINE_SPACINGS.map((v) => (
+                  <button
+                    key={v}
+                    className={`docs-tb-dropdown-item${currentLeading === v ? " active" : ""}`}
+                    onClick={() => setLeading(v)}
+                  >
+                    {v === "1" ? "Single" : v === "2" ? "Double" : v}
+                  </button>
+                ))}
+                <div className="docs-insert-divider" />
+                <div className="docs-insert-category">Paragraph spacing</div>
+                <button
+                  className="docs-tb-dropdown-item"
+                  onClick={() => toggleSpace("space-before")}
+                >
+                  {getBlockProp(editor, "space-before")
+                    ? "Remove space before block"
+                    : "Add space before block"}
+                </button>
+                <button
+                  className="docs-tb-dropdown-item"
+                  onClick={() => toggleSpace("space-after")}
+                >
+                  {getBlockProp(editor, "space-after")
+                    ? "Remove space after block"
+                    : "Add space after block"}
+                </button>
+                <button
+                  className="docs-tb-dropdown-item"
+                  onClick={customSpacing}
+                >
+                  Custom spacing…
+                </button>
+              </div>
+            )}
+          </div>
+
+          <Btn
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            active={editor.isActive("bulletList")}
+            title="Bullet list"
+          >
+            <List size={16} />
+          </Btn>
+          <Btn
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            active={editor.isActive("orderedList")}
+            title="Numbered list"
+          >
+            <ListOrdered size={16} />
+          </Btn>
+        </Group>
+
+        <GroupSep />
+
+        {/* ── Insert ───────────────────────────────────────── */}
+        <Group label="Insert">
+          <div className="docs-tb-dropdown" ref={insertRef}>
+            <button
+              className="docs-tb-select docs-tb-insert-select"
+              onClick={() => {
+                closeAll();
+                setInsertOpen(!insertOpen);
+              }}
+            >
+              <Plus size={15} />
+              <span>Insert</span>
+              <ChevronDown size={14} />
+            </button>
+            {insertOpen && (
+              <div className="docs-tb-dropdown-menu docs-insert-menu">
+                <button
+                  className="docs-tb-dropdown-item docs-insert-item"
+                  onClick={insertSplitRow}
+                  title="Two-sided row — content at the line start, value at the line end (text: … | end: …)"
+                >
+                  <span className="docs-insert-icon">
+                    <AlignHorizontalSpaceBetween size={13} />
+                  </span>
+                  <span className="docs-insert-label">two-sided row</span>
+                  <span className="docs-insert-kw">end:</span>
+                </button>
+                <div className="docs-insert-divider" />
+                {insertGroups.map((group, gi) => (
+                  <div key={group.category}>
+                    {gi > 0 && <div className="docs-insert-divider" />}
+                    <div className="docs-insert-category">{group.category}</div>
+                    {group.items.map((opt) => (
+                      <button
+                        key={opt.keyword}
+                        className="docs-tb-dropdown-item docs-insert-item"
+                        onClick={() => insertBlock(opt.keyword)}
+                        disabled={opt.isReadOnly}
+                        title={opt.description}
+                      >
+                        <span className="docs-insert-icon">
+                          {CATEGORY_META[opt.category]?.icon || "•"}
+                        </span>
+                        <span className="docs-insert-label">{opt.label}</span>
+                        <span className="docs-insert-kw">
+                          {opt.isReadOnly ? "locked" : `.${opt.keyword}`}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Two-sided row → core `end:` */}
+          <Btn
+            onClick={editSplitEnd}
+            active={hasEnd}
+            title="Two-sided row — set the text shown at the END of this line (end: property)"
+          >
+            <AlignHorizontalSpaceBetween size={16} />
+          </Btn>
+        </Group>
       </div>
+
+      <GroupSep />
+
+      {/* ── Trust ────────────────────────────────────────── */}
+      <Group label="Trust">
+        <Btn
+          onClick={() => onModal("seal")}
+          disabled={locked}
+          title={
+            locked
+              ? "Document is already sealed"
+              : "Seal — freeze the document with a tamper-evident hash"
+          }
+        >
+          <FileLock2 size={16} />
+          <span className="ribbon-btn-text">Seal</span>
+        </Btn>
+        <Btn
+          onClick={() => onModal("trust")}
+          title="Sign — add a signature (opens the Trust panel)"
+        >
+          <PenTool size={16} />
+          <span className="ribbon-btn-text">Sign</span>
+        </Btn>
+        <Btn
+          onClick={() => onModal("verify")}
+          title="Verify — check the document hash and signatures (⌘⇧V)"
+        >
+          <ShieldCheck size={16} />
+          <span className="ribbon-btn-text">Verify</span>
+        </Btn>
+      </Group>
     </div>
   );
 }

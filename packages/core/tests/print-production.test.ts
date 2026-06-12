@@ -8,6 +8,7 @@ import {
   renderHTML,
   renderPrint,
   cssContentValue,
+  documentToSource,
 } from "../src/index";
 
 describe("print: metric totals (editor parity)", () => {
@@ -16,7 +17,7 @@ describe("print: metric totals (editor parity)", () => {
   it("renders a plain metric as a label/value total row, not a KPI card", () => {
     const html = renderHTML(parseIntentText("metric: Subtotal | value: 16,500 QAR"));
     expect(html).toContain('<span class="it-metric-row__label">Subtotal</span>');
-    expect(html).toContain('<span class="it-metric-row__value">16,500 QAR</span>');
+    expect(html).toContain('<span class="it-metric-row__value" dir="auto">16,500 QAR</span>');
     expect(html).not.toContain('<div class="it-metric '); // not the boxed KPI card element
   });
 
@@ -120,5 +121,78 @@ describe("print: multi-page + RTL robustness", () => {
     const html = renderPrint(parseIntentText("meta: | dir: rtl\ntitle: فاتورة"));
     expect(html).toContain('dir="rtl"');
     expect(html).toContain("فاتورة");
+  });
+});
+
+describe("two-sided rows (end:) + Word-parity spacing", () => {
+  it("end: renders a flex split row (content start, value end)", () => {
+    const html = renderPrint(
+      parseIntentText("text: Customer Name | end: 2026-06-12"),
+    );
+    expect(html).toContain('class="intent-text it-split"');
+    expect(html).toMatch(
+      /it-split-main">Customer Name<\/span><span class="it-split-end" dir="auto">2026-06-12</,
+    );
+  });
+
+  it("end: works on title/section and HTML-escapes the value", () => {
+    const html = renderPrint(
+      parseIntentText('title: INVOICE | end: <b>#INV-1</b>\nsection: Items | end: QAR'),
+    );
+    expect(html).toMatch(/intent-title[^"]*it-split/);
+    expect(html).toMatch(/intent-section[^"]*it-split/);
+    expect(html).toContain("&lt;b&gt;#INV-1&lt;/b&gt;");
+  });
+
+  it("leading/space-before/space-after map to CSS per block and via style:", () => {
+    const html = renderPrint(
+      parseIntentText(
+        "style: text | leading: 1.9\ntext: A | space-before: 6px | space-after: 24px",
+      ),
+    );
+    expect(html).toContain("margin-top: 6px");
+    expect(html).toContain("margin-bottom: 24px");
+    expect(html).toMatch(/\.intent-text\{[^}]*line-height: 1\.9/);
+  });
+
+  it("document CSS uses logical properties (RTL-native)", () => {
+    const html = renderPrint(parseIntentText("title: عقد\nquote: نص"));
+    expect(html).toContain('dir="rtl"');
+    expect(html).toContain("border-inline-start");
+    expect(html).not.toMatch(/[{;]text-align:left/);
+    expect(html).not.toMatch(/[{;]border-left:/);
+  });
+
+  it("end: round-trips through the serializer", () => {
+    const src = "text: Customer | end: 2026-06-12";
+    expect(documentToSource(parseIntentText(src)).trim()).toBe(src);
+  });
+});
+
+describe("bidi isolation (mixed Arabic/English/numbers)", () => {
+  const quotation = [
+    "عنوان: عرض سعر — تأثيث المكتب الرئيسي",
+    "أعمدة: الوصف | الكمية | الإجمالي",
+    "صف: كرسي مكتب تنفيذي | 12 | 10,200 QAR",
+    "مؤشر: الإجمالي المستحق | value: 10,200 QAR",
+    "مهمة: اعتماد العرض | owner: أحمد | due: 2026-06-20",
+  ].join("\n");
+
+  it("isolates every mixed-direction value (WhatsApp-style dir=auto)", () => {
+    const html = renderHTML(parseIntentText(quotation));
+    expect(html).toContain('dir="rtl"');
+    expect(html).toContain('<td class="intent-table-td" dir="auto">10,200 QAR');
+    expect(html).toMatch(/intent-task-due" dir="auto">2026-06-20/);
+    expect(html).toMatch(/intent-task-owner" dir="auto">أحمد/);
+    expect(html).toMatch(/dir="auto">10,200 QAR/);
+  });
+
+  it("explicit dir: on meta/بيانات overrides auto-detection both ways", () => {
+    expect(
+      parseIntentText("بيانات: | dir: rtl\ntitle: English Doc").metadata.language,
+    ).toBe("rtl");
+    expect(
+      parseIntentText("meta: | dir: ltr\nعنوان: عربي").metadata.language,
+    ).toBe("ltr");
   });
 });

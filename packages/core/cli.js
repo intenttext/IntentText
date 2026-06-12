@@ -367,7 +367,10 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
         console.log(`    Hash:     ${result.hash} ✅ matches`);
         // v2.11: Report amendment count
         const doc = parseIntentText(source);
-        const amendments = doc.blocks.filter((b) => b.type === "amendment");
+        const allBlocks = doc.blocks.flatMap(function walk(b) {
+          return [b, ...(b.children || []).flatMap(walk)];
+        });
+        const amendments = allBlocks.filter((b) => b.type === "amendment");
         if (amendments.length > 0) {
           console.log(`    Amendments: ${amendments.length}`);
         }

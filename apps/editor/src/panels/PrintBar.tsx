@@ -1,4 +1,9 @@
-import { useState } from "react";
+// Print / export engine for the editor.
+//
+// The UI for these actions lives in the ribbon (visual/DocsToolbar.tsx) and the
+// top toolbar's source-mode export buttons — this module owns the WYSIWYG print
+// path and the document export functions they trigger.
+
 import {
   parseIntentText,
   renderPrint,
@@ -7,6 +12,8 @@ import {
 } from "@dotit/core";
 import { getPageGeometry } from "../visual/page-geometry";
 import { printHtmlViaIframe } from "./print-iframe";
+
+export type PrintMode = "normal" | "minimal-ink";
 
 /** Inject extra CSS before </head> of an HTML document string. */
 function injectCss(html: string, css: string): string {
@@ -73,12 +80,6 @@ function buildWysiwygPrint(content: string, printMode: string): string | null {
   return `<!doctype html><html><head><meta charset="utf-8">${styles}<style>${pageCss}${overrides}</style></head><body><div class="docs-page docs-sheet"><div class="tiptap">${bodyHtml}</div></div></body></html>`;
 }
 
-interface Props {
-  content: string;
-  theme: string;
-  onThemeChange: (theme: string) => void;
-}
-
 function download(data: string, filename: string, mime: string) {
   const blob = new Blob([data], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -89,176 +90,53 @@ function download(data: string, filename: string, mime: string) {
   URL.revokeObjectURL(url);
 }
 
-export function PrintBar({ content, theme, onThemeChange }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [printMode, setPrintMode] = useState<"normal" | "minimal-ink">(
-    "normal",
-  );
+/** Build the print-ready HTML: WYSIWYG when the visual editor is mounted,
+ *  core renderPrint otherwise (source mode). */
+function buildPrintHtml(
+  content: string,
+  theme: string,
+  printMode: PrintMode,
+): string {
+  let full = buildWysiwygPrint(content, printMode);
+  if (!full) {
+    const doc = parseIntentText(content);
+    full = renderPrint(doc, { theme });
+    if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
+  }
+  return full;
+}
 
-  const themes = listBuiltinThemes() as string[];
+/** Print / save-as-PDF via the browser's print dialog. */
+export function exportDocumentPDF(
+  content: string,
+  theme: string,
+  printMode: PrintMode = "normal",
+) {
+  try {
+    printHtmlViaIframe(buildPrintHtml(content, theme, printMode));
+  } catch {
+    /* ignore */
+  }
+}
 
-  const exportPDF = () => {
-    try {
-      // WYSIWYG: print the editor's own rendered content + stylesheets so the PDF
-      // matches the on-screen view. Falls back to core renderPrint in source mode.
-      let full = buildWysiwygPrint(content, printMode);
-      if (!full) {
-        const doc = parseIntentText(content);
-        full = renderPrint(doc, { theme });
-        if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
-      }
-      printHtmlViaIframe(full);
-    } catch {
-      /* ignore */
-    }
-  };
+/** Download the print-ready HTML document. */
+export function exportDocumentHTML(
+  content: string,
+  theme: string,
+  printMode: PrintMode = "normal",
+) {
+  try {
+    download(
+      buildPrintHtml(content, theme, printMode),
+      "document.html",
+      "text/html",
+    );
+  } catch {
+    /* ignore */
+  }
+}
 
-  const exportHTML = () => {
-    try {
-      let full = buildWysiwygPrint(content, printMode);
-      if (!full) {
-        const doc = parseIntentText(content);
-        full = renderPrint(doc, { theme });
-        if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
-      }
-      download(full, "document.html", "text/html");
-    } catch {
-      /* ignore */
-    }
-  };
-
-  return (
-    <div className={`print-bar ${expanded ? "expanded" : ""}`}>
-      {/* ── Collapsed row ──────────────────── */}
-      <div className="print-bar-row">
-        <div className="print-bar-label">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="6 9 6 2 18 2 18 9" />
-            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-            <rect x="6" y="14" width="12" height="8" />
-          </svg>
-          Print &amp; Export
-        </div>
-
-        <div className="print-bar-controls">
-          <label className="print-bar-theme">
-            Theme:
-            <select
-              value={theme}
-              onChange={(e) => onThemeChange(e.target.value)}
-            >
-              {themes.map((t) => (
-                <option key={t} value={t}>
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <button
-            className="print-bar-btn"
-            onClick={exportPDF}
-            title="Print / Export PDF"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            PDF
-          </button>
-          <button
-            className="print-bar-btn"
-            onClick={exportHTML}
-            title="Export HTML"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="16 18 22 12 16 6" />
-              <polyline points="8 6 2 12 8 18" />
-            </svg>
-            HTML
-          </button>
-        </div>
-
-        <button
-          className="print-bar-toggle"
-          onClick={() => setExpanded(!expanded)}
-          title={expanded ? "Collapse" : "Expand"}
-        >
-          {expanded ? "▼" : "▲"}
-        </button>
-      </div>
-
-      {/* ── Expanded content ───────────────── */}
-      {expanded && (
-        <div className="print-bar-expanded">
-          <div className="print-bar-section">
-            <div className="print-bar-section-title">Print Mode</div>
-            <div className="panel-radio-group">
-              <label className="panel-radio">
-                <input
-                  type="radio"
-                  name="printMode"
-                  checked={printMode === "normal"}
-                  onChange={() => setPrintMode("normal")}
-                />
-                Normal
-              </label>
-              <label className="panel-radio">
-                <input
-                  type="radio"
-                  name="printMode"
-                  checked={printMode === "minimal-ink"}
-                  onChange={() => setPrintMode("minimal-ink")}
-                />
-                Minimal ink
-              </label>
-            </div>
-          </div>
-
-          <div className="print-bar-section">
-            <div className="print-bar-section-title">Actions</div>
-            <div className="print-bar-action-row">
-              <button className="btn-primary" onClick={exportPDF}>
-                🖨 Print
-              </button>
-              <button className="btn-primary" onClick={exportPDF}>
-                📄 Export PDF
-              </button>
-              <button className="btn-primary" onClick={exportHTML}>
-                &lt;/&gt; Export HTML
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+/** Built-in theme ids — for the ribbon's theme select. */
+export function builtinThemes(): string[] {
+  return listBuiltinThemes() as string[];
 }

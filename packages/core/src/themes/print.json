@@ -37,12 +37,12 @@
       "border-bottom": true
     },
     "quote": {
-      "padding-left": "1em",
+      "padding-inline-start": "1em",
       "font-style": "italic"
     },
     "warning": {
-      "border-left": "3px solid #000",
-      "padding-left": "1em"
+      "border-inline-start": "3px solid #000",
+      "padding-inline-start": "1em"
     }
   },
   "print": {

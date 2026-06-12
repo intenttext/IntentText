@@ -38,12 +38,16 @@ import {
   ITGenericBlock,
   ITComment,
 } from "./extensions";
+import { ITParagraph, BlockProps } from "./block-props";
 import { DocsToolbar } from "./DocsToolbar";
+import { TrustBanner, DocPropsBar } from "./TrustBanner";
+import { extractTrustState } from "../hooks/useTrustState";
 import {
   getBuiltinTheme,
   generateThemeCSS,
   parseIntentText,
   documentStyleCSS,
+  verifyDocument,
 } from "@dotit/core";
 import {
   getPageGeometry,
@@ -51,6 +55,7 @@ import {
   type PageGeometry,
 } from "./page-geometry";
 import { TemplateHighlight } from "./template-highlight";
+import type { ModalType } from "../App";
 
 /** Grey gap between page cards on the canvas (px). */
 const PAGE_GAP = 28;
@@ -77,10 +82,18 @@ const EDITOR_STYLE_SELECTORS: Record<string, string[]> = {
 interface Props {
   value: string;
   onChange: (source: string) => void;
-  theme?: string;
+  theme: string;
+  onThemeChange: (theme: string) => void;
+  onModal: (m: ModalType) => void;
 }
 
-export function VisualEditor({ value, onChange, theme }: Props) {
+export function VisualEditor({
+  value,
+  onChange,
+  theme,
+  onThemeChange,
+  onModal,
+}: Props) {
   const lastSourceRef = useRef<string>("");
   const isInternalUpdate = useRef(false);
   const isHydrating = useRef(true);
@@ -103,15 +116,16 @@ export function VisualEditor({ value, onChange, theme }: Props) {
         codeBlock: false,
         blockquote: false,
         horizontalRule: false,
+        // Replaced by ITParagraph (core block props: end/leading/space-…).
+        paragraph: false,
       }),
+      ITParagraph,
+      BlockProps,
       Placeholder.configure({
-        placeholder: ({ node }) => {
-          if (node.type.name === "itTitle") return "Document title";
-          if (node.type.name === "itSection") return "Section heading";
-          if (node.type.name === "itSub") return "Subsection heading";
-          if (node.type.name === "itSummary") return "Document summary";
-          return "Start typing...";
-        },
+        // Professional behavior: a new empty line shows just the cursor.
+        // The hint appears only on a completely empty document.
+        placeholder: ({ editor: ed }) =>
+          ed.isEmpty ? "Start typing..." : "",
       }),
       Underline,
       TextStyle,
@@ -243,6 +257,33 @@ export function VisualEditor({ value, onChange, theme }: Props) {
       return { header: "", footer: "", dir: "ltr" };
     }
   }, [value]);
+
+  // ── Trust state: status banner + sealed read-only ─────────
+  const trust = useMemo(() => {
+    try {
+      return extractTrustState(parseIntentText(value));
+    } catch {
+      return extractTrustState(null);
+    }
+  }, [value]);
+
+  // Hash check for the banner ("hash verified ✓") — only when sealed.
+  const sealIntact = useMemo<boolean | null>(() => {
+    if (!trust.isSealed) return null;
+    try {
+      return verifyDocument(value).intact;
+    } catch {
+      return null;
+    }
+  }, [value, trust.isSealed]);
+
+  // Sealed documents are read-only — the canvas refuses edits and the ribbon's
+  // formatting groups are disabled (clear professional indication via banner).
+  useEffect(() => {
+    if (!editor) return;
+    if (editor.isEditable === !trust.isSealed) return;
+    editor.setEditable(!trust.isSealed);
+  }, [editor, trust.isSealed]);
 
   // Live document styles: apply the doc's `style:` rules to the canvas so the
   // author SEES the house styling while editing (and the WYSIWYG print export
@@ -406,7 +447,14 @@ export function VisualEditor({ value, onChange, theme }: Props) {
         editor={editor}
         isRtl={docLayoutMeta.dir === "rtl"}
         onToggleRtl={toggleRtl}
+        content={value}
+        theme={theme}
+        onThemeChange={onThemeChange}
+        onModal={onModal}
+        locked={trust.isSealed}
       />
+      <TrustBanner trust={trust} intact={sealIntact} />
+      <DocPropsBar source={value} />
       {unsupported.length > 0 && (
         <div className="docs-fidelity-warning" role="status">
           ⚠ Some formatting ({unsupported.join(", ")}) can’t be saved to{" "}
