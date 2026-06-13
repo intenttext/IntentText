@@ -13,29 +13,29 @@ import { listen } from "@tauri-apps/api/event";
 import { open as openDialog, ask } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
-import {
-  IntentTextEditor,
-  exportDocumentHTML,
-  exportDocumentPDF,
-} from "@dotit/editor";
+import { IntentTextEditor } from "@dotit/editor";
 import type { TrustAction } from "@dotit/editor";
 import { isTemplate } from "@dotit/core";
 import {
   BadgeCheck,
   Code2,
-  Download,
+  FileDown,
   FileText,
+  FileType2,
+  FileUp,
   FolderPlus,
   Lock,
   PanelLeftClose,
   PanelLeftOpen,
   Pencil,
   PenLine,
+  Printer,
   Search,
   Unlock,
 } from "lucide-react";
 
 import { isTauri } from "./lib/backend";
+import { printDocument, exportHTML, exportDOCX, importDOCX } from "./lib/export";
 import { installAppMenu } from "./lib/menu";
 import type { MenuActions } from "./lib/menu";
 import * as trustOps from "./lib/trust";
@@ -171,6 +171,15 @@ export default function App() {
     if (typeof selected === "string") await openFile(selected);
   }, [openFile]);
 
+  const importDocxFlow = useCallback(async () => {
+    const imported = await importDOCX();
+    if (!imported) return;
+    await docApi.openSource(imported.source, imported.suggestedName);
+    setMode("edit");
+    setSourceView(false);
+    setTrustPanelOpen(false);
+  }, [docApi]);
+
   const focusSearch = useCallback(() => {
     setSidebarVisible(true);
     setSidebarTab("search");
@@ -195,12 +204,16 @@ export default function App() {
     addFolder: () => void vaultsApi.addFolder(),
     save: () => void guardedSave(),
     saveAs: () => void docApi.saveAs(),
-    exportPDF: () => {
-      if (doc) exportDocumentPDF(doc.content, theme);
+    printDocument: () => {
+      if (doc) printDocument(doc.content, theme);
     },
     exportHTML: () => {
-      if (doc) exportDocumentHTML(doc.content, theme);
+      if (doc) void exportHTML(doc.content, theme);
     },
+    exportDOCX: () => {
+      if (doc) void exportDOCX(doc.content);
+    },
+    importDOCX: () => void importDocxFlow(),
     toggleSidebar: () => setSidebarVisible((v) => !v),
     toggleEdit,
     toggleSourceView: () => {
@@ -295,7 +308,7 @@ export default function App() {
         toggleEdit();
       } else if (key === "p" && !e.shiftKey) {
         e.preventDefault();
-        if (doc) exportDocumentPDF(doc.content, theme);
+        if (doc) printDocument(doc.content, theme);
       }
     };
     window.addEventListener("keydown", handler);
@@ -473,10 +486,31 @@ export default function App() {
               <span className="topbar-divider" />
               <button
                 className="icon-btn"
-                title="Export PDF (⌘P)"
-                onClick={() => exportDocumentPDF(doc.content, theme)}
+                title="Import Word (.docx)…"
+                onClick={() => void importDocxFlow()}
               >
-                <Download size={15} />
+                <FileUp size={15} />
+              </button>
+              <button
+                className="icon-btn"
+                title="Print / Save as PDF (⌘P)"
+                onClick={() => printDocument(doc.content, theme)}
+              >
+                <Printer size={15} />
+              </button>
+              <button
+                className="icon-btn"
+                title="Export as HTML…"
+                onClick={() => void exportHTML(doc.content, theme)}
+              >
+                <FileDown size={15} />
+              </button>
+              <button
+                className="icon-btn"
+                title="Export as Word (.docx)…"
+                onClick={() => void exportDOCX(doc.content)}
+              >
+                <FileType2 size={15} />
               </button>
             </div>
           )}
@@ -541,6 +575,9 @@ export default function App() {
                 </button>
                 <button className="btn" onClick={() => openFileViaDialog()}>
                   Open File…
+                </button>
+                <button className="btn" onClick={() => void importDocxFlow()}>
+                  Import Word…
                 </button>
               </div>
               {vaultsApi.recentFiles.length > 0 && (

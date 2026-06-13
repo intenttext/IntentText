@@ -21,6 +21,8 @@ export interface OpenDocumentApi {
   doc: OpenDocument | null;
   openPath: (path: string) => Promise<void>;
   newDocument: () => Promise<void>;
+  /** Open arbitrary source as a new, never-saved document (e.g. DOCX import). */
+  openSource: (source: string, name?: string) => Promise<void>;
   setContent: (content: string) => void;
   /** Replace content and persist immediately (used by trust operations). */
   applyAndSave: (content: string) => Promise<void>;
@@ -147,6 +149,21 @@ export function useOpenDocument(opts: {
     });
   }, [confirmDiscard]);
 
+  const openSource = useCallback(
+    async (source: string, name = "untitled.it") => {
+      if (!(await confirmDiscard())) return;
+      clearTimeout(autosaveTimer.current);
+      setDoc({
+        path: null,
+        name: name.endsWith(".it") ? name : `${name}.it`,
+        content: source,
+        dirty: true,
+        savedAt: null,
+      });
+    },
+    [confirmDiscard],
+  );
+
   const closeDocument = useCallback(async () => {
     if (!(await confirmDiscard())) return;
     clearTimeout(autosaveTimer.current);
@@ -190,6 +207,7 @@ export function useOpenDocument(opts: {
       doc,
       openPath,
       newDocument,
+      openSource,
       setContent,
       applyAndSave,
       save,
@@ -200,6 +218,7 @@ export function useOpenDocument(opts: {
       doc,
       openPath,
       newDocument,
+      openSource,
       setContent,
       applyAndSave,
       save,

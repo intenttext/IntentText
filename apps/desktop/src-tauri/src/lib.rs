@@ -80,6 +80,8 @@ pub fn run() {
             take_pending_open,
             commands::fs::read_file,
             commands::fs::write_file,
+            commands::fs::write_binary_file,
+            commands::fs::read_binary_file,
             commands::fs::list_files,
             commands::fs::file_metadata,
             commands::fs::delete_file,

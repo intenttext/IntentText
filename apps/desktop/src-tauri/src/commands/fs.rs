@@ -38,6 +38,26 @@ pub async fn write_file(path: String, content: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub async fn write_binary_file(path: String, contents: Vec<u8>) -> Result<(), String> {
+    let p = Path::new(&path);
+    // Ensure parent directory exists
+    if let Some(parent) = p.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create directory: {}", e))?;
+    }
+    std::fs::write(p, contents).map_err(|e| format!("Failed to write file: {}", e))
+}
+
+#[tauri::command]
+pub async fn read_binary_file(path: String) -> Result<Vec<u8>, String> {
+    let p = Path::new(&path);
+    if !p.exists() {
+        return Err(format!("File not found: {}", path));
+    }
+    std::fs::read(p).map_err(|e| format!("Failed to read file: {}", e))
+}
+
+#[tauri::command]
 pub async fn list_files(dir: String) -> Result<Vec<FileEntry>, String> {
     let p = Path::new(&dir);
     if !p.is_dir() {

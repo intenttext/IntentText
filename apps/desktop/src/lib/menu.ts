@@ -12,8 +12,10 @@ export interface MenuActions {
   addFolder: () => void;
   save: () => void;
   saveAs: () => void;
-  exportPDF: () => void;
+  printDocument: () => void;
   exportHTML: () => void;
+  exportDOCX: () => void;
+  importDOCX: () => void;
   toggleSidebar: () => void;
   toggleEdit: () => void;
   toggleSourceView: () => void;
@@ -67,6 +69,7 @@ export async function installAppMenu(
     items: [
       await item("New Document", "CmdOrCtrl+N", (a) => a.newDocument()),
       await item("Open…", "CmdOrCtrl+O", (a) => a.openFile()),
+      await item("Import Word (.docx)…", undefined, (a) => a.importDOCX()),
       await item("Add Folder to Library…", "CmdOrCtrl+Shift+O", (a) =>
         a.addFolder(),
       ),
@@ -74,8 +77,11 @@ export async function installAppMenu(
       await item("Save", "CmdOrCtrl+S", (a) => a.save()),
       await item("Save As…", "CmdOrCtrl+Shift+S", (a) => a.saveAs()),
       await sep(),
-      await item("Export as PDF…", "CmdOrCtrl+P", (a) => a.exportPDF()),
+      await item("Print / Save as PDF…", "CmdOrCtrl+P", (a) =>
+        a.printDocument(),
+      ),
       await item("Export as HTML…", undefined, (a) => a.exportHTML()),
+      await item("Export as Word (.docx)…", undefined, (a) => a.exportDOCX()),
       await sep(),
       await PredefinedMenuItem.new({ item: "CloseWindow" }),
     ],

@@ -1,8 +1,10 @@
 // StatusBar — workspace, document stats, trust lifecycle, save state.
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getVersion } from "@tauri-apps/api/app";
 import { parseIntentText } from "@dotit/core";
 import { extractTrustState } from "@dotit/editor";
+import { isTauri } from "../lib/backend";
 import type { OpenDocument } from "../hooks/useOpenDocument";
 
 export function StatusBar(props: {
@@ -13,6 +15,15 @@ export function StatusBar(props: {
   onAddFolder: () => void;
 }) {
   const { scopeLabel, docCount, doc, mode, onAddFolder } = props;
+
+  // App version — always visible so the user knows which build they're on.
+  const [version, setVersion] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isTauri) return;
+    getVersion()
+      .then(setVersion)
+      .catch(() => {});
+  }, []);
 
   const stats = useMemo(() => {
     if (!doc) return null;
@@ -68,6 +79,12 @@ export function StatusBar(props: {
               : doc.path
                 ? "Saved"
                 : "Not saved to disk"}
+        </span>
+      )}
+
+      {version && (
+        <span className="status-item muted" title="App version">
+          v{version}
         </span>
       )}
     </footer>

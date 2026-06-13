@@ -6,7 +6,21 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
-### Added
+### Fixed / Added
+
+- **Desktop 2.1.0 — native print & export (Tauri).** The browser-based exports
+  didn't work inside Tauri's WKWebView; replaced with native paths:
+  - **Print / Save as PDF** (Cmd/Ctrl+P and a banner button) now opens the OS print
+    panel via `window.print()` on a print-styled container — works in view AND edit
+    mode (the old hidden-iframe path WKWebView ignored).
+  - **Export HTML** and **Export/Import Word (.docx)** via native save/open dialogs
+    (new Rust `write_binary_file`/`read_binary_file` commands for the docx bytes;
+    docx uses core's `convertIntentTextToDocx`/`convertDocxToIntentText`).
+  - Export actions moved into the **banner**, visible in both view and edit mode
+    (not template-gated — only trust actions are).
+  - **Comments no longer show in view mode** (`@dotit/editor` 1.4.1: read-only hides
+    `it-doc-comment` nodes; still editable in edit mode, never removed from source).
+  - App **version shown in the status bar**.
 
 - **Templates are formally OUTSIDE the trust workflow (`@dotit/core` 1.7.0,
   `@dotit/sign` 1.4.0).** A template is a blueprint, not a record — signing one is

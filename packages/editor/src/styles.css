@@ -1153,6 +1153,13 @@
   padding-left: 12px;
   margin: 4px 0;
 }
+/* In read-only / sealed view the editor is contenteditable="false". Comments
+   are an editing affordance (// lines) — hide them in the clean reading view,
+   while keeping them in the source (round-trip intact) and editable in edit
+   mode. Print already strips them via the renderer. */
+.ProseMirror[contenteditable="false"] .it-doc-comment {
+  display: none;
+}
 
 /* ─── Inline marks (from StarterKit) ──────────────────────── */
 

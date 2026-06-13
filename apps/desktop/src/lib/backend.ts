@@ -34,6 +34,16 @@ export function writeFile(path: string, content: string): Promise<void> {
   return invoke("write_file", { path, content });
 }
 
+/** Write raw bytes to a file (DOCX export). Pass `Array.from(uint8array)`. */
+export function writeBinaryFile(path: string, bytes: number[]): Promise<void> {
+  return invoke("write_binary_file", { path, contents: bytes });
+}
+
+/** Read raw bytes from a file (DOCX import). Returns a byte array. */
+export function readBinaryFile(path: string): Promise<number[]> {
+  return invoke<number[]>("read_binary_file", { path });
+}
+
 /** Recursive listing of a workspace folder (.it files + directories). */
 export function openFolderInfo(path: string): Promise<WorkspaceInfo> {
   return invoke<WorkspaceInfo>("open_folder", { path });

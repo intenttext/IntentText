@@ -1,6 +1,6 @@
 {
   "productName": "Dotit",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "identifier": "qa.uts.dotit",
   "build": {
     "frontendDist": "../dist",
@@ -31,7 +31,7 @@
     "category": "Productivity",
     "publisher": "Dotit Labs",
     "shortDescription": "Dotit is a native desktop document manager for .it documents.",
-    "longDescription": "Dotit is a professional desktop app for managing .it document workspaces: a WYSIWYG editor, workspace-wide search, and trust operations (seal, sign, verify) \u2014 local-first.",
+    "longDescription": "Dotit is a professional desktop app for managing .it document workspaces: a WYSIWYG editor, workspace-wide search, and trust operations (seal, sign, verify) — local-first.",
     "fileAssociations": [
       {
         "ext": [
