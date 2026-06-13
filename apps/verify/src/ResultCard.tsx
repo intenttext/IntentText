@@ -33,9 +33,10 @@ const VERDICT_COPY: Record<
     title: (r) => {
       const cert = r.certifications.find((c) => c.valid);
       if (cert) {
-        return `Verified — UTS certified${
-          cert.account ? ` for ${cert.account}` : ""
-        }, content intact`;
+        const who = cert.entity
+          ? `${cert.entity}${cert.account ? ` (${cert.account})` : ""}`
+          : cert.account;
+        return `Verified — UTS certified${who ? ` for ${who}` : ""}, content intact`;
       }
       return `Verified — content intact, ${r.signatures.validCount} signature${
         r.signatures.validCount === 1 ? "" : "s"
@@ -177,13 +178,19 @@ function CertifiedLayer({ report }: { report: VerifyReport }) {
               </div>
             );
           }
-          // valid + trusted
+          // valid + trusted. When the account is KYC-verified, `entity` is the
+          // verified legal name (folded into the signature) — show it first.
           return (
             <div className="sig" key={i}>
               <span>
                 <span className="who">{c.issuer}</span>
+                {c.entity ? (
+                  <span className="meta"> — {c.entity}</span>
+                ) : null}
                 {c.account ? (
-                  <span className="meta"> · account: {c.account}</span>
+                  <span className="meta">
+                    {c.entity ? ` (${c.account})` : ` · account: ${c.account}`}
+                  </span>
                 ) : null}
                 {c.at ? (
                   <span className="meta"> · {c.at.slice(0, 19).replace("T", " ")} UTC</span>
@@ -195,7 +202,9 @@ function CertifiedLayer({ report }: { report: VerifyReport }) {
                 ) : null}
               </span>
               <span className="spacer" />
-              <span className="badge valid">✓ Certified</span>
+              <span className="badge valid">
+                {c.entity ? "✓ Certified · identity verified" : "✓ Certified"}
+              </span>
             </div>
           );
         })}

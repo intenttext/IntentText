@@ -1,5 +1,7 @@
-# NEVER commit the authority private key or the account/API-key store.
+# NEVER commit the authority private key, the legacy account store, or env secrets.
 .keys/
 accounts.json
+.env
+.env.local
 dist/
 node_modules/

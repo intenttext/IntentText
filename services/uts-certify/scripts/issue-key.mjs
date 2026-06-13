@@ -2,20 +2,22 @@
 /**
  * issue-key.mjs — admin tool to onboard an account and mint an API key.
  *
- * This stands in for the real signup + billing flow (Phase 3c). It appends an
- * account to accounts.json and prints a fresh API key ONCE (it is not stored
- * anywhere else — copy it now).
+ * Talks directly to MongoDB via the same data-access layer the server uses:
+ * creates the account if it doesn't exist, then mints an API key and prints it
+ * ONCE (only its sha256 hash is stored — copy the key now).
  *
  *   pnpm issue-key <account> [label]
  *   node --import tsx scripts/issue-key.mjs acme-corp "Acme Corporation"
  *
- * The key is the bearer secret a caller passes as `Authorization: Bearer <key>`
- * to POST /certify; the service stamps the certify: line for <account>.
+ * Requires MONGODB_URI (and optionally DB_NAME) in the environment — the same
+ * MongoDB the service uses. This stands in for self-serve signup (Phase 3c).
  *
- * Run via tsx so it shares the TypeScript source with the server (no build step
- * required): the `issue-key` package script wires that up.
+ * Note: this only mints a TIMESTAMP-only account. To embed a verified legal
+ * entity, run the KYC step against the running service:
+ *   POST /admin/accounts/<account>/verify { entity, cr? }
  */
-import { issueKey } from "../src/accounts.ts";
+import { connectDb, closeDb } from "../src/db.ts";
+import { getAccount, createAccount, mintApiKey } from "../src/accounts.ts";
 
 const account = process.argv[2];
 const label = process.argv[3] ?? account;
@@ -26,12 +28,26 @@ if (!account) {
   process.exit(2);
 }
 
-const { apiKey, record } = issueKey(account, label);
-console.log(`\n  Issued API key for account "${record.account}" (${record.label})`);
-console.log(`  API key (save this — shown once):\n`);
-console.log(`    ${apiKey}\n`);
-console.log(`  Use it:`);
-console.log(`    curl -X POST http://localhost:8787/certify \\`);
-console.log(`      -H "Authorization: Bearer ${apiKey}" \\`);
-console.log(`      -H "Content-Type: application/json" \\`);
-console.log(`      -d '{"source":"title: Hello\\n"}'\n`);
+try {
+  await connectDb();
+  if (!(await getAccount(account))) {
+    await createAccount({ account, label });
+    console.log(`\n  Created account "${account}" (${label})`);
+  } else {
+    console.log(`\n  Account "${account}" already exists — minting an additional key.`);
+  }
+  const { apiKey, doc } = await mintApiKey(account, label);
+  console.log(`  API key (save this — shown once):\n`);
+  console.log(`    ${apiKey}\n`);
+  console.log(`  Prefix (for revoke):  ${doc.prefix}`);
+  console.log(`  Use it:`);
+  console.log(`    curl -X POST http://localhost:8787/certify \\`);
+  console.log(`      -H "Authorization: Bearer ${apiKey}" \\`);
+  console.log(`      -H "Content-Type: application/json" \\`);
+  console.log(`      -d '{"source":"title: Hello\\n"}'\n`);
+} catch (e) {
+  console.error(`\n  Failed: ${e.message}\n`);
+  process.exitCode = 1;
+} finally {
+  await closeDb();
+}
