@@ -23,6 +23,7 @@
   "dependencies": {
     "@dotit/core": "workspace:*",
     "@dotit/editor": "workspace:*",
+    "@dotit/sign": "workspace:^",
     "@tauri-apps/api": "~2.10.0",
     "@tauri-apps/plugin-dialog": "~2.6.0",
     "@tauri-apps/plugin-window-state": "^2.0.4",

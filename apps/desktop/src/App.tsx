@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { open as openDialog, ask } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import {
@@ -31,7 +31,6 @@ import {
   Pencil,
   PenLine,
   Search,
-  ShieldCheck,
   Unlock,
 } from "lucide-react";
 
@@ -39,6 +38,8 @@ import { isTauri } from "./lib/backend";
 import { installAppMenu } from "./lib/menu";
 import type { MenuActions } from "./lib/menu";
 import * as trustOps from "./lib/trust";
+import { evaluateTrust } from "./lib/trust-status";
+import { TrustBadge, TrustPanel } from "./components/TrustBadge";
 import { useVaults } from "./hooks/useVaults";
 import { useOpenDocument } from "./hooks/useOpenDocument";
 import { useTrustBadges } from "./hooks/useTrustBadges";
@@ -73,7 +74,20 @@ export default function App() {
     () => localStorage.getItem("dotit.doc.theme") ?? "corporate",
   );
   const [trustDialog, setTrustDialog] = useState<TrustDialogKind>(null);
+  const [trustPanelOpen, setTrustPanelOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Live trust status — recomputed from the CURRENT content on every render, so
+  // the header badge updates the instant the document changes (editing a signed
+  // doc flips it to "Signature broken" with no dialog).
+  const trustStatus = useMemo(
+    () => (doc ? evaluateTrust(doc.content) : null),
+    [doc?.content],
+  );
+
+  // Signature count at the moment the document was opened — used to detect
+  // whether a SAVE would persist a doc whose signatures we just broke by editing.
+  const openedValidSigs = useRef(0);
 
   const badges = useTrustBadges(vaultsApi.allFiles, vaultsApi.revision);
 
@@ -97,12 +111,44 @@ export default function App() {
         vaultsApi.noteRecent(path);
         setMode("view");
         setSourceView(false);
+        setTrustPanelOpen(false);
       } catch (err) {
         console.error("Failed to open file:", err);
       }
     },
     [docApi, vaultsApi],
   );
+
+  // Snapshot how many signatures verified at open-time. We only warn on save
+  // when editing has since BROKEN signatures that were valid when we opened.
+  useEffect(() => {
+    if (!doc) return;
+    openedValidSigs.current = evaluateTrust(doc.content).validSignatureCount;
+    // Only recompute the baseline when the open file changes, not on every edit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc?.path]);
+
+  // Save, but for a SIGNED (unsealed) doc whose signatures were valid at open
+  // and are now broken by editing, confirm once before persisting. No nagging
+  // during typing — just this single gate at save time.
+  const guardedSave = useCallback(async () => {
+    if (!doc) return;
+    const status = evaluateTrust(doc.content);
+    const brokeSigs =
+      !status.sealed &&
+      openedValidSigs.current > 0 &&
+      status.validSignatureCount < openedValidSigs.current;
+    if (brokeSigs) {
+      const n = openedValidSigs.current - status.validSignatureCount;
+      const ok = await ask(
+        `Saving will invalidate ${n} signature${n === 1 ? "" : "s"}. Save anyway?`,
+        { title: "Signatures will break", kind: "warning" },
+      );
+      if (!ok) return;
+    }
+    await docApi.save();
+    openedValidSigs.current = evaluateTrust(doc.content).validSignatureCount;
+  }, [doc, docApi]);
 
   const newDocument = useCallback(async () => {
     await docApi.newDocument();
@@ -140,7 +186,7 @@ export default function App() {
     newDocument: () => void newDocument(),
     openFile: () => void openFileViaDialog(),
     addFolder: () => void vaultsApi.addFolder(),
-    save: () => void docApi.save(),
+    save: () => void guardedSave(),
     saveAs: () => void docApi.saveAs(),
     exportPDF: () => {
       if (doc) exportDocumentPDF(doc.content, theme);
@@ -166,7 +212,7 @@ export default function App() {
         void docApi.applyAndSave(trustOps.unseal(doc.content));
       }
     },
-    trustVerify: () => doc && setTrustDialog("verify"),
+    trustVerify: () => doc && setTrustPanelOpen(true),
   };
 
   useEffect(() => {
@@ -210,7 +256,7 @@ export default function App() {
       const key = e.key.toLowerCase();
       if (key === "s" && !e.shiftKey) {
         e.preventDefault();
-        void docApi.save();
+        void guardedSave();
       } else if (key === "b" && !e.shiftKey) {
         e.preventDefault();
         setSidebarVisible((v) => !v);
@@ -231,9 +277,13 @@ export default function App() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [docApi, focusSearch, toggleEdit, doc, theme]);
+  }, [docApi, focusSearch, toggleEdit, doc, theme, guardedSave]);
 
   const onTrustAction = useCallback((action: TrustAction) => {
+    if (action === "verify") {
+      setTrustPanelOpen(true);
+      return;
+    }
     setTrustDialog(action);
   }, []);
 
@@ -271,6 +321,7 @@ export default function App() {
         onTrustAction={onTrustAction}
         readOnly={mode === "view"}
         showRibbon={mode === "edit"}
+        showTrustBanner={false}
       />
     );
   }, [doc, mode, sourceView, theme, docApi, onTrustAction]);
@@ -306,11 +357,25 @@ export default function App() {
           )}
         </div>
         <div className="topbar-right">
-          {doc && (
+          {doc && trustStatus && (
             <div className="doc-actions">
+              <div className="trust-widget">
+                <TrustBadge
+                  status={trustStatus}
+                  open={trustPanelOpen}
+                  onToggle={() => setTrustPanelOpen((v) => !v)}
+                />
+                {trustPanelOpen && (
+                  <TrustPanel
+                    status={trustStatus}
+                    onClose={() => setTrustPanelOpen(false)}
+                  />
+                )}
+              </div>
+              <span className="topbar-divider" />
               {docIsSealed ? (
                 <span className="sealed-pill" title="Sealed — read-only">
-                  <Lock size={12} /> Sealed
+                  <Lock size={12} /> Read-only
                 </span>
               ) : (
                 <button
@@ -364,13 +429,6 @@ export default function App() {
                   <Lock size={15} />
                 </button>
               )}
-              <button
-                className="icon-btn"
-                title="Verify document"
-                onClick={() => setTrustDialog("verify")}
-              >
-                <ShieldCheck size={15} />
-              </button>
               <span className="topbar-divider" />
               <button
                 className="icon-btn"

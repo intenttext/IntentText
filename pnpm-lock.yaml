@@ -19,6 +19,9 @@ importers:
       '@dotit/editor':
         specifier: workspace:*
         version: link:../../packages/editor
+      '@dotit/sign':
+        specifier: workspace:^
+        version: link:../../packages/sign
       '@tauri-apps/api':
         specifier: ~2.10.0
         version: 2.10.1
