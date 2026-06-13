@@ -1,0 +1,41 @@
+page: | size: A4 | margin: 18mm
+header: Al-Diwan Contracting W.L.L. — CONFIDENTIAL
+footer: Tender TND-2026-014 · Page {{page}} of {{pages}}
+font: | family: Inter, Helvetica, sans-serif | size: 10pt | leading: 1.5
+
+title: Tender Submission — Doha Tower Fit-Out
+summary: Bill of Quantities, technical submittals, and commercial offer — Al-Diwan Contracting W.L.L.
+meta: | type: tender | ref: TND-2026-014 | client: Qatar Holding | theme: corporate | due: 2026-07-15
+
+section: 1. Bill of Quantities
+sub: 1.1 Civil & Finishes
+| Item | Description | Unit | Qty | Rate (QAR) | Amount (QAR) |
+| 1.1.1 | Demolition of existing partitions | m² | 1,250 | 45 | 56,250 |
+| 1.1.2 | Gypsum partition, 100mm, acoustic | m² | 980 | 165 | 161,700 |
+| 1.1.3 | Porcelain floor tiling, 600×600 | m² | 1,420 | 220 | 312,400 |
+| 1.1.4 | Suspended ceiling, mineral fibre | m² | 1,420 | 140 | 198,800 |
+metric: Subtotal — Civil & Finishes | value: 729,150 QAR
+
+sub: 1.2 MEP
+| Item | Description | Unit | Qty | Rate (QAR) | Amount (QAR) |
+| 1.2.1 | VRF air-conditioning system | set | 8 | 38,500 | 308,000 |
+| 1.2.2 | LED lighting + controls | point | 640 | 310 | 198,400 |
+| 1.2.3 | Fire alarm & suppression | lot | 1 | 245,000 | 245,000 |
+metric: Subtotal — MEP | value: 751,400 QAR
+
+section: 2. Commercial Summary
+metric: Civil & Finishes | value: 729,150 QAR
+metric: MEP | value: 751,400 QAR
+metric: Preliminaries (8%) | value: 118,444 QAR
+metric: Grand Total (excl. VAT) | value: 1,598,994 QAR
+
+section: 3. Technical Submittals
+task: Material approval — porcelain tile samples | owner: QA/QC | due: 2026-07-20
+task: VRF system shop drawings + load calc | owner: MEP Lead | due: 2026-07-25
+done: ISO 9001 + ISO 45001 certificates attached | at: 2026-07-10
+def: BOQ | meaning: Bill of Quantities — itemized measured works with rates
+ref: Technical specification | file: specs/doha-tower-spec.it | rel: specification
+
+section: 4. Authorization
+approve: Commercial review complete | by: Finance Director | role: Finance | at: 2026-07-12
+sign: Fahad Al-Thani | role: Managing Director | at: 2026-07-14

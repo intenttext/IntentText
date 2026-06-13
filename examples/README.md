@@ -9,3 +9,4 @@ Render any file with `node cli.js examples/<file>` (add `--print` for paged, PDF
 - `expense-report-template.it` + `expense-report-data.json` — template and data pair: `each:` row loop, merged with `--data`.
 - `styling-demo.it` — `style:` rules, `leading:`/`space-before:`/`space-after:`, inline `[text]{ … }` spans, print watermark.
 - `templates/` — ready-to-merge document templates (invoice, contract, report, and more).
+- tender-boq.it — tender submission: Bill of Quantities (multi-table), commercial summary, submittals, approval + signature

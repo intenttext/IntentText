@@ -15,10 +15,11 @@ browser are marked.
 
 | Package | Version | What it is | Install |
 | --- | --- | --- | --- |
-| `@dotit/core` | 1.1.1 | Parser, HTML/print renderers, query engine, template merge, trust (seal/verify), themes, converters, and the `dotit` CLI. Zero runtime dependencies; runs in Node and the browser. | `npm i @dotit/core` |
-| `@dotit/pdf` | 1.0.0 | Server-side PDF bytes: merge → seal → PDF in one call. Puppeteer is an *optional* peer. | `npm i @dotit/pdf puppeteer` |
-| `@dotit/mcp` | 1.0.0 | MCP server exposing 12 IntentText tools to any AI agent (stdio + HTTP). | `npx @dotit/mcp` |
-| `@dotit/editor` | 1.1.0 | Embeddable React WYSIWYG editor — Word-like pages, ribbon, trust banner, WYSIWYG PDF export. Browser-only. | `npm i @dotit/editor` |
+| `@dotit/core` | 1.3.0 | Parser, HTML/print renderers, query engine, template merge, trust (seal/verify), themes, converters, and the `dotit` CLI. Zero runtime dependencies; runs in Node and the browser. | `npm i @dotit/core` |
+| `@dotit/pdf` | 1.0.1 | Server-side PDF bytes: merge → seal → PDF in one call. Puppeteer is an *optional* peer. | `npm i @dotit/pdf puppeteer` |
+| `@dotit/sign` | 1.2.0 | Ed25519 signatures (provable *who signed*) + UTS certifications (verified org identity). Offline, self-verifying. | `npm i @dotit/sign` |
+| `@dotit/mcp` | 1.1.0 | MCP server exposing the IntentText toolset (parse/render/merge/query/validate/seal/verify/sign) to any AI agent (stdio + HTTP). | `npx @dotit/mcp` |
+| `@dotit/editor` | 1.2.2 | Embeddable React WYSIWYG editor — Word-like pages, ribbon, trust banner, WYSIWYG PDF export. Browser-only. | `npm i @dotit/editor` |
 | VS Code extension | `intenttext.intenttext` | Highlighting, live preview, diagnostics, completion, hover docs. | VS Code Marketplace |
 | GitHub Action | `intenttext/intenttext-action@v1` | Validate (and optionally verify seals of) every `.it` file in CI. | workflow yaml |
 | `intenttext` (PyPI) | experimental | Thin Python wrapper that shells out to the core CLI — never re-implements the grammar. | `pip install intenttext` |
@@ -794,7 +795,7 @@ function indexFolder(folder) {
       modifiedAt: fs.statSync(p).mtime.toISOString(),
     };
   }
-  return buildShallowIndex(folder, files, "1.1.1");
+  return buildShallowIndex(folder, files, "1.3.0");
 }
 
 const composed = composeIndexes(
@@ -818,7 +819,7 @@ and deterministic.
 
 ## 4. CLI reference
 
-`npm i -g @dotit/core` installs `dotit` (v1.1.1). One line each — all verified:
+`npm i -g @dotit/core` installs `dotit` (v1.3.0). One line each — all verified:
 
 ```bash
 dotit file.it                          # parse → JSON to stdout
@@ -985,6 +986,6 @@ Binaries: `intenttext-mcp` (stdio), `intenttext-mcp-http` (Streamable HTTP on
 
 ---
 
-*Generated from the IntentText monorepo at `@dotit/core` 1.1.1 — every runnable
+*Generated from the IntentText monorepo at `@dotit/core` 1.3.0 — every runnable
 claim executed against the built packages. Corrections: open an issue at
 https://github.com/intenttext/IntentText/issues.*

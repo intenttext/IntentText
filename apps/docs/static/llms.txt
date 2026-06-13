@@ -7,6 +7,25 @@ queryable typed database, a print/PDF-ready artifact, and a tamper-evident signa
 record.
 
 Site: https://dotit.uts.qa · npm: @dotit/core · Editor: https://editor.uts.qa
+Verify portal: https://verify.uts.qa (UTS certification service: api.uts.qa)
+
+## 0. The `@dotit/*` toolchain (one ecosystem)
+
+  @dotit/core   1.3.0  Parser, HTML/print renderers, query engine, template merge,
+                       trust (seal/verify), themes, lossless text↔JSON, DB-safe
+                       storage helpers, converters, and the `dotit` CLI. Zero runtime
+                       deps; Node + browser.            npm i @dotit/core
+  @dotit/sign   1.2.0  Ed25519 signatures (provable "who signed") + UTS certifications
+                       (verified org identity). Offline, self-verifying.  npm i @dotit/sign
+  @dotit/pdf    1.0.1  Server PDF bytes: merge → seal → real PDF in one call (issuePDF).
+                       Puppeteer optional peer.          npm i @dotit/pdf
+  @dotit/mcp    1.1.0  MCP server — exposes IntentText as an agent tool surface
+                       (parse/render/merge/query/validate/seal/verify/sign tools)
+                       over stdio + HTTP.                npx @dotit/mcp
+  @dotit/editor 1.2.x  Embeddable React WYSIWYG editor — Word-like pages, ribbon,
+                       trust banner, WYSIWYG PDF export. Browser-only.  npm i @dotit/editor
+
+Everything is built on the SAME parser/hash, so a doc authored anywhere verifies everywhere.
 
 ## 1. Line grammar — everything is one line, one intent
 
@@ -148,17 +167,58 @@ Complete invoice template:
   metric: Tax ({{totals.taxRate}}%) | value: {{totals.tax}}
   metric: Total Due | value: {{totals.due}}
 
-## 6. Trust — sign, seal, verify (tamper-evidence, not PKI)
+## 6. Trust — three layers: integrity → identity → authority
 
-Lifecycle: track → approve → sign → freeze (seal) → verify → amendment.
+Build trust up, layer by layer. Each layer is opt-in and verifiable offline.
 
-The document hash = SHA-256 over the source ABOVE the `history:` boundary, EXCLUDING
-lines that start with sign:/freeze:/amendment: (approve: IS included), joined with LF,
-trimmed, UTF-8. Anyone can recompute it — no vendor needed. APIs:
-  sealDocument(source, { signer, role? }) → { success, hash, source, at }
-  verifyDocument(source) → { intact, frozen, signers, hash, expectedHash }
-CRITICAL: store sealed source EXACTLY as returned (no trimming/CRLF conversion — the
-hash covers exact bytes). Never edit above history: after sealing; use amendment:.
+LAYER 1 — INTEGRITY (seal/freeze): proves the bytes have not changed.
+  The document hash = SHA-256 over the source ABOVE the `history:` boundary, EXCLUDING
+  lines starting with sign:/freeze:/certify:/amendment: (approve: IS included), joined
+  with LF, trimmed, UTF-8. Anyone can recompute it — no vendor needed.
+  @dotit/core:
+    sealDocument(source, { signer, role? }) → { success, hash, source, at }
+    verifyDocument(source) → { intact, frozen, signers, hash, expectedHash }
+    computeDocumentHash(source) → "sha256:…"   isSealed(doc) / isSignedBy(doc, name)
+  freeze: | at: … | hash: sha256:… | status: locked   ← the seal line.
+  Proves: nobody altered the sealed content. Says NOTHING about who froze it.
+
+LAYER 2 — IDENTITY (Ed25519 sign:): proves a specific key-holder signed THIS hash.
+  @dotit/sign:
+    generateSigningKey() → { privateKey, publicKey }   (base64url, raw 32-byte keys)
+    signDocumentCrypto(source, { signer, role, privateKey }) → { success, source }
+    verifyCryptoSignatures(source) → [{ signer, role, at, publicKey, cryptographic, valid }]
+  Line format (exact):
+    sign: Name | role: … | at: … | hash: sha256:… | key: ed25519:<pub> | sig: <sig>
+  A plain `sign: Name | role: …` (no key:/sig:) is only a named approval, like approve:.
+  HONEST SCOPE: a valid signature proves "the holder of public key <pub> signed this exact
+  hash" — it does NOT by itself prove the human's real-world identity. That is Layer 3.
+
+LAYER 3 — AUTHORITY (UTS certify:): binds the signature to a verified org identity.
+  Issued by the UTS certification service (api.uts.qa) after it verifies the account/entity,
+  then re-checkable at https://verify.uts.qa. @dotit/sign:
+    certifyDocument(source, { issuer, issuerPrivateKey, account, entity }) → { source, … }
+    verifyCertifications(source) → [{ issuer, account, entity, publicKey, signatureValid,
+                                      trusted, valid }]   (trusted = issuer in trusted set)
+  Line format (exact):
+    certify: UTS | account: … | entity: … | at: … | hash: sha256:… | key: ed25519:… | sig: …
+  Proves: an authority (UTS) attests the signing entity is who they claim. This is the
+  layer that turns "someone holding a key" into "Al-Diwan Contracting W.L.L., verified".
+
+Lifecycle: track → approve → sign → freeze (seal) → [crypto sign] → [certify] → verify → amendment.
+HOW AN AGENT VERIFIES: never hand-compute or invent a hash/sig. Call verifyDocument()
+(integrity), verifyCryptoSignatures() (identity), verifyCertifications() (authority), or
+GET verify.uts.qa for the public report. Only the libs/service compute valid hashes.
+CRITICAL: store sealed source EXACTLY as returned (no trimming/CRLF conversion — the hash
+covers exact bytes). Never edit above history: after sealing; use amendment: instead.
+
+STORING .it IN A DATABASE: a .it file is just a UTF-8 string — store it in any TEXT/blob
+column, string in, string out. To guarantee a DB layer (encoding, trimming, CRLF) can't
+silently corrupt sealed bytes, wrap it:
+  toStorageRecord(source) → { source, bytesSha256 }   ← persist this record
+  fromStorageRecord(record) → source                  ← byte-exact restore
+  verifyStorageRecord(record) → boolean                ← bytes survived the round-trip
+documentToSource(parseIntentText(src)) is a lossless text↔JSON round-trip for indexing/diff
+without touching the stored bytes.
 
 ## 7. Rendering and PDFs
 
@@ -167,18 +227,129 @@ hash covers exact bytes). Never edit above history: after sealing; use amendment
                                  size/margins, running header/footer with page
                                  counters, multi-page tables
 Browser: print renderPrint output via an iframe → native dialog → PDF (zero deps).
-Server PDFs: npm i @dotit/pdf →
+Server PDFs (real bytes, for email/archive): npm i @dotit/pdf →
   issuePDF(template, data, { signer }) → { source (sealed .it), hash, at, pdf (bytes) }
+  issueDocument(...) / renderPDF(html) / htmlToPDF(html) for lower-level control.
+One call does merge → seal → PDF, so the archived PDF and the sealed .it share one hash.
 
 ## 8. Query — a folder of .it files is a database
 
   queryBlocks(doc, "type=task owner=Ahmed sort:due:asc limit:5")
-  CLI: dotit query ./docs "type=invoice status=Unpaid"
-WHERE clauses use `=` (also `<` `>` `<=` `>=` `!=`, date-aware on ISO values);
-SORT uses `sort:field:asc|desc`; paging uses `limit:N` / `offset:N`.
-Folder indexing is shallow, per-folder (.it-index), self-healing on query.
+      → { blocks: [...], total, matched }   (results are in .blocks)
+  queryDocument / queryComposed (across many docs) / parseQuery(q) → { where, sort, limit, offset }
+  CLI: dotit query ./docs "type=invoice status=Unpaid amount>1000 sort:due:asc limit:20"
+WHERE clauses use `=` (also `<` `>` `<=` `>=` `!=`, date-aware on ISO values); match any
+keyword or property (type=, owner=, status=, due=…). SORT uses `sort:field:asc|desc`;
+paging uses `limit:N` / `offset:N`. Folder indexing is shallow, per-folder (.it-index),
+self-healing on query — no DB server. buildShallowIndex/composeIndexes build the index;
+askDocuments runs a natural-language-style ask over a folder.
 
-## 9. Generation rules (follow these exactly)
+## 9. Big / multi-page documents
+
+  page: | size: A4 | margin: 20mm   sizes: A4|A5|Letter|Legal, or custom "80mm auto".
+  header: / footer: are RUNNING (repeat on every printed page). Page counters:
+    footer: REP-2026 · Page {{page}} of {{pages}}   ({{page}}/{{pages}} are live in print + editor)
+  break:        force a page break.
+  toc:          renders a table of contents from section:/sub: headings.
+  Tables auto-repeat their HEADER row across page breaks in renderPrint output.
+  Long docs: drive renderPrint(doc,{theme}) → print to PDF (browser) or @dotit/pdf (server).
+
+## 10. Enterprise document patterns (recipes)
+
+These are the load-bearing shapes for real business docs. All parse + validate clean
+against core 1.3.0. Mix freely; invent domain keywords where no canonical one fits.
+
+TENDER + BILL OF QUANTITIES (multi-section costed tables, per-section subtotal, grand total):
+
+  page: | size: A4 | margin: 18mm
+  header: Al-Diwan Contracting W.L.L. — CONFIDENTIAL
+  footer: Tender TND-2026-014 · Page {{page}} of {{pages}}
+
+  title: Tender Submission — Doha Tower Fit-Out
+  meta: | type: tender | ref: TND-2026-014 | client: Qatar Holding | due: 2026-07-15
+
+  section: 1. Bill of Quantities
+  sub: 1.1 Civil & Finishes
+  | Item | Description | Unit | Qty | Rate (QAR) | Amount (QAR) |
+  | 1.1.1 | Gypsum partition, 100mm | m² | 980 | 165 | 161,700 |
+  | 1.1.2 | Porcelain floor tiling | m² | 1,420 | 220 | 312,400 |
+  metric: Subtotal — Civil & Finishes | value: 474,100 QAR
+  sub: 1.2 MEP
+  | Item | Description | Unit | Qty | Rate (QAR) | Amount (QAR) |
+  | 1.2.1 | VRF air-conditioning | set | 8 | 38,500 | 308,000 |
+  metric: Subtotal — MEP | value: 308,000 QAR
+
+  section: 2. Commercial Summary
+  metric: Civil & Finishes | value: 474,100 QAR
+  metric: MEP | value: 308,000 QAR
+  metric: Grand Total (excl. VAT) | value: 782,100 QAR
+
+  section: 3. Authorization
+  approve: Commercial review complete | by: Finance Director | role: Finance | at: 2026-07-12
+  sign: Fahad Al-Thani | role: Managing Director | at: 2026-07-14
+  (full example: examples/tender-boq.it — each BOQ section is its own table + a metric: subtotal,
+   then a Commercial Summary of those subtotals + a Grand Total metric.)
+
+FEASIBILITY STUDY (sections, KPI metrics, assumptions, recommendation):
+
+  title: Feasibility Study — 50 MW Solar Plant
+  summary: Al Kharsaah · NPV / IRR / payback assessment
+  meta: | type: feasibility | ref: FS-2026-02
+  section: Executive Summary
+  text: The project clears the hurdle rate and is recommended for detailed design.
+  section: Key Metrics
+  metric: NPV (10y) | value: 142M QAR | trend: up | period: 10 years
+  metric: IRR | value: 14.2% | target: 12%
+  metric: Payback | value: 6.4 years
+  section: Assumptions
+  - Capex 380M QAR at 0.9 QAR/Wp
+  - Tariff 0.18 QAR/kWh fixed 20y
+  section: Recommendation
+  info: Proceed to detailed design. | type: success
+  (metric: with target:/trend:/period: renders a KPI card; plain metric: is a total row.)
+
+LEGAL / CONTRACT (definitions, parties, obligations, execution + seal):
+
+  title: Service Agreement
+  meta: | type: contract | ref: SA-2026-007
+  section: 1. Definitions
+  def: Services | meaning: The consulting work described in Schedule A
+  def: Confidential Information | meaning: Non-public data disclosed by either party
+  section: 2. Parties
+  contact: Acme LLC | role: Provider | email: legal@acme.qa | vat: VAT-300123
+  contact: Globex W.L.L. | role: Client | email: ops@globex.qa
+  section: 3. Terms
+  text: Payment is Net 30 from invoice date.
+  deadline: First milestone | date: 2026-08-01 | consequence: 2% penalty
+  section: 4. Execution
+  approve: Legal review complete | by: Sara | role: Counsel | at: 2026-06-13
+  sign: Ahmed Al-Thani | role: CEO | at: 2026-06-13
+  (then seal: sealDocument(source,{signer}) → adds freeze:; for provable identity, run
+   @dotit/sign signDocumentCrypto() to upgrade the sign: line with key:+sig:.)
+
+BANK / FINANCIAL REPORT (multi-page, running header/footer, KPIs, tables):
+
+  page: | size: A4 | margin: 20mm
+  header: Qatar National Bank — Quarterly Report
+  footer: Q2 2026 · Page {{page}} of {{pages}}
+  title: Quarterly Financial Report — Q2 2026
+  toc:
+  section: Performance
+  metric: Net Income | value: 4.1B QAR | trend: up | target: 3.8B QAR
+  metric: ROE | value: 18.6% | period: Q2
+  break:
+  section: Balance Sheet
+  | Account | Q1 | Q2 |
+  | Total Assets | 1,180B | 1,210B |
+  | Deposits | 870B | 905B |
+  metric: Capital Adequacy | value: 19.2%
+
+ERP-GENERATED DOCS: author one template .it with {{placeholders}} + `each:` rows (see §5),
+then parseAndMerge(template, data, { missing: "blank" }) per record. Server: issuePDF(template,
+data, {signer}) for sealed PDF bytes. Validate output with validateDocumentSemantic(doc)
+(general document linter: trust/template/workflow checks) before issuing.
+
+## 11. Generation rules (follow these exactly)
 
 1. ` | ` (space-pipe-space) is the property delimiter. For a LITERAL pipe in
    content or a value, escape it: `\|` (literal backslash: `\\`). Colons inside
@@ -189,13 +360,15 @@ Folder indexing is shallow, per-folder (.it-index), self-healing on query.
 4. Dates: ISO format (2026-04-01 or 2026-04-01T09:00:00Z).
 5. Tables: keep header and rows the same column count; `each:` goes on the header row.
 6. Styled spans use `;` between props: [text]{ color: #c00; weight: bold }.
-7. RTL documents: `meta: | dir: rtl` (full right-to-left layout incl. tables/footers).
+7. RTL documents: `meta: | dir: rtl` for the whole doc, or `dir: rtl` on a single
+   block for a per-paragraph override (full RTL layout incl. tables/footers).
 8. For templates, leave {{placeholders}} untouched; never resolve them yourself.
-9. Don't invent style values — only the keys in §4. Don't invent trust hashes — only
-   sealDocument() computes them.
+9. Don't invent style values — only the keys in §4. Don't invent trust hashes/sigs —
+   only sealDocument()/computeDocumentHash() and @dotit/sign compute valid ones;
+   verify with verifyDocument()/verifyCryptoSignatures()/verifyCertifications().
 10. Receipts: `page: | size: 80mm auto | margin: 4mm`, 2–3 narrow table columns.
 
-## 10. Minimal valid documents
+## 12. Minimal valid documents
 
 Simplest:                       Agent workflow (every then:/else: must point at a real id:):
   title: Hello                    title: Onboarding Agent
