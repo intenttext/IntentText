@@ -4,12 +4,12 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "lib": ["ES2020"],
+    "types": ["node"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "types": ["node", "vitest/globals"]
+    "noEmit": true
   },
   "include": ["src", "tests"]
 }
