@@ -138,3 +138,26 @@ describe("@dotit/sign — UTS certification (authority layer)", () => {
     expect(c2.source.split("\n").filter((l) => l.startsWith("certify:")).length).toBe(1);
   });
 });
+
+describe("@dotit/sign — certification identity (Phase 3b: verified entity)", () => {
+  const DOC3 = "title: Quotation\ntext: Total 88,000 QAR";
+  it("embeds + verifies the KYC-verified legal entity name", () => {
+    const uts = generateSigningKey();
+    const c = certifyDocument(DOC3, { issuer: "UTS", account: "acme", entity: "Acme Corp WLL", issuerPrivateKey: uts.privateKey });
+    const [chk] = verifyCertifications(c.source, { UTS: uts.publicKey });
+    expect(chk).toMatchObject({ valid: true, entity: "Acme Corp WLL", account: "acme" });
+  });
+  it("tampering the entity name invalidates the certification (entity is signed)", () => {
+    const uts = generateSigningKey();
+    const c = certifyDocument(DOC3, { issuer: "UTS", account: "acme", entity: "Acme Corp WLL", issuerPrivateKey: uts.privateKey });
+    const [chk] = verifyCertifications(c.source.replace("Acme Corp WLL", "Imposter LLC"), { UTS: uts.publicKey });
+    expect(chk.valid).toBe(false);
+  });
+  it("timestamp-only certification (no entity) still verifies", () => {
+    const uts = generateSigningKey();
+    const c = certifyDocument(DOC3, { issuer: "UTS", account: "acme", issuerPrivateKey: uts.privateKey });
+    const [chk] = verifyCertifications(c.source, { UTS: uts.publicKey });
+    expect(chk.valid).toBe(true);
+    expect(chk.entity).toBeUndefined();
+  });
+});

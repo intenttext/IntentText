@@ -277,17 +277,20 @@ export function verifyDocumentSignatures(source: string): FullVerifyResult {
 // and its PUBLIC key is published so anyone can verify offline.
 //
 // Embedded as a `certify:` line:
-//   certify: UTS | account: acme-corp | at: <iso> | hash: sha256:… | key: ed25519:<utsPub> | sig: <sig>
-// The authority signs over (hash, issuer, account, at), so a token can't be
-// lifted to a different document, account, or time.
+//   certify: UTS | account: acme-corp | entity: Acme Corp WLL | at: <iso> | hash: sha256:… | key: ed25519:<utsPub> | sig: <sig>
+// The authority signs over (hash, issuer, account, entity, at), so a token can't
+// be lifted to a different document, account, identity, or time. `entity` is the
+// KYC-verified legal name (Phase 3b) — empty when the account isn't identity-
+// verified yet (timestamp-only certification).
 
 function certPayload(
   hash: string,
   issuer: string,
   account: string,
+  entity: string,
   at: string,
 ): Uint8Array {
-  return enc(`certify\n${hash}\n${issuer}\n${account}\n${at}`);
+  return enc(`certify\n${hash}\n${issuer}\n${account}\n${entity}\n${at}`);
 }
 
 export interface CertifyResult {
@@ -295,6 +298,7 @@ export interface CertifyResult {
   at: string;
   issuer: string;
   account: string;
+  entity?: string;
   /** "already-certified" when this issuer already certified the current hash. */
   note?: string;
 }
@@ -310,6 +314,8 @@ export function certifyDocument(
   options: {
     issuer: string;
     account: string;
+    /** KYC-verified legal name (Phase 3b). Omit for timestamp-only. */
+    entity?: string;
     issuerPrivateKey: string;
     /** Override the timestamp (testing/determinism); defaults to now. */
     at?: string;
@@ -317,6 +323,7 @@ export function certifyDocument(
 ): CertifyResult {
   const hash = computeDocumentHash(source);
   const issuerKey = publicKeyFor(options.issuerPrivateKey);
+  const entity = options.entity ?? "";
   const already = source.split("\n").some((l) => {
     const t = l.trimStart();
     return (
@@ -329,22 +336,26 @@ export function certifyDocument(
       at: "",
       issuer: options.issuer,
       account: options.account,
+      entity: options.entity,
       note: "already-certified",
     };
   }
   const at = options.at ?? new Date().toISOString();
   const sig = ed25519.sign(
-    certPayload(hash, options.issuer, options.account, at),
+    certPayload(hash, options.issuer, options.account, entity, at),
     fromB64url(options.issuerPrivateKey),
   );
   const line = [
     `certify: ${options.issuer}`,
     `account: ${options.account}`,
+    entity ? `entity: ${entity}` : null,
     `at: ${at}`,
     `hash: ${hash}`,
     `key: ed25519:${issuerKey}`,
     `sig: ${toB64url(sig)}`,
-  ].join(" | ");
+  ]
+    .filter(Boolean)
+    .join(" | ");
 
   // Certifications sit just above the freeze: line if sealed, else above
   // history:, else at the end — alongside the seal metadata.
@@ -359,12 +370,15 @@ export function certifyDocument(
     at,
     issuer: options.issuer,
     account: options.account,
+    entity: options.entity,
   };
 }
 
 export interface CertificationCheck {
   issuer: string;
   account?: string;
+  /** KYC-verified legal name, when the account is identity-verified (Phase 3b). */
+  entity?: string;
   at?: string;
   /** The embedded issuer public key (ed25519:… stripped). */
   publicKey?: string;
@@ -397,6 +411,7 @@ export function verifyCertifications(
     const p = parseProps(line);
     const issuer = (line.match(/^certify:\s*([^|]*)/)?.[1] || "").trim();
     const account = p.account;
+    const entity = p.entity;
     const at = p.at;
     const keyField = p.key;
     const sigField = p.sig;
@@ -404,6 +419,7 @@ export function verifyCertifications(
       out.push({
         issuer,
         account,
+        entity,
         at,
         valid: false,
         signatureValid: false,
@@ -417,7 +433,7 @@ export function verifyCertifications(
     try {
       signatureValid = ed25519.verify(
         fromB64url(sigField),
-        certPayload(currentHash, issuer, account ?? "", at ?? ""),
+        certPayload(currentHash, issuer, account ?? "", entity ?? "", at ?? ""),
         fromB64url(publicKey),
       );
     } catch {
@@ -428,6 +444,7 @@ export function verifyCertifications(
     out.push({
       issuer,
       account,
+      entity,
       at,
       publicKey,
       signatureValid,
