@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import { sha256Hex, randomHex } from "./sha256";
 import { IntentDocument, RegistryEntry } from "./types";
 import { parseIntentText } from "./parser";
 
@@ -22,7 +22,7 @@ export function computeDocumentHash(source: string): string {
         !line.startsWith("amendment:"),
     );
   const body = bodyLines.join("\n").trim();
-  return "sha256:" + crypto.createHash("sha256").update(body).digest("hex");
+  return "sha256:" + sha256Hex(body);
 }
 
 /**
@@ -78,7 +78,7 @@ export function detectHistoryBoundary(lines: string[]): number {
  * Generate a stable 5-character alphanumeric ID for a block.
  */
 export function generateBlockId(): string {
-  return crypto.randomBytes(3).toString("hex").slice(0, 5);
+  return randomHex(3).slice(0, 5);
 }
 
 /**
@@ -264,7 +264,88 @@ export interface SealResult {
  * Seal a document — add sign: block (optional) and freeze: block.
  * Returns updated source with seal appended.
  */
+/** True if the source already carries a freeze: (sealed) line. */
+export function isSealed(source: string): boolean {
+  return source.split("\n").some((l) => l.trimStart().startsWith("freeze:"));
+}
+
+/** True if the source already carries a sign: line for this signer. */
+export function isSignedBy(source: string, signer: string): boolean {
+  const needle = `sign: ${signer}`;
+  return source
+    .split("\n")
+    .some((l) => l.trimStart().startsWith(needle));
+}
+
+/**
+ * Remove the freeze: lock — "unseal" — so the document can be edited and
+ * re-sealed. Signatures (sign: lines) are KEPT as historical approvals; after
+ * an edit, verifyDocument reports each as signing a prior version
+ * (signedCurrentVersion: false) rather than silently dropping them. Idempotent:
+ * an unsealed document is returned unchanged.
+ */
+export function unsealDocument(source: string): string {
+  const kept = source
+    .split("\n")
+    .filter((l) => !l.trimStart().startsWith("freeze:"));
+  return kept.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+
+export interface SignResult {
+  success: boolean;
+  source: string;
+  at: string;
+  /** "already-signed" when the signer had already signed (no-op). */
+  note?: string;
+}
+
+/**
+ * Add a signature (approval) to a document WITHOUT freezing it — distinct from
+ * sealing. Multiple parties can sign; a frozen document can still collect
+ * signatures. Idempotent: signing again as the same signer is a no-op, so
+ * repeat clicks never append duplicate sign: lines.
+ *
+ * The signature carries the current content hash, so verifyDocument can later
+ * report whether each signer approved the version that was ultimately sealed.
+ */
+export function signDocument(
+  source: string,
+  options: { signer: string; role?: string },
+): SignResult {
+  const at = new Date().toISOString();
+  if (isSignedBy(source, options.signer)) {
+    return { success: true, source, at, note: "already-signed" };
+  }
+  const hash = computeDocumentHash(source);
+  const signLine = `sign: ${options.signer}${options.role ? ` | role: ${options.role}` : ""} | at: ${at} | hash: ${hash}`;
+
+  // Insert the signature just above the freeze: line if the doc is sealed (so
+  // signatures stay grouped with the seal), otherwise above the history
+  // boundary, otherwise at the end.
+  const lines = source.replace(/\n+$/, "").split("\n");
+  const freezeIdx = lines.findIndex((l) => l.trimStart().startsWith("freeze:"));
+  const histIdx = lines.findIndex(
+    (l) => l.trim() === "history:" || l.trim() === "history",
+  );
+  const insertAt =
+    freezeIdx !== -1 ? freezeIdx : histIdx !== -1 ? histIdx : lines.length;
+  lines.splice(insertAt, 0, signLine);
+  return { success: true, source: lines.join("\n") + "\n", at };
+}
+
 export function sealDocument(source: string, options: SealOptions): SealResult {
+  // Idempotent: re-sealing an already-sealed document is a no-op rather than
+  // appending a second freeze:/sign: pair (the repeat-click corruption bug).
+  if (isSealed(source)) {
+    const v = verifyDocument(source);
+    return {
+      success: true,
+      hash: v.expectedHash ?? computeDocumentHash(source),
+      source,
+      at: v.frozenAt ?? new Date().toISOString(),
+      error: "already-sealed",
+    };
+  }
   const hash = computeDocumentHash(source);
   const at = new Date().toISOString();
 

@@ -6,6 +6,34 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-06-13
+
+### Fixed (enterprise hardening)
+
+- **Seal/sign/freeze no longer crash in the browser.** The trust layer used
+  Node's `crypto` module, which is absent in the editor bundle — clicking Seal
+  threw `createHash is not a function`. Replaced with a zero-dependency,
+  synchronous SHA-256 that runs identically in Node, browsers, and workers, and
+  produces byte-identical digests (documents sealed before this change still
+  verify).
+- **Trust operations are idempotent.** Re-sealing an already-sealed document, or
+  re-signing as the same signer, is now a no-op instead of appending duplicate
+  `freeze:`/`sign:` lines — fixes the repeat-click corruption. New `signDocument`
+  (sign without freezing), `unsealDocument` (remove the lock, keep signatures),
+  `isSealed`, `isSignedBy`.
+- **Stray `| key: value` lines no longer leak into output.** A hard-wrapped
+  property continuation (e.g. `| label: Date` on its own line) is merged into the
+  line above instead of rendering as literal text in signature blocks. Markdown
+  table rows (`| a | b |`) are never affected.
+- **`info:` callouts are quiet.** Soft gray panel, italic text, an ⓘ marker, no
+  loud uppercase label — "worth noting", not an alarm.
+
+### Added
+
+- `upsertMetaProperty` / `getMetaProperty` — idempotent editing of the `meta:`
+  line from raw source; toggling a property (e.g. `dir: rtl`) can never produce
+  `meta: | dir: rtl | dir: rtl | …`.
+
 ## [1.1.1] — 2026-06-12
 
 ### Changed

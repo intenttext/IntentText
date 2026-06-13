@@ -87,13 +87,18 @@ export {
   computeDocumentHash,
   findHistoryBoundaryInSource,
   sealDocument,
+  signDocument,
   verifyDocument,
+  unsealDocument,
+  isSealed,
+  isSignedBy,
   generateBlockId,
   blockFingerprint,
   matchBlocksToRegistry,
   computeTrustDiff,
   incrementVersion,
 } from "./trust";
+export { upsertMetaProperty, getMetaProperty, flattenBlocks } from "./utils";
 export type {
   SealOptions,
   SealResult,

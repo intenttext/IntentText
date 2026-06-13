@@ -64,8 +64,12 @@ export const DOCUMENT_CSS = `
 .intent-callout{display:flex;gap:10px;margin:10px 0;padding-block:6px;padding-inline:0;padding-inline-start:12px;border-inline-start:2px solid #888;align-items:baseline;}
 .intent-callout-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;white-space:nowrap;line-height:1.65;color:#444;}
 .intent-callout-content{flex:1;color:#222;}
-.intent-info{border-color:#888;}
-.intent-info .intent-callout-label{color:#444;}
+/* Info is the quiet variant: a soft gray panel with an ⓘ marker and italic
+   text — "this is worth noting", not an alarm. */
+.intent-info{background:#f5f6f8;border-inline-start:3px solid #c7ccd3;border-radius:0 3px 3px 0;padding-block:8px;padding-inline-start:12px;padding-inline-end:14px;}
+.intent-info .intent-callout-label{display:none;}
+.intent-info .intent-callout-content{font-style:italic;color:#4f4f4f;}
+.intent-info .intent-callout-content::before{content:"ⓘ ";font-style:normal;font-weight:600;color:#6e6e6e;}
 .intent-warning{border-color:#888;}
 .intent-warning .intent-callout-label{color:#444;}
 .intent-tip{border-color:#888;}

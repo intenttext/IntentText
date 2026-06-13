@@ -1146,6 +1146,39 @@ function parseLine(
   };
 }
 
+/**
+ * Merge a stray "pipe property continuation" into the line above. When a
+ * property list gets hard-wrapped (templates, copy-paste, an editor splitting a
+ * long line), a single property can land on its own line as `| label: Date`,
+ * which would otherwise render as literal text in the output (seen leaking into
+ * sealed-document signature blocks).
+ *
+ * This is deliberately conservative — it merges ONLY a line that is exactly one
+ * `| key: value` segment (one leading pipe, a property key, a colon, and a value
+ * with no further unescaped pipe), and only when the previous line is not itself
+ * a table row. That distinguishes a wrapped property from markdown table rows
+ * (`| Description | Qty | Total |`), which legitimately start with `|` and carry
+ * multiple cells — those are never merged.
+ */
+const PIPE_PROP_CONTINUATION = /^\s*\|\s*[\p{L}][\p{L}\d_-]*\s*:\s*[^|]*$/u;
+function mergePipeContinuations(lines: string[]): string[] {
+  const out: string[] = [];
+  for (const line of lines) {
+    const prev = out.length > 0 ? out[out.length - 1] : "";
+    const prevIsTableRow = prev.trimStart().startsWith("|");
+    if (
+      out.length > 0 &&
+      !prevIsTableRow &&
+      PIPE_PROP_CONTINUATION.test(line)
+    ) {
+      out[out.length - 1] = prev.trimEnd() + " " + line.trimStart();
+    } else {
+      out.push(line);
+    }
+  }
+  return out;
+}
+
 // Main parser function
 export function parseIntentText(
   fileContent: string,
@@ -1178,7 +1211,7 @@ export function parseIntentText(
   // Reset ID counter for deterministic output per parse call
   _resetIdCounter();
 
-  const lines = fileContent.split(/\r?\n/);
+  const lines = mergePipeContinuations(fileContent.split(/\r?\n/));
   if (lines.length > MAX_LINE_COUNT) {
     return {
       version: "1.4",
