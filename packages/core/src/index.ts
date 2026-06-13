@@ -60,6 +60,14 @@ export { mergeData, parseAndMerge } from "./merge";
 export type { MergeOptions } from "./merge";
 export { convertMarkdownToIntentText } from "./markdown";
 export { convertHtmlToIntentText } from "./html-to-it";
+export { convertXlsxToIntentText } from "./xlsx-to-it";
+export type { XlsxToItOptions } from "./xlsx-to-it";
+export { convertIntentTextToXlsx } from "./it-to-xlsx";
+export type { ItToXlsxOptions } from "./it-to-xlsx";
+export { convertDocxToIntentText } from "./docx-to-it";
+export type { DocxToItOptions } from "./docx-to-it";
+export { convertIntentTextToDocx } from "./it-to-docx";
+export type { ItToDocxOptions } from "./it-to-docx";
 export {
   queryBlocks,
   parseQuery,

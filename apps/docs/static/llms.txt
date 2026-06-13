@@ -11,10 +11,12 @@ Verify portal: https://verify.uts.qa (UTS certification service: api.uts.qa)
 
 ## 0. The `@dotit/*` toolchain (one ecosystem)
 
-  @dotit/core   1.3.0  Parser, HTML/print renderers, query engine, template merge,
+  @dotit/core   1.5.0  Parser, HTML/print renderers, query engine, template merge,
                        trust (seal/verify), themes, lossless text↔JSON, DB-safe
-                       storage helpers, converters, and the `dotit` CLI. Zero runtime
-                       deps; Node + browser.            npm i @dotit/core
+                       storage helpers, converters (Markdown/HTML + XLSX/DOCX both
+                       directions: `dotit convert in.xlsx out.it`, `dotit convert
+                       in.it out.docx`, …), and the `dotit` CLI. Pure-JS; Node +
+                       browser.                          npm i @dotit/core
   @dotit/sign   1.2.0  Ed25519 signatures (provable "who signed") + UTS certifications
                        (verified org identity). Offline, self-verifying.  npm i @dotit/sign
   @dotit/pdf    1.0.1  Server PDF bytes: merge → seal → real PDF in one call (issuePDF).

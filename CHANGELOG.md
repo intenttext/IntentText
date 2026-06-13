@@ -8,6 +8,23 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- **XLSX and DOCX converters (both directions) in `@dotit/core`.** Four new
+  pure-JS functions convert between IntentText and Office documents:
+  `convertXlsxToIntentText(bytes)` (each sheet → a `section:` + table, numbers
+  preserved faithfully, `meta: | type: spreadsheet`), `convertIntentTextToXlsx(src)`
+  (each `.it` table → a worksheet named from its heading, numeric cells written
+  as real numbers, optional KPI sheet from `metric:` rows),
+  `convertDocxToIntentText(bytes)` (headings → `section:`/`sub:`/`title:`, lists →
+  `- `/`N. `, tables → `.it` tables, `meta: | type: document`), and
+  `convertIntentTextToDocx(src)`. Both emit minimal, spec-valid OOXML that opens
+  in Excel/Word/LibreOffice without a repair prompt. XLSX/DOCX are OOXML (a ZIP of
+  XML parts) — handled with the new tiny, audited, pure-JS `fflate` dependency
+  (unzip + zip); no native modules. CLI: `dotit convert in.xlsx out.it`,
+  `dotit convert in.it out.xlsx`, `dotit convert in.docx out.it`,
+  `dotit convert in.it out.docx` (dispatch by extension pair). `@dotit/core`
+  1.4.0 → 1.5.0. v1 scope preserves text/tables/headings/lists and exports
+  formula cells' last cached value; cell styling, images, charts, and live
+  formulas are deferred.
 - **Large page sizes (A3, A2, A1) and orientation (portrait/landscape).** The
   `page:` block now supports the full ISO A-series (`A5` `A4` `A3` `A2` `A1`)
   plus `Letter`/`Legal`, and an `orientation: portrait|landscape` property

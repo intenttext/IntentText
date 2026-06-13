@@ -123,11 +123,43 @@ library can verify independently.
 
 ### Converters
 
-```typescript
-import { convertMarkdownToIntentText } from "@dotit/core";
+Convert between IntentText and common document formats. Markdown/HTML are
+text-in/text-out; XLSX/DOCX are OOXML (a ZIP of XML) and use bytes — pure-JS,
+no native modules (powered by `fflate`).
 
-const itSource = convertMarkdownToIntentText(markdownString);
+```typescript
+import {
+  convertMarkdownToIntentText, // Markdown → .it
+  convertHtmlToIntentText, // HTML → .it
+  convertXlsxToIntentText, // .xlsx bytes → .it (each sheet → section + table)
+  convertIntentTextToXlsx, // .it → .xlsx bytes (each table → worksheet)
+  convertDocxToIntentText, // .docx bytes → .it (headings/lists/tables)
+  convertIntentTextToDocx, // .it → .docx bytes
+} from "@dotit/core";
+
+const itFromMd = convertMarkdownToIntentText(markdownString);
+
+// Spreadsheet round-trip
+const xlsxBytes = convertIntentTextToXlsx(itSource); // Uint8Array
+const itFromXlsx = convertXlsxToIntentText(xlsxBytes); // numbers preserved faithfully
+
+// Word document round-trip
+const docxBytes = convertIntentTextToDocx(itSource); // Uint8Array
+const itFromDocx = convertDocxToIntentText(docxBytes);
 ```
+
+CLI:
+
+```bash
+dotit convert report.xlsx report.it   # spreadsheet → IntentText
+dotit convert report.it report.xlsx   # tables → worksheets
+dotit convert report.docx report.it   # Word document → IntentText
+dotit convert report.it report.docx   # IntentText → Word document
+```
+
+> Scope (v1): XLSX/DOCX converters preserve text, tables, headings, lists, and
+> all cell values (formula cells export their last cached value). Cell styling,
+> images, charts, and live formulas are intentionally out of scope for v1.
 
 ## Syntax Overview
 

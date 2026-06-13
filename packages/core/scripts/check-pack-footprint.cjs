@@ -4,8 +4,8 @@ const { execSync } = require("node:child_process");
 
 const LIMITS = {
   packedBytes: 120000,
-  unpackedBytes: 500000,
-  entryCount: 60,
+  unpackedBytes: 520000,
+  entryCount: 80,
 };
 
 const raw = execSync("npm pack --json --dry-run", {

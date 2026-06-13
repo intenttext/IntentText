@@ -7,6 +7,10 @@ const {
   mergeData,
   convertMarkdownToIntentText,
   convertHtmlToIntentText,
+  convertXlsxToIntentText,
+  convertIntentTextToXlsx,
+  convertDocxToIntentText,
+  convertIntentTextToDocx,
   queryBlocks,
   formatQueryResult,
   validateDocument,
@@ -49,6 +53,13 @@ Usage:
   dotit <file.md> --to-it             Convert Markdown to .it
   dotit <file.html> --to-it           Convert HTML to .it
   dotit <file> --to-it --output       Save converted .it next to source
+
+Convert (by extension pair):
+  dotit convert in.xlsx out.it        Spreadsheet → IntentText
+  dotit convert in.docx out.it        Word document → IntentText
+  dotit convert in.it out.xlsx        IntentText → spreadsheet (tables → sheets)
+  dotit convert in.it out.docx        IntentText → Word document
+  dotit convert in.md out.it          Markdown/HTML → IntentText
   dotit <file.it> --query "..."       Query blocks
   dotit <file.it> --validate <schema> Validate against schema
 
@@ -108,6 +119,68 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
   }
 
   const inputFile = args[0];
+
+  // Convert command: `dotit convert <in> <out>` — dispatch by extension pair.
+  // Supports: md/html/txt → it, xlsx → it, docx → it, it → xlsx, it → docx.
+  if (inputFile === "convert") {
+    const src = args[1];
+    const dst = args[2];
+    if (!src || !dst) {
+      console.error(
+        "❌ Usage: dotit convert <input> <output>\n   e.g. dotit convert report.xlsx report.it\n        dotit convert report.it report.docx",
+      );
+      process.exit(1);
+    }
+    if (!fs.existsSync(src)) {
+      console.error(`❌ File not found: ${src}`);
+      process.exit(1);
+    }
+    const srcExt = path.extname(src).toLowerCase();
+    const dstExt = path.extname(dst).toLowerCase();
+    try {
+      if (dstExt === ".it") {
+        // → IntentText
+        let converted;
+        if (srcExt === ".xlsx") {
+          converted = convertXlsxToIntentText(fs.readFileSync(src));
+        } else if (srcExt === ".docx") {
+          converted = convertDocxToIntentText(fs.readFileSync(src));
+        } else if (srcExt === ".html" || srcExt === ".htm") {
+          converted = convertHtmlToIntentText(fs.readFileSync(src, "utf-8"));
+        } else {
+          // md / markdown / txt — treat as Markdown
+          converted = convertMarkdownToIntentText(fs.readFileSync(src, "utf-8"));
+        }
+        fs.writeFileSync(dst, converted);
+        console.log(`✅ Converted ${src} → ${dst}`);
+      } else if (srcExt === ".it") {
+        // IntentText → binary
+        const source = fs.readFileSync(src, "utf-8");
+        let bytes;
+        if (dstExt === ".xlsx") {
+          bytes = convertIntentTextToXlsx(source);
+        } else if (dstExt === ".docx") {
+          bytes = convertIntentTextToDocx(source);
+        } else {
+          console.error(
+            `❌ Unsupported target for .it source: ${dstExt} (use .xlsx or .docx)`,
+          );
+          process.exit(1);
+        }
+        fs.writeFileSync(dst, Buffer.from(bytes));
+        console.log(`✅ Converted ${src} → ${dst}`);
+      } else {
+        console.error(
+          `❌ Unsupported conversion: ${srcExt} → ${dstExt}\n   Supported: .md/.html/.xlsx/.docx → .it  and  .it → .xlsx/.docx`,
+        );
+        process.exit(1);
+      }
+    } catch (err) {
+      console.error(`❌ Conversion failed: ${err.message}`);
+      process.exit(1);
+    }
+    return;
+  }
 
   // v2.10: Theme commands
   if (inputFile === "theme") {
@@ -574,18 +647,25 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
       process.exit(1);
     }
 
-    const content = fs.readFileSync(inputFile, "utf-8");
-
-    // Convert mode: Markdown or HTML → .it
+    // Convert mode: Markdown / HTML / XLSX / DOCX → .it
     if (toIt) {
       let converted;
-      if (/\.html?$/i.test(inputFile)) {
-        converted = convertHtmlToIntentText(content);
+      if (/\.xlsx$/i.test(inputFile)) {
+        converted = convertXlsxToIntentText(fs.readFileSync(inputFile));
+      } else if (/\.docx$/i.test(inputFile)) {
+        converted = convertDocxToIntentText(fs.readFileSync(inputFile));
+      } else if (/\.html?$/i.test(inputFile)) {
+        converted = convertHtmlToIntentText(fs.readFileSync(inputFile, "utf-8"));
       } else {
-        converted = convertMarkdownToIntentText(content);
+        converted = convertMarkdownToIntentText(
+          fs.readFileSync(inputFile, "utf-8"),
+        );
       }
       if (saveFile) {
-        const outputFile = inputFile.replace(/\.(md|markdown|html?)$/i, ".it");
+        const outputFile = inputFile.replace(
+          /\.(md|markdown|html?|xlsx|docx)$/i,
+          ".it",
+        );
         fs.writeFileSync(outputFile, converted);
         console.log(`✅ IntentText saved to: ${outputFile}`);
       } else {
@@ -593,6 +673,8 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
       }
       return;
     }
+
+    const content = fs.readFileSync(inputFile, "utf-8");
 
     // Parse the document, optionally merging template data
     let document;
