@@ -771,6 +771,7 @@ function blockToNode(block: {
       attrs.spaceBefore = String(properties["space-before"]);
     if (properties?.["space-after"])
       attrs.spaceAfter = String(properties["space-after"]);
+    if (properties?.dir) attrs.dir = String(properties.dir);
     return {
       type: "paragraph",
       ...(Object.keys(attrs).length && { attrs }),
@@ -849,9 +850,27 @@ function blockToNode(block: {
 export function docToSource(doc: JSONContent): string {
   if (!doc.content) return "";
 
-  const lines: string[] = [];
+  // ProseMirror always keeps a trailing empty paragraph as editing chrome. It
+  // is NOT document content — serializing it to a bare `text:` line would add a
+  // body byte that wasn't there a moment ago, which breaks tamper-evident hashes
+  // (sign/seal: the body hashed at sign time wouldn't match the body at seal
+  // time). Drop trailing empty text blocks so serialization is stable.
+  const content = [...doc.content];
+  const isEmptyPara = (n: JSONContent) =>
+    (n.type === "paragraph" || n.type === "itGenericBlock") &&
+    (!n.content ||
+      n.content.length === 0 ||
+      n.content.every(
+        (c) => c.type === "text" && !(c.text || "").trim(),
+      )) &&
+    // never drop a block carrying real attributes (align/dir/end/spacing)
+    !(n.attrs && Object.values(n.attrs).some((v) => v && v !== "{}"));
+  while (content.length > 1 && isEmptyPara(content[content.length - 1])) {
+    content.pop();
+  }
 
-  for (const node of doc.content) {
+  const lines: string[] = [];
+  for (const node of content) {
     lines.push(...nodeToLines(node));
   }
 
@@ -919,6 +938,7 @@ function nodeToLine(node: JSONContent): string | null {
       if (a.leading) blockProps.leading = String(a.leading);
       if (a.spaceBefore) blockProps["space-before"] = String(a.spaceBefore);
       if (a.spaceAfter) blockProps["space-after"] = String(a.spaceAfter);
+      if (a.dir) blockProps.dir = String(a.dir);
       return `text: ${text}${formatProps({ ...blockProps, ...markProps })}`;
     }
 

@@ -99,8 +99,8 @@ task: Phase 2 — Core Development | owner: Ahmed Al-Rashid | due: 2026-06-30
 section: Approval Chain
 track: | id: SVC-2026-001 | by: Ahmed Al-Rashid | at: 2026-03-09
 approve: Legal review complete | by: Sara Hassan | role: Legal Counsel | at: 2026-03-10
-sign: | by: Ahmed Al-Rashid | role: CEO | at: 2026-03-10
-freeze: | hash: a3f8c2d14e9b6071f5823a0c7d4e9b16f2a3c8d5e7f1b4a9c2d6e8f0b3c5a7d | at: 2026-03-10 | by: system
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-10T00:00:00Z | hash: sha256:e09c63793800c4af6ced17c2c6c097c0f11fe3ec15ea14af35f834073f6121eb
+freeze: | at: 2026-03-10T00:00:00Z | hash: sha256:e09c63793800c4af6ced17c2c6c097c0f11fe3ec15ea14af35f834073f6121eb | status: locked
 `,
   },
   {

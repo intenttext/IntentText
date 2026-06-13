@@ -51,6 +51,10 @@ export function TrustBanner({ trust, intact }: TrustBannerProps) {
   }
 
   if (trust.signatures.length > 0) {
+    const n = trust.signatures.length;
+    // A signed-but-unsealed document stays EDITABLE — but editing changes the
+    // bytes the signatures cover, so we warn (Word-style) that doing so breaks
+    // them. Sealing locks it read-only; that's a separate action.
     return (
       <div className="docs-trust-banner docs-trust-banner--signed" role="status">
         <span className="docs-trust-banner__icon">✍</span>
@@ -60,6 +64,9 @@ export function TrustBanner({ trust, intact }: TrustBannerProps) {
           {trust.signatures
             .map((s) => `${who(s.by, s.role)}${s.at ? ` on ${s.at}` : ""}`)
             .join(" · ")}
+        </span>
+        <span className="docs-trust-banner__warn">
+          ⚠ Editing will break {n} signature{n === 1 ? "" : "s"}
         </span>
       </div>
     );

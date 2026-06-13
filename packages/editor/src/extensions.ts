@@ -24,6 +24,14 @@ function endAttrs(props: Record<string, string>): Record<string, string> {
   return props.end ? { "data-it-end": props.end } : {};
 }
 
+// Per-block direction (`dir: rtl|ltr|auto`): emit a real `dir` DOM attribute so
+// the block mirrors independently (caret + text flow), matching core's renderer
+// which writes the same dir attr from the block's `dir:` property.
+function dirAttr(props: Record<string, string>): Record<string, string> {
+  const d = props.dir;
+  return d === "rtl" || d === "ltr" || d === "auto" ? { dir: d } : {};
+}
+
 // ── Title ─────────────────────────────────────────────────────
 export const ITTitle = Node.create({
   name: "itTitle",
@@ -50,6 +58,7 @@ export const ITTitle = Node.create({
       class: "it-doc-title",
       style: buildStyle("title", props),
       ...endAttrs(props),
+      ...dirAttr(props),
     });
     return props.end
       ? ["h1", attrs, ["span", { class: "it-split-main" }, 0]]
@@ -81,6 +90,7 @@ export const ITSummary = Node.create({
         "data-it-type": "summary",
         class: "it-doc-summary",
         style: buildStyle("summary", props),
+        ...dirAttr(props),
       }),
       0,
     ];
@@ -110,6 +120,7 @@ export const ITSection = Node.create({
       class: "it-doc-section",
       style: buildStyle("section", props),
       ...endAttrs(props),
+      ...dirAttr(props),
     });
     return props.end
       ? ["h2", attrs, ["span", { class: "it-split-main" }, 0]]
@@ -140,6 +151,7 @@ export const ITSub = Node.create({
       class: "it-doc-sub",
       style: buildStyle("sub", props),
       ...endAttrs(props),
+      ...dirAttr(props),
     });
     return props.end
       ? ["h3", attrs, ["span", { class: "it-split-main" }, 0]]
@@ -185,6 +197,7 @@ export const ITCallout = Node.create({
         "data-variant": variant,
         class: `it-doc-callout it-doc-callout-${variant}`,
         style: buildStyle(variant, props),
+        ...dirAttr(props),
       }),
       [
         "span",
@@ -224,6 +237,7 @@ export const ITQuote = Node.create({
         "data-it-type": "quote",
         class: "it-doc-quote",
         style: buildStyle("quote", props),
+        ...dirAttr(props),
       }),
       0,
     ];
@@ -546,17 +560,24 @@ export const ITTrust = Node.create({
         parts.push(["span", { class: "it-doc-trust__what" }, content]);
       if (date) parts.push(["span", { class: "it-doc-trust__date" }, date]);
     } else {
-      // sign - a signature rule line (core .it-signature): hairline rule on
-      // top, name / role / date with a status flag at the line end.
+      // sign \u2014 a signature block, structured EXACTLY like core's .it-signature
+      // (renderer.js): a body column holding [rule, name, "role \u00b7 date" meta]
+      // and a "Signed" badge at the line end. We do NOT print "verified" \u2014 the
+      // toolbar trust chip / Verify action reports validity, not the inked block.
       const name = content || props.by || "";
-      const valid = !!props.hash;
-      parts.push(["span", { class: "it-doc-trust__name" }, name]);
-      if (role) parts.push(["span", { class: "it-doc-trust__role" }, role]);
-      if (date) parts.push(["span", { class: "it-doc-trust__date" }, date]);
+      const isCrypto = !!props.sig && !!props.key;
+      const meta = [role, date].filter(Boolean).join(" \u00b7 ");
+      const bodyChildren: (string | (string | object)[])[] = [
+        ["span", { class: "it-doc-trust__rule" }],
+        ["span", { class: "it-doc-trust__name" }, name],
+      ];
+      if (meta)
+        bodyChildren.push(["span", { class: "it-doc-trust__meta" }, meta]);
+      parts.push(["span", { class: "it-doc-trust__body" }, ...bodyChildren]);
       parts.push([
         "span",
-        { class: "it-doc-trust__status" },
-        valid ? "Signed \u00b7 verified" : "Signed",
+        { class: "it-doc-trust__badge" },
+        isCrypto ? "\u2713 Signed" : "Signed",
       ]);
     }
 
@@ -709,6 +730,7 @@ export const ITGenericBlock = Node.create({
           "data-keyword": kw,
           class: `it-doc-generic it-doc-kw-${kw}`,
           style: buildStyle(kw, props),
+          ...dirAttr(props),
         }),
         [
           "a",
@@ -730,6 +752,7 @@ export const ITGenericBlock = Node.create({
         "data-keyword": kw,
         class: `it-doc-generic it-doc-kw-${kw}`,
         style: buildStyle(kw, props),
+        ...dirAttr(props),
       }),
       ["span", { class: "it-doc-generic-content" }, 0],
     ];

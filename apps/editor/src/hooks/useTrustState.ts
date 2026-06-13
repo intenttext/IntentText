@@ -109,9 +109,13 @@ export function useTrustState(
   const seal = useCallback(
     (signer: string, role?: string) => {
       try {
+        // Seal must NEVER add a signature — signing is the separate
+        // addSignature() action. skipSign:true writes only the freeze: line, so
+        // sealing after signing never duplicates the signer's sign: line.
         const result = sealDocument(contentRef.current, {
           signer,
           role: role || undefined,
+          skipSign: true,
         });
         if (result.success) {
           setContent(result.source);

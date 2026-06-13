@@ -216,7 +216,11 @@ export function DocsVerticalRuler({
       const track = trackRef.current;
       if (!track) return;
       const rect = track.getBoundingClientRect();
-      const pageY = (e.clientY - rect.left) / zoom;
+      // Measure from the ruler track's TOP origin (not .left — that was the
+      // bug that made the top stop jump: it computed a vertical offset against
+      // the horizontal origin). Now the top stop tracks the cursor smoothly,
+      // exactly like the horizontal ruler measures from rect.left.
+      const pageY = (e.clientY - rect.top) / zoom;
       if (drag === "top") {
         const top = Math.max(0, Math.min(pageY, pageH / 2));
         onMargins({ top });

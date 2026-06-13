@@ -20,6 +20,22 @@ import {
 } from "@dotit/core";
 import { ShieldCheck, PenTool, FileLock2, LockOpen, ChevronDown } from "lucide-react";
 import type { TrustState } from "./trust-state";
+import { sourceToDoc, docToSource } from "./bridge";
+
+// Seal/sign over the EXACT bytes the editor saves. The visual editor serializes
+// through the bridge on every edit (docToSource), so we normalize first — that
+// way the hash covers the canonical form and an immediately-sealed document
+// verifies intact even after later round-trips (e.g. blank-line collapsing).
+function normalizeSource(source: string): string {
+  try {
+    const round = docToSource(sourceToDoc(source));
+    // Only adopt the normalized form when it's parseable & non-empty — never
+    // risk losing content to a bridge edge case.
+    return round.trim() ? round : source;
+  } catch {
+    return source;
+  }
+}
 
 interface Props {
   /** Current .it source. */
@@ -37,6 +53,7 @@ const ROLE_KEY = "dotit.editor.lastRole";
 
 export function TrustControl({ content, onChange, trust, intact }: Props) {
   const [open, setOpen] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [signing, setSigning] = useState(false);
   const [signer, setSigner] = useState(
     () => localStorage.getItem(SIGNER_KEY) || "",
@@ -74,7 +91,8 @@ export function TrustControl({ content, onChange, trust, intact }: Props) {
     if (!name) return;
     setBusy(true);
     try {
-      const res = signDocument(content, {
+      const base = normalizeSource(content);
+      const res = signDocument(base, {
         signer: name,
         role: role.trim() || undefined,
       });
@@ -94,9 +112,14 @@ export function TrustControl({ content, onChange, trust, intact }: Props) {
       signer.trim() || trust.signatures[0]?.by || "Document owner";
     setBusy(true);
     try {
-      const res = sealDocument(content, {
+      // Sealing must NEVER add a signature — signing is a separate explicit
+      // action. We pass skipSign:true so Seal only writes the freeze: line over
+      // the exact current bytes. (Without it, core appends a `sign:` line for
+      // `name`, duplicating the signature of someone who already signed.)
+      const res = sealDocument(normalizeSource(content), {
         signer: name,
         role: role.trim() || trust.signatures[0]?.role || undefined,
+        skipSign: true,
       });
       // Idempotent: error "already-sealed" → leave source as-is.
       if (res.source && res.source !== content && !res.error) {
@@ -181,11 +204,16 @@ export function TrustControl({ content, onChange, trust, intact }: Props) {
               </>
             ) : trust.signatures.length > 0 ? (
               <>
-                <strong>Signed</strong>
+                <strong>Signed · {trust.signatures.length}</strong>
                 <div className="trust-popover__meta">
                   {trust.signatures
                     .map((s) => (s.role ? `${s.by} (${s.role})` : s.by))
                     .join(" · ")}
+                </div>
+                <div className="trust-popover__warn">
+                  ⚠ Still editable — editing will break{" "}
+                  {trust.signatures.length} signature
+                  {trust.signatures.length === 1 ? "" : "s"}. Seal to lock it.
                 </div>
               </>
             ) : (
@@ -197,6 +225,30 @@ export function TrustControl({ content, onChange, trust, intact }: Props) {
               </>
             )}
           </div>
+
+          {/* Plain-words explainer + (?) help toggle */}
+          <button
+            className="trust-popover__help-toggle"
+            onClick={() => setShowHelp((h) => !h)}
+          >
+            (?) what does this mean
+          </button>
+          {showHelp && (
+            <div className="trust-popover__help">
+              <p>
+                <b>Sign</b> adds your name to the document. It stays editable —
+                but changing it afterwards invalidates the signatures.
+              </p>
+              <p>
+                <b>Seal</b> freezes the document with a tamper-evident hash and
+                makes it <b>read-only</b>. <b>Unseal</b> makes it editable again.
+              </p>
+              <p>
+                <b>Verify</b> recomputes the hash and confirms the content still
+                matches the seal.
+              </p>
+            </div>
+          )}
 
           <div className="trust-popover__divider" />
 

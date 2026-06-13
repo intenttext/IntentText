@@ -328,12 +328,53 @@ export function VisualEditor({
     el.textContent = docStyleRulesCSS;
   }, [docStyleRulesCSS]);
 
-  // RTL toggle — idempotent via core's upsertMetaProperty (no more
-  // `dir: rtl | dir: rtl` spam). Setting null removes the property cleanly.
+  // RTL toggle — behaves like Word's RTL paragraph button:
+  //  • A real multi-block (or single non-empty block) selection → set/clear
+  //    `dir: rtl` as a PROPERTY on each selected block, so those paragraphs
+  //    mirror independently (per-block dir attr → core renders the same).
+  //  • A bare caret / whole-doc with no meaningful selection → toggle the
+  //    DOCUMENT direction via core's upsertMetaProperty (idempotent, no
+  //    `dir: rtl | dir: rtl` spam; null removes it cleanly).
   const toggleRtl = useCallback(() => {
+    if (editor) {
+      const { from, to } = editor.state.selection;
+      // Count selected block boundaries — a selection spanning ≥1 block whose
+      // range is non-empty means "treat these rows as RTL paragraphs".
+      let blockCount = 0;
+      let anyRtl = false;
+      editor.state.doc.nodesBetween(from, to, (node) => {
+        if (node.isTextblock) {
+          blockCount++;
+          const attrDir = node.attrs?.dir;
+          const propDir = (() => {
+            try {
+              return node.attrs?.props
+                ? JSON.parse(node.attrs.props as string).dir
+                : undefined;
+            } catch {
+              return undefined;
+            }
+          })();
+          if (attrDir === "rtl" || propDir === "rtl") anyRtl = true;
+          return false;
+        }
+        return true;
+      });
+      const hasSelection = from !== to && blockCount >= 1;
+      if (hasSelection) {
+        // Toggle: if any selected block is already RTL, clear all → LTR.
+        editor
+          .chain()
+          .focus()
+          .setBlockProp("dir", anyRtl ? null : "rtl")
+          .run();
+        return;
+      }
+    }
+    // No real selection → flip the whole document's direction.
     const isRtl = docLayoutMeta.dir === "rtl";
     onChange(upsertMetaProperty(value, "dir", isRtl ? null : "rtl"));
-  }, [value, onChange, docLayoutMeta.dir]);
+  }, [editor, value, onChange, docLayoutMeta.dir]);
 
   // Ruler drag → update the page: block's margins. Writes mm (the .it canonical
   // unit) as a `page: … | margin: T R B L` shorthand so the change round-trips
