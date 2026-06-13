@@ -18,6 +18,7 @@ process.env.UTS_ADMIN_TOKEN = ADMIN;
 process.env.UTS_PRIVATE_KEY = PRIV;
 process.env.DB_NAME = "uts_test";
 process.env.ISSUER = "UTS";
+process.env.UTS_KEY_PROVIDER = "env"; // test supplies UTS_PRIVATE_KEY
 
 let memServer: { getUri(): string; stop(): Promise<void> } | null = null;
 let dbAvailable = false;
@@ -63,6 +64,7 @@ const closeDb = db.closeDb;
 
 beforeAll(async () => {
   if (dbAvailable) await connectDb();
+  await server.initKeys();
 }, 60_000);
 
 afterAll(async () => {
@@ -185,5 +187,31 @@ describe.skipIf(!dbAvailable)("full round-trip (DB-backed)", () => {
       .set("Authorization", "Bearer wrong")
       .send({ account: "x", label: "x" })
       .expect(401);
+  });
+});
+
+describe.skipIf(!dbAvailable)("MongoKeyProvider — envelope-encrypted key in Mongo", () => {
+  it("stores the private key ONLY as ciphertext, reloads to the same key, and signs", async () => {
+    process.env.UTS_KEK = Buffer.from(generateSigningKey().privateKey, "base64url").subarray(0, 32).toString("base64");
+    const keysMod = await import("../src/keys.js");
+    const cols = db.getCollections();
+    // Fresh collection state for this test
+    await cols.authorityKeys.deleteMany({});
+    const p1 = await keysMod.MongoKeyProvider.create(cols.authorityKeys);
+    const pub1 = p1.getPublicKey();
+    // The stored doc must NOT contain the plaintext private key anywhere.
+    const doc = await cols.authorityKeys.findOne({ active: true });
+    expect(doc).toBeTruthy();
+    const blob = JSON.stringify(doc);
+    expect(blob).not.toContain(p1.getPrivateKey());
+    expect(doc!.enc.alg).toBe("aes-256-gcm");
+    // Reload (simulates a restart): same public key, decrypts correctly.
+    const p2 = await keysMod.MongoKeyProvider.create(cols.authorityKeys);
+    expect(p2.getPublicKey()).toBe(pub1);
+    expect(p2.getPrivateKey()).toBe(p1.getPrivateKey());
+    // A certification signed with the Mongo-custodied key verifies.
+    const { certifyDocument } = await import("@dotit/sign");
+    const c = certifyDocument("title: X\n", { issuer: "UTS", account: "a", entity: "Acme WLL", issuerPrivateKey: p2.getPrivateKey() });
+    expect(verifyCertifications(c.source, { UTS: pub1 })[0].valid).toBe(true);
   });
 });

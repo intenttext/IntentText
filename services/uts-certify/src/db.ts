@@ -60,10 +60,27 @@ export interface CertificationDoc {
   createdAt: Date;
 }
 
+/**
+ * The UTS authority keypair, persisted in Mongo. The public key is stored in the
+ * clear (it's published anyway); the private key is stored ONLY as an
+ * AES-256-GCM ciphertext (envelope encryption) whose key-encryption-key (KEK)
+ * lives in the `UTS_KEK` env secret — so a database breach alone cannot recover
+ * the signing key or forge certifications.
+ */
+export interface AuthorityKeyDoc {
+  publicKey: string;
+  alg: "ed25519";
+  /** AES-256-GCM envelope of the base64url private key. */
+  enc: { v: 1; alg: "aes-256-gcm"; iv: string; ct: string; tag: string };
+  active: boolean;
+  createdAt: Date;
+}
+
 export interface Collections {
   accounts: Collection<AccountDoc>;
   apiKeys: Collection<ApiKeyDoc>;
   certifications: Collection<CertificationDoc>;
+  authorityKeys: Collection<AuthorityKeyDoc>;
 }
 
 let client: MongoClient | null = null;
@@ -93,15 +110,17 @@ export async function connectDb(): Promise<Collections> {
   const accounts = db.collection<AccountDoc>("uts_accounts");
   const apiKeys = db.collection<ApiKeyDoc>("uts_api_keys");
   const certifications = db.collection<CertificationDoc>("uts_certifications");
+  const authorityKeys = db.collection<AuthorityKeyDoc>("uts_authority_keys");
 
   await Promise.all([
     accounts.createIndex({ account: 1 }, { unique: true }),
     apiKeys.createIndex({ keyHash: 1 }, { unique: true }),
     apiKeys.createIndex({ prefix: 1 }),
     certifications.createIndex({ account: 1, createdAt: -1 }),
+    authorityKeys.createIndex({ active: 1 }),
   ]);
 
-  collections = { accounts, apiKeys, certifications };
+  collections = { accounts, apiKeys, certifications, authorityKeys };
   return collections;
 }
 

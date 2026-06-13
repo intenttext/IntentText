@@ -17,7 +17,7 @@
  */
 import express, { type Request, type Response, type NextFunction } from "express";
 import { certifyDocument, verifyCertifications } from "@dotit/sign";
-import { getKeyProvider, type KeyProvider } from "./keys.js";
+import { createKeyProvider, type KeyProvider } from "./keys.js";
 import { connectDb, isConnected, getCollections, type AccountDoc } from "./db.js";
 import {
   createAccount,
@@ -33,8 +33,11 @@ const PORT = Number(process.env.PORT ?? 8787);
 const ISSUER = process.env.ISSUER ?? "UTS";
 const ADMIN_TOKEN = process.env.UTS_ADMIN_TOKEN?.trim();
 
-// Resolve the authority key up-front (fatal in prod if UTS_PRIVATE_KEY missing).
-const keys: KeyProvider = getKeyProvider();
+// The authority key provider is initialized in start(), AFTER connectDb(), so
+// the default MongoKeyProvider can load/create the envelope-encrypted key from
+// MongoDB. Handlers only run after app.listen() (post-init), so `keys` is always
+// set by the time a request arrives.
+let keys!: KeyProvider;
 
 const app = express();
 // .it documents are plain text but can be large; cap the body sensibly.
@@ -85,13 +88,15 @@ function requireAdmin(req: Request, res: Response, next: NextFunction): void {
 // ── Public key publication (no auth) ───────────────────────────────────────
 // Verifiers (e.g. verify.uts.qa) fetch this to populate trustedIssuers, or bake
 // it at build time. The private key is NEVER served.
-const pubkeyPayload = {
+// Built per request (the key provider is initialized in start(), after this
+// module loads), so it always reflects the active authority key.
+const pubkeyPayload = () => ({
   issuer: ISSUER,
   publicKey: keys.getPublicKey(),
   algorithm: "ed25519" as const,
-};
-app.get("/.well-known/uts-pubkey", (_req, res) => res.json(pubkeyPayload));
-app.get("/pubkey", (_req, res) => res.json(pubkeyPayload));
+});
+app.get("/.well-known/uts-pubkey", (_req, res) => res.json(pubkeyPayload()));
+app.get("/pubkey", (_req, res) => res.json(pubkeyPayload()));
 
 // ── Health ──────────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => res.json({ ok: true, issuer: ISSUER, db: isConnected() }));
@@ -242,8 +247,21 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 export { app, ISSUER, keys };
 
 /** Start the HTTP server after the DB is connected. */
+/**
+ * Initialize the authority key provider. By default the key lives in MongoDB,
+ * envelope-encrypted with UTS_KEK (set UTS_KEY_PROVIDER=env to use a raw
+ * UTS_PRIVATE_KEY). Call AFTER connectDb(). Exposed so tests can init without
+ * starting the HTTP listener.
+ */
+export async function initKeys(): Promise<void> {
+  keys = await createKeyProvider(
+    isConnected() ? getCollections().authorityKeys : undefined,
+  );
+}
+
 export async function start(): Promise<void> {
   await connectDb();
+  await initKeys();
   app.listen(PORT, () => {
     console.log(`\n  UTS certification service (reference impl for api.uts.qa)`);
     console.log(`  Listening on http://localhost:${PORT}`);

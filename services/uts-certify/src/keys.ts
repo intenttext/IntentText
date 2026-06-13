@@ -26,6 +26,9 @@ import { generateSigningKey, publicKeyFor } from "@dotit/sign";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import type { Collection } from "mongodb";
+import type { AuthorityKeyDoc } from "./db.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const KEY_DIR = resolve(HERE, "..", ".keys");
@@ -161,10 +164,147 @@ export class EnvKeyProvider implements KeyProvider {
  *   }
  */
 
-/** Select the active provider. Swap here to move to KMS in production. */
+/**
+ * MongoKeyProvider — the authority keypair lives IN MongoDB, with the private
+ * key sealed by AES-256-GCM **envelope encryption**: the database stores only
+ * the ciphertext; the key-encryption-key (KEK) is the `UTS_KEK` env secret. So
+ * "all keys live in MongoDB" (one DB to operate/back up) while staying secure —
+ * a database dump alone cannot recover the signing key or forge certifications;
+ * an attacker also needs the KEK, which never touches the DB. This is the same
+ * envelope pattern a KMS uses (a data key wrapped by a master key); swapping to
+ * a real KMS later leaves the Mongo wire format unchanged.
+ *
+ * Async by nature (reads/writes Mongo) — build via createKeyProvider() AFTER
+ * connectDb(), then use the sync getPrivateKey/getPublicKey.
+ */
+function loadKek(): Buffer {
+  const raw = process.env.UTS_KEK?.trim();
+  if (raw) {
+    const buf = Buffer.from(raw, "base64");
+    if (buf.length !== 32) {
+      throw new Error(
+        "UTS_KEK must be 32 bytes, base64-encoded (a 256-bit AES key). Generate: " +
+          "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\"",
+      );
+    }
+    return buf;
+  }
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "FATAL: UTS_KEK is not set and NODE_ENV=production. The KEK encrypts the " +
+        "authority private key at rest in MongoDB; inject it from your secret " +
+        "manager as UTS_KEK (32 bytes, base64).",
+    );
+  }
+  const kekFile = resolve(KEY_DIR, "kek");
+  if (existsSync(kekFile))
+    return Buffer.from(readFileSync(kekFile, "utf8").trim(), "base64");
+  const kek = randomBytes(32);
+  mkdirSync(KEY_DIR, { recursive: true });
+  writeFileSync(kekFile, kek.toString("base64"));
+  try {
+    chmodSync(kekFile, 0o600);
+  } catch {
+    /* best-effort */
+  }
+  console.warn(
+    "  [dev] UTS_KEK not set — generated an ephemeral KEK in .keys/kek (gitignored). " +
+      "Set UTS_KEK from a secret manager in production.",
+  );
+  return kek;
+}
+
+function sealPrivateKey(privateKey: string, kek: Buffer): AuthorityKeyDoc["enc"] {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", kek, iv);
+  const ct = Buffer.concat([cipher.update(privateKey, "utf8"), cipher.final()]);
+  return {
+    v: 1,
+    alg: "aes-256-gcm",
+    iv: iv.toString("base64"),
+    ct: ct.toString("base64"),
+    tag: cipher.getAuthTag().toString("base64"),
+  };
+}
+
+function openPrivateKey(enc: AuthorityKeyDoc["enc"], kek: Buffer): string {
+  const decipher = createDecipheriv(
+    "aes-256-gcm",
+    kek,
+    Buffer.from(enc.iv, "base64"),
+  );
+  decipher.setAuthTag(Buffer.from(enc.tag, "base64"));
+  return (
+    decipher.update(Buffer.from(enc.ct, "base64")).toString("utf8") +
+    decipher.final("utf8")
+  );
+}
+
+export class MongoKeyProvider implements KeyProvider {
+  private constructor(
+    private readonly privateKey: string,
+    private readonly publicKey: string,
+  ) {}
+
+  static async create(
+    coll: Collection<AuthorityKeyDoc>,
+  ): Promise<MongoKeyProvider> {
+    const kek = loadKek();
+    const existing = await coll.findOne({ active: true });
+    if (existing) {
+      const privateKey = openPrivateKey(existing.enc, kek);
+      // Re-derive the public key so it can't drift from / be tampered vs the
+      // private key.
+      return new MongoKeyProvider(privateKey, publicKeyFor(privateKey));
+    }
+    const key = generateSigningKey();
+    const doc: AuthorityKeyDoc = {
+      publicKey: key.publicKey,
+      alg: "ed25519",
+      enc: sealPrivateKey(key.privateKey, kek),
+      active: true,
+      createdAt: new Date(),
+    };
+    await coll.insertOne(doc);
+    console.log(
+      `  UTS authority key created in MongoDB (envelope-encrypted). Public key: ${key.publicKey}`,
+    );
+    return new MongoKeyProvider(key.privateKey, key.publicKey);
+  }
+
+  getPrivateKey(): string {
+    return this.privateKey;
+  }
+  getPublicKey(): string {
+    return this.publicKey;
+  }
+}
+
+/**
+ * Select the active provider.
+ *   - "mongo" (default when a DB collection is supplied): key in Mongo,
+ *     envelope-encrypted with UTS_KEK.
+ *   - "env":  raw key from UTS_PRIVATE_KEY (EnvKeyProvider).
+ *   - (future) "kms": KmsKeyProvider.
+ * Override with UTS_KEY_PROVIDER.
+ */
+export async function createKeyProvider(
+  authorityKeys?: Collection<AuthorityKeyDoc>,
+): Promise<KeyProvider> {
+  const mode = process.env.UTS_KEY_PROVIDER ?? (authorityKeys ? "mongo" : "env");
+  if (mode === "mongo") {
+    if (!authorityKeys) {
+      throw new Error(
+        "UTS_KEY_PROVIDER=mongo requires a connected DB (pass the authorityKeys collection).",
+      );
+    }
+    return MongoKeyProvider.create(authorityKeys);
+  }
+  return new EnvKeyProvider();
+}
+
+/** Sync env-only provider (back-compat for env mode / tests). */
 export function getKeyProvider(): KeyProvider {
-  // const mode = process.env.UTS_KEY_PROVIDER; // "env" | "kms"
-  // if (mode === "kms") return new KmsKeyProvider({ keyId: process.env.UTS_KMS_KEY_ID! });
   return new EnvKeyProvider();
 }
 
