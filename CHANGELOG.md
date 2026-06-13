@@ -8,6 +8,14 @@ The format is based on Keep a Changelog.
 
 ### Fixed / Added
 
+- **Desktop 2.2.0 — true native macOS print panel.** `Cmd+P` / Print now opens the
+  real macOS print dialog via AppKit's `NSPrintOperation` (driven through the
+  `WKWebView` handle with `objc2` — `printOperationWithPrintInfo:`), not the browser
+  and not WKWebView's unreliable JS `window.print()`. The document is isolated into
+  the webview DOM (an `@media print` sheet) so only the document prints. If native
+  print is unavailable/fails, it automatically falls back to the browser print path,
+  so print always works. macOS-only (Windows/Linux keep the browser path).
+
 - **Desktop 2.1.0 — native print & export (Tauri).** The browser-based exports
   didn't work inside Tauri's WKWebView; replaced with native paths:
   - **Print / Save as PDF** (Cmd/Ctrl+P and a banner button) now opens the OS print

@@ -83,6 +83,7 @@ pub fn run() {
             commands::fs::write_binary_file,
             commands::fs::read_binary_file,
             commands::fs::open_external,
+            commands::print::native_print,
             commands::fs::list_files,
             commands::fs::file_metadata,
             commands::fs::delete_file,
