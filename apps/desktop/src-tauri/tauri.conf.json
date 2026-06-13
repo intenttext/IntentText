@@ -17,7 +17,8 @@
         "minWidth": 900,
         "minHeight": 600,
         "decorations": true,
-        "titleBarStyle": "Overlay"
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
       }
     ],
     "security": {
@@ -30,7 +31,7 @@
     "category": "Productivity",
     "publisher": "Dotit Labs",
     "shortDescription": "Dotit is a native desktop document manager for .it documents.",
-    "longDescription": "Dotit is a professional desktop app for managing .it document workspaces: a WYSIWYG editor, workspace-wide search, and trust operations (seal, sign, verify) — local-first.",
+    "longDescription": "Dotit is a professional desktop app for managing .it document workspaces: a WYSIWYG editor, workspace-wide search, and trust operations (seal, sign, verify) \u2014 local-first.",
     "fileAssociations": [
       {
         "ext": [
