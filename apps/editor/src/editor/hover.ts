@@ -369,7 +369,7 @@ export function registerHoverProvider(monaco: typeof Monaco) {
             value: `\`${info.syntax}\``,
           },
           {
-            value: `[→ Full reference](https://itdocs.vercel.app/docs/keywords/${info.keyword})`,
+            value: `[→ Full reference](https://dotit.uts.qa/docs/keywords/${info.keyword})`,
           },
         ],
       };

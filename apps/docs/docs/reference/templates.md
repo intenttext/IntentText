@@ -177,7 +177,7 @@ const printHtml = renderPrint(merged, { theme: "corporate" });
 
 ## Hub templates
 
-The [IntentText Hub](https://hub.intenttext.io) hosts **76 seeded templates** across 8 domains:
+The [IntentText Hub](https://hub.dotit.uts.qa) hosts **76 seeded templates** across 8 domains:
 
 | Domain     | Templates                          | Examples                             |
 | ---------- | ---------------------------------- | ------------------------------------ |

@@ -860,3 +860,257 @@ body {
   font-size: 10.5px;
   letter-spacing: 0.05em;
 }
+
+/* ===================================================================
+   Multi-vault registry, document viewer, and document toolbar
+   =================================================================== */
+
+/* ---------- vault sidebar (Finder-style rail + scoped file list) ---------- */
+.vault-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.vault-rail {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  max-height: 42%;
+  overflow-y: auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.vault-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.vault-row:hover {
+  background: var(--bg-inset);
+}
+
+.vault-row.active {
+  background: var(--accent-soft);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.vault-row.errored .vault-label {
+  color: var(--warn);
+}
+
+.vault-row.add {
+  color: var(--text-muted);
+}
+
+.vault-glyph {
+  flex: none;
+  opacity: 0.8;
+}
+
+.vault-row.active .vault-glyph {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.vault-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-count {
+  flex: none;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.vault-count.warn {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+.vault-files {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.panel-count {
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+
+.tree-vault {
+  flex: none;
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--bg-inset);
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: auto;
+  max-width: 38%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.small {
+  font-size: 11.5px;
+}
+
+/* ---------- trust glyphs in lists ---------- */
+.trust-icon {
+  flex: none;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+.trust-icon.trust-sealed {
+  color: var(--sealed);
+}
+.trust-icon.trust-signed {
+  color: var(--ok);
+}
+.trust-icon.trust-approved {
+  color: var(--accent);
+}
+.trust-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 4px;
+}
+.trust-dot.trust-tracked {
+  background: var(--accent);
+}
+
+/* ---------- document viewer ("opens like a PDF") ---------- */
+.main-viewer {
+  background: var(--bg-inset);
+}
+
+.doc-viewer {
+  height: 100%;
+  overflow: hidden;
+}
+
+.doc-viewer-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: var(--bg-inset);
+}
+
+/* ---------- document action toolbar (topbar-right) ---------- */
+.doc-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 3px;
+}
+
+.pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.pill-btn:hover {
+  border-color: var(--accent);
+}
+.pill-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.sealed-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sealed);
+  background: color-mix(in srgb, var(--sealed) 14%, transparent);
+  border-radius: 6px;
+}
+
+.icon-btn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ---------- search result attribution ---------- */
+.search-file-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+.search-file-meta {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+.search-vault,
+.search-doctype {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--bg-inset);
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+.search-doctype {
+  color: var(--accent);
+}
+
+/* ---------- empty-state brand mark ---------- */
+.empty-brand {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: var(--bg-panel);
+  box-shadow: 0 1px 0 var(--border), 0 8px 24px rgba(0, 0, 0, 0.08);
+  margin-bottom: 6px;
+}

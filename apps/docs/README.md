@@ -5,7 +5,7 @@
 
 Documentation site for [IntentText](https://github.com/intenttext/IntentText) — the structured document format for humans and AI agents.
 
-**Live:** [itdocs.vercel.app](https://itdocs.vercel.app)
+**Live:** [dotit.uts.qa](https://dotit.uts.qa)
 
 Built with [Docusaurus](https://docusaurus.io/).
 

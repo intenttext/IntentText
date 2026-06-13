@@ -8,7 +8,6 @@ import {
 } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
@@ -40,7 +39,7 @@ import {
 } from "./extensions";
 import { ITParagraph, BlockProps } from "./block-props";
 import { DocsToolbar } from "./DocsToolbar";
-import { DocsRuler } from "./Ruler";
+import { DocsRuler, DocsVerticalRuler } from "./Ruler";
 import { TrustBanner, DocPropsBar } from "./TrustBanner";
 import { extractTrustState } from "./trust-state";
 import {
@@ -49,13 +48,18 @@ import {
   parseIntentText,
   documentStyleCSS,
   verifyDocument,
+  upsertMetaProperty,
 } from "@dotit/core";
 import {
   getPageGeometry,
   resolvePageTokens,
+  setPageMargin,
+  MM,
   type PageGeometry,
 } from "./page-geometry";
 import { TemplateHighlight } from "./template-highlight";
+import { LineKeymap } from "./line-keymap";
+import { exportDocumentPDF } from "./print";
 import type { TrustAction } from "./types";
 
 /** Grey gap between page cards on the canvas (px). */
@@ -132,12 +136,7 @@ export function VisualEditor({
       }),
       ITParagraph,
       BlockProps,
-      Placeholder.configure({
-        // Professional behavior: a new empty line shows just the cursor.
-        // The hint appears only on a completely empty document.
-        placeholder: ({ editor: ed }) =>
-          ed.isEmpty ? "Start typing..." : "",
-      }),
+      LineKeymap,
       Underline,
       TextStyle,
       Color,
@@ -294,6 +293,15 @@ export function VisualEditor({
     editor.setEditable(!locked);
   }, [editor, locked]);
 
+  // Native RTL: set `dir` directly on the ProseMirror editable element so the
+  // caret jumps to the right edge and typing flows right-to-left (not just a
+  // visual mirror). Reflows immediately when the meta dir toggles.
+  useEffect(() => {
+    if (!editor) return;
+    const dom = editor.view.dom as HTMLElement;
+    dom.setAttribute("dir", docLayoutMeta.dir === "rtl" ? "rtl" : "ltr");
+  }, [editor, docLayoutMeta.dir]);
+
   // Live document styles: apply the doc's `style:` rules to the canvas so the
   // author SEES the house styling while editing (and the WYSIWYG print export
   // inherits it automatically, since it copies the page's <style> elements).
@@ -320,38 +328,29 @@ export function VisualEditor({
     el.textContent = docStyleRulesCSS;
   }, [docStyleRulesCSS]);
 
+  // RTL toggle — idempotent via core's upsertMetaProperty (no more
+  // `dir: rtl | dir: rtl` spam). Setting null removes the property cleanly.
   const toggleRtl = useCallback(() => {
     const isRtl = docLayoutMeta.dir === "rtl";
-    if (isRtl) {
-      // Remove dir: rtl pipe segment; drop line if it becomes empty
-      const updated = value
-        .split("\n")
-        .map((line) => {
-          if (/^meta:/i.test(line.trim())) {
-            const cleaned = line.replace(/\s*\|\s*dir:\s*rtl/gi, "").trim();
-            return cleaned === "meta:" ? null : cleaned;
-          }
-          return line;
-        })
-        .filter((l): l is string => l !== null)
-        .join("\n");
-      onChange(updated);
-    } else {
-      const metaMatch = /^meta:.*$/m.exec(value);
-      if (metaMatch) {
-        onChange(value.replace(/^meta:.*$/m, `${metaMatch[0]} | dir: rtl`));
-      } else {
-        // Insert after title or summary line, else prepend
-        if (/^(title:|summary:)/m.test(value)) {
-          onChange(
-            value.replace(/^((?:title:|summary:).*)$/m, `$1\nmeta: | dir: rtl`),
-          );
-        } else {
-          onChange(`meta: | dir: rtl\n${value}`);
-        }
-      }
-    }
+    onChange(upsertMetaProperty(value, "dir", isRtl ? null : "rtl"));
   }, [value, onChange, docLayoutMeta.dir]);
+
+  // Ruler drag → update the page: block's margins. Writes mm (the .it canonical
+  // unit) as a `page: … | margin: T R B L` shorthand so the change round-trips
+  // and the print path reads identical margins.
+  const setMargins = useCallback(
+    (next: { top?: number; right?: number; bottom?: number; left?: number }) => {
+      const g = geometryRef.current;
+      const pxToMm = (px: number) => Math.max(0, Math.round((px / MM) * 10) / 10);
+      const t = pxToMm(next.top ?? g.marginTop);
+      const r = pxToMm(next.right ?? g.marginRight);
+      const b = pxToMm(next.bottom ?? g.marginBottom);
+      const l = pxToMm(next.left ?? g.marginLeft);
+      const marginVal = `${t}mm ${r}mm ${b}mm ${l}mm`;
+      onChange(setPageMargin(value, marginVal));
+    },
+    [value, onChange],
+  );
 
   useEffect(() => {
     const id = "it-editor-theme-css";
@@ -417,6 +416,12 @@ export function VisualEditor({
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return;
+      // Cmd/Ctrl+P → OUR WYSIWYG PDF export, not the raw browser print dialog.
+      if (e.key === "p" || e.key === "P") {
+        e.preventDefault();
+        exportDocumentPDF(value, theme);
+        return;
+      }
       if (e.key === "=" || e.key === "+") {
         e.preventDefault();
         captureFocalAtCenter();
@@ -433,7 +438,7 @@ export function VisualEditor({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [captureFocalAtCenter]);
+  }, [captureFocalAtCenter, value, theme]);
 
   useEffect(() => {
     const el = canvasRef.current;
@@ -458,9 +463,12 @@ export function VisualEditor({
           isRtl={docLayoutMeta.dir === "rtl"}
           onToggleRtl={toggleRtl}
           content={value}
+          onChange={onChange}
           theme={theme}
           onThemeChange={onThemeChange}
           onTrustAction={onTrustAction}
+          trust={trust}
+          sealIntact={sealIntact}
           locked={locked}
         />
       )}
@@ -473,7 +481,21 @@ export function VisualEditor({
           remove it or use the toolbar’s color/size/style controls instead.
         </div>
       )}
-      <DocsRuler geometry={geometry} zoom={zoom} scrollEl={canvasRef} />
+      <DocsRuler
+        geometry={geometry}
+        zoom={zoom}
+        scrollEl={canvasRef}
+        onMargins={setMargins}
+        locked={locked}
+      />
+      <div className="docs-canvas-row">
+        <DocsVerticalRuler
+          geometry={geometry}
+          zoom={zoom}
+          scrollEl={canvasRef}
+          onMargins={setMargins}
+          locked={locked}
+        />
       <div className="docs-canvas" ref={canvasRef}>
         <div
           className="docs-page-scaler"
@@ -530,6 +552,7 @@ export function VisualEditor({
             </span>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

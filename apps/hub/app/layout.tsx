@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     title: "IntentText Hub",
     description:
       "The registry for .it templates — browse agent definitions, workflow patterns, and document templates.",
-    url: process.env.NEXT_PUBLIC_APP_URL ?? "https://intenttext-hub.vercel.app",
+    url: process.env.NEXT_PUBLIC_APP_URL ?? "https://hub.dotit.uts.qa",
   },
 };
 

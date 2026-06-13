@@ -319,14 +319,14 @@ New paragraph starts`;
 
   it("should parse shorthand links using [[label|url]]", () => {
     const result = parseIntentText(
-      "note: Open [[web-to-it|https://iteditor.vercel.app/]] now",
+      "note: Open [[web-to-it|https://editor.uts.qa/]] now",
     );
     const inline = result.blocks[0].inline || [];
     const linkNode = inline.find((n) => n.type === "link") as
       | { type: "link"; value: string; href: string }
       | undefined;
     expect(linkNode?.value).toBe("web-to-it");
-    expect(linkNode?.href).toBe("https://iteditor.vercel.app/");
+    expect(linkNode?.href).toBe("https://editor.uts.qa/");
   });
 
   it("should parse date shorthand tokens", () => {

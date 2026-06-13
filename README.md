@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://itdocs.vercel.app">Docs</a> ·
-  <a href="https://intenttext-hub.vercel.app">Hub</a> ·
+  <a href="https://dotit.uts.qa">Docs</a> ·
+  <a href="https://hub.dotit.uts.qa">Hub</a> ·
   <a href="https://editor.uts.qa">Editor</a> ·
   <a href="https://npmjs.com/package/@dotit/core">npm</a> ·
   <a href="https://pypi.org/project/intenttext/">PyPI</a> ·
@@ -99,7 +99,7 @@ dotit seal contract.it --signer "Fahad Al-Thani" --role "Managing Director"
 dotit verify contract.it                   # tamper check (exit 1 if modified)
 ```
 
-Full walkthrough: [CLI guide](https://itdocs.vercel.app/docs/ecosystem/cli).
+Full walkthrough: [CLI guide](https://dotit.uts.qa/docs/ecosystem/cli).
 
 ### Library
 
@@ -147,7 +147,7 @@ npm install -g @dotit/mcp      # MCP server: parse, query, render, seal, verify
 ```
 
 Or skip tooling entirely: point any LLM at
-[`itdocs.vercel.app/llms.txt`](https://itdocs.vercel.app/llms.txt) — a complete
+[`dotit.uts.qa/llms.txt`](https://dotit.uts.qa/llms.txt) — a complete
 machine reference that teaches the format in one read. An agent that has read it
 can author valid documents, templates, and workflows immediately.
 
@@ -244,7 +244,7 @@ dotit amend contract.it --section "Scope" --was "2% late fee" \
 it. Amendments are append-only and excluded from the hash, so a frozen contract
 can evolve without breaking its seal. This is honest **tamper-evidence, not PKI** —
 the exact model is documented in the
-[CLI guide](https://itdocs.vercel.app/docs/ecosystem/cli) and
+[CLI guide](https://dotit.uts.qa/docs/ecosystem/cli) and
 [SPEC §4](packages/core/SPEC.md).
 
 ### Query: a folder is a database
@@ -259,7 +259,7 @@ dotit ask ./contracts "Which contracts renew before December?"
 Each folder gets a shallow `.it-index` cache that self-heals on query — the `.it`
 files stay the source of truth. Dates are ISO 8601, so range queries work out of
 the box. Full story:
-[A Folder Is a Database](https://itdocs.vercel.app/docs/guide/folder-as-database).
+[A Folder Is a Database](https://dotit.uts.qa/docs/guide/folder-as-database).
 
 ### Arabic, natively
 
@@ -287,7 +287,7 @@ work too: `مصروف: كراسي | فئة: أثاث` is a typed, queryable bloc
 | `packages/mcp` | `@dotit/mcp` | MCP server — AI agents read, write, query, and seal `.it` documents. |
 | `packages/vscode` | — | VS Code extension: highlighting, snippets, diagnostics. |
 | `apps/editor` | — | Web editor: WYSIWYG pages, live preview, themes, trust chips. |
-| `apps/docs` | — | The docs site ([itdocs.vercel.app](https://itdocs.vercel.app)). |
+| `apps/docs` | — | The docs site ([dotit.uts.qa](https://dotit.uts.qa)). |
 
 Experimental (no stability promise): Hub, Desktop, Builder, and the Python client
 (`intenttext` on PyPI — a thin wrapper over the core CLI). The TypeScript core is
@@ -296,11 +296,11 @@ the single canonical implementation of the grammar (see
 
 ## Learn more
 
-- **Docs** — guide, reference, cookbook: [itdocs.vercel.app](https://itdocs.vercel.app)
+- **Docs** — guide, reference, cookbook: [dotit.uts.qa](https://dotit.uts.qa)
 - **Spec** — the canonical grammar: [packages/core/SPEC.md](packages/core/SPEC.md)
 - **Changelog** — [CHANGELOG.md](CHANGELOG.md)
 - **Roadmap** — [ROADMAP.md](ROADMAP.md)
-- **For LLMs** — [itdocs.vercel.app/llms.txt](https://itdocs.vercel.app/llms.txt)
+- **For LLMs** — [dotit.uts.qa/llms.txt](https://dotit.uts.qa/llms.txt)
 
 ## Status
 

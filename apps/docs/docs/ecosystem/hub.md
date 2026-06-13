@@ -5,7 +5,7 @@ title: Hub
 
 # IntentText Hub
 
-The [IntentText Hub](https://hub.intenttext.io) is the template gallery for `.it` files: **76 official templates** across 8 domains, browse-and-copy from the web app.
+The [IntentText Hub](https://hub.dotit.uts.qa) is the template gallery for `.it` files: **76 official templates** across 8 domains, browse-and-copy from the web app.
 
 | Domain     | Count | Examples                                           |
 | ---------- | ----- | -------------------------------------------------- |

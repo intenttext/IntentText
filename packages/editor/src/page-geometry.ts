@@ -156,6 +156,34 @@ export function getPageGeometry(source: string): PageGeometry {
   };
 }
 
+/**
+ * Set (or replace) the `margin:` property on the document's `page:` block.
+ * Idempotent: replaces any existing margin/margins prop rather than appending,
+ * so repeated ruler drags never accumulate duplicate pipe segments. Inserts a
+ * `page:` block (after the meta/title preamble) when the document has none.
+ */
+export function setPageMargin(source: string, marginValue: string): string {
+  const lines = source.split("\n");
+  const pageIdx = lines.findIndex((l) => /^\s*page\s*:/i.test(l));
+  if (pageIdx >= 0) {
+    // Strip existing margin/margins segments, then append the new one.
+    let line = lines[pageIdx]
+      .replace(/\s*\|\s*margins?\s*:[^|]*/gi, "")
+      .replace(/\s+$/, "");
+    line = `${line} | margin: ${marginValue}`;
+    lines[pageIdx] = line;
+    return lines.join("\n");
+  }
+  // No page block — insert one after the leading meta/title/summary preamble.
+  const insertAt = lines.findIndex(
+    (l) => l.trim() && !/^\s*(meta|title|summary)\s*:/i.test(l),
+  );
+  const pageLine = `page: A4 | margin: ${marginValue}`;
+  if (insertAt <= 0) return `${pageLine}\n${source}`;
+  lines.splice(insertAt, 0, pageLine);
+  return lines.join("\n");
+}
+
 /** Resolve {{page}}/{{pages}} tokens for on-screen display. */
 export function resolvePageTokens(
   text: string,

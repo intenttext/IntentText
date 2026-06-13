@@ -491,44 +491,63 @@ export default function Home(): React.ReactElement {
       {/* ── 1 · Hero ─────────────────────────────────────── */}
       <header className={styles.hero}>
         <div className="container">
-          <div className={styles.heroBadge}>
-            <code>.it</code> — IntentText · v1.x · open format
-          </div>
-          <h1 className={styles.heroTitle}>
-            One plain-text file. A <em>document</em>, a <em>database</em>,
-            a <em>PDF</em>, a <em>sealed record</em>.
-          </h1>
-          <p className={styles.heroSub}>
-            IntentText (<code>.it</code>) is an open format for business
-            documents. Write contracts, invoices, and reports as readable text
-            — query them like a database, print them to enterprise-grade PDF,
-            and seal them with a tamper-evident hash. In English or Arabic, by
-            people or AI agents.
-          </p>
-          <div className={styles.installRow}>
-            <code className={styles.installCmd}>
-              <span>$</span> npm install -g @dotit/core
-            </code>
-          </div>
-          <div className={styles.heroButtons}>
-            <Link
-              className="button button--primary button--lg"
-              to="/docs/guide/quick-start"
-            >
-              Get started <ArrowRight size={18} />
-            </Link>
-            <Link
-              className="button button--secondary button--lg"
-              href="https://editor.uts.qa"
-            >
-              Open the editor
-            </Link>
-            <Link
-              className="button button--link button--lg"
-              to="pathname:///llms.txt"
-            >
-              llms.txt for AI agents
-            </Link>
+          <div className={styles.heroGrid}>
+            <div className={styles.heroCopy}>
+              <div className={styles.heroBadge}>
+                <code>.it</code> — IntentText · v1.x · open format
+              </div>
+              <h1 className={styles.heroTitle}>
+                One plain-text file. A <em>document</em>, a <em>database</em>,
+                a <em>PDF</em>, a <em>sealed record</em>.
+              </h1>
+              <p className={styles.heroSub}>
+                IntentText (<code>.it</code>) is an open format for business
+                documents. Write contracts, invoices, and reports as readable
+                text — query them like a database, print them to
+                enterprise-grade PDF, and seal them with a tamper-evident hash.
+                In English or Arabic, by people or AI agents.
+              </p>
+              <div className={styles.installRow}>
+                <code className={styles.installCmd}>
+                  <span>$</span> npm install -g @dotit/core
+                </code>
+              </div>
+              <div className={styles.heroButtons}>
+                <Link
+                  className="button button--primary button--lg"
+                  to="/docs/guide/quick-start"
+                >
+                  Get started <ArrowRight size={18} />
+                </Link>
+                <Link
+                  className="button button--secondary button--lg"
+                  href="https://editor.uts.qa"
+                >
+                  Open the editor
+                </Link>
+                <Link
+                  className="button button--link button--lg"
+                  to="pathname:///llms.txt"
+                >
+                  llms.txt for AI agents
+                </Link>
+              </div>
+            </div>
+            <div className={styles.heroVisual} aria-hidden="false">
+              <div className={styles.heroPaper}>
+                <img
+                  src={useBaseUrl("/img/hero-document.png")}
+                  alt="A sealed invoice rendered from a single .it file — corporate theme with line items, totals, a payment deadline, an approval, a verified signature, and a tamper-evident seal hash"
+                  width={760}
+                  height={995}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <span className={styles.heroPaperTag}>
+                <Lock size={13} /> sealed invoice.it — real renderer output
+              </span>
+            </div>
           </div>
           <nav className={styles.pillars}>
             <a className={styles.pillar} href="#example">

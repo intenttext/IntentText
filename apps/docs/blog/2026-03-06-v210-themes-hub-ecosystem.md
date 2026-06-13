@@ -38,7 +38,7 @@ Eight themes ship built-in: **corporate**, **minimal**, **warm**, **technical**,
 
 ## The Hub
 
-The IntentText Hub at [intenttext-hub.vercel.app](https://intenttext-hub.vercel.app) is a two-tier platform:
+The IntentText Hub at [hub.dotit.uts.qa](https://hub.dotit.uts.qa) is a two-tier platform:
 
 1. **Templates** — Complete `.it` files with `{{variable}}` placeholders. Pull them, merge your data, render.
 2. **Themes** — JSON theme files. Pull them, apply to any document.
@@ -89,4 +89,4 @@ The seeded templates cover real document types:
 
 Every template is a real, complete document — not a skeleton. Pull one and you have a working starting point.
 
-[Browse templates on the Hub →](https://intenttext-hub.vercel.app)
+[Browse templates on the Hub →](https://hub.dotit.uts.qa)

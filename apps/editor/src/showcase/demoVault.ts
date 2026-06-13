@@ -77,8 +77,8 @@ text: Bank Qatar National Bank · IBAN QA57QNBA000000000123456789001
 deadline: Payment due | date: 2026-03-20 | consequence: 1.5% monthly interest
 
 section: Authorization
-sign: Dalil Billing | role: Finance | at: 2026-03-06T14:32:00Z | hash: sha256:3dc7b4a1ec39471778501a0c6457ff1aa2596117bad9b4e9a031195a3a15e74a
-freeze: | at: 2026-03-06T14:32:00Z | hash: sha256:3dc7b4a1ec39471778501a0c6457ff1aa2596117bad9b4e9a031195a3a15e74a | status: locked`,
+sign: Dalil Billing | role: Finance | at: 2026-03-06T14:32:00Z | hash: sha256:a9c6bf9d541e662616892cf41a125917bc0b4409a2a4ae83e21a927dcf73cea4
+freeze: | at: 2026-03-06T14:32:00Z | hash: sha256:a9c6bf9d541e662616892cf41a125917bc0b4409a2a4ae83e21a927dcf73cea4 | status: locked`,
   },
   {
     id: "service-agreement",

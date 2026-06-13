@@ -1,40 +1,39 @@
 # Dotit Desktop
 
-> **Experimental** — not part of the supported IntentText v4 release surface. The canonical implementation is `@dotit/core`. This app builds against the core but carries no stability or support promise.
-
-Enterprise document manager for `.it` files, built with [Tauri](https://tauri.app/) v2 + React. The editing surface is the embeddable [`@dotit/editor`](../../packages/editor) WYSIWYG (ribbon, Word-like pages, trust banner); the desktop shell adds everything a document manager needs around it.
+> IntentText's native document manager — the product that makes a `.it` file feel like a PDF: click it, and it opens as a clean, read-only paper page you can trust. An **Edit** button switches to the embeddable [`@dotit/editor`](../../packages/editor) WYSIWYG (ribbon, Word-like pages, trust banner) when you want to change it. Built with [Tauri](https://tauri.app/) v2 + React on top of [`@dotit/core`](../../packages/core).
 
 ## Features
 
-- **Document library** — choose a workspace folder; the sidebar shows a live tree of `.it` files (filesystem watcher keeps it fresh) with create / rename / delete (to trash) and recent files. The last workspace is restored on launch.
-- **Workspace search** — a search panel over the whole workspace powered by the core query engine: structured filters (`type=task status=open owner:contains=sara due<2026-07-01 field?`) mixed with free text; grouped results open the file on click.
-- **Trust operations** — Track / Approve / Sign / **Seal** / **Verify** from the native Trust menu, the editor ribbon, or shortcuts. Sealing uses `@dotit/core`'s cryptographic seal; sealed documents become read-only. Library rows show lifecycle badges (tracked / approved / signed / sealed), computed lazily and cached by mtime.
-- **WYSIWYG editing** — `<IntentTextEditor>` with autosave to disk (debounced) and a dirty indicator; `⌘E` toggles a plain-text source view. WYSIWYG PDF / HTML export via the File menu.
-- **Native feel** — real OS menu bar (File / Edit / View / Trust / Window) wired to the same actions, window title shows `• filename`, `.it` file association, window-state restore, and dark mode follows the OS.
+- **Multi-vault registry (DEVONthink-style)** — your `.it` files live in many places (`~/Documents/contracts`, `~/Dropbox/invoices`, `~/Projects/…`). Register each folder once (**Add Folder** dialog, multi-select supported). The Finder-style left rail shows **All Files** (every vault) plus each registered folder by label, with a live doc count. The registry is persisted to disk by the Rust backend (`settings.json` in the OS app-config dir), so it survives a webview cache wipe. Each vault loads its own tree and all roots are watched for live updates. Right-click a folder to rename its label, refresh, or remove it.
+- **Federated search** — the Search panel runs the core query engine across **every** vault at once (or just the active one when scoped), parsing/querying in memory and merging results. Mix structured filters with free text, e.g. `type=invoice status=Unpaid`, `owner:contains=sara due<2026-07-01 sort:due:asc limit:20`, `field?`. Results group by document and are tagged with the **vault** they came from, the document **type**, and a 🔒 **sealed** badge; click to open.
+- **Viewer / Edit split — "opens like a PDF"** — clicking a file opens the **read-only Document Viewer** by default: the doc is rendered through core's `renderPrint` (the same engine the PDF export uses) into a sandboxed iframe, so it looks exactly like the printed page — clean, paginated, themed. Press **Edit** (or `⌘E`) to switch to the WYSIWYG editor; press again to return to the viewer. New blank documents open straight into editing. Sealed documents stay read-only.
+- **Trust operations** — Track / Approve / Sign / **Seal** / **Unseal** / **Verify** from the native Trust menu, the document toolbar, the editor ribbon, or shortcuts. Uses `@dotit/core` 1.2.0's idempotent crypto APIs (`sealDocument` / `signDocument` / `unsealDocument` / `verifyDocument` / `isSealed`). Sealed docs are read-only and show a 🔒 pill. The vault file list and search results show lifecycle glyphs (tracked / approved / signed / sealed), computed lazily and cached by mtime across all vaults.
+- **Native feel** — real OS menu bar (Dotit / File / Edit / View / Trust / Window) wired to the same actions; window title shows `• filename`; `.it` file association opens straight into the viewer; window-state restore; autosave to disk (debounced) with a clear dirty / saved indicator; dark mode follows the OS; the official charcoal `.it` mark is the app icon.
 
 ### Keyboard shortcuts
 
-`⌘N` new · `⌘O` open · `⇧⌘O` open workspace · `⌘S` save · `⇧⌘S` save as · `⌘P` export PDF · `⌘B` toggle library · `⇧⌘F` search workspace · `⌘E` source view · `⇧⌘G` sign · `⇧⌘L` seal · `⇧⌘V` verify
+`⌘N` new · `⌘O` open file · `⇧⌘O` add folder · `⌘S` save · `⇧⌘S` save as · `⌘P` export PDF · `⌘B` toggle sidebar · `⇧⌘F` search · `⌘E` view ⇄ edit · `⇧⌘E` source view · `⇧⌘G` sign · `⇧⌘L` seal · `⇧⌘V` verify
 
 ## Development
 
 ```bash
-pnpm install            # from the repo root
-pnpm --filter @dotit/editor build   # build the editor package once
+pnpm install                          # from the repo root
+pnpm --filter @dotit/core build       # build core (provides renderPrint, query, trust, index)
+pnpm --filter @dotit/editor build     # build the editor package once
 pnpm --filter intenttext-desktop tauri:dev
 ```
 
-`pnpm --filter intenttext-desktop dev` runs the web layer alone (no file access without the Tauri shell).
+`pnpm --filter intenttext-desktop dev` runs the web layer alone (no filesystem / vault registry without the Tauri shell).
 
 ## Build
 
 ```bash
-pnpm --filter intenttext-desktop build        # typecheck + vite build (web layer)
-pnpm --filter intenttext-desktop tauri:build  # native installers
+pnpm --filter intenttext-desktop build        # tsc + vite build (web layer)
+pnpm --filter intenttext-desktop tauri:build  # native installers (syncs icons first)
 ```
 
 ## Architecture notes
 
-- All filesystem access goes through small std-only Rust commands (`src-tauri/src/commands/{fs,workspace}.rs`): read/write/rename/trash, recursive workspace listing, and a `notify`-based watcher that emits `file-created/modified/deleted` events.
-- Parsing, querying, sealing and verification run in the webview via `@dotit/core` — the Rust side has no parser dependency.
-- The former in-app Monaco/tiptap editor copies were removed in 2.0; the visual editor is consumed from `@dotit/editor`.
+- **Filesystem access is all custom std-only Rust commands** (`src-tauri/src/commands/{fs,workspace,settings}.rs`): read / write / rename / trash, recursive folder listing, a `notify`-based watcher (`watch_folders` watches every registered vault root and emits `file-created/modified/deleted`), and an atomic JSON settings store (`load_settings` / `save_settings`). Because access goes through these commands rather than the fs plugin's scoped allowlist, the app can read `.it` files in **arbitrary** registered folders anywhere on the machine — which is exactly what the multi-vault feature needs. The `default.json` capability grants `core:*`, `dialog:*` (open/save/ask) and `window-state` only; no fs-scope gymnastics required.
+- **Parsing, querying, rendering, sealing and verification run in the webview** via `@dotit/core` — the Rust side has no parser dependency. The viewer uses `renderPrint`; search uses `parseIntentText` + `parseQuery` + `queryBlocks` + `isSealed`; trust uses the seal/sign/unseal/verify APIs.
+- Frontend: `useVaults` (the registry + per-vault trees + federated file set), `useOpenDocument` (open/save/autosave/dirty), `useTrustBadges` (lifecycle glyphs across all vaults); components `VaultSidebar`, `DocumentViewer`, `SearchPanel`, `TrustDialogs`, `StatusBar`.

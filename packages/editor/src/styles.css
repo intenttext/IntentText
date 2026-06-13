@@ -1116,6 +1116,38 @@
   color: #1d4ed8;
 }
 
+/* ─── Info callout — quiet variant (parity with core .intent-info) ───
+   The Plain Writing Overrides above flatten every callout; info is the
+   exception — a soft gray panel with an italic body and an ⓘ marker (no loud
+   "NOTE" label), exactly matching core's document-css.ts so editor == print.
+   Declared AFTER the overrides so it wins. */
+.docs-page .tiptap .it-doc-callout[data-variant="info"] {
+  display: block;
+  margin: 10px 0;
+  padding: 8px 14px 8px 12px;
+  background: #f5f6f8;
+  border: none;
+  border-inline-start: 3px solid #c7ccd3;
+  border-radius: 0 3px 3px 0;
+}
+.docs-page .tiptap .it-doc-callout[data-variant="info"] .it-doc-callout-icon {
+  display: none;
+}
+.docs-page .tiptap .it-doc-callout[data-variant="info"] .it-doc-callout-text {
+  display: inline;
+  font-style: italic;
+  color: #4f4f4f;
+}
+.docs-page
+  .tiptap
+  .it-doc-callout[data-variant="info"]
+  .it-doc-callout-text::before {
+  content: "ⓘ ";
+  font-style: normal;
+  font-weight: 600;
+  color: #6e6e6e;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    Ribbon — ONE compact Docs-style toolbar row
    (Edit | File | Text | Paragraph | Insert | Trust)
@@ -1384,6 +1416,231 @@
   line-height: 1;
   color: #80868b;
   font-variant-numeric: tabular-nums;
+}
+
+/* Draggable margin stops (Google-Docs blue markers). */
+.docs-ruler--draggable .docs-ruler-stop {
+  position: absolute;
+  z-index: 2;
+}
+.docs-ruler-stop--h {
+  top: 2px;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  cursor: ew-resize;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 7px solid #5b6b8c;
+}
+.docs-ruler-stop--h:hover,
+.docs-ruler-stop--h.dragging {
+  border-top-color: #1a73e8;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Canvas row — left vertical ruler + the scrollable canvas
+   ═══════════════════════════════════════════════════════════════ */
+.docs-canvas-row {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.docs-canvas-row .docs-canvas {
+  flex: 1;
+  min-width: 0;
+}
+
+.docs-ruler-v {
+  flex-shrink: 0;
+  width: 20px;
+  background: #fff;
+  border-right: 1px solid #dadce0;
+  overflow: hidden;
+  user-select: none;
+}
+.docs-ruler-v-track {
+  position: relative;
+  width: 100%;
+  margin: 14px auto 0; /* matches .docs-canvas top padding so 0 aligns to sheet top */
+}
+.docs-ruler-margin--v {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: auto;
+  bottom: auto;
+  width: auto;
+  background: rgba(60, 64, 67, 0.1);
+}
+.docs-ruler-tick--v {
+  bottom: auto;
+  left: auto;
+  right: 4px;
+  width: 4px;
+  height: 1px;
+}
+.docs-ruler-tick--v.docs-ruler-tick--major {
+  width: 7px;
+}
+.docs-ruler-num--v {
+  top: auto;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  writing-mode: vertical-rl;
+}
+.docs-ruler-stop--v {
+  position: absolute;
+  z-index: 2;
+  left: 2px;
+  width: 9px;
+  height: 9px;
+  margin-top: -4.5px;
+  cursor: ns-resize;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 7px solid #5b6b8c;
+}
+.docs-ruler-stop--v:hover,
+.docs-ruler-stop--v.dragging {
+  border-left-color: #1a73e8;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Trust control — one self-explanatory state button + popover
+   ═══════════════════════════════════════════════════════════════ */
+.trust-control {
+  position: relative;
+}
+.trust-face {
+  gap: 5px;
+}
+.trust-face__icon {
+  display: inline-flex;
+}
+.trust-face__ok {
+  color: #188038;
+  font-weight: 700;
+}
+.trust-face--draft {
+  color: #5f6368;
+}
+.trust-face--signed {
+  color: #1a73e8;
+}
+.trust-face--sealed {
+  color: #188038;
+}
+.trust-face--broken {
+  color: #d93025;
+}
+.trust-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  width: 280px;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+  padding: 12px;
+  font-size: 13px;
+}
+.trust-popover__state strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+.trust-popover__meta {
+  color: #5f6368;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.trust-popover__divider {
+  height: 1px;
+  background: #ececec;
+  margin: 10px 0;
+}
+.trust-popover__action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 4px;
+  border: 1px solid #dadce0;
+  border-radius: 7px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  color: #202124;
+  text-align: left;
+}
+.trust-popover__action:hover {
+  background: #f1f3f4;
+}
+.trust-popover__action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.trust-popover__action--primary {
+  background: #1a73e8;
+  border-color: #1a73e8;
+  color: #fff;
+}
+.trust-popover__action--primary:hover {
+  background: #1666c8;
+}
+.trust-popover__action--warn {
+  color: #b06000;
+}
+.trust-popover__verify {
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.trust-verify--ok {
+  color: #188038;
+}
+.trust-verify--bad {
+  color: #d93025;
+}
+.trust-popover__hash {
+  margin-top: 6px;
+}
+.trust-popover__hash summary {
+  cursor: pointer;
+  color: #5f6368;
+}
+.trust-popover__hash code {
+  display: block;
+  margin-top: 4px;
+  word-break: break-all;
+  font-size: 11px;
+  color: #5f6368;
+}
+.trust-sign-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.trust-sign-input {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.trust-sign-input:focus {
+  outline: none;
+  border-color: #1a73e8;
+}
+.trust-sign-actions {
+  display: flex;
+  gap: 6px;
+}
+.trust-sign-actions .trust-popover__action {
+  margin-top: 2px;
 }
 
 /* ─── Mobile ──────────────────────────────────────────────── */

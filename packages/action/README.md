@@ -78,11 +78,11 @@ Checks run on every `.it` file:
 - **Variable references** — `{{variables}}` are declared in `context:` or produced by steps
 - **Trust integrity** — when `verify: true`, checks that frozen/signed documents haven't been tampered with
 
-See the [IntentText documentation](https://itdocs.vercel.app) for the full spec.
+See the [IntentText documentation](https://dotit.uts.qa) for the full spec.
 
 ## Links
 
-- [IntentText Docs](https://itdocs.vercel.app)
+- [IntentText Docs](https://dotit.uts.qa)
 - [IntentText Core](https://www.npmjs.com/package/@dotit/core)
 - [IntentText MCP Server](https://www.npmjs.com/package/@dotit/mcp)
 - [IntentText Python](https://pypi.org/project/intenttext/)

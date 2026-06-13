@@ -219,8 +219,8 @@ pnpm test
 
 ## Links
 
-- [Full Specification](https://itdocs.vercel.app/docs/reference)
-- [Usage Guide](https://itdocs.vercel.app/docs/guide)
+- [Full Specification](https://dotit.uts.qa/docs/reference)
+- [Usage Guide](https://dotit.uts.qa/docs/guide)
 - [Changelog](https://github.com/intenttext/IntentText/blob/main/CHANGELOG.md)
 - [Example Templates](https://github.com/intenttext/IntentText/tree/main/examples/templates)
 

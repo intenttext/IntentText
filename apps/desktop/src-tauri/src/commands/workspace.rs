@@ -158,3 +158,62 @@ pub async fn unwatch_folder(_path: String) -> Result<(), String> {
     *guard = None;
     Ok(())
 }
+
+/// Watches several vault roots at once (the multi-vault registry). Replaces any
+/// previous watcher; all events flow through the same `file-*` events.
+#[tauri::command]
+pub async fn watch_folders(paths: Vec<String>, window: tauri::Window) -> Result<(), String> {
+    {
+        let mut guard = WATCHER.lock().map_err(|e| e.to_string())?;
+        *guard = None;
+    }
+
+    let mut watcher = recommended_watcher(move |res: Result<Event, notify::Error>| {
+        if let Ok(event) = res {
+            let paths: Vec<String> = event
+                .paths
+                .iter()
+                .filter(|p| p.extension().map(|e| e == "it").unwrap_or(false))
+                .map(|p| p.to_string_lossy().to_string())
+                .collect();
+
+            if paths.is_empty() {
+                return;
+            }
+
+            let event_name = match event.kind {
+                EventKind::Create(_) => "file-created",
+                EventKind::Modify(_) => "file-modified",
+                EventKind::Remove(_) => "file-deleted",
+                _ => return,
+            };
+
+            #[derive(serde::Serialize, Clone)]
+            struct FsEvent {
+                paths: Vec<String>,
+                folder: String,
+            }
+
+            let folder = paths
+                .first()
+                .and_then(|p| Path::new(p).parent())
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_default();
+
+            let _ = window.emit(event_name, FsEvent { paths, folder });
+        }
+    })
+    .map_err(|e| format!("Failed to create watcher: {}", e))?;
+
+    for p in &paths {
+        let root = Path::new(p);
+        if root.is_dir() {
+            // Best-effort: skip roots that can't be watched rather than failing all.
+            let _ = watcher.watch(root, RecursiveMode::Recursive);
+        }
+    }
+
+    let mut guard = WATCHER.lock().map_err(|e| e.to_string())?;
+    *guard = Some(watcher);
+    Ok(())
+}

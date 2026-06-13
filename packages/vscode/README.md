@@ -70,6 +70,6 @@ This extension does not add custom settings. It activates automatically for `.it
 
 ## Links
 
-- [IntentText Docs](https://itdocs.vercel.app/docs/reference)
+- [IntentText Docs](https://dotit.uts.qa/docs/reference)
 - [IntentText Core](https://www.npmjs.com/package/@dotit/core)
 - [IntentText MCP Server](https://www.npmjs.com/package/@dotit/mcp)

@@ -86,7 +86,8 @@ const config: Config = {
       title: "IntentText",
       logo: {
         alt: "IntentText Logo",
-        src: "img/android-chrome-192x192.png",
+        src: "img/logo.png",
+        srcDark: "img/logo-dark.png",
       },
       items: [
         {
@@ -149,7 +150,7 @@ const config: Config = {
         {
           title: "Ecosystem",
           items: [
-            { label: "Hub", href: "https://intenttext-hub.vercel.app" },
+            { label: "Hub", href: "https://hub.dotit.uts.qa" },
             { label: "Editor", href: "https://editor.uts.qa" },
             {
               label: "npm",

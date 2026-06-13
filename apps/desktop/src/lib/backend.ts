@@ -52,8 +52,27 @@ export function watchFolder(path: string): Promise<void> {
   return invoke("watch_folder", { path });
 }
 
+/** Watch several vault roots at once (the multi-vault registry). */
+export function watchFolders(paths: string[]): Promise<void> {
+  return invoke("watch_folders", { paths });
+}
+
 export function unwatchFolder(path: string): Promise<void> {
   return invoke("unwatch_folder", { path });
+}
+
+// ---------------------------------------------------------------------------
+// Durable app settings (persisted to disk by the Rust backend)
+// ---------------------------------------------------------------------------
+
+/** Loads the persisted settings object ({} when nothing saved yet). */
+export function loadSettings<T = Record<string, unknown>>(): Promise<T> {
+  return invoke<T>("load_settings");
+}
+
+/** Persists the full settings object to the OS app-config dir. */
+export function saveSettings(settings: unknown): Promise<void> {
+  return invoke("save_settings", { settings });
 }
 
 // ---------------------------------------------------------------------------

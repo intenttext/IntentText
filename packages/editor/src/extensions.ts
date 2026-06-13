@@ -310,13 +310,26 @@ export const ITMeta = Node.create({
 });
 
 // ── Table ─────────────────────────────────────────────────────
-// Read-only display of a pipe table. `rows` is a JSON string of string[][]
-// (first row = headers). Editing the data is done in source mode for now; this
-// node ensures the table renders instead of vanishing in the visual editor.
+// Pipe table. `rows` is a JSON string of string[][] (first row = headers).
+// An atom node (so the table is one round-trippable unit), but a NodeView makes
+// every cell `contenteditable`: users click into headers/rows and edit the text
+// directly. Each edit writes the updated grid back to the `rows` attr, so
+// docToSource re-emits `| a | b |` lines with the new content. Enter/Tab are
+// swallowed inside cells so they don't break the document structure.
+function parseRows(raw: string): string[][] {
+  try {
+    const v = JSON.parse(raw || "[]");
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
+
 export const ITTable = Node.create({
   name: "itTable",
   group: "block",
   atom: true,
+  selectable: true,
 
   addAttributes() {
     return {
@@ -331,12 +344,7 @@ export const ITTable = Node.create({
     return [{ tag: "table[data-it-table]" }];
   },
   renderHTML({ HTMLAttributes, node }) {
-    let rows: string[][] = [];
-    try {
-      rows = JSON.parse(node.attrs.rows || "[]");
-    } catch {
-      rows = [];
-    }
+    const rows = parseRows(node.attrs.rows);
     const head = rows[0] || [];
     const body = rows.slice(1);
     return [
@@ -357,6 +365,90 @@ export const ITTable = Node.create({
         ]),
       ],
     ];
+  },
+
+  addNodeView() {
+    return ({ node, editor, getPos }) => {
+      const table = document.createElement("table");
+      table.className = "it-doc-table";
+      table.setAttribute("data-it-table", "");
+      const thead = document.createElement("thead");
+      const tbody = document.createElement("tbody");
+      table.append(thead, tbody);
+
+      let rows = parseRows(node.attrs.rows);
+
+      // Push the in-DOM cell text back into the node's `rows` attr.
+      const commit = () => {
+        const next: string[][] = [];
+        table.querySelectorAll("tr").forEach((tr) => {
+          const r: string[] = [];
+          tr.querySelectorAll("th,td").forEach((c) =>
+            r.push((c.textContent || "").trim()),
+          );
+          next.push(r);
+        });
+        const json = JSON.stringify(next);
+        if (json === node.attrs.rows) return;
+        rows = next;
+        if (typeof getPos === "function") {
+          const pos = getPos();
+          if (pos == null) return;
+          const tr = editor.view.state.tr.setNodeAttribute(pos, "rows", json);
+          editor.view.dispatch(tr);
+        }
+      };
+
+      const makeCell = (tag: "th" | "td", text: string) => {
+        const cell = document.createElement(tag);
+        cell.textContent = text;
+        const editable = editor.isEditable;
+        cell.contentEditable = editable ? "true" : "false";
+        if (/\{\{[^}]+\}\}|^each:/.test(String(text).trim()))
+          cell.className = "it-doc-var-cell";
+        cell.addEventListener("blur", commit);
+        cell.addEventListener("keydown", (e) => {
+          // Keep cell text single-line; Enter/Tab must not split the document.
+          if (e.key === "Enter") {
+            e.preventDefault();
+            (e.target as HTMLElement).blur();
+          }
+        });
+        return cell;
+      };
+
+      const render = (grid: string[][]) => {
+        thead.innerHTML = "";
+        tbody.innerHTML = "";
+        const head = grid[0] || [];
+        const htr = document.createElement("tr");
+        head.forEach((c) => htr.appendChild(makeCell("th", String(c))));
+        thead.appendChild(htr);
+        grid.slice(1).forEach((row) => {
+          const tr = document.createElement("tr");
+          row.forEach((c) => tr.appendChild(makeCell("td", String(c))));
+          tbody.appendChild(tr);
+        });
+      };
+      render(rows);
+
+      return {
+        dom: table,
+        // Re-render only when the attr changed from OUTSIDE this view (e.g.
+        // source-mode edit), not from our own commit, to keep the caret stable.
+        update(updated) {
+          if (updated.type.name !== "itTable") return false;
+          if (updated.attrs.rows !== JSON.stringify(rows)) {
+            rows = parseRows(updated.attrs.rows);
+            render(rows);
+          }
+          return true;
+        },
+        // The cells own the selection while editing; let ProseMirror ignore
+        // mutations inside the contenteditable cells.
+        ignoreMutation: () => true,
+      };
+    };
   },
 });
 

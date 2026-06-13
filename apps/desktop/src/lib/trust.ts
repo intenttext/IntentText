@@ -4,7 +4,12 @@
 // sign insert the corresponding trust blocks at the conventional position
 // (after front-matter, before history/freeze).
 
-import { sealDocument, verifyDocument } from "@dotit/core";
+import {
+  isSealed,
+  sealDocument,
+  unsealDocument,
+  verifyDocument,
+} from "@dotit/core";
 import type { SealResult, VerifyResult } from "@dotit/core";
 
 const FRONT_MATTER = new Set([
@@ -89,4 +94,12 @@ export function seal(
 
 export function verify(source: string): VerifyResult {
   return verifyDocument(source);
+}
+
+export function sealed(source: string): boolean {
+  return isSealed(source);
+}
+
+export function unseal(source: string): string {
+  return unsealDocument(source);
 }

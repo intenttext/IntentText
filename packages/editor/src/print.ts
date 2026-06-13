@@ -44,6 +44,10 @@ function buildWysiwygPrint(content: string, printMode: string): string | null {
   const clone = tiptap.cloneNode(true) as HTMLElement;
   // Page-break spacers are a screen affordance; print paginates natively via @page.
   clone.querySelectorAll("[data-it-spacer]").forEach((e) => e.remove());
+  // Comments (// lines) are an editing affordance only — never print them.
+  clone
+    .querySelectorAll('.it-doc-comment, [data-it-type="comment"]')
+    .forEach((e) => e.remove());
   const bodyHtml = clone.innerHTML;
 
   // Copy the page's stylesheets (the bundled editor CSS + injected theme) verbatim.
@@ -114,6 +118,34 @@ export function exportDocumentPDF(
 ) {
   try {
     printHtmlViaIframe(buildPrintHtml(content, theme, printMode));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Download the raw `.it` source as a file. This is the editor's "Save".
+ *  Derives a filename from the document's meta id / title when available. */
+export function downloadItFile(content: string, filename?: string) {
+  try {
+    let name = filename;
+    if (!name) {
+      try {
+        const doc = parseIntentText(content);
+        const meta = doc.blocks.find((b) => b.type === "meta");
+        const id = meta?.properties?.id;
+        const title =
+          doc.blocks.find((b) => b.type === "title")?.content || "";
+        const base = String(id || title || "document")
+          .trim()
+          .replace(/[^\w\-]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 60) || "document";
+        name = `${base}.it`;
+      } catch {
+        name = "document.it";
+      }
+    }
+    download(content, name, "text/plain;charset=utf-8");
   } catch {
     /* ignore */
   }

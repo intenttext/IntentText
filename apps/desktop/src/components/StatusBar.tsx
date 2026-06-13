@@ -4,14 +4,15 @@ import { useMemo } from "react";
 import { parseIntentText } from "@dotit/core";
 import { extractTrustState } from "@dotit/editor";
 import type { OpenDocument } from "../hooks/useOpenDocument";
-import type { Workspace } from "../hooks/useWorkspace";
 
 export function StatusBar(props: {
-  workspace: Workspace | null;
+  scopeLabel: string;
+  docCount: number;
   doc: OpenDocument | null;
-  onChooseWorkspace: () => void;
+  mode: "view" | "edit";
+  onAddFolder: () => void;
 }) {
-  const { workspace, doc, onChooseWorkspace } = props;
+  const { scopeLabel, docCount, doc, mode, onAddFolder } = props;
 
   const stats = useMemo(() => {
     if (!doc) return null;
@@ -34,17 +35,17 @@ export function StatusBar(props: {
     <footer className="statusbar">
       <button
         className="status-item clickable"
-        title={workspace?.path ?? "Choose a workspace folder"}
-        onClick={onChooseWorkspace}
+        title="Add a folder to your library"
+        onClick={onAddFolder}
       >
-        {workspace ? workspace.name : "No workspace"}
-        {workspace ? ` · ${workspace.itFiles.length} docs` : ""}
+        {scopeLabel} · {docCount} docs
       </button>
 
       <span className="status-spacer" />
 
       {stats && (
         <>
+          <span className="status-item">{mode === "view" ? "Viewing" : "Editing"}</span>
           {stats.issues > 0 && (
             <span className="status-item warn">
               {stats.issues} issue{stats.issues === 1 ? "" : "s"}

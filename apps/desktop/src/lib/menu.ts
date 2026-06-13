@@ -9,18 +9,20 @@ import { isTauri } from "./backend";
 export interface MenuActions {
   newDocument: () => void;
   openFile: () => void;
-  openWorkspace: () => void;
+  addFolder: () => void;
   save: () => void;
   saveAs: () => void;
   exportPDF: () => void;
   exportHTML: () => void;
   toggleSidebar: () => void;
+  toggleEdit: () => void;
   toggleSourceView: () => void;
   focusSearch: () => void;
   trustSeal: () => void;
   trustSign: () => void;
   trustApprove: () => void;
   trustTrack: () => void;
+  trustUnseal: () => void;
   trustVerify: () => void;
 }
 
@@ -65,8 +67,8 @@ export async function installAppMenu(
     items: [
       await item("New Document", "CmdOrCtrl+N", (a) => a.newDocument()),
       await item("Open…", "CmdOrCtrl+O", (a) => a.openFile()),
-      await item("Open Workspace…", "CmdOrCtrl+Shift+O", (a) =>
-        a.openWorkspace(),
+      await item("Add Folder to Library…", "CmdOrCtrl+Shift+O", (a) =>
+        a.addFolder(),
       ),
       await sep(),
       await item("Save", "CmdOrCtrl+S", (a) => a.save()),
@@ -90,7 +92,7 @@ export async function installAppMenu(
       await PredefinedMenuItem.new({ item: "Paste" }),
       await PredefinedMenuItem.new({ item: "SelectAll" }),
       await sep(),
-      await item("Find in Workspace", "CmdOrCtrl+Shift+F", (a) =>
+      await item("Find Across Library", "CmdOrCtrl+Shift+F", (a) =>
         a.focusSearch(),
       ),
     ],
@@ -99,10 +101,12 @@ export async function installAppMenu(
   const viewMenu = await Submenu.new({
     text: "View",
     items: [
-      await item("Toggle Library", "CmdOrCtrl+B", (a) => a.toggleSidebar()),
-      await item("Toggle Source View", "CmdOrCtrl+E", (a) =>
+      await item("Edit / View Document", "CmdOrCtrl+E", (a) => a.toggleEdit()),
+      await item("Toggle Source View", "CmdOrCtrl+Shift+E", (a) =>
         a.toggleSourceView(),
       ),
+      await sep(),
+      await item("Toggle Sidebar", "CmdOrCtrl+B", (a) => a.toggleSidebar()),
       await sep(),
       await PredefinedMenuItem.new({ item: "Fullscreen" }),
     ],
@@ -115,6 +119,7 @@ export async function installAppMenu(
       await item("Add Approval…", undefined, (a) => a.trustApprove()),
       await item("Sign Document…", "CmdOrCtrl+Shift+G", (a) => a.trustSign()),
       await item("Seal Document…", "CmdOrCtrl+Shift+L", (a) => a.trustSeal()),
+      await item("Unseal Document", undefined, (a) => a.trustUnseal()),
       await sep(),
       await item("Verify Document", "CmdOrCtrl+Shift+V", (a) =>
         a.trustVerify(),

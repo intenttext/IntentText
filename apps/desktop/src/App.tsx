@@ -1,8 +1,12 @@
-// Dotit Desktop — enterprise document manager for .it files.
+// Dotit Desktop — native document manager for .it files.
 //
-// Shell layout: native menu bar (Tauri) + library/search sidebar + the
-// embeddable @dotit/editor WYSIWYG canvas + status bar. The desktop app owns
-// files, search and trust flows; all editor chrome comes from the package.
+// The product goal: click a .it file and it opens like a PDF — a clean,
+// read-only paper page you trust. An Edit button switches to the @dotit/editor.
+// A multi-vault registry (DEVONthink-style) indexes folders of .it files
+// scattered across the machine and federates search across all of them.
+//
+// Shell: native Tauri menu + a Finder-style vault sidebar (All Files + each
+// registered folder + Add Folder) + the document viewer/editor + status bar.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
@@ -15,36 +19,47 @@ import {
 } from "@dotit/editor";
 import type { TrustAction } from "@dotit/editor";
 import {
+  BadgeCheck,
+  Code2,
+  Download,
   FileText,
-  FolderOpen,
-  Library,
+  FolderPlus,
+  Lock,
   PanelLeftClose,
   PanelLeftOpen,
+  Pencil,
+  PenLine,
   Search,
+  ShieldCheck,
+  Unlock,
 } from "lucide-react";
 
 import { isTauri } from "./lib/backend";
 import { installAppMenu } from "./lib/menu";
 import type { MenuActions } from "./lib/menu";
 import * as trustOps from "./lib/trust";
-import { useWorkspace } from "./hooks/useWorkspace";
+import { useVaults } from "./hooks/useVaults";
 import { useOpenDocument } from "./hooks/useOpenDocument";
 import { useTrustBadges } from "./hooks/useTrustBadges";
-import { LibraryPanel } from "./components/LibraryPanel";
+import { VaultSidebar } from "./components/VaultSidebar";
 import { SearchPanel } from "./components/SearchPanel";
 import { StatusBar } from "./components/StatusBar";
+import { DocumentViewer } from "./components/DocumentViewer";
 import { TrustDialogs } from "./components/TrustDialogs";
 import type { TrustDialogKind } from "./components/TrustDialogs";
 
 type SidebarTab = "library" | "search";
+type DocMode = "view" | "edit";
 
 export default function App() {
-  const workspaceApi = useWorkspace();
-  const { workspace } = workspaceApi;
+  const vaultsApi = useVaults();
 
   const docApi = useOpenDocument({
-    defaultDir: workspace?.path ?? null,
-    onSaved: () => workspaceApi.refresh(),
+    defaultDir: vaultsApi.activeVault?.path ?? null,
+    onSaved: () => {
+      const v = vaultsApi.activeVault;
+      if (v) void vaultsApi.refreshVault(v.path);
+    },
   });
   const { doc } = docApi;
 
@@ -52,6 +67,7 @@ export default function App() {
     () => localStorage.getItem("dotit.ui.sidebar") !== "0",
   );
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("library");
+  const [mode, setMode] = useState<DocMode>("view");
   const [sourceView, setSourceView] = useState(false);
   const [theme, setTheme] = useState(
     () => localStorage.getItem("dotit.doc.theme") ?? "corporate",
@@ -59,10 +75,7 @@ export default function App() {
   const [trustDialog, setTrustDialog] = useState<TrustDialogKind>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const badges = useTrustBadges(
-    workspace?.itFiles ?? [],
-    workspaceApi.revision,
-  );
+  const badges = useTrustBadges(vaultsApi.allFiles, vaultsApi.revision);
 
   useEffect(() => {
     localStorage.setItem("dotit.ui.sidebar", sidebarVisible ? "1" : "0");
@@ -71,17 +84,31 @@ export default function App() {
     localStorage.setItem("dotit.doc.theme", theme);
   }, [theme]);
 
+  // A freshly opened/created doc always starts in the read-only viewer.
+  const docIsSealed = useMemo(
+    () => (doc ? trustOps.sealed(doc.content) : false),
+    [doc?.content],
+  );
+
   const openFile = useCallback(
     async (path: string) => {
       try {
         await docApi.openPath(path);
-        workspaceApi.noteRecent(path);
+        vaultsApi.noteRecent(path);
+        setMode("view");
+        setSourceView(false);
       } catch (err) {
         console.error("Failed to open file:", err);
       }
     },
-    [docApi, workspaceApi],
+    [docApi, vaultsApi],
   );
+
+  const newDocument = useCallback(async () => {
+    await docApi.newDocument();
+    setMode("edit"); // a blank doc opens straight into editing
+    setSourceView(false);
+  }, [docApi]);
 
   const openFileViaDialog = useCallback(async () => {
     const selected = await openDialog({
@@ -97,12 +124,22 @@ export default function App() {
     setTimeout(() => searchInputRef.current?.focus(), 50);
   }, []);
 
+  const toggleEdit = useCallback(() => {
+    if (!doc) return;
+    // Sealed documents are read-only; never drop into edit mode.
+    if (trustOps.sealed(doc.content)) {
+      setMode("view");
+      return;
+    }
+    setMode((m) => (m === "view" ? "edit" : "view"));
+  }, [doc]);
+
   // ----- native menu (always sees latest state through the ref) -----
   const actionsRef = useRef<MenuActions>(null!);
   actionsRef.current = {
-    newDocument: () => void docApi.newDocument(),
+    newDocument: () => void newDocument(),
     openFile: () => void openFileViaDialog(),
-    openWorkspace: () => void workspaceApi.chooseWorkspace(),
+    addFolder: () => void vaultsApi.addFolder(),
     save: () => void docApi.save(),
     saveAs: () => void docApi.saveAs(),
     exportPDF: () => {
@@ -112,13 +149,22 @@ export default function App() {
       if (doc) exportDocumentHTML(doc.content, theme);
     },
     toggleSidebar: () => setSidebarVisible((v) => !v),
-    toggleSourceView: () => setSourceView((v) => !v),
+    toggleEdit,
+    toggleSourceView: () => {
+      setMode("edit");
+      setSourceView((v) => !v);
+    },
     focusSearch,
     trustSeal: () => doc && setTrustDialog("seal"),
     trustSign: () => doc && setTrustDialog("sign"),
     trustApprove: () => doc && setTrustDialog("approve"),
     trustTrack: () => {
       if (doc) void docApi.applyAndSave(trustOps.startTracking(doc.content));
+    },
+    trustUnseal: () => {
+      if (doc && trustOps.sealed(doc.content)) {
+        void docApi.applyAndSave(trustOps.unseal(doc.content));
+      }
     },
     trustVerify: () => doc && setTrustDialog("verify"),
   };
@@ -133,12 +179,10 @@ export default function App() {
   useEffect(() => {
     const title = doc
       ? `${doc.dirty ? "• " : ""}${doc.name} — Dotit`
-      : workspace
-        ? `${workspace.name} — Dotit`
-        : "Dotit";
+      : "Dotit";
     document.title = title;
     if (isTauri) getCurrentWindow().setTitle(title).catch(() => {});
-  }, [doc, doc?.name, doc?.dirty, workspace]);
+  }, [doc, doc?.name, doc?.dirty]);
 
   // ----- file association: .it opened from the OS -----
   useEffect(() => {
@@ -164,21 +208,40 @@ export default function App() {
       } else if (key === "f" && e.shiftKey) {
         e.preventDefault();
         focusSearch();
+      } else if (key === "e" && e.shiftKey) {
+        e.preventDefault();
+        setMode("edit");
+        setSourceView((v) => !v);
       } else if (key === "e" && !e.shiftKey) {
         e.preventDefault();
-        setSourceView((v) => !v);
+        toggleEdit();
+      } else if (key === "p" && !e.shiftKey) {
+        e.preventDefault();
+        if (doc) exportDocumentPDF(doc.content, theme);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [docApi, focusSearch]);
+  }, [docApi, focusSearch, toggleEdit, doc, theme]);
 
   const onTrustAction = useCallback((action: TrustAction) => {
     setTrustDialog(action);
   }, []);
 
-  const editorPane = useMemo(() => {
+  const scopeLabel =
+    vaultsApi.scope === "all"
+      ? "All Files"
+      : (vaultsApi.activeVault?.label ?? "Library");
+  const docCount =
+    vaultsApi.scope === "all"
+      ? vaultsApi.allFiles.length
+      : (vaultsApi.activeVault?.itFiles.length ?? 0);
+
+  const mainPane = useMemo(() => {
     if (!doc) return null;
+    if (mode === "view") {
+      return <DocumentViewer content={doc.content} theme={theme} />;
+    }
     if (sourceView) {
       return (
         <textarea
@@ -198,7 +261,7 @@ export default function App() {
         onTrustAction={onTrustAction}
       />
     );
-  }, [doc, sourceView, theme, docApi, onTrustAction]);
+  }, [doc, mode, sourceView, theme, docApi, onTrustAction]);
 
   return (
     <div className="app">
@@ -206,7 +269,7 @@ export default function App() {
         <div className="topbar-left" data-tauri-drag-region>
           <button
             className="icon-btn"
-            title="Toggle library (⌘B)"
+            title="Toggle sidebar (⌘B)"
             onClick={() => setSidebarVisible((v) => !v)}
           >
             {sidebarVisible ? (
@@ -220,14 +283,93 @@ export default function App() {
           {doc ? (
             <>
               <FileText size={13} />
-              <span>{doc.name}</span>
+              <span>{doc.name.replace(/\.it$/i, "")}</span>
               {doc.dirty && <span className="dirty-dot">•</span>}
+              {docIsSealed && (
+                <Lock size={12} className="trust-icon trust-sealed" />
+              )}
             </>
           ) : (
             <span className="muted">Dotit</span>
           )}
         </div>
-        <div className="topbar-right" data-tauri-drag-region />
+        <div className="topbar-right">
+          {doc && (
+            <div className="doc-actions">
+              {docIsSealed ? (
+                <span className="sealed-pill" title="Sealed — read-only">
+                  <Lock size={12} /> Sealed
+                </span>
+              ) : (
+                <button
+                  className={`pill-btn${mode === "edit" ? " active" : ""}`}
+                  title="Edit / view (⌘E)"
+                  onClick={toggleEdit}
+                >
+                  <Pencil size={13} /> {mode === "edit" ? "Done" : "Edit"}
+                </button>
+              )}
+              {mode === "edit" && !docIsSealed && (
+                <button
+                  className={`icon-btn${sourceView ? " active" : ""}`}
+                  title="Toggle source (⌘⇧E)"
+                  onClick={() => setSourceView((v) => !v)}
+                >
+                  <Code2 size={15} />
+                </button>
+              )}
+              <span className="topbar-divider" />
+              <button
+                className="icon-btn"
+                title="Sign document"
+                onClick={() => setTrustDialog("sign")}
+              >
+                <PenLine size={15} />
+              </button>
+              <button
+                className="icon-btn"
+                title="Approve document"
+                onClick={() => setTrustDialog("approve")}
+              >
+                <BadgeCheck size={15} />
+              </button>
+              {docIsSealed ? (
+                <button
+                  className="icon-btn"
+                  title="Unseal document"
+                  onClick={() =>
+                    void docApi.applyAndSave(trustOps.unseal(doc.content))
+                  }
+                >
+                  <Unlock size={15} />
+                </button>
+              ) : (
+                <button
+                  className="icon-btn"
+                  title="Seal document"
+                  onClick={() => setTrustDialog("seal")}
+                >
+                  <Lock size={15} />
+                </button>
+              )}
+              <button
+                className="icon-btn"
+                title="Verify document"
+                onClick={() => setTrustDialog("verify")}
+              >
+                <ShieldCheck size={15} />
+              </button>
+              <span className="topbar-divider" />
+              <button
+                className="icon-btn"
+                title="Export PDF (⌘P)"
+                onClick={() => exportDocumentPDF(doc.content, theme)}
+              >
+                <Download size={15} />
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       <div className="body">
@@ -238,18 +380,18 @@ export default function App() {
                 className={`sidebar-tab${sidebarTab === "library" ? " active" : ""}`}
                 onClick={() => setSidebarTab("library")}
               >
-                <Library size={14} /> Library
+                Library
               </button>
               <button
                 className={`sidebar-tab${sidebarTab === "search" ? " active" : ""}`}
                 onClick={() => setSidebarTab("search")}
               >
-                <Search size={14} /> Search
+                <Search size={13} /> Search
               </button>
             </div>
             {sidebarTab === "library" ? (
-              <LibraryPanel
-                api={workspaceApi}
+              <VaultSidebar
+                api={vaultsApi}
                 badges={badges}
                 activePath={doc?.path ?? null}
                 dirty={doc?.dirty ?? false}
@@ -258,45 +400,49 @@ export default function App() {
             ) : (
               <SearchPanel
                 ref={searchInputRef}
-                workspace={workspace}
+                api={vaultsApi}
                 onOpenFile={(p) => void openFile(p)}
               />
             )}
           </aside>
         )}
 
-        <main className="main">
+        <main className={`main${doc && mode === "view" ? " main-viewer" : ""}`}>
           {doc ? (
-            editorPane
+            mainPane
           ) : (
             <div className="empty-state">
+              <div className="empty-brand">.it</div>
               <h1>Dotit</h1>
-              <p>Manage, search, and seal your .it documents.</p>
+              <p>
+                A native home for your <code>.it</code> documents — register your
+                folders, search across all of them, and open any file like a PDF.
+              </p>
               <div className="empty-actions">
                 <button
                   className="btn primary"
-                  onClick={() => workspaceApi.chooseWorkspace()}
+                  onClick={() => vaultsApi.addFolder()}
                 >
-                  <FolderOpen size={15} /> Open Workspace…
+                  <FolderPlus size={15} /> Add Folder…
                 </button>
-                <button className="btn" onClick={() => docApi.newDocument()}>
+                <button className="btn" onClick={() => void newDocument()}>
                   New Document
                 </button>
                 <button className="btn" onClick={() => openFileViaDialog()}>
                   Open File…
                 </button>
               </div>
-              {workspaceApi.recentFiles.length > 0 && (
+              {vaultsApi.recentFiles.length > 0 && (
                 <div className="empty-recents">
                   <div className="panel-subtitle">Recent</div>
-                  {workspaceApi.recentFiles.slice(0, 6).map((p) => (
+                  {vaultsApi.recentFiles.slice(0, 6).map((p) => (
                     <button
                       key={p}
                       className="link"
                       onClick={() => void openFile(p)}
                       title={p}
                     >
-                      {p.split("/").pop()}
+                      {p.split("/").pop()?.replace(/\.it$/i, "")}
                     </button>
                   ))}
                 </div>
@@ -307,9 +453,11 @@ export default function App() {
       </div>
 
       <StatusBar
-        workspace={workspace}
+        scopeLabel={scopeLabel}
+        docCount={docCount}
         doc={doc}
-        onChooseWorkspace={() => workspaceApi.chooseWorkspace()}
+        mode={mode}
+        onAddFolder={() => vaultsApi.addFolder()}
       />
 
       {doc && (

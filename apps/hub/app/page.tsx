@@ -97,7 +97,7 @@ export default async function HomePage({
             </a>
             <span>·</span>
             <a
-              href="https://itdocs.vercel.app"
+              href="https://dotit.uts.qa"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-[var(--text)] transition-colors"

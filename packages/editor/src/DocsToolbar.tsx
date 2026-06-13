@@ -29,22 +29,21 @@ import {
   RemoveFormatting,
   ChevronDown,
   Printer,
-  FileCode2,
+  Download,
   Droplets,
   Rows3,
   AlignHorizontalSpaceBetween,
-  FileLock2,
-  PenTool,
-  ShieldCheck,
 } from "lucide-react";
 import { LANGUAGE_REGISTRY } from "@dotit/core";
 import { CATEGORY_META } from "./types";
 import { getBlockProp } from "./block-props";
 import {
   exportDocumentPDF,
-  exportDocumentHTML,
+  downloadItFile,
   builtinThemes,
 } from "./print";
+import { TrustControl } from "./TrustControl";
+import type { TrustState } from "./trust-state";
 import type { TrustAction } from "./types";
 
 interface Props {
@@ -53,10 +52,19 @@ interface Props {
   onToggleRtl?: () => void;
   /** Current .it source — used by the export actions. */
   content: string;
+  /** Apply a new source (used by the self-contained trust control). */
+  onChange?: (source: string) => void;
   theme: string;
   onThemeChange: (theme: string) => void;
-  /** Trust actions (Seal / Sign / Verify). The group is hidden when omitted. */
+  /**
+   * Optional host override for the Trust control. When omitted the editor's own
+   * self-contained TrustControl handles sign/seal/verify/unseal via core.
+   */
   onTrustAction?: (action: TrustAction) => void;
+  /** Trust snapshot — drives the built-in TrustControl. */
+  trust?: TrustState;
+  /** verifyDocument().intact — null when not sealed. */
+  sealIntact?: boolean | null;
   /** Sealed documents are read-only — formatting groups are disabled. */
   locked?: boolean;
 }
@@ -240,9 +248,12 @@ export function DocsToolbar({
   isRtl = false,
   onToggleRtl,
   content,
+  onChange,
   theme,
   onThemeChange,
   onTrustAction,
+  trust,
+  sealIntact = null,
   locked = false,
 }: Props) {
   const [styleOpen, setStyleOpen] = useState(false);
@@ -501,10 +512,7 @@ export function DocsToolbar({
     () => exportDocumentPDF(content, theme, printMode),
     [content, theme, printMode],
   );
-  const doExportHTML = useCallback(
-    () => exportDocumentHTML(content, theme, printMode),
-    [content, theme, printMode],
-  );
+  const doSave = useCallback(() => downloadItFile(content), [content]);
 
   if (!editor) return null;
 
@@ -535,13 +543,13 @@ export function DocsToolbar({
 
       {/* ── File / Export ────────────────────────────────── */}
       <Group label="File">
-        <Btn onClick={doExportPDF} title="Print / Export PDF (WYSIWYG)">
+        <Btn onClick={doSave} title="Save / Download the .it file">
+          <Download size={16} />
+          <span className="ribbon-btn-text">Save</span>
+        </Btn>
+        <Btn onClick={doExportPDF} title="Export PDF (⌘P) — WYSIWYG">
           <Printer size={16} />
           <span className="ribbon-btn-text">PDF</span>
-        </Btn>
-        <Btn onClick={doExportHTML} title="Export HTML">
-          <FileCode2 size={16} />
-          <span className="ribbon-btn-text">HTML</span>
         </Btn>
         <Btn
           onClick={() => setInkSaver((v) => !v)}
@@ -554,7 +562,7 @@ export function DocsToolbar({
           className="ribbon-theme-select"
           value={theme}
           onChange={(e) => onThemeChange(e.target.value)}
-          title="Document theme (used by print/export)"
+          title="Document theme (used everywhere — canvas, print, export)"
         >
           {themes.map((t) => (
             <option key={t} value={t}>
@@ -567,8 +575,44 @@ export function DocsToolbar({
       <GroupSep />
 
       <div className={locked ? "ribbon-locked" : "ribbon-editing"}>
-        {/* ── Text ─────────────────────────────────────────── */}
-        <Group label="Text">
+        {/* ── Style (paragraph type) ───────────────────────── */}
+        <Group label="Style">
+          {/* Block style (Title / Section / …) */}
+          <div className="docs-tb-dropdown" ref={styleRef}>
+            <button
+              className="docs-tb-select docs-tb-paragraph-select"
+              onClick={() => {
+                closeAll();
+                setStyleOpen(!styleOpen);
+              }}
+            >
+              <span className="docs-tb-select-label">{getCurrentStyle()}</span>
+              <ChevronDown size={14} />
+            </button>
+            {styleOpen && (
+              <div className="docs-tb-dropdown-menu docs-style-menu">
+                {STYLE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.node}
+                    className={`docs-tb-dropdown-item${getCurrentStyle() === opt.label ? " active" : ""}`}
+                    onClick={() => setStyle(opt.node)}
+                  >
+                    <span
+                      className={`docs-style-preview docs-style-${opt.node}`}
+                    >
+                      {opt.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </Group>
+
+        <GroupSep />
+
+        {/* ── Font (family + size) ─────────────────────────── */}
+        <Group label="Font">
           {/* Font family */}
           <div className="docs-tb-dropdown" ref={fontRef}>
             <button
@@ -612,7 +656,12 @@ export function DocsToolbar({
           <Btn onClick={() => changeFontSize(1)} title="Increase font size">
             <Plus size={14} />
           </Btn>
+        </Group>
 
+        <GroupSep />
+
+        {/* ── Text (B I U S + color) ───────────────────────── */}
+        <Group label="Text">
           <Btn
             onClick={() => editor.chain().focus().toggleBold().run()}
             active={editor.isActive("bold")}
@@ -764,39 +813,8 @@ export function DocsToolbar({
 
         <GroupSep />
 
-        {/* ── Paragraph ────────────────────────────────────── */}
+        {/* ── Paragraph (align / direction / spacing / lists) ─ */}
         <Group label="Paragraph">
-          {/* Block style (Title / Section / …) */}
-          <div className="docs-tb-dropdown" ref={styleRef}>
-            <button
-              className="docs-tb-select docs-tb-paragraph-select"
-              onClick={() => {
-                closeAll();
-                setStyleOpen(!styleOpen);
-              }}
-            >
-              <span className="docs-tb-select-label">{getCurrentStyle()}</span>
-              <ChevronDown size={14} />
-            </button>
-            {styleOpen && (
-              <div className="docs-tb-dropdown-menu docs-style-menu">
-                {STYLE_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.node}
-                    className={`docs-tb-dropdown-item${getCurrentStyle() === opt.label ? " active" : ""}`}
-                    onClick={() => setStyle(opt.node)}
-                  >
-                    <span
-                      className={`docs-style-preview docs-style-${opt.node}`}
-                    >
-                      {opt.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Alignment → core `align:` */}
           <Btn
             onClick={() => editor.chain().focus().setTextAlign("left").run()}
@@ -992,40 +1010,40 @@ export function DocsToolbar({
         </Group>
       </div>
 
-      {onTrustAction && (
+      {/* ── Trust ────────────────────────────────────────── */}
+      {trust && onChange ? (
         <>
           <GroupSep />
-
-          {/* ── Trust ────────────────────────────────────── */}
           <Group label="Trust">
-            <Btn
-              onClick={() => onTrustAction("seal")}
-              disabled={locked}
-              title={
-                locked
-                  ? "Document is already sealed"
-                  : "Seal — freeze the document with a tamper-evident hash"
-              }
-            >
-              <FileLock2 size={16} />
-              <span className="ribbon-btn-text">Seal</span>
-            </Btn>
-            <Btn
-              onClick={() => onTrustAction("sign")}
-              title="Sign — add a signature"
-            >
-              <PenTool size={16} />
-              <span className="ribbon-btn-text">Sign</span>
-            </Btn>
-            <Btn
-              onClick={() => onTrustAction("verify")}
-              title="Verify — check the document hash and signatures"
-            >
-              <ShieldCheck size={16} />
-              <span className="ribbon-btn-text">Verify</span>
-            </Btn>
+            <TrustControl
+              content={content}
+              onChange={onChange}
+              trust={trust}
+              intact={sealIntact}
+            />
           </Group>
         </>
+      ) : (
+        onTrustAction && (
+          <>
+            <GroupSep />
+            <Group label="Trust">
+              <Btn
+                onClick={() => onTrustAction("seal")}
+                disabled={locked}
+                title="Seal — freeze the document with a tamper-evident hash"
+              >
+                <span className="ribbon-btn-text">Seal</span>
+              </Btn>
+              <Btn onClick={() => onTrustAction("sign")} title="Sign">
+                <span className="ribbon-btn-text">Sign</span>
+              </Btn>
+              <Btn onClick={() => onTrustAction("verify")} title="Verify">
+                <span className="ribbon-btn-text">Verify</span>
+              </Btn>
+            </Group>
+          </>
+        )
       )}
     </div>
   );

@@ -2,7 +2,7 @@
 
 Dotit Web is the browser editor experience for `.it` documents, built on `@dotit/core`.
 
-Canonical language and API documentation lives in `intenttext-docs` (published at `https://itdocs.vercel.app`).
+Canonical language and API documentation lives in `intenttext-docs` (published at `https://dotit.uts.qa`).
 
 The app includes:
 

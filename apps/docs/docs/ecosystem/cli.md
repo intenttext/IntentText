@@ -306,7 +306,7 @@ spreadsheet. See [A Folder Is a Database](/docs/guide/folder-as-database).
 **Agent pipelines.** Every command speaks JSON (`dotit file.it`,
 `--format json` on queries, `history --json`), so the CLI slots into scripts and
 agent tool-use directly; the [MCP server](/docs/ecosystem/mcp-server) exposes the
-same operations as tools, and [`/llms.txt`](https://itdocs.vercel.app/llms.txt)
+same operations as tools, and [`/llms.txt`](https://dotit.uts.qa/llms.txt)
 teaches any LLM to author the documents the pipeline consumes.
 
 ## Full command reference

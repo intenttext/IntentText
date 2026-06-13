@@ -8,7 +8,12 @@ export type { IntentTextEditorProps } from "./IntentTextEditor";
 export type { TrustAction } from "./types";
 
 // Print / export (the same WYSIWYG path the ribbon uses)
-export { exportDocumentPDF, exportDocumentHTML, builtinThemes } from "./print";
+export {
+  exportDocumentPDF,
+  exportDocumentHTML,
+  downloadItFile,
+  builtinThemes,
+} from "./print";
 export type { PrintMode } from "./print";
 export { printHtmlViaIframe } from "./print-iframe";
 

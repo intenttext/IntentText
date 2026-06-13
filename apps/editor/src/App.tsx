@@ -40,8 +40,8 @@ text: The preview on the right updates as you type.
 info: Try changing the theme using the Theme picker above. | type: tip
 
 section: Learn More
-link: Documentation | to: https://itdocs.vercel.app
-link: Browse Templates | to: https://intenttext-hub.vercel.app
+link: Documentation | to: https://dotit.uts.qa
+link: Browse Templates | to: https://hub.dotit.uts.qa
 link: GitHub | to: https://github.com/intenttext/IntentText
 `;
 
@@ -253,9 +253,6 @@ export default function App() {
                 onChange={setContent}
                 theme={theme}
                 onThemeChange={setTheme}
-                onTrustAction={(action) =>
-                  setModal(action === "sign" ? "trust" : action)
-                }
               />
             )}
           </div>

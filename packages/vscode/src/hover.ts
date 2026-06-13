@@ -380,7 +380,7 @@ export function createHoverProvider(): vscode.HoverProvider {
         );
       }
       md.appendMarkdown(
-        `\n\n[IntentText Docs](https://itdocs.vercel.app/docs/reference)`,
+        `\n\n[IntentText Docs](https://dotit.uts.qa/docs/reference)`,
       );
 
       return new vscode.Hover(md);

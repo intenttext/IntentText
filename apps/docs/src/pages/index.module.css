@@ -6,6 +6,76 @@
   text-align: center;
   background: linear-gradient(180deg, var(--ifm-color-emphasis-100) 0%, var(--ifm-background-color) 100%);
 }
+
+/* Hero two-column layout: copy on the left, sealed-document preview on the right */
+.heroGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+  gap: 3rem;
+  text-align: left;
+  margin-bottom: 0.5rem;
+}
+.heroCopy {
+  min-width: 0;
+}
+.heroVisual {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  perspective: 1600px;
+}
+.heroPaper {
+  width: 100%;
+  max-width: 430px;
+  border-radius: 12px;
+  background: var(--ifm-background-color);
+  box-shadow:
+    0 30px 60px -24px rgba(15, 23, 42, 0.4),
+    0 6px 16px rgba(15, 23, 42, 0.08);
+  transform: rotate(1.4deg);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  overflow: hidden;
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+.heroVisual:hover .heroPaper {
+  transform: rotate(0deg) translateY(-4px);
+  box-shadow:
+    0 38px 72px -22px rgba(15, 23, 42, 0.45),
+    0 8px 20px rgba(15, 23, 42, 0.1);
+}
+.heroPaper img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.heroPaperTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1rem;
+  padding: 4px 12px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ifm-color-emphasis-700);
+  background: var(--ifm-background-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 20px;
+}
+.heroPaperTag svg {
+  color: var(--ifm-color-primary);
+}
+/* Left-align the hero CTAs/install when in the two-column layout */
+.heroCopy .installRow,
+.heroCopy .heroButtons {
+  justify-content: flex-start;
+}
+.heroCopy .heroButtons {
+  margin-bottom: 0;
+}
 .heroBadge {
   display: inline-flex;
   align-items: center;
@@ -27,22 +97,22 @@
   color: inherit;
 }
 .heroTitle {
-  font-size: 3.4rem;
+  font-size: 3.1rem;
   font-weight: 800;
   letter-spacing: -0.025em;
   line-height: 1.08;
   max-width: 880px;
-  margin: 0 auto 1.1rem;
+  margin: 0 0 1.1rem;
 }
 .heroTitle em {
   font-style: normal;
   color: var(--ifm-color-primary);
 }
 .heroSub {
-  font-size: 1.15rem;
+  font-size: 1.12rem;
   color: var(--ifm-color-emphasis-700);
-  max-width: 720px;
-  margin: 0 auto 2rem;
+  max-width: 640px;
+  margin: 0 0 2rem;
   line-height: 1.65;
 }
 .installRow {
@@ -685,6 +755,25 @@
   .heroTitle {
     font-size: 2.3rem;
   }
+  /* Stack hero copy over the document preview, re-centered */
+  .heroGrid {
+    grid-template-columns: 1fr;
+    gap: 2.25rem;
+    text-align: center;
+  }
+  .heroSub {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .heroCopy .installRow,
+  .heroCopy .heroButtons {
+    justify-content: center;
+  }
+  .heroPaper {
+    max-width: 380px;
+    transform: none;
+  }
   .pillars {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -703,5 +792,9 @@
   }
   .heroTitle {
     font-size: 1.95rem;
+  }
+  /* Drop the document preview on small phones to keep the hero lean */
+  .heroVisual {
+    display: none;
   }
 }

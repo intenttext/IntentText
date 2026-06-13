@@ -46,7 +46,10 @@ pub fn run() {
             commands::fs::rename_file,
             commands::workspace::open_folder,
             commands::workspace::watch_folder,
+            commands::workspace::watch_folders,
             commands::workspace::unwatch_folder,
+            commands::settings::load_settings,
+            commands::settings::save_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -6,7 +6,7 @@ files correctly. One `.it` file is simultaneously: a human-readable document, a
 queryable typed database, a print/PDF-ready artifact, and a tamper-evident signable
 record.
 
-Site: https://itdocs.vercel.app · npm: @dotit/core · Editor: https://editor.uts.qa
+Site: https://dotit.uts.qa · npm: @dotit/core · Editor: https://editor.uts.qa
 
 ## 1. Line grammar — everything is one line, one intent
 
