@@ -125,6 +125,21 @@ the reserved surface can stay small without losing extensibility.
 | **data** | `columns` `row` `metric` | Structured tabular / metric data |
 | **print** | `page` `header` `footer` `watermark` `break` `toc` | Print / PDF layout |
 
+### Page setup (`page:`)
+
+`page: | size: <size> | orientation: <portrait|landscape> | margin: <css>`
+
+- **size:** `A5` `A4` `A3` `A2` `A1` `Letter` `Legal`, or a custom `<w> <h>`
+  (e.g. `80mm auto` for a continuous receipt roll — no pagination).
+  ISO portrait dimensions (w×h): A5 148×210, A4 210×297, A3 297×420,
+  A2 420×594, A1 594×841 mm.
+- **orientation:** `portrait` (default) or `landscape`. Landscape swaps
+  width/height. Shorthand `size: A3 landscape` is equivalent to
+  `size: A3 | orientation: landscape`.
+- The print/PDF `@page { size: … }` emits the **true physical size**
+  (e.g. A3 landscape → `420mm 297mm`), so big reports and wide data tables
+  output at real size.
+
 Source of truth: `KEYWORD_TIERS` and `CORE_KEYWORDS` exported from
 `@dotit/core`. Aliases, compat-only keywords, and `x-namespace:` extension
 keywords remain recognized but are not part of any tier.

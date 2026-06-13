@@ -44,7 +44,12 @@ export type {
   ParseWarning,
   ParseError,
 } from "./parser";
-export { renderPrint, collectPrintLayout, cssContentValue } from "./renderer";
+export {
+  renderPrint,
+  collectPrintLayout,
+  cssContentValue,
+  resolvePageSize,
+} from "./renderer";
 export {
   collectDocumentStyles,
   documentStyleCSS,

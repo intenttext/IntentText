@@ -6,6 +6,33 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+
+- **Large page sizes (A3, A2, A1) and orientation (portrait/landscape).** The
+  `page:` block now supports the full ISO A-series (`A5` `A4` `A3` `A2` `A1`)
+  plus `Letter`/`Legal`, and an `orientation: portrait|landscape` property
+  (with the shorthand `size: A3 landscape`). Landscape swaps width/height.
+  Core's print/PDF `@page { size: … }` emits the **true physical size**
+  (e.g. A3 landscape → `420mm 297mm`), so big reports and wide data tables
+  print/export at real size. Core `@dotit/core` 1.3.0 → 1.4.0; new
+  `resolvePageSize()` export.
+- **Editor page-setup controls.** The ribbon gains a **Page** group: a page
+  **Size** selector (A5/A4/A3/A2/A1/Letter/Legal) and a **Portrait/Landscape**
+  toggle. They write `page: | size: … | orientation: …` to the `.it` source via
+  `setPageSize`/`setPageOrientation`, reflow the on-screen sheet + ruler + WYSIWYG
+  print immediately, and round-trip losslessly. The editor's `getPageGeometry`
+  computes correct on-screen px for all sizes and both orientations.
+- **Editor page zoom (view-only).** A persistent status bar adds an easy
+  zoom cluster (**−/percentage/+**) with a presets menu: **Fit to width**,
+  **Fit to page**, and 50/75/100/125/150%. **Fit to width** is the key control
+  for the large A2/A1 sheets — selecting A1 then Fit to width immediately shows
+  the whole page width without manual zooming, and the fit re-applies on window
+  resize and page-size change. Keyboard shortcuts: `Ctrl/Cmd +`, `Ctrl/Cmd −`,
+  `Ctrl/Cmd 0` (reset), plus `Ctrl/Cmd`-wheel; all keep the focal point stable.
+  Zoom CSS-scales the page sheet only — it is **never written to the `.it`
+  source and never affects the printed/PDF output**, which always renders at
+  true physical size. The ruler and caret/click mapping stay correct under zoom.
+
 ## [1.3.0] — 2026-06-13
 
 ### Added

@@ -65,6 +65,13 @@ import type { TrustAction } from "./types";
 /** Grey gap between page cards on the canvas (px). */
 const PAGE_GAP = 28;
 
+/** View-only zoom bounds — never affects the .it source or the printed PDF. */
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 3;
+const ZOOM_STEP = 0.1;
+/** Numeric zoom presets offered in the status-bar zoom menu. */
+const ZOOM_PRESETS = [0.5, 0.75, 1, 1.25, 1.5] as const;
+
 // Where each `style:` target lives in the EDITOR's markup (.it-doc-* classes).
 // documentStyleCSS() does the collection/sanitization — same engine as core's
 // print path — so a rule means exactly the same thing on canvas and on paper.
@@ -414,9 +421,12 @@ export function VisualEditor({
     el.textContent = themeCSS;
   }, [themeCSS]);
 
-  // ── Zoom ─────────────────────────────────────────────────
+  // ── Zoom (view-only — never written to the .it document or the printed PDF) ──
   const canvasRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
+  // Fit modes recompute zoom on canvas resize / page-size change; a numeric
+  // preset or +/- pins zoom and clears the mode.
+  const [fitMode, setFitMode] = useState<"none" | "width" | "page">("none");
   const prevZoomRef = useRef(zoom);
   // Store focal point in content-space coordinates for zoom
   const focalRef = useRef<{ cx: number; cy: number } | null>(null);
@@ -436,7 +446,7 @@ export function VisualEditor({
     [],
   );
 
-  // Capture focal point at viewport center (for keyboard zoom)
+  // Capture focal point at viewport center (for keyboard / preset zoom)
   const captureFocalAtCenter = useCallback(() => {
     const el = canvasRef.current;
     if (!el) return;
@@ -445,6 +455,61 @@ export function VisualEditor({
       cy: el.scrollTop + el.clientHeight / 2,
     };
   }, []);
+
+  const clampZoom = (z: number) =>
+    Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +z.toFixed(2)));
+
+  // Set an exact zoom (a preset / status-bar control), centred on the viewport.
+  const applyZoom = useCallback(
+    (z: number) => {
+      setFitMode("none");
+      captureFocalAtCenter();
+      setZoom(clampZoom(z));
+    },
+    [captureFocalAtCenter],
+  );
+
+  // Zoom so the page width (or whole page) fits the visible canvas. The canvas
+  // inner width is its clientWidth minus the ruler gutter the page is centred in;
+  // we measure clientWidth directly since the page is centred with auto margins.
+  const computeFit = useCallback(
+    (mode: "width" | "page"): number => {
+      const el = canvasRef.current;
+      if (!el) return 1;
+      const PAD = 24; // breathing room around the sheet
+      const availW = el.clientWidth - PAD;
+      if (mode === "width") return clampZoom(availW / geometry.width);
+      const availH = el.clientHeight - PAD;
+      const pageH = isFinite(geometry.height) ? geometry.height : geometry.width;
+      return clampZoom(Math.min(availW / geometry.width, availH / pageH));
+    },
+    [geometry.width, geometry.height],
+  );
+
+  const fitToWidth = useCallback(() => {
+    captureFocalAtCenter();
+    setFitMode("width");
+    setZoom(computeFit("width"));
+  }, [captureFocalAtCenter, computeFit]);
+
+  const fitToPage = useCallback(() => {
+    captureFocalAtCenter();
+    setFitMode("page");
+    setZoom(computeFit("page"));
+  }, [captureFocalAtCenter, computeFit]);
+
+  // Re-fit when the canvas resizes or the page geometry changes while a fit
+  // mode is active (e.g. user switches A4 → A1, or resizes the window).
+  useEffect(() => {
+    if (fitMode === "none") return;
+    const el = canvasRef.current;
+    if (!el) return;
+    const recompute = () => setZoom(computeFit(fitMode));
+    recompute();
+    const ro = new ResizeObserver(recompute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [fitMode, computeFit]);
 
   // After DOM paints with new zoom, restore scroll so focal point is stable
   useLayoutEffect(() => {
@@ -475,14 +540,17 @@ export function VisualEditor({
       }
       if (e.key === "=" || e.key === "+") {
         e.preventDefault();
+        setFitMode("none");
         captureFocalAtCenter();
-        setZoom((z) => Math.min(2, +(z + 0.1).toFixed(2)));
+        setZoom((z) => clampZoom(z + ZOOM_STEP));
       } else if (e.key === "-") {
         e.preventDefault();
+        setFitMode("none");
         captureFocalAtCenter();
-        setZoom((z) => Math.max(0.25, +(z - 0.1).toFixed(2)));
+        setZoom((z) => clampZoom(z - ZOOM_STEP));
       } else if (e.key === "0") {
         e.preventDefault();
+        setFitMode("none");
         captureFocalAtCenter();
         setZoom(1);
       }
@@ -497,9 +565,10 @@ export function VisualEditor({
     const handler = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+        setFitMode("none");
         captureFocalAtMouse(e);
-        setZoom((z) => Math.min(2, Math.max(0.25, +(z + delta).toFixed(2))));
+        setZoom((z) => clampZoom(z + delta));
       }
     };
     el.addEventListener("wheel", handler, { passive: false });
@@ -596,15 +665,136 @@ export function VisualEditor({
         <div className="docs-page-footer">
           {pageCount} {pageCount === 1 ? "page" : "pages"} &middot;{" "}
           {getWordCount()} words
-          {zoom !== 1 && (
-            <span className="zoom-indicator">
-              {" "}
-              &middot; {Math.round(zoom * 100)}%
-            </span>
-          )}
         </div>
       </div>
       </div>
+      {/* Persistent status bar — always-visible zoom controls (view-only). */}
+      <div className="docs-statusbar">
+        <span className="docs-statusbar-meta">
+          {geometry.size}
+          {geometry.orientation === "landscape" ? " landscape" : ""} &middot;{" "}
+          {pageCount} {pageCount === 1 ? "page" : "pages"}
+        </span>
+        <ZoomControl
+          zoom={zoom}
+          fitMode={fitMode}
+          onZoom={applyZoom}
+          onFitWidth={fitToWidth}
+          onFitPage={fitToPage}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── Zoom status-bar control ──────────────────────────────────────────────────
+// −/percentage/+ cluster with a presets menu (Fit to width/page + 50–150%).
+// Pure view state — it scales the on-screen page only; the .it source and the
+// printed/PDF output are unaffected.
+function ZoomControl({
+  zoom,
+  fitMode,
+  onZoom,
+  onFitWidth,
+  onFitPage,
+}: {
+  zoom: number;
+  fitMode: "none" | "width" | "page";
+  onZoom: (z: number) => void;
+  onFitWidth: () => void;
+  onFitPage: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const label =
+    fitMode === "width"
+      ? "Fit width"
+      : fitMode === "page"
+        ? "Fit page"
+        : `${Math.round(zoom * 100)}%`;
+
+  return (
+    <div className="docs-zoom" ref={ref}>
+      <button
+        type="button"
+        className="docs-zoom-btn"
+        title="Zoom out (Ctrl/Cmd −)"
+        aria-label="Zoom out"
+        onClick={() => onZoom(zoom - ZOOM_STEP)}
+        disabled={zoom <= MIN_ZOOM && fitMode === "none"}
+      >
+        −
+      </button>
+      <button
+        type="button"
+        className="docs-zoom-label"
+        title="Zoom presets"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {label}
+      </button>
+      <button
+        type="button"
+        className="docs-zoom-btn"
+        title="Zoom in (Ctrl/Cmd +)"
+        aria-label="Zoom in"
+        onClick={() => onZoom(zoom + ZOOM_STEP)}
+        disabled={zoom >= MAX_ZOOM && fitMode === "none"}
+      >
+        +
+      </button>
+      {open && (
+        <div className="docs-zoom-menu" role="menu">
+          <button
+            type="button"
+            role="menuitem"
+            className={fitMode === "width" ? "is-active" : ""}
+            onClick={() => {
+              onFitWidth();
+              setOpen(false);
+            }}
+          >
+            Fit to width
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className={fitMode === "page" ? "is-active" : ""}
+            onClick={() => {
+              onFitPage();
+              setOpen(false);
+            }}
+          >
+            Fit to page
+          </button>
+          <div className="docs-zoom-sep" />
+          {ZOOM_PRESETS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              role="menuitem"
+              className={fitMode === "none" && zoom === p ? "is-active" : ""}
+              onClick={() => {
+                onZoom(p);
+                setOpen(false);
+              }}
+            >
+              {Math.round(p * 100)}%
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

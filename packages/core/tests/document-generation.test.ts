@@ -130,8 +130,31 @@ describe("Layout Blocks", () => {
       "page: | size: Letter | margins: 25mm\ntitle: Test",
     );
     const html = renderPrint(doc);
-    expect(html).toContain("Letter");
+    // Letter resolves to its true physical size (8.5in 11in) so orientation can
+    // swap dimensions reliably across print engines.
+    expect(html).toContain("8.5in 11in");
     expect(html).toContain("25mm");
+  });
+
+  it("renderPrint() emits true physical @page size for large ISO sizes", () => {
+    const a2 = renderPrint(parseIntentText("page: | size: A2\ntitle: T"));
+    expect(a2).toContain("@page{size:420mm 594mm;");
+    const a1 = renderPrint(parseIntentText("page: | size: A1\ntitle: T"));
+    expect(a1).toContain("@page{size:594mm 841mm;");
+  });
+
+  it("renderPrint() swaps dimensions for landscape orientation", () => {
+    const land = renderPrint(
+      parseIntentText("page: | size: A3 | orientation: landscape\ntitle: T"),
+    );
+    expect(land).toContain("@page{size:420mm 297mm;");
+  });
+
+  it("renderPrint() accepts the `A3 landscape` shorthand", () => {
+    const land = renderPrint(
+      parseIntentText("page: | size: A3 landscape\ntitle: T"),
+    );
+    expect(land).toContain("@page{size:420mm 297mm;");
   });
 
   it("renderPrint() renders break: as page break div", () => {

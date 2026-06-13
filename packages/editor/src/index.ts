@@ -31,5 +31,11 @@ export { extractTrustState } from "./trust-state";
 export type { TrustState } from "./trust-state";
 
 // Page geometry (the document's own page:/header:/footer: blocks)
-export { getPageGeometry, resolvePageTokens } from "./page-geometry";
+export {
+  getPageGeometry,
+  resolvePageTokens,
+  setPageSize,
+  setPageOrientation,
+  PAGE_SIZE_OPTIONS,
+} from "./page-geometry";
 export type { PageGeometry } from "./page-geometry";

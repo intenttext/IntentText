@@ -16,14 +16,63 @@ function resolveThemeSync(ref: string | IntentTheme | undefined): IntentTheme {
   return getBuiltinTheme("corporate") as IntentTheme;
 }
 
-// v2.9: Paper size to CSS @page size mapping
+// v2.9: Paper size to CSS @page size mapping.
+// Stored portrait (w × h). Large ISO sheets (A3/A2/A1) and orientation need an
+// explicit `w h` so landscape can swap the two — a bare CSS keyword (`A4`) can't
+// be rotated reliably across print engines, so we emit real physical mm.
 const PAPER_SIZES: Record<string, string> = {
-  A4: "A4",
-  A5: "A5",
+  A5: "148mm 210mm",
+  A4: "210mm 297mm",
   A3: "297mm 420mm",
-  Letter: "Letter",
+  A2: "420mm 594mm",
+  A1: "594mm 841mm",
+  Letter: "8.5in 11in",
   Legal: "8.5in 14in",
 };
+
+/**
+ * Resolve a `page:`/`size:` value (+ optional `orientation:`) into the true
+ * physical @page `size` string. Accepts:
+ *   - named sizes: A5|A4|A3|A2|A1|Letter|Legal
+ *   - the shorthand `A3 landscape` (orientation baked into the size value)
+ *   - explicit `<w> <h>` custom dims (e.g. `210mm 297mm`, `80mm auto`)
+ * Landscape swaps the two dimensions; portrait is the default. `auto` heights
+ * (continuous receipts) are never swapped.
+ */
+export function resolvePageSize(
+  rawSize: string,
+  orientationProp?: string,
+): string {
+  let raw = String(rawSize || "A4").trim();
+  let orientation = String(orientationProp || "").trim().toLowerCase();
+
+  // Shorthand: trailing "landscape"/"portrait" inside the size value wins only
+  // if no explicit orientation: prop was given.
+  const shorthand = /\s+(landscape|portrait)\s*$/i.exec(raw);
+  if (shorthand) {
+    if (!orientation) orientation = shorthand[1].toLowerCase();
+    raw = raw.slice(0, shorthand.index).trim();
+  }
+
+  // Resolve the portrait dimension string.
+  const named =
+    PAPER_SIZES[raw] ||
+    PAPER_SIZES[
+      Object.keys(PAPER_SIZES).find(
+        (k) => k.toLowerCase() === raw.toLowerCase(),
+      ) || ""
+    ];
+  const dims = named || raw;
+
+  if (orientation !== "landscape") return dims;
+
+  // Landscape: swap the two dimensions (only when there are exactly two).
+  const parts = dims.split(/\s+/);
+  if (parts.length === 2 && parts[1].toLowerCase() !== "auto") {
+    return `${parts[1]} ${parts[0]}`;
+  }
+  return dims;
+}
 
 /** v2.9: Collect print layout blocks from a document. */
 export function collectPrintLayout(doc: IntentDocument): PrintLayout {
@@ -1447,17 +1496,23 @@ function buildDynamicCSS(doc: IntentDocument): string {
   const fontSize = String(fontBlock?.properties?.size || "12pt");
   const leading = String(fontBlock?.properties?.leading || "1.6");
   const rawSize = String(pageBlock?.properties?.size || "A4");
+  const orientation = String(pageBlock?.properties?.orientation || "");
 
-  // v2.9: Resolve paper size — named sizes or custom dimensions
+  // v2.9: Resolve paper size — named sizes or custom dimensions.
+  // v1.4: + orientation (portrait/landscape) and the `A3 landscape` shorthand.
   let pageSize: string;
-  let widthHint = rawSize;
+  let widthHint: string;
   if (rawSize === "custom") {
     const w = String(pageBlock?.properties?.width || "210mm");
     const h = String(pageBlock?.properties?.height || "297mm");
-    widthHint = w;
-    pageSize = `${escapeHtml(w)} ${escapeHtml(h)}`;
+    pageSize = resolvePageSize(`${w} ${h}`, orientation);
+    // Width hint for the default-margin heuristic is the resolved leading dim.
+    widthHint = pageSize.split(/\s+/)[0] || w;
+    pageSize = escapeHtml(pageSize);
   } else {
-    pageSize = escapeHtml(PAPER_SIZES[rawSize] || rawSize);
+    const resolved = resolvePageSize(rawSize, orientation);
+    widthHint = resolved.split(/\s+/)[0] || resolved;
+    pageSize = escapeHtml(resolved);
   }
 
   // Accept `margin` (singular, what the editor and most authors write) or `margins`.

@@ -33,10 +33,18 @@ import {
   Droplets,
   Rows3,
   AlignHorizontalSpaceBetween,
+  RectangleVertical,
+  RectangleHorizontal,
 } from "lucide-react";
 import { LANGUAGE_REGISTRY } from "@dotit/core";
 import { CATEGORY_META } from "./types";
 import { getBlockProp } from "./block-props";
+import {
+  getPageGeometry,
+  setPageSize,
+  setPageOrientation,
+  PAGE_SIZE_OPTIONS,
+} from "./page-geometry";
 import {
   exportDocumentPDF,
   downloadItFile,
@@ -263,6 +271,28 @@ export function DocsToolbar({
   const [highlightColorOpen, setHighlightColorOpen] = useState(false);
   const [spacingOpen, setSpacingOpen] = useState(false);
   const [inkSaver, setInkSaver] = useState(false);
+
+  // ── Page setup (size + orientation) ──────────────────────────
+  // Read the live geometry from the current .it source so the controls reflect
+  // (and round-trip) the document's own `page:` block. Writing goes through the
+  // same setPageSize/setPageOrientation helpers the geometry parses — one path.
+  const pageGeo = useMemo(() => getPageGeometry(content), [content]);
+  // Show the named size in the dropdown; a custom `<w> <h>` size falls back to
+  // "Custom" (selecting a named size replaces it).
+  const currentSize = (PAGE_SIZE_OPTIONS as readonly string[]).includes(
+    pageGeo.size,
+  )
+    ? pageGeo.size
+    : "Custom";
+  const setSize = useCallback(
+    (size: string) => onChange?.(setPageSize(content, size)),
+    [content, onChange],
+  );
+  const setOrientation = useCallback(
+    (o: "portrait" | "landscape") =>
+      onChange?.(setPageOrientation(content, o)),
+    [content, onChange],
+  );
 
   const styleRef = useRef<HTMLDivElement>(null);
   const insertRef = useRef<HTMLDivElement>(null);
@@ -570,6 +600,46 @@ export function DocsToolbar({
             </option>
           ))}
         </select>
+      </Group>
+
+      <GroupSep />
+
+      {/* ── Page setup (size + orientation) → page: | size: … | orientation: … ── */}
+      <Group label="Page">
+        <select
+          className="ribbon-page-size"
+          value={currentSize}
+          onChange={(e) => setSize(e.target.value)}
+          disabled={locked}
+          title="Page size — sets page: | size: … (true physical size in print/PDF)"
+        >
+          {currentSize === "Custom" && (
+            <option value="Custom" disabled>
+              Custom
+            </option>
+          )}
+          {PAGE_SIZE_OPTIONS.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+        <Btn
+          onClick={() => setOrientation("portrait")}
+          active={pageGeo.orientation === "portrait"}
+          disabled={locked}
+          title="Portrait orientation"
+        >
+          <RectangleVertical size={16} />
+        </Btn>
+        <Btn
+          onClick={() => setOrientation("landscape")}
+          active={pageGeo.orientation === "landscape"}
+          disabled={locked}
+          title="Landscape orientation"
+        >
+          <RectangleHorizontal size={16} />
+        </Btn>
       </Group>
 
       <GroupSep />
