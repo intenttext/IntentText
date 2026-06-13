@@ -1,0 +1,5 @@
+# NEVER commit the authority private key or the account/API-key store.
+.keys/
+accounts.json
+dist/
+node_modules/

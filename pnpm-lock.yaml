@@ -201,7 +201,7 @@ importers:
         specifier: ^1.2.1
         version: link:../../packages/core
       '@dotit/sign':
-        specifier: ^1.0.0
+        specifier: ^1.1.0
         version: link:../../packages/sign
       react:
         specifier: ^19.2.4
@@ -436,6 +436,28 @@ importers:
       esbuild:
         specifier: 0.28.0
         version: 0.28.0
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+  services/uts-certify:
+    dependencies:
+      '@dotit/sign':
+        specifier: workspace:^
+        version: link:../../packages/sign
+      express:
+        specifier: ^4.21.2
+        version: 4.22.2
+    devDependencies:
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.25
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
       typescript:
         specifier: ^5.0.0
         version: 5.9.3

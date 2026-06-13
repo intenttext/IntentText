@@ -16,11 +16,15 @@ import {
 
 import {
   verifyDocumentSignatures,
+  verifyCertifications,
   type FullVerifyResult,
   type SignatureCheck,
+  type CertificationCheck,
 } from "@dotit/sign";
 
-export type { SignatureCheck };
+import { trustedIssuers } from "./uts-trust";
+
+export type { SignatureCheck, CertificationCheck };
 
 export type Verdict = "verified" | "unsealed" | "modified" | "invalid";
 
@@ -45,6 +49,8 @@ export interface VerifyReport {
   parseError?: string;
   integrity: IntegrityResult;
   signatures: FullVerifyResult;
+  /** One entry per `certify:` line, checked against trusted UTS key(s). */
+  certifications: CertificationCheck[];
   /** Rendered, sandboxable HTML preview of the document. */
   previewHTML: string;
   /** The overall verdict for the top banner. */
@@ -61,13 +67,21 @@ export function truncateMiddle(s: string, head = 8, tail = 6): string {
 function computeVerdict(
   integrity: IntegrityResult,
   signatures: FullVerifyResult,
+  certifications: CertificationCheck[],
 ): Verdict {
   // A sealed-but-modified document is the loudest failure.
   if (integrity.sealed && !integrity.intact) return "modified";
 
+  // A certify: line whose signature doesn't match the current content means the
+  // document was tampered with after UTS certified it — a hard fail.
+  if (certifications.some((c) => !c.signatureValid)) return "invalid";
+
   // Any cryptographic signature that fails to verify is a hard fail.
   const cryptoSigs = signatures.signatures.filter((s) => s.cryptographic);
   if (cryptoSigs.length > 0 && !signatures.allSignaturesValid) return "invalid";
+
+  // A trusted, valid UTS certification vouches for the content → verified.
+  if (certifications.some((c) => c.valid)) return "verified";
 
   // Sealed and intact (and any sigs valid) → verified.
   if (integrity.sealed && integrity.intact) return "verified";
@@ -123,6 +137,17 @@ export function runVerification(source: string): VerifyReport {
     integrity.error ??= (e as Error).message;
   }
 
+  // --- Certification (UTS) layer, via @dotit/sign ---
+  // trustedIssuers maps issuer → published public key (see uts-trust.ts). A
+  // certify: line is only `trusted` if its embedded key matches.
+  let certifications: CertificationCheck[];
+  try {
+    certifications = verifyCertifications(source, trustedIssuers);
+  } catch (e) {
+    certifications = [];
+    integrity.error ??= (e as Error).message;
+  }
+
   // --- Preview (render) layer, via @dotit/core ---
   let previewHTML = "";
   let parseError: string | undefined;
@@ -133,13 +158,14 @@ export function runVerification(source: string): VerifyReport {
     parseError = (e as Error).message;
   }
 
-  const verdict = computeVerdict(integrity, signatures);
+  const verdict = computeVerdict(integrity, signatures, certifications);
 
   return {
     ok: !parseError,
     parseError,
     integrity,
     signatures,
+    certifications,
     previewHTML,
     verdict,
   };

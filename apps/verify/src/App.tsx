@@ -49,7 +49,8 @@ function PrivacyPromise() {
   );
 }
 
-function Disclosure() {
+function Disclosure({ report }: { report: VerifyReport }) {
+  const cert = report.certifications.find((c) => c.valid);
   return (
     <div className="disclosure">
       <h3>What this verification proves — and what it doesn't</h3>
@@ -63,10 +64,31 @@ function Disclosure() {
           <span className="proves">Proves:</span> each valid signature was made
           by the holder of the embedded Ed25519 public key.
         </li>
+        {cert ? (
+          <li>
+            <span className="proves">Proves:</span> <strong>UTS certified</strong>{" "}
+            this exact content
+            {cert.account ? (
+              <>
+                {" "}
+                under account <strong>{cert.account}</strong>
+              </>
+            ) : null}
+            {cert.at ? (
+              <>
+                {" "}
+                at <strong>{cert.at.slice(0, 19).replace("T", " ")} UTC</strong>
+              </>
+            ) : null}{" "}
+            — a provable timestamp bound to an account, signed by UTS's published
+            key.
+          </li>
+        ) : null}
         <li>
-          <span className="notproves">Does not prove:</span> that a key belongs
-          to a specific real-world person or organization — that binding is{" "}
-          <strong>UTS certification</strong> (Phase 3), coming soon.
+          <span className="notproves">Does not prove:</span> that an account or
+          key belongs to a specific verified real-world identity — binding a key
+          to a vetted identity (KYC) is{" "}
+          <strong>UTS identity attestation</strong> (Phase 3b), coming next.
         </li>
       </ul>
     </div>
@@ -212,7 +234,7 @@ function VerifyTab() {
           )}
           <ResultCard report={report} />
           {report.previewHTML && <Preview html={report.previewHTML} />}
-          <Disclosure />
+          <Disclosure report={report} />
         </div>
       )}
     </>

@@ -30,11 +30,18 @@ const VERDICT_COPY: Record<
 > = {
   verified: {
     icon: "✓",
-    title: (r) =>
-      `Verified — content intact, ${r.signatures.validCount} signature${
+    title: (r) => {
+      const cert = r.certifications.find((c) => c.valid);
+      if (cert) {
+        return `Verified — UTS certified${
+          cert.account ? ` for ${cert.account}` : ""
+        }, content intact`;
+      }
+      return `Verified — content intact, ${r.signatures.validCount} signature${
         r.signatures.validCount === 1 ? "" : "s"
-      } valid`,
-    sub: "This document's content has not changed since it was signed/sealed.",
+      } valid`;
+    },
+    sub: "This document's content has not changed since it was signed/sealed/certified.",
   },
   unsealed: {
     icon: "⚠",
@@ -48,8 +55,11 @@ const VERDICT_COPY: Record<
   },
   invalid: {
     icon: "✗",
-    title: () => "Signature invalid",
-    sub: "At least one cryptographic signature does not match the current content.",
+    title: (r) =>
+      r.certifications.some((c) => !c.signatureValid)
+        ? "Certification broken — content changed"
+        : "Signature invalid",
+    sub: "At least one cryptographic signature or UTS certification does not match the current content.",
   },
 };
 
@@ -69,6 +79,135 @@ export function VerdictBanner({ report }: { report: VerifyReport }) {
         <span className="vsub">{c.sub}</span>
       </span>
     </div>
+  );
+}
+
+/**
+ * Layer 3 — UTS Certified. Honest, layered states:
+ *   - no certify: line at all → greyed "Not present" (the only muted state)
+ *   - valid + trusted          → ✓ Certified (green): issuer, account, timestamp
+ *   - signatureValid && !trusted → ⚠ signature valid but issuer key unrecognized
+ *   - !signatureValid          → ✗ tampered: content changed after certification
+ */
+function CertifiedLayer({ report }: { report: VerifyReport }) {
+  const certs = report.certifications;
+
+  // No certify: line → the muted "not present" placeholder.
+  if (certs.length === 0) {
+    return (
+      <section className="layer muted">
+        <div className="layer-head">
+          <span className="mark off" aria-hidden>
+            ○
+          </span>
+          <span>UTS Certified</span>
+          <span className="phase-tag">Phase 3</span>
+        </div>
+        <div className="layer-body">
+          Not present. A UTS-signed certification would prove <em>when</em> this
+          document existed and that it was certified under a known account.
+        </div>
+      </section>
+    );
+  }
+
+  // Worst state across all certify: lines drives the header mark.
+  const anyTampered = certs.some((c) => !c.signatureValid);
+  const anyUntrusted = certs.some((c) => c.signatureValid && !c.trusted);
+  const allValid = certs.every((c) => c.valid);
+  const headMark = anyTampered ? "fail" : allValid ? "pass" : anyUntrusted ? "warn" : "fail";
+
+  return (
+    <section className="layer">
+      <div className="layer-head">
+        <span className={`mark ${headMark}`} aria-hidden>
+          {headMark === "pass" ? "✓" : headMark === "warn" ? "⚠" : "✗"}
+        </span>
+        <span>UTS Certified</span>
+        <span className="phase-tag">Phase 3</span>
+      </div>
+      <div className="layer-body">
+        {certs.map((c, i) => {
+          if (!c.signatureValid) {
+            return (
+              <div className="sig" key={i}>
+                <span>
+                  <span className="who">{c.issuer}</span>
+                  {c.account ? (
+                    <span className="meta"> · {c.account}</span>
+                  ) : null}
+                  <div className="pk">
+                    content changed after certification
+                  </div>
+                </span>
+                <span className="spacer" />
+                <span
+                  className="badge invalid"
+                  title={c.reason ?? "Signature does not match current content"}
+                >
+                  ✗ Tampered
+                </span>
+              </div>
+            );
+          }
+          if (!c.trusted) {
+            return (
+              <div className="sig" key={i}>
+                <span>
+                  <span className="who">{c.issuer}</span>
+                  {c.account ? (
+                    <span className="meta"> · {c.account}</span>
+                  ) : null}
+                  {c.at ? (
+                    <span className="meta"> · {c.at.slice(0, 10)}</span>
+                  ) : null}
+                  {c.publicKey ? (
+                    <div className="pk">
+                      key ed25519:{truncateMiddle(c.publicKey, 8, 6)}
+                    </div>
+                  ) : null}
+                </span>
+                <span className="spacer" />
+                <span
+                  className="badge warn"
+                  title="The signature is cryptographically valid, but this key is not a recognized UTS key."
+                >
+                  ⚠ Issuer key not recognized
+                </span>
+              </div>
+            );
+          }
+          // valid + trusted
+          return (
+            <div className="sig" key={i}>
+              <span>
+                <span className="who">{c.issuer}</span>
+                {c.account ? (
+                  <span className="meta"> · account: {c.account}</span>
+                ) : null}
+                {c.at ? (
+                  <span className="meta"> · {c.at.slice(0, 19).replace("T", " ")} UTC</span>
+                ) : null}
+                {c.publicKey ? (
+                  <div className="pk">
+                    key ed25519:{truncateMiddle(c.publicKey, 8, 6)}
+                  </div>
+                ) : null}
+              </span>
+              <span className="spacer" />
+              <span className="badge valid">✓ Certified</span>
+            </div>
+          );
+        })}
+        {anyUntrusted && !anyTampered ? (
+          <p style={{ margin: "8px 0 0" }}>
+            The signature verifies, but the issuer key is not one this portal
+            recognizes as UTS. A forged "UTS" line signed with a different key
+            looks like this.
+          </p>
+        ) : null}
+      </div>
+    </section>
   );
 }
 
@@ -200,20 +339,8 @@ export function ResultCard({ report }: { report: VerifyReport }) {
         </div>
       </section>
 
-      {/* Layer 3 — UTS Certified (placeholder) */}
-      <section className="layer muted">
-        <div className="layer-head">
-          <span className="mark off" aria-hidden>
-            ○
-          </span>
-          <span>UTS Certified</span>
-          <span className="phase-tag">Phase 3</span>
-        </div>
-        <div className="layer-body">
-          Not present. A UTS-signed timestamp would prove <em>when</em> this
-          document existed and bind the signing key to a verified identity.
-        </div>
-      </section>
+      {/* Layer 3 — UTS Certified */}
+      <CertifiedLayer report={report} />
 
       {/* Layer 4 — Public Anchor (placeholder) */}
       <section className="layer muted">

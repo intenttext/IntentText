@@ -424,6 +424,11 @@ textarea.paste:focus-visible {
   background: var(--gray-100);
   border: 1px solid var(--border);
 }
+.badge.warn {
+  color: var(--amber);
+  background: var(--amber-bg);
+  border: 1px solid var(--amber);
+}
 .phase-tag {
   font-size: 0.7rem;
   color: var(--gray-400);
