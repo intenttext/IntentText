@@ -8,6 +8,9 @@ import {
   isSealed,
   isSignedBy,
   upsertMetaProperty,
+  toStorageRecord,
+  fromStorageRecord,
+  verifyStorageRecord,
   getMetaProperty,
   parseIntentText,
   renderHTML,
@@ -126,3 +129,21 @@ describe("trust visuals + per-paragraph direction (1.2.1)", () => {
     expect(rtlBlocks.length).toBe(1);
   });
 })
+
+describe("storage integrity — DB-safe .it round-trip", () => {
+  it("round-trips byte-for-byte and detects any storage mutation", () => {
+    const src = "title: Contract\ntext: Pay 30 days\nsign: A | hash: sha256:x | key: ed25519:k | sig: s";
+    const rec = toStorageRecord(src);
+    expect(rec.bytesSha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(fromStorageRecord(rec)).toBe(src);
+    expect(verifyStorageRecord(rec)).toBe(true);
+    const mangled = { source: src.replace("30 days", "30 day"), bytesSha256: rec.bytesSha256 };
+    expect(verifyStorageRecord(mangled)).toBe(false);
+    expect(() => fromStorageRecord(mangled)).toThrow(/integrity check failed/);
+  });
+  it("byte hash differs from the seal hash (whole bytes vs content body)", () => {
+    const src = "title: T\ntext: x\nfreeze: | hash: sha256:abc | status: locked";
+    // seal hash excludes freeze:; storage hash covers the whole bytes
+    expect(toStorageRecord(src).bytesSha256).not.toBe(computeDocumentHash(src).replace("sha256:", ""));
+  });
+});

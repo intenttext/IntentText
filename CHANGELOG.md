@@ -6,6 +6,16 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [1.2.4] — 2026-06-13
+
+### Added
+
+- **DB-safe storage helpers** (//
+  ): tag a  with a SHA-256 over its EXACT bytes on
+  write, verify on read — so storing a document in a database (MongoDB, SQLite)
+  can never silently alter it and break a seal/signature. Throws loudly on any
+  byte mutation. Distinct from the seal hash (whole bytes vs content body).
+
 ## [1.2.3] — 2026-06-13
 
 ### Changed

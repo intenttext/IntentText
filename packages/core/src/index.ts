@@ -99,6 +99,12 @@ export {
   incrementVersion,
 } from "./trust";
 export { upsertMetaProperty, getMetaProperty, flattenBlocks } from "./utils";
+export {
+  toStorageRecord,
+  fromStorageRecord,
+  verifyStorageRecord,
+} from "./storage";
+export type { StoredDocument } from "./storage";
 export type {
   SealOptions,
   SealResult,

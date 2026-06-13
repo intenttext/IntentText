@@ -1,6 +1,6 @@
 {
   "name": "@dotit/core",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "IntentText Parser, HTML Renderer, and Converters",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
