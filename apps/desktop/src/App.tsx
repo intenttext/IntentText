@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { invoke } from "@tauri-apps/api/core";
 import {
   IntentTextEditor,
   exportDocumentHTML,
@@ -186,6 +187,15 @@ export default function App() {
   // ----- file association: .it opened from the OS -----
   useEffect(() => {
     if (!isTauri) return;
+    // Cold start (the app was launched BY double-clicking a file): drain the
+    // path the OS handed us. This is the fix for "opens blank, have to open it
+    // again" — the launch event used to fire before this listener existed.
+    invoke<string | null>("take_pending_open")
+      .then((p) => {
+        if (p) void openFile(p);
+      })
+      .catch(() => {});
+    // Warm start (app already running, OS sends another file): live event.
     const un = listen<string>("open-file", (e) => void openFile(e.payload));
     return () => {
       un.then((f) => f());
