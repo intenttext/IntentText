@@ -10,3 +10,4 @@ Render any file with `node cli.js examples/<file>` (add `--print` for paged, PDF
 - `styling-demo.it` — `style:` rules, `leading:`/`space-before:`/`space-after:`, inline `[text]{ … }` spans, print watermark.
 - `templates/` — ready-to-merge document templates (invoice, contract, report, and more).
 - tender-boq.it — tender submission: Bill of Quantities (multi-table), commercial summary, submittals, approval + signature
+- feasibility-medad.it — full feasibility study (Medad Ink Factory for QDB): `toc:`, 7 sections, KPI `metric:` cards, 16 financial tables (5-yr P&L, cash flow, balance sheet, DCF, sensitivity, risk matrix), `info:` callouts, `def:` glossary, A4 print chrome with `break:` pagination.

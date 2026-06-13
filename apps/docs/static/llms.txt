@@ -35,6 +35,8 @@ Every non-empty line is: `keyword: content | prop: value | prop: value`
 - Content is everything after `:` up to the first ` | `.
 - Pipe properties are `key: value` pairs separated by ` | `. The `|` character is
   RESERVED as the property delimiter — it cannot appear inside content or values.
+  Every OTHER character is literal in content: Unicode punctuation (– × ≤ β ΔE),
+  symbols, accents, and RTL/Arabic text need no escaping. Only `|` is special.
 - Blank lines separate blocks. They ARE significant between consecutive prose
   (`text:`) lines: without a blank line, adjacent `text:` lines merge into one
   paragraph and only the FIRST line's pipe properties are kept. Put a blank line
@@ -54,6 +56,8 @@ CORE (a plain document needs only these):
   title:    Document title (one per doc).            title: Service Agreement
   summary:  Subtitle / abstract.                     summary: Q2 consulting
   meta:     Document metadata (props only).          meta: | author: A | tags: x, y | theme: corporate | dir: rtl
+            Beyond author/tags/theme/dir, ANY custom key is allowed and preserved
+            (e.g. type, ref, client, sponsor, prepared-for, prepared-by, date).
   section:  H2-level heading.                        section: Scope
   sub:      H3-level heading.                        sub: Payment Terms
   text:     Body paragraph.                          text: Plain prose here.
@@ -65,13 +69,15 @@ CORE (a plain document needs only these):
   task:     Open task.                               task: Ship auth | owner: Ahmed | due: 2026-07-01 | priority: high
   done:     Completed item.                          done: Deploy staging | time: 2026-03-01
   divider:  Horizontal rule.                         divider:
-  (lists)   `- item` bullets and `1. item` ordered lines are native.
+  (lists)   `- item` bullets → type `list-item`; `1. item` ordered lines → type
+            `step-item` (a numbered list). Both render as lists; when QUERYING list
+            content, match BOTH `list-item` and `step-item`.
   (tables)  Pipe rows: `| Cell | Cell |` — first row = header. Or `headers:`/`row:` keywords.
 
 DATA tier:
   metric:   KPI or document total.                   metric: Total Due | value: 17,325 QAR
             Plain metric renders as a label→value total row (invoice style); with
-            target:/trend:/period: it renders as a KPI card.
+            ANY ONE of target:/trend:/period: it renders as a KPI card.
   columns:, row:  Tabular data alternative.
   def:      Definition/glossary term.                def: Force Majeure | meaning: Events beyond control
   contact:  Person/org card.                         contact: Acme LLC | email: a@b.c | vat: VAT-300
@@ -96,8 +102,10 @@ AGENT tier (workflows for AI agents):
   trigger:, result:, policy:, audit:, ask:, context:  — agent runtime keywords.
 
 PRINT (layout) tier:
-  page:     Page setup.                              page: | size: A4 | margin: 20mm
-            size: A4|A5|Letter|Legal or custom "80mm auto" (receipt roll, no pagination).
+  page:     Page setup.                              page: | size: A3 | orientation: landscape
+            size: A5|A4|A3|A2|A1|Letter|Legal or custom "80mm auto" (receipt roll, no pagination).
+            orientation: portrait (default) | landscape — landscape swaps width/height.
+            Shorthand: size: A3 landscape. Print/PDF emits the TRUE physical size.
   header:   Running page header.                     header: ACME — Confidential
   footer:   Running page footer.                     footer: INV-1 · Page {{page}} of {{pages}}
   watermark: Watermark overlay.                      watermark: DRAFT | opacity: 0.1
@@ -246,7 +254,9 @@ askDocuments runs a natural-language-style ask over a folder.
 
 ## 9. Big / multi-page documents
 
-  page: | size: A4 | margin: 20mm   sizes: A4|A5|Letter|Legal, or custom "80mm auto".
+  page: | size: A4 | margin: 20mm   sizes: A5|A4|A3|A2|A1|Letter|Legal, or custom "80mm auto".
+                                    orientation: portrait|landscape (e.g. size: A3 | orientation: landscape,
+                                    or shorthand size: A3 landscape) — big reports/tables print at true size.
   header: / footer: are RUNNING (repeat on every printed page). Page counters:
     footer: REP-2026 · Page {{page}} of {{pages}}   ({{page}}/{{pages}} are live in print + editor)
   break:        force a page break.
@@ -306,7 +316,7 @@ FEASIBILITY STUDY (sections, KPI metrics, assumptions, recommendation):
   - Tariff 0.18 QAR/kWh fixed 20y
   section: Recommendation
   info: Proceed to detailed design. | type: success
-  (metric: with target:/trend:/period: renders a KPI card; plain metric: is a total row.)
+  (metric: with any one of target:/trend:/period: renders a KPI card; plain metric: is a total row.)
 
 LEGAL / CONTRACT (definitions, parties, obligations, execution + seal):
 
@@ -358,7 +368,8 @@ data, {signer}) for sealed PDF bytes. Validate output with validateDocumentSeman
 3. Use semantic keywords over text: — a task is `task:`, a decision is `decision:`,
    money totals are `metric: Label | value: …`.
 4. Dates: ISO format (2026-04-01 or 2026-04-01T09:00:00Z).
-5. Tables: keep header and rows the same column count; `each:` goes on the header row.
+5. Tables: keep header and rows the same column count — pad a short row (e.g. a
+   subtotal that doesn't fill every column) with an empty cell `| |`; `each:` goes on the header row.
 6. Styled spans use `;` between props: [text]{ color: #c00; weight: bold }.
 7. RTL documents: `meta: | dir: rtl` for the whole doc, or `dir: rtl` on a single
    block for a per-paragraph override (full RTL layout incl. tables/footers).
