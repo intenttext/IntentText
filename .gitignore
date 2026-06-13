@@ -123,3 +123,11 @@ demo/**/out.*
 
 # Internal business strategy (pricing, revenue, GTM) — keep OUT of the public repo
 docs-internal/
+
+# Secrets / keys / local data — never commit
+!.env.example
+*.pem
+*.key
+**/.keys/
+**/accounts.json
+*.dmp
