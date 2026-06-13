@@ -6,6 +6,16 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [1.2.3] — 2026-06-13
+
+### Changed
+
+- **`computeDocumentHash` now excludes `certify:` lines** (alongside
+  `sign:`/`freeze:`/`amendment:`). UTS certifications are authority metadata
+  *about* the content, so adding one must not change the document's own hash.
+  Backward-compatible — no existing document uses `certify:`. Enables the
+  `@dotit/sign` certification layer (Phase 3).
+
 ## [1.2.1] — 2026-06-13
 
 ### Changed (trust visuals + RTL)
