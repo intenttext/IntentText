@@ -360,6 +360,9 @@ importers:
       '@dotit/core':
         specifier: workspace:*
         version: link:../core
+      '@dotit/sign':
+        specifier: workspace:^
+        version: link:../sign
       '@modelcontextprotocol/sdk':
         specifier: ^1.0.0
         version: 1.29.0(zod@4.4.3)
@@ -446,7 +449,7 @@ importers:
   services/uts-certify:
     dependencies:
       '@dotit/core':
-        specifier: ^1.2.3
+        specifier: ^1.2.4
         version: link:../../packages/core
       '@dotit/sign':
         specifier: ^1.2.0

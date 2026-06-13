@@ -6,7 +6,7 @@ import {
   renderPrint,
   documentToSource,
 } from "@dotit/core";
-import { textResult } from "../types.js";
+import { textResult, safe } from "../types.js";
 
 export function registerMergeTools(server: McpServer): void {
   server.tool(
@@ -17,6 +17,7 @@ export function registerMergeTools(server: McpServer): void {
     {
       template: z
         .string()
+        .min(1)
         .describe("IntentText template source with {{variable}} placeholders"),
       data: z
         .record(z.string(), z.unknown())
@@ -35,17 +36,27 @@ export function registerMergeTools(server: McpServer): void {
             "'blank' removes them so optional fields never print",
         ),
     },
-    async ({ template, data, render, missing }) => {
-      const doc = parseAndMerge(template, data as Record<string, unknown>, {
+    safe(
+      async ({
+        template,
+        data,
+        render,
         missing,
-      });
-      if (render === "html") {
-        return textResult(renderHTML(doc));
-      }
-      if (render === "print") {
-        return textResult(renderPrint(doc));
-      }
-      return textResult(documentToSource(doc));
-    },
+      }: {
+        template: string;
+        data: Record<string, unknown>;
+        render: "none" | "html" | "print";
+        missing: "keep" | "blank";
+      }) => {
+        const doc = parseAndMerge(template, data, { missing });
+        if (render === "html") {
+          return textResult(renderHTML(doc));
+        }
+        if (render === "print") {
+          return textResult(renderPrint(doc));
+        }
+        return textResult(documentToSource(doc));
+      },
+    ),
   );
 }

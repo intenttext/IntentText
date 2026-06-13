@@ -11,6 +11,15 @@ import {
   diffDocuments,
   extractWorkflow,
 } from "@dotit/core";
+import {
+  computeDocumentHash,
+} from "@dotit/core";
+import {
+  generateSigningKey,
+  signDocumentCrypto,
+  verifyDocumentSignatures,
+  verifyCertifications,
+} from "@dotit/sign";
 import type { IntentDocument } from "@dotit/core";
 
 function withTsEngine<T>(fn: () => T): T {
@@ -292,5 +301,74 @@ step: C | id: c | depends: a,b`;
     expect(graph.executionOrder[0]).toContain("a");
     expect(graph.executionOrder[0]).toContain("b");
     expect(graph.executionOrder[1]).toContain("c");
+  });
+});
+
+describe("compute_hash", () => {
+  it("returns a sha256: prefixed hash that is stable", () => {
+    const source = "title: Doc\nstatus: ok\n";
+    const h1 = computeDocumentHash(source);
+    const h2 = computeDocumentHash(source);
+    expect(h1).toMatch(/^sha256:[0-9a-f]+$/);
+    expect(h1).toBe(h2);
+  });
+});
+
+describe("generate_signing_key", () => {
+  it("returns base64url public and private keys", () => {
+    const key = generateSigningKey();
+    expect(typeof key.publicKey).toBe("string");
+    expect(typeof key.privateKey).toBe("string");
+    expect(key.publicKey.length).toBeGreaterThan(0);
+    expect(key.publicKey).not.toBe(key.privateKey);
+  });
+});
+
+describe("sign_document + verify_signatures", () => {
+  it("signs a document and verifies the signature", () => {
+    const key = generateSigningKey();
+    const signed = signDocumentCrypto("title: PO\namount: 5000\n", {
+      signer: "Emad",
+      role: "CFO",
+      privateKey: key.privateKey,
+    });
+    expect(signed.publicKey).toBe(key.publicKey);
+
+    const result = verifyDocumentSignatures(signed.source);
+    expect(result.validCount).toBe(1);
+    expect(result.allSignaturesValid).toBe(true);
+    expect(result.signatures[0].signer).toBe("Emad");
+  });
+
+  it("flips to invalid when the content is tampered after signing", () => {
+    const key = generateSigningKey();
+    const signed = signDocumentCrypto("title: PO\namount: 5000\n", {
+      signer: "Emad",
+      privateKey: key.privateKey,
+    });
+    const tampered = signed.source.replace("5000", "9999");
+    const result = verifyDocumentSignatures(tampered);
+    expect(result.validCount).toBe(0);
+    expect(result.allSignaturesValid).toBe(false);
+  });
+
+  it("is idempotent per public key", () => {
+    const key = generateSigningKey();
+    const once = signDocumentCrypto("title: X\n", {
+      signer: "Emad",
+      privateKey: key.privateKey,
+    });
+    const twice = signDocumentCrypto(once.source, {
+      signer: "Emad",
+      privateKey: key.privateKey,
+    });
+    expect(twice.note).toBe("already-signed");
+  });
+});
+
+describe("verify_certification", () => {
+  it("reports no certifications for an uncertified document", () => {
+    const certs = verifyCertifications("title: Doc\n", {});
+    expect(certs.length).toBe(0);
   });
 });

@@ -8,11 +8,12 @@ import { registerDiffTools } from "./tools/diff.js";
 import { registerSourceTools } from "./tools/source.js";
 import { registerWorkflowTools } from "./tools/workflow.js";
 import { registerTrustTools } from "./tools/trust.js";
+import { registerSignTools } from "./tools/sign.js";
 
 export function createServer(): McpServer {
   const server = new McpServer({
     name: "intenttext",
-    version: "1.0.0",
+    version: "1.1.0",
   });
 
   registerParseTools(server);
@@ -24,6 +25,7 @@ export function createServer(): McpServer {
   registerSourceTools(server);
   registerWorkflowTools(server);
   registerTrustTools(server);
+  registerSignTools(server);
 
   return server;
 }

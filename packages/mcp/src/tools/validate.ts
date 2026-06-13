@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { parseIntentText, validateDocumentSemantic } from "@dotit/core";
-import { jsonResult } from "../types.js";
+import { jsonResult, safe } from "../types.js";
 
 export function registerValidateTools(server: McpServer): void {
   server.tool(
@@ -11,9 +11,9 @@ export function registerValidateTools(server: McpServer): void {
       "variables, and workflow logic errors. Returns a list of errors and warnings. " +
       "Always call this after generating a workflow document to catch issues before execution.",
     {
-      source: z.string().describe("IntentText source string to validate"),
+      source: z.string().min(1).describe("IntentText source string to validate"),
     },
-    async ({ source }) => {
+    safe(async ({ source }: { source: string }) => {
       const doc = parseIntentText(source);
       const result = validateDocumentSemantic(doc);
       return jsonResult({
@@ -22,6 +22,6 @@ export function registerValidateTools(server: McpServer): void {
         warning_count: result.issues.filter((i) => i.type === "warning").length,
         issues: result.issues,
       });
-    },
+    }),
   );
 }

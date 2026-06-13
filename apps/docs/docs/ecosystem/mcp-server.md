@@ -5,7 +5,7 @@ title: MCP Server
 
 # MCP Server
 
-The IntentText MCP server gives LLMs direct access to parsing, rendering, querying, trust operations, and template merging through the Model Context Protocol.
+The IntentText MCP server gives LLMs direct access to the full `.it` toolchain — parsing, rendering, querying, template merging, and the complete trust workflow (integrity seals, Ed25519 signatures, and UTS certification verification) — through the Model Context Protocol. It is the way an agent inside a business ERP (or Claude Desktop) drives IntentText end to end.
 
 ## Installation
 
@@ -82,7 +82,7 @@ All tools operate on IntentText source strings — pass the `.it` text in, get J
 | Tool           | Parameters        | Description                                                                  |
 | -------------- | ----------------- | ----------------------------------------------------------------------------- |
 | `render_html`  | `source`, `theme?` | Render to styled HTML. Optional built-in theme: `corporate`, `minimal`, `warm`, `technical`, `print`, `legal`, `editorial`, `dark` |
-| `render_print` | `source`, `theme?` | Print-optimised HTML with `@media print` CSS — applies `font:` and `page:` blocks; suitable for PDF generation. Same optional `theme` |
+| `render_print` | `source`, `theme?` | Print-ready (paged) HTML with `@media print` CSS — applies `font:`, `page:`, and divider settings. Feed this HTML to any HTML-to-PDF renderer (`@dotit/pdf` server-side, or the browser print dialog). The MCP returns print-ready HTML, not a PDF binary (no headless browser is bundled). Same optional `theme` |
 
 ### Templates
 
@@ -95,7 +95,7 @@ All tools operate on IntentText source strings — pass the `.it` text in, get J
 | Tool                | Parameters                                | Description                                                          |
 | ------------------- | ----------------------------------------- | --------------------------------------------------------------------- |
 | `validate_document` | `source`                                  | Semantic validation beyond syntax: broken step references, missing required properties, unresolved variables, workflow logic errors |
-| `query_document`    | `source`, `type?`, `content?`, `section?`, `limit?` | Filter blocks by type (comma-separated for multiple: `step,gate`), content substring, or section |
+| `query_document`    | `source`, `query?`, `type?`, `content?`, `section?`, `limit?` | Filter blocks. Either use the structured filters (type — comma-separated for multiple: `step,gate` — content substring, section) **or** pass a raw `query` string for richer filtering on properties, e.g. `type=task owner=Ahmed due<2026-03-01 sort:due:asc limit:10` (operators `= != < > <= >= :contains :startsWith ?`, plus `sort:field:asc\|desc` and `limit:N`/`offset:N`). `query` takes precedence when given |
 | `diff_documents`    | `before`, `after`                         | Semantic diff between two versions — which blocks were added, removed, or modified |
 
 ### Workflow
@@ -104,13 +104,31 @@ All tools operate on IntentText source strings — pass the `.it` text in, get J
 | ------------------ | ---------- | --------------------------------------------------------------------------- |
 | `extract_workflow` | `source`   | Extract the execution graph: steps in topological order, dependencies, parallel batches, gate positions |
 
-### Trust
+### Trust — integrity (SHA-256, zero-dependency)
+
+This layer answers _"has the content changed?"_
 
 | Tool                   | Parameters                       | Description                                                  |
 | ---------------------- | -------------------------------- | -------------------------------------------------------------- |
-| `seal_document`        | `source`, `signer`, `role?`      | Seal with a cryptographic signature — appends `sign:` and `freeze:` blocks, returns sealed source + hash |
-| `verify_document`      | `source`                         | Verify integrity of a sealed document — reports tampering    |
+| `seal_document`        | `source`, `signer`, `role?`      | Seal for integrity — appends a SHA-256 content hash (`sign:`) and a `freeze:` marker; returns sealed source + hash. Proves the content is unchanged, not cryptographically _who_ sealed it |
+| `verify_document`      | `source`                         | Verify integrity of a sealed document — recompute the hash and report tampering |
+| `compute_hash`         | `source`                         | Compute the canonical SHA-256 content hash (`sha256:<hex>`) — the same hash used by seals and signature payloads. Useful for an ERP anchoring a document in an audit log or external ledger |
 | `get_document_history` | `source`, `block_id?`, `section?` | Revision history of a tracked document: what changed, who, when |
+
+### Trust — cryptographic identity & certification (Ed25519, `@dotit/sign`)
+
+This layer answers _"who signed it?"_ and _"did an authority certify it?"_ Verification needs no key and works offline — each `sign:`/`certify:` line carries the public key, so the `.it` file self-verifies.
+
+| Tool                    | Parameters                                | Description                                                  |
+| ----------------------- | ----------------------------------------- | -------------------------------------------------------------- |
+| `verify_signatures`     | `source`                                  | Verify every Ed25519 signature against the **current** content. Read-only, no key. Returns per-signer `{signer, role, at, publicKey, valid}`, a valid count, and `allSignaturesValid`. Any edit after signing flips signatures to invalid |
+| `verify_certification`  | `source`, `issuer?`, `trustedKey?`        | Verify UTS (or other authority) `certify:` lines — proof an authority attested this exact content at a stated time, from a stated (optionally KYC-verified) account/entity. Pass `trustedKey` (the authority's published Ed25519 public key; for UTS, from `https://api.uts.qa/.well-known/uts-pubkey`) so a forged line with a different key is rejected. `issuer` defaults to `UTS` |
+| `sign_document`         | `source`, `signer`, `privateKey`, `role?` | Add an Ed25519 signature using a private key **the caller supplies**. The `privateKey` is used in-process only for this single call and is never stored, logged, or transmitted. For ERPs holding their own signing key. Idempotent per public key |
+| `generate_signing_key`  | _(none)_                                  | Generate a fresh Ed25519 keypair `{publicKey, privateKey}`. The caller MUST store `privateKey` securely (KMS / ERP secret store) — it is shown once and never persisted by the server |
+
+:::note Where issuance lives
+The MCP **verifies** certifications but never **issues** them. Certification issuance requires the UTS authority's private key, which lives only on the UTS service (`api.uts.qa`) and must never be placed in an MCP server. Document authors sign with their own keys (`sign_document`); the authority certifies separately.
+:::
 
 ## Tool examples
 
@@ -174,10 +192,46 @@ Claude calls: validate_document({
 })
 ```
 
+### Verify a signed & certified document
+
+```
+User: "Is this signed purchase order valid and certified by UTS?"
+
+Claude calls: verify_signatures({ source: "title: PO #4471\n..." })
+  → { validCount: 2, allSignaturesValid: true, signatures: [...] }
+
+Claude calls: verify_certification({
+  source: "title: PO #4471\n...",
+  issuer: "UTS",
+  trustedKey: "<key from https://api.uts.qa/.well-known/uts-pubkey>"
+})
+  → { certifications: [{ issuer: "UTS", entity: "Acme Corp WLL", valid: true, trusted: true, at: "..." }] }
+```
+
+## ERP agent pipeline
+
+An agent embedded in a business ERP can drive the whole lifecycle through these tools — generate, render, and prove — without leaving the chat:
+
+1. **Generate** — `merge_template` to fill a contract/invoice template from ERP record data (`missing: "blank"` so optional fields never print).
+2. **Validate** — `validate_document` to catch broken references or unresolved variables before anything is shown to a human.
+3. **Render** — `render_html` for on-screen review, `render_print` to hand print-ready HTML to `@dotit/pdf` (server-side) for the final PDF.
+4. **Sign** — `generate_signing_key` once per signer (store the private key in the ERP's secret store), then `sign_document` with that key to apply an Ed25519 signature in-process.
+5. **Anchor** — `compute_hash` to record the document's content hash in the ERP audit log / ledger.
+6. **Verify** — on receipt, `verify_signatures` (who signed, unchanged?) and `verify_certification` (authority-attested?) — both offline, no key custody required for verification.
+
+The agent never needs the UTS authority key to sign; certification is requested from the UTS service out of band, and the resulting `certify:` line is verified here.
+
 ## Security
 
-The MCP server is stateless: every tool takes document source as input and returns results — it does not read or write your filesystem. Trust operations (seal, verify, history) use the same SHA-256 integrity system as the rest of the toolchain.
+The MCP server is **stateless**: every tool takes document source as input and returns results — it does not read or write your filesystem, and it holds no keys.
+
+- Integrity tools (`seal_document`, `verify_document`, `compute_hash`, `get_document_history`) use the same SHA-256 system as the rest of the toolchain.
+- Verification tools (`verify_signatures`, `verify_certification`) are read-only and need no secret.
+- `sign_document` requires a caller-supplied `privateKey` that is used in-process only for that single call — it is never stored, logged, or transmitted. `generate_signing_key` returns a private key exactly once; storing it securely is the caller's responsibility.
+- The UTS authority's signing key is **never** present in the MCP — issuance stays with the UTS service.
+
+All tools return clear error text (with `isError`) on bad input rather than crashing the server.
 
 ## Source
 
-Repository: [intenttext-mcp](https://github.com/intenttext/intenttext-mcp) · npm: [`@dotit/mcp`](https://www.npmjs.com/package/@dotit/mcp) (1.0.0 — formerly `@intenttext/mcp`, now deprecated with a pointer)
+Repository: [intenttext-mcp](https://github.com/intenttext/intenttext-mcp) · npm: [`@dotit/mcp`](https://www.npmjs.com/package/@dotit/mcp) (1.1.0 — formerly `@intenttext/mcp`, now deprecated with a pointer)

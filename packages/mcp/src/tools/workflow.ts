@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { parseIntentText, extractWorkflow } from "@dotit/core";
-import { jsonResult } from "../types.js";
+import { jsonResult, safe } from "../types.js";
 
 export function registerWorkflowTools(server: McpServer): void {
   server.tool(
@@ -12,14 +12,15 @@ export function registerWorkflowTools(server: McpServer): void {
     {
       source: z
         .string()
+        .min(1)
         .describe(
           "IntentText source containing workflow blocks (step:, decision:, gate:, etc.)",
         ),
     },
-    async ({ source }) => {
+    safe(async ({ source }: { source: string }) => {
       const doc = parseIntentText(source);
       const workflow = extractWorkflow(doc);
       return jsonResult(workflow);
-    },
+    }),
   );
 }

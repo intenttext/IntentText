@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { documentToSource } from "@dotit/core";
 import type { IntentDocument } from "@dotit/core";
-import { textResult } from "../types.js";
+import { textResult, safe } from "../types.js";
 
 export function registerSourceTools(server: McpServer): void {
   server.tool(
@@ -17,9 +17,9 @@ export function registerSourceTools(server: McpServer): void {
           "An IntentText document JSON object (as produced by parse_intent_text)",
         ),
     },
-    async ({ document }) => {
+    safe(async ({ document }: { document: Record<string, unknown> }) => {
       const source = documentToSource(document as unknown as IntentDocument);
       return textResult(source);
-    },
+    }),
   );
 }

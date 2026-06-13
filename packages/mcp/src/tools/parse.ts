@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { parseIntentText, parseIntentTextSafe } from "@dotit/core";
-import { jsonResult } from "../types.js";
+import { jsonResult, safe } from "../types.js";
 
 export function registerParseTools(server: McpServer): void {
   server.tool(
@@ -10,7 +10,7 @@ export function registerParseTools(server: McpServer): void {
       "Returns the complete document with metadata and typed blocks array. " +
       "Use this when you have raw .it text and need to inspect or process its structure.",
     {
-      source: z.string().describe("The IntentText source string to parse"),
+      source: z.string().min(1).describe("The IntentText source string to parse"),
       safe: z
         .boolean()
         .default(true)
@@ -18,8 +18,8 @@ export function registerParseTools(server: McpServer): void {
           "If true, never throw — returns warnings instead of errors. Default: true",
         ),
     },
-    async ({ source, safe }) => {
-      if (safe) {
+    safe(async ({ source, safe: safeMode }: { source: string; safe: boolean }) => {
+      if (safeMode) {
         const result = parseIntentTextSafe(source);
         return jsonResult({
           document: result.document,
@@ -30,6 +30,6 @@ export function registerParseTools(server: McpServer): void {
         const document = parseIntentText(source);
         return jsonResult(document);
       }
-    },
+    }),
   );
 }
