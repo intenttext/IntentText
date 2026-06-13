@@ -265,3 +265,182 @@ export function verifyDocumentSignatures(source: string): FullVerifyResult {
     allSignaturesValid: crypto.length > 0 && validCount === crypto.length,
   };
 }
+
+// ─── UTS Certification (Phase 3 — the authority layer) ───────────────────────
+//
+// A signature (above) proves "the holder of key K signed this." A CERTIFICATION
+// is issued by a trust authority (UTS) and proves "authority A attests that this
+// exact content existed at time T, from account N." Timestamp-first: it gives
+// provable TIME (and, once the authority does KYC at onboarding, a vouched
+// identity for the account). It is the same Ed25519 machinery — the difference
+// is custody: the authority's private key lives only on the authority's server,
+// and its PUBLIC key is published so anyone can verify offline.
+//
+// Embedded as a `certify:` line:
+//   certify: UTS | account: acme-corp | at: <iso> | hash: sha256:… | key: ed25519:<utsPub> | sig: <sig>
+// The authority signs over (hash, issuer, account, at), so a token can't be
+// lifted to a different document, account, or time.
+
+function certPayload(
+  hash: string,
+  issuer: string,
+  account: string,
+  at: string,
+): Uint8Array {
+  return enc(`certify\n${hash}\n${issuer}\n${account}\n${at}`);
+}
+
+export interface CertifyResult {
+  source: string;
+  at: string;
+  issuer: string;
+  account: string;
+  /** "already-certified" when this issuer already certified the current hash. */
+  note?: string;
+}
+
+/**
+ * Issue a certification over a document's current content hash. Run by the
+ * AUTHORITY (UTS) with its private key — never by the document author. Idempotent
+ * per (issuer, current hash): re-certifying unchanged content by the same issuer
+ * is a no-op.
+ */
+export function certifyDocument(
+  source: string,
+  options: {
+    issuer: string;
+    account: string;
+    issuerPrivateKey: string;
+    /** Override the timestamp (testing/determinism); defaults to now. */
+    at?: string;
+  },
+): CertifyResult {
+  const hash = computeDocumentHash(source);
+  const issuerKey = publicKeyFor(options.issuerPrivateKey);
+  const already = source.split("\n").some((l) => {
+    const t = l.trimStart();
+    return (
+      t.startsWith("certify:") && l.includes(options.issuer) && l.includes(hash)
+    );
+  });
+  if (already) {
+    return {
+      source,
+      at: "",
+      issuer: options.issuer,
+      account: options.account,
+      note: "already-certified",
+    };
+  }
+  const at = options.at ?? new Date().toISOString();
+  const sig = ed25519.sign(
+    certPayload(hash, options.issuer, options.account, at),
+    fromB64url(options.issuerPrivateKey),
+  );
+  const line = [
+    `certify: ${options.issuer}`,
+    `account: ${options.account}`,
+    `at: ${at}`,
+    `hash: ${hash}`,
+    `key: ed25519:${issuerKey}`,
+    `sig: ${toB64url(sig)}`,
+  ].join(" | ");
+
+  // Certifications sit just above the freeze: line if sealed, else above
+  // history:, else at the end — alongside the seal metadata.
+  const lines = source.replace(/\n+$/, "").split("\n");
+  const freezeIdx = lines.findIndex((l) => l.trimStart().startsWith("freeze:"));
+  const histIdx = lines.findIndex((l) => l.trim() === "history:");
+  const insertAt =
+    freezeIdx !== -1 ? freezeIdx : histIdx !== -1 ? histIdx : lines.length;
+  lines.splice(insertAt, 0, line);
+  return {
+    source: lines.join("\n") + "\n",
+    at,
+    issuer: options.issuer,
+    account: options.account,
+  };
+}
+
+export interface CertificationCheck {
+  issuer: string;
+  account?: string;
+  at?: string;
+  /** The embedded issuer public key (ed25519:… stripped). */
+  publicKey?: string;
+  /** true only if the issuer's signature verifies AND its key is trusted. */
+  valid: boolean;
+  /** true if the signature is cryptographically valid (regardless of trust). */
+  signatureValid: boolean;
+  /** true if the embedded key matches a key in trustedIssuers. */
+  trusted: boolean;
+  reason?: string;
+}
+
+/**
+ * Verify every `certify:` line against the CURRENT content. `trustedIssuers`
+ * maps an issuer name → its published public key (base64url). A certification is
+ * `valid` only if the signature verifies AND the embedded key matches the
+ * trusted key for that issuer — so a forged "UTS" line with a different key is
+ * rejected. With no trustedIssuers, signatureValid is still reported but
+ * trusted/valid are false (you can't trust a key you don't know).
+ */
+export function verifyCertifications(
+  source: string,
+  trustedIssuers: Record<string, string> = {},
+): CertificationCheck[] {
+  const currentHash = computeDocumentHash(source);
+  const out: CertificationCheck[] = [];
+  for (const raw of source.split("\n")) {
+    const line = raw.trimStart();
+    if (!line.startsWith("certify:")) continue;
+    const p = parseProps(line);
+    const issuer = (line.match(/^certify:\s*([^|]*)/)?.[1] || "").trim();
+    const account = p.account;
+    const at = p.at;
+    const keyField = p.key;
+    const sigField = p.sig;
+    if (!keyField || !sigField) {
+      out.push({
+        issuer,
+        account,
+        at,
+        valid: false,
+        signatureValid: false,
+        trusted: false,
+        reason: "certification missing key/sig",
+      });
+      continue;
+    }
+    const publicKey = keyField.replace(/^ed25519:/, "");
+    let signatureValid = false;
+    try {
+      signatureValid = ed25519.verify(
+        fromB64url(sigField),
+        certPayload(currentHash, issuer, account ?? "", at ?? ""),
+        fromB64url(publicKey),
+      );
+    } catch {
+      signatureValid = false;
+    }
+    const trustedKey = trustedIssuers[issuer];
+    const trusted = !!trustedKey && trustedKey === publicKey;
+    out.push({
+      issuer,
+      account,
+      at,
+      publicKey,
+      signatureValid,
+      trusted,
+      valid: signatureValid && trusted,
+      reason: !signatureValid
+        ? "signature does not match current content"
+        : !trusted
+          ? trustedKey
+            ? "issuer key does not match the trusted key (possible forgery)"
+            : "issuer not in trusted set"
+          : undefined,
+    });
+  }
+  return out;
+}

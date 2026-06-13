@@ -15,6 +15,8 @@ const {
   publicKeyFor,
   signDocumentCrypto,
   verifyDocumentSignatures,
+  certifyDocument,
+  verifyCertifications,
 } = require("./dist/index.js");
 
 function arg(name, fallback) {
@@ -61,17 +63,51 @@ if (cmd === "sign") {
   process.exit(0);
 }
 
-if (cmd === "verify") {
+// AUTHORITY mode: issue a UTS certification (provable timestamp + account). This
+// is exactly the operation the UTS server performs at api.uts.qa/certify — run
+// here with the authority's key file for testing / self-hosting.
+if (cmd === "certify") {
   const file = process.argv[3];
-  if (!file) {
-    console.error("Usage: dotit-sign verify <file.it>");
+  const keyFile = arg("--key", null);
+  const issuer = arg("--issuer", "UTS");
+  const account = arg("--account", null);
+  if (!file || !keyFile || !account) {
+    console.error('Usage: dotit-sign certify <file.it> --key uts-key.json --account "acme-corp" [--issuer UTS]');
     process.exit(2);
   }
   const source = fs.readFileSync(file, "utf8");
+  const key = JSON.parse(fs.readFileSync(keyFile, "utf8"));
+  const res = certifyDocument(source, { issuer, account, issuerPrivateKey: key.privateKey });
+  if (res.note === "already-certified") {
+    console.log(`✓ ${issuer} already certified this content for ${account} — no change.`);
+    process.exit(0);
+  }
+  fs.writeFileSync(file, res.source);
+  console.log(`✓ Certified ${file}: ${issuer} attests for "${account}" at ${res.at}.`);
+  console.log(`  Publish this issuer public key so anyone can verify: ${publicKeyFor(key.privateKey)}`);
+  process.exit(0);
+}
+
+if (cmd === "verify") {
+  const file = process.argv[3];
+  if (!file) {
+    console.error('Usage: dotit-sign verify <file.it> [--trust UTS=<pubkey> ...]');
+    process.exit(2);
+  }
+  const source = fs.readFileSync(file, "utf8");
+  // Trusted issuer keys: repeated --trust Name=base64pubkey
+  const trusted = {};
+  process.argv.forEach((a, i) => {
+    if (a === "--trust" && process.argv[i + 1]) {
+      const [name, pub] = process.argv[i + 1].split("=");
+      if (name && pub) trusted[name] = pub;
+    }
+  });
   const v = verifyDocumentSignatures(source);
+  const certs = verifyCertifications(source, trusted);
   const crypto = v.signatures.filter((s) => s.cryptographic);
-  if (crypto.length === 0) {
-    console.log("No cryptographic signatures found (document may be integrity-sealed only).");
+  if (crypto.length === 0 && certs.length === 0) {
+    console.log("No cryptographic signatures or certifications found (document may be integrity-sealed only).");
     process.exit(0);
   }
   console.log(`Document hash: ${v.hash}\n`);
@@ -80,15 +116,25 @@ if (cmd === "verify") {
       console.log(`  ◦ ${s.signer}${s.role ? `, ${s.role}` : ""} — text approval (not cryptographic)`);
       continue;
     }
-    const mark = s.valid ? "✓ VALID  " : "✗ INVALID";
+    const mark = s.valid ? "✓ SIGNED " : "✗ INVALID";
     console.log(`  ${mark} ${s.signer}${s.role ? `, ${s.role}` : ""}  key ${s.publicKey.slice(0, 12)}…${s.valid ? "" : `  (${s.reason})`}`);
   }
+  for (const c of certs) {
+    const mark = c.valid ? "✓ CERTIFIED" : c.signatureValid ? "⚠ UNTRUSTED" : "✗ INVALID  ";
+    console.log(`  ${mark} ${c.issuer} → ${c.account || "?"}  at ${c.at || "?"}${c.valid ? "" : `  (${c.reason})`}`);
+  }
+  const sigsOk = crypto.length === 0 || v.allSignaturesValid;
+  const certsOk = certs.length === 0 || certs.every((c) => c.valid);
   console.log(
-    `\n${v.allSignaturesValid ? "✓" : "✗"} ${v.validCount}/${crypto.length} signature(s) valid against current content.`,
+    `\n${sigsOk && certsOk ? "✓" : "✗"} ${v.validCount}/${crypto.length} signature(s), ${certs.filter((c) => c.valid).length}/${certs.length} certification(s) valid.`,
   );
-  process.exit(v.allSignaturesValid ? 0 : 1);
+  process.exit(sigsOk && certsOk ? 0 : 1);
 }
 
-console.error("dotit-sign — Ed25519 signatures for .it documents");
-console.error("Commands: keygen [--out file] · sign <file> --key k.json --signer N [--role R] · verify <file>");
+console.error("dotit-sign — Ed25519 signatures & UTS certification for .it documents");
+console.error("Commands:");
+console.error("  keygen [--out file]");
+console.error('  sign <file> --key k.json --signer "Name" [--role "CEO"]');
+console.error('  certify <file> --key uts-key.json --account "acme-corp" [--issuer UTS]   (authority)');
+console.error('  verify <file> [--trust UTS=<pubkey> ...]');
 process.exit(cmd ? 2 : 0);

@@ -11,14 +11,17 @@ import { parseIntentText } from "./parser";
 export function computeDocumentHash(source: string): string {
   const boundary = findHistoryBoundaryInSource(source);
   const content = boundary === -1 ? source : source.slice(0, boundary);
-  // Strip sign: and freeze: lines — these are the seal metadata whose
-  // hash fields reference the content without them
+  // Strip sign:/freeze:/certify: lines — these are seal & authority metadata
+  // ABOUT the content (their hash fields reference the content without them), so
+  // adding a signature, seal, or UTS certification must not change the content
+  // hash. (approve: IS part of the hashed record.)
   const bodyLines = content
     .split("\n")
     .filter(
       (line) =>
         !line.startsWith("sign:") &&
         !line.startsWith("freeze:") &&
+        !line.startsWith("certify:") &&
         !line.startsWith("amendment:"),
     );
   const body = bodyLines.join("\n").trim();

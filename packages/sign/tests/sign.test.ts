@@ -79,3 +79,62 @@ describe("@dotit/sign — sign + verify", () => {
     expect(checks[0].valid).toBe(false);
   });
 });
+
+import {
+  certifyDocument,
+  verifyCertifications,
+} from "../src/index";
+
+describe("@dotit/sign — UTS certification (authority layer)", () => {
+  const DOC2 = "title: Tender Bid\ntext: Bid amount 1,250,000 QAR\nsection: Submission";
+
+  it("certifies and verifies against the trusted issuer key (provable time + account)", () => {
+    const uts = generateSigningKey();
+    const c = certifyDocument(DOC2, { issuer: "UTS", account: "acme-corp", issuerPrivateKey: uts.privateKey, at: "2026-06-13T10:15:00Z" });
+    const [chk] = verifyCertifications(c.source, { UTS: uts.publicKey });
+    expect(chk).toMatchObject({ issuer: "UTS", account: "acme-corp", at: "2026-06-13T10:15:00Z", valid: true, trusted: true, signatureValid: true });
+  });
+
+  it("editing the document invalidates the certification", () => {
+    const uts = generateSigningKey();
+    const c = certifyDocument(DOC2, { issuer: "UTS", account: "acme", issuerPrivateKey: uts.privateKey });
+    const [chk] = verifyCertifications(c.source.replace("1,250,000", "9,999,999"), { UTS: uts.publicKey });
+    expect(chk.valid).toBe(false);
+  });
+
+  it("a forged 'UTS' certification with a different key is rejected (not trusted)", () => {
+    const uts = generateSigningKey();
+    const attacker = generateSigningKey();
+    const forged = certifyDocument(DOC2, { issuer: "UTS", account: "evil", issuerPrivateKey: attacker.privateKey });
+    const [chk] = verifyCertifications(forged.source, { UTS: uts.publicKey });
+    expect(chk.signatureValid).toBe(true); // attacker's own sig is valid math…
+    expect(chk.trusted).toBe(false); // …but the key isn't UTS's
+    expect(chk.valid).toBe(false);
+  });
+
+  it("an unknown issuer (no trusted key) reports signatureValid but not trusted", () => {
+    const uts = generateSigningKey();
+    const c = certifyDocument(DOC2, { issuer: "UTS", account: "a", issuerPrivateKey: uts.privateKey });
+    const [chk] = verifyCertifications(c.source, {}); // no trusted set
+    expect(chk.signatureValid).toBe(true);
+    expect(chk.trusted).toBe(false);
+    expect(chk.valid).toBe(false);
+  });
+
+  it("certification coexists with a signature; both verify; hash excludes both", () => {
+    const uts = generateSigningKey();
+    const signer = generateSigningKey();
+    const signed = signDocumentCrypto(DOC2, { signer: "Ahmed", privateKey: signer.privateKey });
+    const both = certifyDocument(signed.source, { issuer: "UTS", account: "acme", issuerPrivateKey: uts.privateKey });
+    expect(verifyDocumentSignatures(both.source).allSignaturesValid).toBe(true);
+    expect(verifyCertifications(both.source, { UTS: uts.publicKey })[0].valid).toBe(true);
+  });
+
+  it("certification is idempotent per issuer + content hash", () => {
+    const uts = generateSigningKey();
+    const c1 = certifyDocument(DOC2, { issuer: "UTS", account: "a", issuerPrivateKey: uts.privateKey });
+    const c2 = certifyDocument(c1.source, { issuer: "UTS", account: "a", issuerPrivateKey: uts.privateKey });
+    expect(c2.note).toBe("already-certified");
+    expect(c2.source.split("\n").filter((l) => l.startsWith("certify:")).length).toBe(1);
+  });
+});

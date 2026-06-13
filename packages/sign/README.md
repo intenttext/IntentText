@@ -77,3 +77,28 @@ Crypto is [`@noble/curves`](https://github.com/paulmillr/noble-curves) — audit
 constant-time, runs in Node and the browser. We never hand-roll signature math.
 
 MIT · part of the [dotit](https://dotit.uts.qa) ecosystem.
+
+## UTS certification (the authority layer)
+
+A signature proves *who signed*. A **certification** is issued by a trust
+authority (UTS) and proves *"authority A attests this exact content existed at
+time T, from account N"* — provable **time**, and (with KYC at onboarding) a
+vouched **identity** for the account.
+
+```ts
+import { certifyDocument, verifyCertifications } from "@dotit/sign";
+
+// Run by the AUTHORITY (UTS) with its private key — never the document author:
+const certified = certifyDocument(source, { issuer: "UTS", account: "acme-corp", issuerPrivateKey: UTS_KEY });
+//  certify: UTS | account: acme-corp | at: … | hash: sha256:… | key: ed25519:<utsPub> | sig: …
+
+// Anyone verifies against UTS's PUBLISHED public key (offline):
+const checks = verifyCertifications(certified.source, { UTS: UTS_PUBLIC_KEY });
+// → [{ issuer, account, at, valid, signatureValid, trusted, reason }]
+```
+
+A forged `certify: UTS …` line signed with someone else's key is **rejected**
+(`trusted: false`) — the embedded key must match the published UTS key. Editing
+the document invalidates the certification. CLI: `dotit-sign certify <file>
+--key uts-key.json --account "acme-corp"` (authority) and `dotit-sign verify
+<file> --trust UTS=<pubkey>`.
