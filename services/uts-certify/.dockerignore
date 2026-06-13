@@ -1,0 +1,14 @@
+# Keep the build context tiny and never ship secrets into an image layer.
+node_modules
+dist
+.keys
+.env
+.env.local
+accounts.json
+test
+*.log
+README.md
+docker-compose.yml
+Dockerfile
+.dockerignore
+.gitignore

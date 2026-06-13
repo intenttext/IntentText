@@ -1,0 +1,51 @@
+# docker-compose.yml — UTS certification service + its MongoDB.
+#
+# This brings up the whole api.uts.qa backend locally (or on a single VM):
+#   - mongo:        the database the service owns its collections inside.
+#   - uts-certify:  the Node/Express service; signs UTS certifications.
+#
+# Secrets come from a local .env file (see .env.example) — NEVER commit real
+# values. Generate them with the commands in .env.example / DEPLOYMENT.md.
+#
+#   cp .env.example .env       # then fill in UTS_KEK, UTS_ADMIN_TOKEN, ...
+#   docker compose up --build
+#   curl -s http://localhost:8787/pubkey
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - uts-mongo-data:/data/db
+    # Not published to the host by default — only the service reaches it on the
+    # internal compose network. Uncomment to inspect from the host.
+    # ports:
+    #   - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  uts-certify:
+    build:
+      context: .
+    restart: unless-stopped
+    # All secrets/config come from .env (env_file). The compose file itself
+    # carries NO secrets. Override MONGODB_URI here so it points at the `mongo`
+    # service on the compose network, not localhost.
+    env_file:
+      - .env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+      NODE_ENV: production
+      UTS_KEY_PROVIDER: mongo
+      PORT: "8787"
+    ports:
+      - "8787:8787"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  uts-mongo-data:

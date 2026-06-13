@@ -14,7 +14,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@dotit/core": "^1.2.3",
+    "@dotit/core": "^1.2.4",
     "@dotit/sign": "^1.2.0",
     "express": "^4.21.2",
     "mongodb": "^6.12.0"

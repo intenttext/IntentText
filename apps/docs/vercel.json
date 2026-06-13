@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "docusaurus",
+  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter intenttext-docs-temp... build",
+  "outputDirectory": "build"
+}
