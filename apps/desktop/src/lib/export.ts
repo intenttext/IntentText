@@ -1,24 +1,28 @@
 // export.ts — Tauri-native export/print for the desktop app.
 //
 // The browser export path (@dotit/editor's iframe-print + blob-download) does
-// not work inside Tauri's WKWebView: a sandboxed iframe can't drive the OS
-// print panel, and there is no anchor-download. So we render through core's
-// renderPrint and:
-//   • print  → inject the rendered body into the MAIN document and call
-//              window.print() (WKWebView surfaces the native print / Save-as-PDF
-//              panel only for the top window, not an iframe).
+// not work inside Tauri's WKWebView: no anchor-download, and window.print() is
+// unreliable in WKWebView. So we render through core's renderPrint and:
+//   • print  → write the print HTML to a temp file and open it in the system
+//              default browser, where Cmd+P / Save-as-PDF work reliably.
 //   • HTML   → save the print HTML string via the dialog + write_file command.
 //   • DOCX   → convert to bytes and write via the binary file command.
 //   • import → open a .docx, convert to IntentText source, hand back to the app.
 
 import { save, open, message } from "@tauri-apps/plugin-dialog";
+import { tempDir, join } from "@tauri-apps/api/path";
 import {
   parseIntentText,
   renderPrint,
   convertIntentTextToDocx,
   convertDocxToIntentText,
 } from "@dotit/core";
-import { writeFile, writeBinaryFile, readBinaryFile } from "./backend";
+import {
+  writeFile,
+  writeBinaryFile,
+  readBinaryFile,
+  openExternal,
+} from "./backend";
 
 /** Full standalone HTML document for the given source + theme. */
 function buildPrintHTML(content: string, theme: string): string {
@@ -40,71 +44,26 @@ function defaultName(content: string, fallback = "document"): string {
   }
 }
 
-const PRINT_ROOT_ID = "it-print-root";
-const PRINT_STYLE_ID = "it-print-style";
-
 /**
- * Open the OS print / Save-as-PDF panel for the document.
- *
- * We render the document body into a hidden container appended to the MAIN
- * document, install an `@media print` sheet that hides everything except that
- * container, then call window.print(). The native panel appears (WKWebView only
- * exposes it for the top window). Cleanup runs on `afterprint`, with a timeout
- * fallback in case the event never fires.
+ * Print / Save-as-PDF: render the document to a standalone HTML file in the OS
+ * temp dir and open it in the system default browser, where Cmd+P → Print /
+ * Save-as-PDF works reliably. WKWebView's own window.print() is unreliable, so
+ * we deliberately hand off to the browser's mature print pipeline (core's @page
+ * CSS gives the correct physical page size there).
  */
-export function printDocument(content: string, theme: string): void {
-  const html = buildPrintHTML(content, theme);
-
-  // Pull the <body>…</body> and any inline <style> out of the standalone doc so
-  // the rendered styles + content live inside our print container.
-  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  const styleBlocks = [...html.matchAll(/<style[^>]*>[\s\S]*?<\/style>/gi)]
-    .map((m) => m[0])
-    .join("\n");
-  // Preserve the body's classes (e.g. `it-print`) — core's print CSS keys off them.
-  const bodyClass = (html.match(/<body[^>]*class="([^"]*)"/i)?.[1] ?? "").trim();
-  const bodyInner = bodyMatch ? bodyMatch[1] : html;
-
-  cleanupPrint(); // belt-and-braces: remove any stale container/style
-
-  const container = document.createElement("div");
-  container.id = PRINT_ROOT_ID;
-  container.setAttribute("aria-hidden", "true");
-  if (bodyClass) container.className = bodyClass;
-  container.innerHTML = `${styleBlocks}${bodyInner}`;
-  document.body.appendChild(container);
-
-  const style = document.createElement("style");
-  style.id = PRINT_STYLE_ID;
-  style.textContent = `
-    /* Off-screen on-screen; only visible at print time. */
-    #${PRINT_ROOT_ID} { position: absolute; left: -10000px; top: 0; }
-    @media print {
-      body > *:not(#${PRINT_ROOT_ID}) { display: none !important; }
-      #${PRINT_ROOT_ID} {
-        position: static !important;
-        left: auto !important;
-        display: block !important;
-      }
-    }
-  `;
-  document.head.appendChild(style);
-
-  const done = () => {
-    window.removeEventListener("afterprint", done);
-    cleanupPrint();
-  };
-  window.addEventListener("afterprint", done);
-  // Fallback in case afterprint doesn't fire (some platforms/cancel paths).
-  setTimeout(done, 60_000);
-
-  // Let layout/styles settle before invoking the panel.
-  setTimeout(() => window.print(), 50);
-}
-
-function cleanupPrint(): void {
-  document.getElementById(PRINT_ROOT_ID)?.remove();
-  document.getElementById(PRINT_STYLE_ID)?.remove();
+export async function printDocument(
+  content: string,
+  theme: string,
+): Promise<void> {
+  try {
+    const html = buildPrintHTML(content, theme);
+    const dir = await tempDir();
+    const file = await join(dir, `intenttext-print-${Date.now()}.html`);
+    await writeFile(file, html);
+    await openExternal(file);
+  } catch (err) {
+    await reportError("Print failed", err);
+  }
 }
 
 /** Save the document as a standalone .html file via the native save dialog. */
@@ -153,8 +112,29 @@ export async function importDOCX(): Promise<ImportedDoc | null> {
       filters: [{ name: "Word", extensions: ["docx"] }],
     });
     if (typeof selected !== "string") return null;
+
     const bytes = await readBinaryFile(selected);
+    if (!bytes || bytes.length === 0) {
+      await message(
+        `Read 0 bytes from:\n${selected}\n\nThe file may be unreadable or the binary read command failed.`,
+        { title: "Word import — empty read", kind: "warning" },
+      );
+      return null;
+    }
+
     const source = convertDocxToIntentText(Uint8Array.from(bytes));
+    // Distinguish "read OK but couldn't extract text" (converter gap on a real
+    // Word file) from a clean import — so the failure is visible, not silent.
+    if (!source || source.replace(/\s/g, "").length < 3) {
+      await message(
+        `Read ${bytes.length.toLocaleString()} bytes, but extracted no document text.\n\n` +
+          `This .docx likely uses a structure the converter doesn't handle yet. ` +
+          `Send me this file and I'll extend the converter.`,
+        { title: "Word import — nothing extracted", kind: "warning" },
+      );
+      return null;
+    }
+
     const base =
       selected.split(/[\\/]/).pop()?.replace(/\.docx$/i, "") || "Imported";
     return { source, suggestedName: base };

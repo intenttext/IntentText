@@ -150,3 +150,19 @@ pub async fn rename_file(from: String, to: String) -> Result<(), String> {
     std::fs::rename(from_path, to_path)
         .map_err(|e| format!("Failed to rename file: {}", e))
 }
+
+/// Open a path with the OS default handler (a .html in the default browser, etc.).
+/// Used by Print/PDF: we render to a temp .html and open it so the user can print
+/// or Save-as-PDF from the browser — reliable, unlike WKWebView's window.print().
+#[tauri::command]
+pub fn open_external(path: String) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    let result = std::process::Command::new("open").arg(&path).spawn();
+    #[cfg(target_os = "windows")]
+    let result = std::process::Command::new("cmd")
+        .args(["/C", "start", "", &path])
+        .spawn();
+    #[cfg(target_os = "linux")]
+    let result = std::process::Command::new("xdg-open").arg(&path).spawn();
+    result.map(|_| ()).map_err(|e| format!("Failed to open {}: {}", path, e))
+}

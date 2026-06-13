@@ -44,6 +44,11 @@ export function readBinaryFile(path: string): Promise<number[]> {
   return invoke<number[]>("read_binary_file", { path });
 }
 
+/** Open a path with the OS default handler (a temp .html in the browser, for print). */
+export function openExternal(path: string): Promise<void> {
+  return invoke("open_external", { path });
+}
+
 /** Recursive listing of a workspace folder (.it files + directories). */
 export function openFolderInfo(path: string): Promise<WorkspaceInfo> {
   return invoke<WorkspaceInfo>("open_folder", { path });

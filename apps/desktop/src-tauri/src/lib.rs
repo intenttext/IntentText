@@ -82,6 +82,7 @@ pub fn run() {
             commands::fs::write_file,
             commands::fs::write_binary_file,
             commands::fs::read_binary_file,
+            commands::fs::open_external,
             commands::fs::list_files,
             commands::fs::file_metadata,
             commands::fs::delete_file,
@@ -102,11 +103,22 @@ pub fn run() {
         // CLI args. Store the path so a cold-started frontend can drain it, and
         // emit open-file so an already-running (warm) instance opens it live.
         if let RunEvent::Opened { urls } = event {
+            let mut opened_any = false;
             for u in &urls {
                 if let Some(path) = url_to_path(u.as_str()) {
                     *app_handle.state::<PendingOpen>().0.lock().unwrap() =
                         Some(path.clone());
                     let _ = app_handle.emit("open-file", path);
+                    opened_any = true;
+                }
+            }
+            // Bring the (already-running) window to the front — without this the
+            // file opened but the app stayed behind whatever you were looking at.
+            if opened_any {
+                if let Some(win) = app_handle.webview_windows().values().next() {
+                    let _ = win.show();
+                    let _ = win.unminimize();
+                    let _ = win.set_focus();
                 }
             }
         }
