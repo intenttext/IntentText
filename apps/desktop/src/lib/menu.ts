@@ -133,7 +133,7 @@ export async function installAppMenu(
       await PredefinedMenuItem.new({ item: "Minimize" }),
       await PredefinedMenuItem.new({ item: "Maximize" }),
       ...(isMac
-        ? [await PredefinedMenuItem.new({ item: "BringAllToFront" })]
+        ? [await PredefinedMenuItem.new({ item: "Fullscreen" })]
         : []),
     ],
   });

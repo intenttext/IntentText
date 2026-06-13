@@ -23,8 +23,8 @@
   "dependencies": {
     "@dotit/core": "workspace:*",
     "@dotit/editor": "workspace:*",
-    "@tauri-apps/api": "^2.5.0",
-    "@tauri-apps/plugin-dialog": "^2.2.0",
+    "@tauri-apps/api": "~2.10.0",
+    "@tauri-apps/plugin-dialog": "~2.6.0",
     "@tauri-apps/plugin-window-state": "^2.0.4",
     "lucide-react": "^0.577.0",
     "react": "^19.2.4",

@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { DOCUMENT_CSS } from "./verify";
 
 /**
  * Render the document into a sandboxed iframe. We use `srcDoc` + a strict
@@ -8,15 +7,9 @@ import { DOCUMENT_CSS } from "./verify";
  * own markup being able to run code or touch the host page.
  */
 export function Preview({ html }: { html: string }) {
-  const srcDoc = useMemo(() => {
-    return `<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-  html,body{margin:0;background:#fff;}
-  body{padding:8px 4px;}
-  ${DOCUMENT_CSS}
-</style></head><body>${html}</body></html>`;
-  }, [html]);
+  // `html` is already a complete self-contained document from core's renderPrint
+  // (CSS embedded) — use it directly so the preview matches the PDF exactly.
+  const srcDoc = useMemo(() => html, [html]);
 
   return (
     <div className="preview-wrap">

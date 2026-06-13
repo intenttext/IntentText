@@ -8,19 +8,18 @@
  */
 import {
   parseIntentText,
-  renderHTML,
+  renderPrint,
   verifyDocument,
   computeDocumentHash,
   type VerifyResult,
 } from "@dotit/core";
-import { DOCUMENT_CSS } from "@dotit/core/dist/document-css";
+
 import {
   verifyDocumentSignatures,
   type FullVerifyResult,
   type SignatureCheck,
 } from "@dotit/sign";
 
-export { DOCUMENT_CSS };
 export type { SignatureCheck };
 
 export type Verdict = "verified" | "unsealed" | "modified" | "invalid";
@@ -129,7 +128,7 @@ export function runVerification(source: string): VerifyReport {
   let parseError: string | undefined;
   try {
     const doc = parseIntentText(source);
-    previewHTML = renderHTML(doc);
+    previewHTML = renderPrint(doc);
   } catch (e) {
     parseError = (e as Error).message;
   }
