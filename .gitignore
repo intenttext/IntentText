@@ -120,3 +120,6 @@ demo/**/out.*
 
 # VSCode extension package (build artifact)
 *.vsix
+
+# Internal business strategy (pricing, revenue, GTM) — keep OUT of the public repo
+docs-internal/
