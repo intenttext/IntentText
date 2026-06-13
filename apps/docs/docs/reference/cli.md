@@ -102,16 +102,36 @@ Combines with `--html`, `--print`, `--pdf`, `--theme`, and `--output`.
 
 ---
 
-### Convert to IntentText
+### Convert to IntentText (`--to-it`)
 
-Convert Markdown or HTML to `.it`. The converter is chosen by file extension
-(`.html`/`.htm` → HTML converter, anything else → Markdown).
+Convert another format to `.it`. The converter is chosen by file extension:
+`.xlsx` → spreadsheet, `.docx` → Word, `.html`/`.htm` → HTML, anything else →
+Markdown.
 
 ```bash
 dotit document.md --to-it
 dotit page.html --to-it
+dotit report.xlsx --to-it
+dotit report.docx --to-it
 dotit document.md --to-it --output    # saves document.it next to the source
 ```
+
+---
+
+### Convert (`convert` — both directions)
+
+`dotit convert <in> <out>` dispatches by the input/output extension pair, and can
+convert **out of** `.it` as well as into it.
+
+```bash
+dotit convert report.xlsx report.it    # spreadsheet → IntentText (tables → blocks)
+dotit convert report.docx report.it    # Word → IntentText
+dotit convert page.md report.it        # Markdown/HTML → IntentText
+dotit convert report.it report.xlsx    # IntentText → spreadsheet (tables → sheets)
+dotit convert report.it report.docx    # IntentText → Word
+```
+
+Supported: `.md`/`.html`/`.xlsx`/`.docx` → `.it`, and `.it` → `.xlsx`/`.docx`.
 
 ---
 

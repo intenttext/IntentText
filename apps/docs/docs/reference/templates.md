@@ -175,19 +175,25 @@ const printHtml = renderPrint(merged, { theme: "corporate" });
 - Variables work in content, properties, table cells, and inline nodes
 - Metadata `title:` and `summary:` are also resolved
 
-## Hub templates
+## Template library
 
-The [IntentText Hub](https://hub.dotit.uts.qa) hosts **76 seeded templates** across 8 domains:
+A template is just a `.it` file, so you can keep your own in version control and merge
+them with `parseAndMerge` from any service. The repository also ships a seed library of
+**77 example templates** organized into eight domains:
 
-| Domain     | Templates                          | Examples                             |
-| ---------- | ---------------------------------- | ------------------------------------ |
-| Legal      | Contracts, NDAs, terms of service  | Service agreement, NDA               |
-| Business   | Proposals, reports, plans          | Quarterly report, business plan      |
-| HR         | Offer letters, reviews, policies   | Employment offer, performance review |
-| Education  | Syllabi, lesson plans, assessments | Course syllabus, rubric              |
-| Technical  | Architecture docs, RFCs, runbooks  | API specification, incident report   |
-| Finance    | Invoices, budgets, forecasts       | Standard invoice, budget proposal    |
-| Healthcare | Consent forms, care plans          | Patient consent, treatment plan      |
-| Government | Permits, compliance docs           | Building permit, FOIA request        |
+| Domain         | Examples                                            |
+| -------------- | --------------------------------------------------- |
+| `business`     | Proposals, reports, plans (largest set)             |
+| `organization` | Contracts, NDAs, policies, compliance docs          |
+| `reports`      | Quarterly, financial, and status reports            |
+| `agent`        | Workflow and task-plan definitions                  |
+| `editorial`    | Articles and long-form writing                      |
+| `personal`     | Personal documents and letters                      |
+| `book`         | Long-form / multi-chapter documents                 |
+| `developer`    | Technical specs, runbooks, RFCs                     |
 
-Browse, fork, and merge templates directly from the Hub.
+:::note Experimental
+The browsable IntentText Hub web app is experimental and not part of the supported v4
+release surface. The seed templates above are plain `.it` files you can copy and merge
+with `@dotit/core` directly — no Hub required.
+:::

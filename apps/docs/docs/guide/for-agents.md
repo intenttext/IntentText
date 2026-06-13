@@ -44,23 +44,19 @@ import { parseIntentText, executeWorkflow } from "@dotit/core";
 const doc = parseIntentText(source);
 
 const result = await executeWorkflow(doc, {
-  executeStep: async (block) => {
-    // dispatch to your agent or tool runner
-    console.log(`Executing: ${block.content}`);
-    return { status: "completed", output: "Done" };
+  // Tool handlers, keyed by each step's `tool:` value. Receive (input, context).
+  tools: {
+    validate: async (input, context) => ({ ok: true }),
+    infra: async (input, context) => "provisioned",
   },
-  evaluateDecision: async (block) => {
-    // evaluate the if: condition
-    return { branch: "yes" };
-  },
-  checkGate: async (block) => {
-    // check external approval, condition, etc.
-    return { passed: true };
-  },
+  // Called when a gate: block is reached — resolve true (approve) or false (reject)
+  onGate: async (gate, context) => true,
+  options: { dryRun: false },
 });
 
 console.log(result.status); // "completed" | "gate_blocked" | "policy_blocked" | "error" | "dry_run"
-console.log(result.executedSteps);
+console.log(result.context); // collected step outputs
+console.log(result.log); // one entry per processed block
 ```
 
 ### Execution result statuses
@@ -100,7 +96,7 @@ audit: Migration complete | by: DataBot | at: {{now}} | action: migrate
 result: Success | status: completed
 
 section: Rollback
-result: id: result-fail | status: error | message: Migration failed — rollback initiated
+result: Migration failed — rollback initiated | id: result-fail | status: error
 step: Restore backup | depends: result-fail | tool: pg_restore
 ```
 
@@ -164,20 +160,25 @@ npm install @dotit/mcp
 
 Available MCP tools:
 
-| Tool                   | Purpose                              |
-| ---------------------- | ------------------------------------ |
-| `parse_intent_text`    | Parse a `.it` source to JSON         |
-| `render_html`          | Render to styled HTML                |
-| `render_print`         | Render to print-ready HTML           |
-| `query_document`       | Query blocks with filters            |
-| `merge_template`       | Merge a template with data           |
-| `seal_document`        | Seal a document (sign + freeze)      |
-| `verify_document`      | Verify integrity                     |
-| `validate_document`    | Semantic validation beyond syntax    |
-| `diff_documents`       | Diff two document versions           |
-| `document_to_source`   | Convert JSON back to `.it` source    |
-| `extract_workflow`     | Extract the execution graph          |
-| `get_document_history` | Read a tracked document's history    |
+| Tool                    | Purpose                                              |
+| ----------------------- | ---------------------------------------------------- |
+| `parse_intent_text`     | Parse a `.it` source to JSON                         |
+| `render_html`           | Render to styled HTML                                |
+| `render_print`          | Render to print-ready HTML                           |
+| `query_document`        | Query blocks with filters                            |
+| `merge_template`        | Merge a template with data                           |
+| `seal_document`         | Seal a document (sign + freeze)                      |
+| `verify_document`       | Verify integrity                                     |
+| `compute_hash`          | Compute the canonical SHA-256 document hash          |
+| `validate_document`     | Semantic validation beyond syntax                    |
+| `diff_documents`        | Diff two document versions                           |
+| `document_to_source`    | Convert JSON back to `.it` source                    |
+| `extract_workflow`      | Extract the execution graph                          |
+| `get_document_history`  | Read a tracked document's history                    |
+| `generate_signing_key`  | Generate an Ed25519 keypair (identity layer)         |
+| `sign_document`         | Add an Ed25519 cryptographic signature               |
+| `verify_signatures`     | Verify Ed25519 signatures                            |
+| `verify_certification`  | Verify UTS authority certifications                  |
 
 Connect to Claude:
 

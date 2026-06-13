@@ -120,8 +120,12 @@ Only stale entries are rebuilt — unchanged files are skipped.
 ```javascript
 import { checkStaleness, updateIndex } from "@dotit/core";
 
-const { changed, removed, added } = checkStaleness(existingIndex, currentFiles);
-const updated = updateIndex(existingIndex, changedFiles, removedFiles);
+// checkStaleness returns { stale, added, removed, unchanged } — arrays of file names
+const { stale, added, removed, unchanged } = checkStaleness(existingIndex, currentFiles);
+
+// updateIndex(existing, updates, removed): `updates` is a { name → fileData } map of
+// the stale+added files; `removed` is the array of deleted file names
+const updated = updateIndex(existingIndex, updates, removed);
 ```
 
 ## Composing indexes

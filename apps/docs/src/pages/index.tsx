@@ -3,23 +3,29 @@ import Link from "@docusaurus/Link";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import Layout from "@theme/Layout";
 import {
+  ArrowLeftRight,
   ArrowRight,
+  BadgeCheck,
   Bot,
   Clock,
   Code2,
   Database,
   FileCheck,
+  FileSpreadsheet,
   FileText,
+  Fingerprint,
   GitBranch,
   Globe,
   LayoutDashboard,
   Lock,
+  Monitor,
   Package,
   PenLine,
   Printer,
   Search,
   Server,
   ShieldCheck,
+  Stamp,
   Users,
 } from "lucide-react";
 import styles from "./index.module.css";
@@ -273,26 +279,48 @@ const MCP_TOOLS = [
   "extract_workflow",
   "seal_document",
   "verify_document",
+  "compute_hash",
   "get_document_history",
+  "sign_document",
+  "verify_signatures",
+  "verify_certification",
+  "generate_signing_key",
 ];
 
 const TRUST_TERM: TermLine[] = [
+  { t: "comment", s: "// 1 · INTEGRITY — freeze the content with a SHA-256 seal" },
   { t: "cmd", s: 'dotit seal contract.it --signer "Ahmed Al-Jaber" --role "CEO"' },
-  { t: "ok", s: "✅  Document sealed" },
-  { t: "out", s: "    Signer:   Ahmed Al-Jaber (CEO)" },
-  { t: "out", s: "    Hash:     sha256:9f1c2ab87d…" },
-  { t: "out", s: "    Frozen:   2026-06-12T10:02:11Z" },
+  { t: "ok", s: "✅  Sealed   sha256:9f1c2ab87d…   frozen 2026-06-12T10:02Z" },
   { t: "blank" },
-  { t: "cmd", s: "dotit verify contract.it" },
-  { t: "ok", s: "✅  Document intact" },
-  { t: "out", s: "    Sealed:   2026-06-12T10:02:11Z" },
-  { t: "out", s: "    Signers:  Ahmed Al-Jaber (CEO) ✅" },
+  { t: "comment", s: "// 2 · IDENTITY — add a real Ed25519 signature (proves WHO)" },
+  { t: "cmd", s: "dotit sign contract.it --key ahmed.key" },
+  { t: "ok", s: "✅  Signed   key ed25519:6f2a…   sig 30c4…" },
+  { t: "blank" },
+  { t: "comment", s: "// 3 · AUTHORITY — bind a KYC-verified entity via UTS certify" },
+  { t: "cmd", s: "dotit verify contract.it --root uts-root.pub" },
+  { t: "ok", s: "✅  Intact · signature valid · certified — offline" },
+  { t: "out", s: "    Signer:    Ahmed Al-Jaber (CEO)" },
+  { t: "out", s: "    Certified: Horizon Consulting · UTS-verified entity" },
+  { t: "out", s: "    Chain:     root → issuing key → document  ✅" },
   { t: "blank" },
   { t: "comment", s: "// a payment term is edited after sealing…" },
   { t: "cmd", s: "dotit verify contract.it" },
-  { t: "err", s: "❌  Document has been modified since sealing" },
+  { t: "err", s: "❌  Modified since sealing" },
   { t: "out", s: "    Expected: sha256:9f1c2ab87d…" },
   { t: "out", s: "    Current:  sha256:3e8d41c09a…" },
+];
+
+const CONVERT_TERM: TermLine[] = [
+  { t: "comment", s: "// bring existing files in — Markdown, HTML, Excel, Word" },
+  { t: "cmd", s: "dotit convert budget.xlsx budget.it" },
+  { t: "ok", s: "✅  budget.it — 3 sheets → typed tables" },
+  { t: "cmd", s: "dotit convert proposal.docx proposal.it" },
+  { t: "ok", s: "✅  proposal.it — headings, lists, tables preserved" },
+  { t: "blank" },
+  { t: "comment", s: "// and send them back out — round-trips both ways" },
+  { t: "cmd", s: "dotit convert report.it report.xlsx" },
+  { t: "cmd", s: "dotit convert report.it report.docx" },
+  { t: "ok", s: "✅  report.xlsx · report.docx" },
 ];
 
 const QUERY_TERM: TermLine[] = [
@@ -485,8 +513,8 @@ function ArabicPaper() {
 export default function Home(): React.ReactElement {
   return (
     <Layout
-      title="Documents, data, PDF, and trust in one plain-text file"
-      description="IntentText (.it) is an open plain-text format: human-readable documents that are also a queryable database, printable to enterprise PDF, and cryptographically sealable. Arabic-native, agent-ready."
+      title="A plain-text document you can read, query, print, and prove"
+      description="IntentText (.it) is an open plain-text format: human-readable documents that are also a queryable database, printable to enterprise PDF, and provable through a three-layer trust model — SHA-256 integrity, Ed25519 signatures, and UTS certification — verifiable by anyone, offline. Arabic-native, agent-ready."
     >
       {/* ── 1 · Hero ─────────────────────────────────────── */}
       <header className={styles.hero}>
@@ -494,18 +522,19 @@ export default function Home(): React.ReactElement {
           <div className={styles.heroGrid}>
             <div className={styles.heroCopy}>
               <div className={styles.heroBadge}>
-                <code>.it</code> — IntentText · v1.x · open format
+                <code>.it</code> — IntentText · open format · trust built in
               </div>
               <h1 className={styles.heroTitle}>
-                One plain-text file. A <em>document</em>, a <em>database</em>,
-                a <em>PDF</em>, a <em>sealed record</em>.
+                One plain-text file you can <em>read</em>, <em>query</em>,{" "}
+                <em>print</em>, and <em>prove</em>.
               </h1>
               <p className={styles.heroSub}>
                 IntentText (<code>.it</code>) is an open format for business
-                documents. Write contracts, invoices, and reports as readable
-                text — query them like a database, print them to
-                enterprise-grade PDF, and seal them with a tamper-evident hash.
-                In English or Arabic, by people or AI agents.
+                documents — contracts, invoices, tenders, reports. The same
+                file is a human-readable document, a queryable database, an
+                enterprise PDF, and a <strong>tamper-evident, signable,
+                certifiable record</strong> anyone can verify offline. No
+                platform, no account, no lock-in.
               </p>
               <div className={styles.installRow}>
                 <code className={styles.installCmd}>
@@ -567,8 +596,8 @@ export default function Home(): React.ReactElement {
             </a>
             <a className={styles.pillar} href="#trust">
               <ShieldCheck size={22} strokeWidth={1.6} />
-              <strong>A record you trust</strong>
-              <span>Sign, seal, verify, amend</span>
+              <strong>A record you prove</strong>
+              <span>Seal · sign · certify · verify</span>
             </a>
           </nav>
         </div>
@@ -623,7 +652,7 @@ export default function Home(): React.ReactElement {
           </div>
           <div className={styles.captionRow}>
             <span className={styles.captionChip}>
-              33 Arabic keyword aliases — full canonical semantics
+              28 Arabic keyword aliases — full canonical semantics
             </span>
             <span className={styles.captionChip}>
               RTL automatic — layout mirrors via CSS logical properties
@@ -725,80 +754,299 @@ export default function Home(): React.ReactElement {
         </div>
       </section>
 
-      {/* ── 5 · Trust ────────────────────────────────────── */}
+      {/* ── 5 · Trust (flagship) ─────────────────────────── */}
       <section className={`${styles.section} ${styles.sectionAlt}`} id="trust">
         <div className="container">
+          <span className={styles.kicker}>Trust</span>
+          <h2 className={styles.sectionTitle}>
+            Three layers of proof, inside one file
+          </h2>
+          <p className={styles.sectionSub}>
+            A bank, a court, or a procurement office needs to know three things
+            about a document: that it hasn&apos;t changed, who stands behind it,
+            and that they are a real, vetted entity. IntentText answers all
+            three — and anyone can check the answers offline, with no app and no
+            account.
+          </p>
+
+          <div className={styles.trustLayers}>
+            <div className={styles.trustLayer}>
+              <div className={styles.trustLayerHead}>
+                <Lock size={22} strokeWidth={1.7} />
+                <span className={styles.trustLayerNum}>1</span>
+                <h3>Integrity</h3>
+              </div>
+              <p className={styles.trustLayerLead}>
+                <em>Has anything changed?</em>
+              </p>
+              <p>
+                <code>seal:</code> freezes the content and stamps it with a
+                SHA-256 hash. Change a single character — a date, a number, a
+                payment term — and the hash no longer matches. Tampering becomes
+                visible instantly, to anyone, forever.
+              </p>
+              <span className={styles.trustLayerProof}>
+                <FileCheck size={14} /> Verify with any SHA-256 — no vendor
+              </span>
+            </div>
+
+            <div className={styles.trustLayer}>
+              <div className={styles.trustLayerHead}>
+                <Fingerprint size={22} strokeWidth={1.7} />
+                <span className={styles.trustLayerNum}>2</span>
+                <h3>Identity</h3>
+              </div>
+              <p className={styles.trustLayerLead}>
+                <em>Who signed it?</em>
+              </p>
+              <p>
+                <code>sign:</code> is a real Ed25519 cryptographic signature, not
+                a typed name. It proves the document was signed by the holder of
+                a specific private key, and it verifies offline against the
+                public key embedded in the file.
+              </p>
+              <span className={styles.trustLayerProof}>
+                <PenLine size={14} /> Ed25519 · <code>@dotit/sign</code>
+              </span>
+            </div>
+
+            <div className={styles.trustLayer}>
+              <div className={styles.trustLayerHead}>
+                <BadgeCheck size={22} strokeWidth={1.7} />
+                <span className={styles.trustLayerNum}>3</span>
+                <h3>Authority</h3>
+              </div>
+              <p className={styles.trustLayerLead}>
+                <em>Is the signer a vetted entity?</em>
+              </p>
+              <p>
+                <code>certify:</code> binds the signature to a KYC-verified legal
+                entity through a UTS certification. An offline root key vouches
+                for an online issuing key; that chain travels inside the
+                document and verifies against the root alone.
+              </p>
+              <span className={styles.trustLayerProof}>
+                <ShieldCheck size={14} /> root → issuing key → document
+              </span>
+            </div>
+          </div>
+
           <div className={styles.split}>
             <div className={styles.splitCopy}>
-              <span className={styles.kicker}>Trust</span>
-              <h2>Seal it. Anyone can verify it.</h2>
+              <h2>One artifact, four jobs at once</h2>
               <p>
-                The trust lifecycle lives inside the file:{" "}
-                <code>track</code> → <code>approve</code> → <code>sign</code> →{" "}
-                <code>freeze</code> → verify → <code>amendment</code>. No
-                platform, no account, no vendor.
+                That is what makes <code>.it</code> different. The very same
+                file you read on screen is the file a system queries, the file
+                that prints to PDF, and the tamper-evident record a third party
+                verifies — with no conversion, no export step, and no platform
+                in the middle.
               </p>
               <ul className={styles.featureList}>
                 <li>
-                  <Lock size={18} strokeWidth={1.7} />
-                  <div>
-                    <strong>Tamper-evident, not proprietary</strong>
-                    <p>
-                      The seal is a SHA-256 hash over the canonical source.
-                      Anyone with the file can recompute it — twenty years from
-                      now, with any SHA-256 implementation.
-                    </p>
-                  </div>
-                </li>
-                <li>
                   <FileCheck size={18} strokeWidth={1.7} />
                   <div>
-                    <strong>Approvals are hashed with the body</strong>
+                    <strong>Approvals are sealed with the body</strong>
                     <p>
-                      <code>approve:</code> lines are part of what gets sealed.
-                      The append-only audit log below the <code>history:</code>{" "}
-                      boundary never disturbs the hash.
+                      <code>approve:</code> lines are part of what the hash
+                      covers. The append-only audit log below the{" "}
+                      <code>history:</code> boundary never disturbs the seal.
                     </p>
                   </div>
                 </li>
                 <li>
                   <GitBranch size={18} strokeWidth={1.7} />
                   <div>
-                    <strong>Formal amendments</strong>
+                    <strong>Formal amendments, not silent edits</strong>
                     <p>
-                      Sealed documents change only through{" "}
+                      A sealed document changes only through{" "}
                       <code>amendment:</code> — <code>was:</code> /{" "}
                       <code>now:</code> records the change while the original
-                      seal stays intact.
+                      seal stays intact and provable.
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <Clock size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>Verifiable in twenty years</strong>
+                    <p>
+                      No service to call, no key to license. Open format, open
+                      math — the proof is in the file and stays there.
                     </p>
                   </div>
                 </li>
               </ul>
             </div>
             <div className={styles.codeStack}>
-              <figure className={styles.shotFig}>
-                <div className={styles.shot}>
-                  <img
-                    src={useBaseUrl("/img/landing-trust.png")}
-                    alt="Trust chain rendered by @dotit/core — two approvals, a verified signature, and a sealed-document entry with its hash"
-                    width={1360}
-                    height={650}
-                    loading="lazy"
-                  />
+              <TerminalPane
+                title="seal · sign · certify · verify — dotit CLI"
+                lines={TRUST_TERM}
+              />
+            </div>
+          </div>
+
+          {/* Hash-Based Ambient Seal — the flagship visual */}
+          <div className={styles.sealFeature}>
+            <div className={styles.sealHead}>
+              <span className={styles.kicker}>
+                <Stamp
+                  size={14}
+                  strokeWidth={1.8}
+                  style={{ verticalAlign: "-2px", marginInlineEnd: 6 }}
+                />
+                Hash-Based Ambient Seal
+              </span>
+              <h3 className={styles.sectionTitle}>Trust you can see</h3>
+              <p className={styles.sectionSub}>
+                A hash is a string of hex — true, but invisible. The Ambient
+                Seal turns that hash into a mark on the page: a pattern drawn
+                <em> deterministically</em> from the document&apos;s SHA-256.
+                Same document, identical seal — every time. Change one character
+                and the seal becomes completely different. Trust stops being
+                something you check and becomes something you{" "}
+                <em>recognise at a glance</em>.
+              </p>
+            </div>
+            <figure className={styles.sealFig}>
+              <div className={styles.shot}>
+                <img
+                  src={useBaseUrl("/img/trust-seal-styles.png")}
+                  alt="Ten Hash-Based Ambient Seal styles — line wave, dot field, polygon flow, concentric, organic, ripple, swirl, percolation, geometric weave, fractal edge — each generated deterministically from a document's SHA-256 hash and shown in a document corner"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <figcaption className={styles.shotCaption}>
+                Each seal is generated from the SHA-256 of the document — same
+                document, identical seal; any change, a completely different one.
+              </figcaption>
+            </figure>
+            <figure className={styles.sealFig}>
+              <div className={styles.shot}>
+                <img
+                  src={useBaseUrl("/img/trust-seal-placements.png")}
+                  alt="Ambient Seal placement system — the seal rendered as a corner mark in the top-right, left margin, right side and bottom corner of a printed document, with mock-ups on real paper"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <figcaption className={styles.shotCaption}>
+                It lives where a wax seal would — a quiet corner mark on the
+                printed document, in English or Arabic, light on ink.
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5b · Desktop, editor & converters ────────────── */}
+      <section className={styles.section} id="apps">
+        <div className="container">
+          <div className={styles.split}>
+            <div className={styles.splitCopy}>
+              <span className={styles.kicker}>Apps &amp; converters</span>
+              <h2>Edit on the canvas. Open on the desktop.</h2>
+              <p>
+                You don&apos;t have to write <code>.it</code> by hand. A Word-like
+                editor and a native desktop app give business users the
+                familiar surface — the trust model rides along underneath.
+              </p>
+              <ul className={styles.featureList}>
+                <li>
+                  <LayoutDashboard size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>WYSIWYG editor — what you see is what prints</strong>
+                    <p>
+                      A ribbon, real pages, page sizes from A5 to A1 in portrait
+                      or landscape, easy zoom, and a live trust banner. Export to
+                      PDF is the on-screen page, byte-for-byte. Open it at{" "}
+                      <Link href="https://editor.uts.qa">editor.uts.qa</Link>.
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <Monitor size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>Desktop app — double-click to open a .it file</strong>
+                    <p>
+                      A native cross-platform app (macOS, Windows, Linux) built
+                      on Tauri. Open, read, and edit <code>.it</code> files from
+                      disk, with an always-visible trust badge showing the
+                      integrity, signature, and certification status of the
+                      document in front of you.
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <ArrowLeftRight size={18} strokeWidth={1.7} />
+                  <div>
+                    <strong>Convert what you already have</strong>
+                    <p>
+                      <code>dotit convert</code> imports Markdown, HTML,{" "}
+                      <strong>Excel (XLSX)</strong> and <strong>Word
+                      (DOCX)</strong> — and exports back to XLSX and DOCX. Your
+                      spreadsheets and contracts become queryable, sealable{" "}
+                      <code>.it</code>, and ship back out unchanged.
+                    </p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div className={styles.codeStack}>
+              <div className={styles.appShowcase}>
+                <div className={styles.appCard}>
+                  <div className={styles.appCardHead}>
+                    <LayoutDashboard size={16} strokeWidth={1.8} /> Editor ·
+                    editor.uts.qa
+                  </div>
+                  <div className={styles.appChips}>
+                    <span className={styles.appChip}>Ribbon toolbar</span>
+                    <span className={styles.appChip}>A5–A1 · portrait/landscape</span>
+                    <span className={styles.appChip}>Zoom 25–300%</span>
+                    <span className={styles.appChip}>Trust banner</span>
+                    <span className={styles.appChip}>WYSIWYG PDF</span>
+                  </div>
                 </div>
-                <figcaption className={styles.shotCaption}>
-                  The trust chain as it prints — hairline entries, like a legal
-                  document, not an app
-                </figcaption>
-              </figure>
-              <TerminalPane title="trust — dotit CLI" lines={TRUST_TERM} />
+                <div className={styles.appCard}>
+                  <div className={styles.appCardHead}>
+                    <Monitor size={16} strokeWidth={1.8} /> Desktop · macOS ·
+                    Windows · Linux
+                  </div>
+                  <div className={styles.appChips}>
+                    <span className={styles.appChip}>Double-click open</span>
+                    <span className={styles.appChip}>Edit &amp; autosave</span>
+                    <span className={styles.appChip}>Live trust badge</span>
+                    <span className={styles.appChip}>Folder vaults</span>
+                    <span className={styles.appChip}>Tauri-native</span>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.convertFlow}>
+                <span className={styles.convertFmt}>
+                  <FileText size={13} /> .md
+                </span>
+                <span className={styles.convertFmt}>
+                  <Globe size={13} /> .html
+                </span>
+                <span className={styles.convertFmt}>
+                  <FileSpreadsheet size={13} /> .xlsx
+                </span>
+                <span className={styles.convertFmt}>
+                  <FileText size={13} /> .docx
+                </span>
+                <ArrowLeftRight size={15} className={styles.convertArrow} />
+                <span className={`${styles.convertFmt} ${styles.convertIt}`}>
+                  <FileCheck size={13} /> .it
+                </span>
+              </div>
+              <TerminalPane title="convert — dotit CLI" lines={CONVERT_TERM} />
             </div>
           </div>
         </div>
       </section>
 
       {/* ── 6 · A folder is a database ───────────────────── */}
-      <section className={styles.section} id="query">
+      <section className={`${styles.section} ${styles.sectionAlt}`} id="query">
         <div className="container">
           <div className={styles.split}>
             <div className={styles.splitCopy}>
@@ -853,7 +1101,7 @@ export default function Home(): React.ReactElement {
       </section>
 
       {/* ── 7 · For AI agents ────────────────────────────── */}
-      <section className={`${styles.section} ${styles.sectionAlt}`} id="agents">
+      <section className={styles.section} id="agents">
         <div className="container">
           <span className={styles.kicker}>For AI agents</span>
           <h2 className={styles.sectionTitle}>
@@ -889,7 +1137,7 @@ export default function Home(): React.ReactElement {
             </div>
             <div className={styles.card}>
               <h3>
-                <Bot size={20} strokeWidth={1.7} /> @dotit/mcp — 12 tools, any
+                <Bot size={20} strokeWidth={1.7} /> @dotit/mcp — 17 tools, any
                 agent
               </h3>
               <div className={styles.toolChips}>
@@ -914,7 +1162,7 @@ export default function Home(): React.ReactElement {
       </section>
 
       {/* ── 8 · Ecosystem ────────────────────────────────── */}
-      <section className={styles.section} id="ecosystem">
+      <section className={`${styles.section} ${styles.sectionAlt}`} id="ecosystem">
         <div className="container">
           <span className={styles.kicker}>Ecosystem</span>
           <h2 className={styles.sectionTitle}>Everything ships under @dotit</h2>
@@ -947,13 +1195,32 @@ export default function Home(): React.ReactElement {
             </Link>
             <Link
               className={styles.ecoCard}
+              href="https://npmjs.com/package/@dotit/sign"
+            >
+              <Fingerprint size={20} strokeWidth={1.7} />
+              <strong>@dotit/sign</strong>
+              <span>
+                Ed25519 signatures and UTS certification — identity and
+                authority on top of the seal.
+              </span>
+            </Link>
+            <Link
+              className={styles.ecoCard}
               href="https://npmjs.com/package/@dotit/mcp"
             >
               <Server size={20} strokeWidth={1.7} />
               <strong>@dotit/mcp</strong>
               <span>
-                MCP server with 12 tools — parse, render, query, seal, verify
-                from any AI agent.
+                MCP server with 17 tools — parse, render, query, seal, sign,
+                certify, verify from any AI agent.
+              </span>
+            </Link>
+            <Link className={styles.ecoCard} href="https://editor.uts.qa">
+              <Monitor size={20} strokeWidth={1.7} />
+              <strong>Desktop app</strong>
+              <span>
+                Native Tauri app for macOS, Windows and Linux — double-click a{" "}
+                <code>.it</code> file, edit, and watch the trust badge.
               </span>
             </Link>
             <Link
@@ -991,7 +1258,7 @@ export default function Home(): React.ReactElement {
       </section>
 
       {/* ── CTA ──────────────────────────────────────────── */}
-      <section className={`${styles.cta} ${styles.sectionAlt}`}>
+      <section className={styles.cta}>
         <div className="container">
           <h2>One file. The whole document lifecycle.</h2>
           <p className={styles.sectionSub}>

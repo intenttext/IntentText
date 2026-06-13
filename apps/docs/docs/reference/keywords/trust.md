@@ -113,6 +113,26 @@ sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2
 sign: James Miller | role: CFO | at: 2026-03-06T15:00:00Z
 ```
 
+### Cryptographic upgrade (`key:` + `sig:`)
+
+A plain `sign:` line (no `key:`/`sig:`) is a named approval, like `approve:`. To make it
+cryptographically provable, the [`@dotit/sign`](../../guide/trust-and-signing#layer-2--identity-ed25519-signatures)
+package adds `key:` (the signer's Ed25519 public key) and `sig:` (an Ed25519 signature over
+the document hash):
+
+```intenttext
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4 | key: ed25519:<pubkey> | sig: <signature>
+```
+
+| Property | Type   | Description                                              |
+| -------- | ------ | -------------------------------------------------------- |
+| `key`    | string | Signer's Ed25519 public key (`ed25519:<base64url>`)      |
+| `sig`    | string | Ed25519 signature over the document hash (base64url)     |
+
+The public key travels in the line, so verification needs nothing but the file. Generated
+and verified only by `@dotit/sign` (`signDocumentCrypto` / `verifyCryptoSignatures`) — never
+hand-written.
+
 ### `sign:` vs `x-doc: signline`
 
 |                  | `sign:`                                      | `x-doc: signline`                   |
@@ -232,6 +252,55 @@ dotit amend contract.it \
 
 - [`freeze:`](#freeze) — amendments require a frozen document
 - [Trust & Signing guide →](../../guide/trust-and-signing)
+
+---
+
+## `certify:` (authority layer)
+
+`certify:` is not a core keyword — it is a line written by the
+[`@dotit/sign`](../../guide/trust-and-signing#layer-3--authority-uts-certification) authority
+layer. It binds a signature to a **verified organization identity**: a certification
+authority (UTS) verifies the account/entity once, then issues a `certify:` line that anyone
+can re-check offline. It round-trips losslessly through the core parser and serializer.
+
+### Syntax
+
+```
+certify: issuer | account: id | entity: legal name | at: timestamp | hash: sha256:value | key: ed25519:pubkey | sig: signature | ica: intermediate-cert
+```
+
+### Properties
+
+| Property  | Type   | Required | Description                                                          |
+| --------- | ------ | -------- | ------------------------------------------------------------------- |
+| `account` | string | yes      | The certified account identifier                                    |
+| `entity`  | string | no       | KYC-verified legal name (identity-verified accounts)                |
+| `at`      | string | yes      | Certification timestamp (ISO 8601)                                  |
+| `hash`    | string | yes      | The document hash being certified                                   |
+| `key`     | string | yes      | The issuer's Ed25519 public key                                     |
+| `sig`     | string | yes      | The issuer's signature over the certification payload               |
+| `ica`     | string | no       | Intermediate certificate token chaining the signing key to a root  |
+
+### Example
+
+```intenttext
+certify: UTS | account: al-diwan | entity: Al-Diwan Contracting W.L.L. | at: 2026-06-13T19:56:11Z | hash: sha256:a1b2c3d4 | key: ed25519:<pubkey> | sig: <signature> | ica: <intermediate-cert>
+```
+
+### Root → intermediate certificate hierarchy
+
+`@dotit/sign` 1.3 adds a CA-style key hierarchy: an **offline root** key vouches for a
+short-lived **online intermediate** key (via `issueIntermediate()`), producing the compact
+`ica:` token embedded in each `certify:` line. Verifiers trust **only the root key** —
+`verifyCertifications()` validates the chain root → intermediate → certification and returns
+a `chain: { rootPublicKey, notBefore, notAfter }`. If the online intermediate key leaks, it
+is rotated without re-trusting anything. A `certify:` line with no `ica:` falls back to the
+legacy single-key model, where the signing key itself must be the trusted key.
+
+### Notes
+
+- `certify:` lines are **excluded from the document hash** (like `sign:`/`freeze:`/`amendment:`).
+- Verified only by `@dotit/sign` (`verifyCertifications`) — never hand-computed.
 
 ---
 

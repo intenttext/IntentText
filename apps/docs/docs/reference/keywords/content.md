@@ -258,7 +258,7 @@ link: display text | to: target | title: tooltip
 ### Examples
 
 ```intenttext
-link: IntentText Hub | to: https://hub.dotit.uts.qa
+link: IntentText docs | to: https://dotit.uts.qa
 link: View the full contract | to: ./contracts/acme-2026.it | title: Acme Services Contract
 ```
 

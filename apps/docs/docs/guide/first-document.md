@@ -110,11 +110,10 @@ dotit verify invoice.it
 ```
 
 ```
-✓ Document integrity verified
-  Signer: Ahmed Al-Rashid (CEO)
-  Sealed: 2026-03-06T14:33:00Z
-  Hash: sha256:a1b2c3...
-  Status: INTACT — no modifications detected
+✅  Document intact
+    Sealed:   2026-03-06T14:33:00Z
+    Signers:  Ahmed Al-Rashid (CEO) ✅
+    Hash:     sha256:a1b2c3... ✅ matches
 ```
 
 ## Render it
@@ -122,7 +121,7 @@ dotit verify invoice.it
 ```bash
 dotit invoice.it --html --theme corporate
 dotit invoice.it --print --theme corporate
-dotit invoice.it --print --theme corporate --pdf invoice.pdf
+dotit invoice.it --theme corporate --pdf    # writes invoice.pdf next to the source (requires puppeteer)
 ```
 
 ## The same invoice, in Arabic

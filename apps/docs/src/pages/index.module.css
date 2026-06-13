@@ -739,6 +739,209 @@
   line-height: 1.45;
 }
 
+/* ── Trust layers — the three-layer model ─────────────────────────────── */
+.trustLayers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin: 0 0 3rem;
+}
+.trustLayer {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 14px;
+  background: var(--ifm-background-color);
+  padding: 1.5rem 1.5rem 1.35rem;
+  position: relative;
+  overflow: hidden;
+}
+.trustLayer::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--ifm-color-primary),
+    var(--ifm-color-primary-lighter)
+  );
+}
+.trustLayerHead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+}
+.trustLayerHead svg {
+  color: var(--ifm-color-primary);
+}
+.trustLayerHead h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 750;
+}
+.trustLayerNum {
+  margin-inline-start: auto;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--ifm-color-primary);
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.trustLayerLead {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--ifm-color-emphasis-800);
+}
+.trustLayerLead em {
+  font-style: italic;
+  color: var(--ifm-color-emphasis-700);
+  font-weight: 600;
+}
+.trustLayer > p {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ifm-color-emphasis-700);
+}
+.trustLayerProof {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: auto;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 16px;
+  padding: 4px 11px;
+  align-self: flex-start;
+}
+.trustLayerProof svg {
+  flex-shrink: 0;
+}
+.trustLayerProof code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.74rem;
+}
+
+/* ── Ambient Seal flagship ────────────────────────────────────────────── */
+.sealFeature {
+  margin-top: 3.5rem;
+  padding-top: 3rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+.sealHead {
+  margin-bottom: 2rem;
+}
+.sealHead .kicker em,
+.sectionSub em {
+  font-style: italic;
+}
+.sealFig {
+  margin: 0 0 1.75rem;
+}
+.sealFig:last-child {
+  margin-bottom: 0;
+}
+.sealFig .shot {
+  background: #f8fafc;
+}
+.sealFig .shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── Apps showcase (editor + desktop) ─────────────────────────────────── */
+.appShowcase {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.appCard {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  background: var(--ifm-background-color);
+  padding: 1.1rem 1.25rem;
+}
+.appCardHead {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+.appCardHead svg {
+  color: var(--ifm-color-primary);
+}
+.appChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.appChip {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-700);
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 14px;
+  padding: 3px 10px;
+}
+
+/* ── Converter flow chips ─────────────────────────────────────────────── */
+.convertFlow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  background: var(--ifm-background-color);
+}
+.convertFmt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-700);
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+.convertFmt svg {
+  color: var(--ifm-color-emphasis-600);
+}
+.convertArrow {
+  color: var(--ifm-color-primary);
+  margin: 0 0.15rem;
+}
+.convertIt {
+  color: var(--ifm-color-primary);
+  background: var(--ifm-background-color);
+  border-color: var(--ifm-color-primary-lighter);
+}
+.convertIt svg {
+  color: var(--ifm-color-primary);
+}
+
 /* CTA */
 .cta {
   padding: 4.5rem 0;
@@ -784,6 +987,9 @@
   }
   .ecoGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .trustLayers {
+    grid-template-columns: 1fr;
   }
 }
 @media (max-width: 560px) {

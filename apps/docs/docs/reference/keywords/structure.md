@@ -77,7 +77,7 @@ toc: | depth: number
 
 | Property | Type   | Default | Description                                                              |
 | -------- | ------ | ------- | ------------------------------------------------------------------------ |
-| `depth`  | number | `3`     | Maximum heading depth (2 = sections only, 3 = include subsections)       |
+| `depth`  | number | `2`     | Maximum heading depth (2 = sections only, 3 = include subsections)       |
 
 ### Examples
 

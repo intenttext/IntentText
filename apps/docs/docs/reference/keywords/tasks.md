@@ -109,5 +109,5 @@ ask: Has legal reviewed the payment terms? | to: Legal
 
 ### Notes
 
-- Queryable: `dotit query . --type ask --to Legal` finds all open questions for Legal
+- Queryable: `dotit query . --type ask` finds all open questions (filter further per file with `--query "type=ask to=Legal"`)
 - Use `done:` when the question is resolved

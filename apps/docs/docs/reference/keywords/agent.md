@@ -269,20 +269,16 @@ const doc = parseIntentText(source);
 
 const result = await executeWorkflow(doc, {
   tools: {
-    pg_dump: async (step) => {
-      return { output: "legacy_dump.sql" };
-    },
-    checksum_verify: async (step) => {
-      return { valid: true };
-    },
+    // Tool handlers receive (input, context) and return the step output
+    pg_dump: async (input, context) => "legacy_dump.sql",
+    checksum_verify: async (input, context) => ({ valid: true }),
   },
-  onGate: async (gate) => {
-    // Return "approved" to allow execution to continue
-    return "approved";
+  // Resolve true to approve the gate, false to reject
+  onGate: async (gate, context) => true,
+  onAudit: (audit, context) => {
+    console.log(`[audit] ${audit.content}`);
   },
-  onAudit: (entry) => {
-    console.log(`[audit] ${entry.content}`);
-  },
+  options: { dryRun: false, maxSteps: 1000 },
 });
 
 console.log(result.status);
@@ -293,61 +289,67 @@ console.log(result.status);
 
 ```typescript
 interface WorkflowRuntime {
-  /** Tool handlers keyed by the tool: property value on step: blocks */
+  /** Tool implementations — keyed by the tool: property value on step: blocks */
   tools?: Record<string, ToolHandler>;
 
-  /** Called when a gate: block requires approval */
-  onGate?: (gate: IntentBlock) => Promise<"approved" | "rejected" | "pending">;
+  /** Initial context variables — merged with context: blocks */
+  context?: Record<string, unknown>;
 
-  /** Called when an audit: block is encountered */
-  onAudit?: (entry: IntentBlock) => void;
+  /** Called when a gate: block is reached — resolve true (approve) or false (reject) */
+  onGate?: (gate: IntentBlock, context: ExecutionContext) => Promise<boolean>;
 
-  /** Called at the start of each step */
-  onStepStart?: (step: IntentBlock) => void;
+  /** Step lifecycle hooks */
+  onStepStart?: (step: IntentBlock, context: ExecutionContext) => void;
+  onStepComplete?: (step: IntentBlock, output: unknown, context: ExecutionContext) => void;
+  onStepError?: (step: IntentBlock, error: Error, context: ExecutionContext) => void;
 
-  /** Called when a step completes */
-  onStepComplete?: (step: IntentBlock, output: unknown) => void;
+  /** Called when an audit: block is reached */
+  onAudit?: (audit: IntentBlock, context: ExecutionContext) => void;
 
-  /** Called when a step fails */
-  onStepError?: (step: IntentBlock, error: Error) => void;
-
-  /** Traverse all blocks without executing tools or gates */
-  dryRun?: boolean;
-
-  /** Maximum steps to execute before stopping (default: 1000) */
-  maxSteps?: number;
-
-  /** Per-step timeout in milliseconds */
-  stepTimeout?: number;
-
-  /** Behavior for steps with an unknown tool: "skip" (default) | "error" */
-  unknownTool?: "skip" | "error";
+  /** Execution options (note: nested, not top-level) */
+  options?: ExecutionOptions;
 }
 
-type ToolHandler = (step: IntentBlock) => Promise<unknown>;
+interface ExecutionOptions {
+  /** Maximum steps to execute (default: 1000) */
+  maxSteps?: number;
+  /** Per-step timeout in ms (default: 30000) */
+  stepTimeout?: number;
+  /** Behavior for an unregistered tool: "skip" | "error" | "warn" (default: "warn") */
+  unknownTool?: "skip" | "error" | "warn";
+  /** Traverse and validate without calling tools (default: false) */
+  dryRun?: boolean;
+}
+
+// A tool handler receives the resolved input value and full context
+type ToolHandler = (input: unknown, context: ExecutionContext) => Promise<unknown> | unknown;
+type ExecutionContext = Record<string, unknown>;
 ```
 
 ### `ExecutionResult`
 
 ```typescript
 interface ExecutionResult {
+  /** The document with status: written back to each block */
+  document: IntentDocument;
+
+  /** Final execution context — all step outputs, keyed by their output:/id: */
+  context: ExecutionContext;
+
+  /** Execution log — one entry per block processed */
+  log: ExecutionLogEntry[];
+
   /** Final execution status */
   status: "completed" | "gate_blocked" | "policy_blocked" | "error" | "dry_run";
 
-  /** Outputs collected from each step, keyed by step id: */
-  outputs: Record<string, unknown>;
-
-  /** Steps that were executed */
-  executedSteps: IntentBlock[];
+  /** The error that occurred (when status is error) */
+  error?: Error;
 
   /** The gate block that blocked execution (when status is gate_blocked) */
-  blockedByGate?: IntentBlock;
+  blockedAt?: IntentBlock;
 
   /** The policy block that blocked execution (when status is policy_blocked) */
   blockedByPolicy?: IntentBlock;
-
-  /** The error that occurred (when status is error) */
-  error?: Error;
 }
 ```
 
@@ -380,7 +382,7 @@ const r1 = await executeWorkflow(docWithoutApproval, { tools });
 
 // With gate status: approved in the document — execution proceeds
 const r2 = await executeWorkflow(docWithApproval, { tools });
-// { status: "completed", outputs: { deploy: ... }, executedSteps: [...] }
+// { status: "completed", context: { deploy: ... }, log: [...], document: ... }
 ```
 
 ### Complete workflow example

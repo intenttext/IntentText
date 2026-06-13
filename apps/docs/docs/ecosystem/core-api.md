@@ -11,7 +11,7 @@ TypeScript/JavaScript API reference for `@dotit/core`.
 npm install @dotit/core
 ```
 
-Current version: **1.1.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
+Current version: **1.5.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
 
 ## Parser
 
@@ -729,6 +729,75 @@ Convert HTML to `.it` format.
 import { convertHtmlToIntentText } from "@dotit/core";
 
 const itSource = convertHtmlToIntentText("<h1>My Doc</h1><p>Some text</p>");
+```
+
+### Spreadsheets — `convertXlsxToIntentText(data, opts?)` / `convertIntentTextToXlsx(source, opts?)`
+
+Round-trip `.xlsx` ⇄ `.it`. `convertXlsxToIntentText` takes the file bytes
+(`Uint8Array | Buffer`) and emits `.it` source (each sheet becomes a section with a
+table); `convertIntentTextToXlsx` takes `.it` source and returns `.xlsx` bytes
+(`Uint8Array`) with each table written to its own sheet.
+
+```typescript
+import { readFileSync } from "node:fs";
+import {
+  convertXlsxToIntentText,
+  convertIntentTextToXlsx,
+} from "@dotit/core";
+
+const itSource = convertXlsxToIntentText(readFileSync("report.xlsx"));
+const xlsxBytes = convertIntentTextToXlsx(itSource);
+```
+
+### Word documents — `convertDocxToIntentText(data, opts?)` / `convertIntentTextToDocx(source, opts?)`
+
+Round-trip `.docx` ⇄ `.it`. `convertDocxToIntentText` takes the file bytes
+(`Uint8Array | Buffer`) and emits `.it` source; `convertIntentTextToDocx` takes `.it`
+source and returns `.docx` bytes (`Uint8Array`).
+
+```typescript
+import { readFileSync } from "node:fs";
+import {
+  convertDocxToIntentText,
+  convertIntentTextToDocx,
+} from "@dotit/core";
+
+const itSource = convertDocxToIntentText(readFileSync("contract.docx"));
+const docxBytes = convertIntentTextToDocx(itSource);
+```
+
+All four converters are also exposed on the CLI via `dotit convert <in> <out>`
+(extension pair dispatch — see [CLI › Convert existing files](./cli#convert-existing-files)).
+
+## Storage
+
+`.it` is plain UTF-8 text, so it can live in a database field instead of a file.
+These helpers guard against a storage layer silently normalizing or re-encoding the
+bytes (which would break any seal or signature bound to them). This byte-integrity
+tag is distinct from the seal hash (`computeDocumentHash`, which covers only the
+content body) — it hashes the **whole** source to catch storage corruption.
+
+### `toStorageRecord(source)` / `fromStorageRecord(record)` / `verifyStorageRecord(record)`
+
+```typescript
+import {
+  toStorageRecord,
+  fromStorageRecord,
+  verifyStorageRecord,
+} from "@dotit/core";
+
+const record = toStorageRecord(source);
+// { source, bytesSha256 } — persist both columns as-is
+
+const intact = verifyStorageRecord(record); // boolean
+const restored = fromStorageRecord(record); // throws if the bytes were altered
+```
+
+```typescript
+interface StoredDocument {
+  source: string; // the exact .it source — store as UTF-8 with NO normalization
+  bytesSha256: string; // SHA-256 (hex) of the exact source bytes, set at write time
+}
 ```
 
 ## Validation

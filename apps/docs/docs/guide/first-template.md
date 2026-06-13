@@ -108,8 +108,8 @@ dotit invoice-template.it --data invoice-data.json --html
 # Render with a theme
 dotit invoice-template.it --data invoice-data.json --html --theme corporate
 
-# Export to PDF
-dotit invoice-template.it --data invoice-data.json --pdf invoice.pdf
+# Export to PDF (writes invoice-template.pdf next to the source; requires puppeteer)
+dotit invoice-template.it --data invoice-data.json --pdf
 ```
 
 ## How `each:` works
@@ -147,16 +147,9 @@ const doc = parseAndMerge(template, data);
 const html = renderHTML(doc);
 ```
 
-## Publish to the Hub
+## Share the template
 
-Once your template is polished, share it:
-
-```bash
-intenttext template publish invoice-template.it
-intenttext template submit username/invoice-standard --for-review
-```
-
-Community templates are available instantly. Curated templates are reviewed for quality and appear in the official collection.
+A template is just a `.it` file — commit it to version control, drop it in a shared folder, or pass it to `parseAndMerge` from any service. There's no proprietary format to publish to: anyone with `@dotit/core` can merge it.
 
 ---
 

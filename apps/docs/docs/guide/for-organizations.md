@@ -62,10 +62,16 @@ dotit ask ./contracts "what deadlines are coming up in April?"
 ## Find every contact
 
 ```bash
-dotit query ./contracts --type contact --org "Acme"
+dotit query ./contracts --type contact
 ```
 
-Your documents _become_ your contact directory — with zero extra work.
+Your documents _become_ your contact directory — with zero extra work. Folder query
+supports `--type`, `--by`, `--status`, `--section`, and `--content` (substring) filters;
+for arbitrary property filters like `org=Acme`, run the per-file query form:
+
+```bash
+dotit ./contracts/acme-services.it --query "type=contact org=Acme"
+```
 
 ## Track who approved what
 
@@ -112,15 +118,17 @@ The original seal is preserved. The amendment carries its own approval chain. Ru
 ```bash
 dotit index ./contracts
 dotit index . --recursive
-dotit index . --recursive --watch
 ```
+
+Indexes also self-heal on query, so you rarely need to run `index` by hand — a directory
+query refreshes any stale entries before answering.
 
 Indexes are shallow — each folder's `.it-index` only knows about its own files. Queries compose automatically across nested indexes. Change one file and only its folder's index needs rebuilding.
 
 ## Metrics and reporting
 
 ```bash
-dotit query ./reports --type metric --owner Finance
+dotit query ./reports --type metric
 ```
 
 Every `metric:` block across every report — queryable, filterable, exportable to CSV:

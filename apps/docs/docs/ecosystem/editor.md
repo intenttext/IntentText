@@ -46,6 +46,15 @@ Author merge templates for your app or team without leaving the editor:
   pipeline your production app runs, so what you test is what ships.
 - Start from the **Invoice Template** sample (Samples menu).
 
+### Page setup and zoom
+
+A **page-size selector** (A5, A4, A3, A2, A1, Letter, Legal) and an **orientation**
+toggle (portrait / landscape) sit in the toolbar — picking one rewrites the document's
+own `page:` block, so the change round-trips into the source. **Zoom** has a −/% /+
+cluster with **Fit-to-width** and **Fit-to-page** presets plus 50–150% steps; keyboard
+shortcuts are `Ctrl`/`Cmd` `+` / `-` to zoom and `Ctrl`/`Cmd` `0` to reset to 100%, and
+`Ctrl`/`Cmd` + scroll zooms toward the cursor.
+
 ### Theme picker
 
 Select any of the 8 built-in themes; the view updates immediately. Per-document house

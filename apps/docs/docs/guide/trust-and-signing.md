@@ -5,7 +5,16 @@ title: Trust & Signing
 
 # Trust & Signing
 
-How to approve, sign, seal, verify, and amend `.it` documents.
+How to approve, sign, seal, verify, and amend `.it` documents — and how to layer
+cryptographic identity and authority on top when you need them.
+
+Trust comes in three opt-in layers, each verifiable offline:
+
+1. **Integrity** (`@dotit/core`) — a SHA-256 seal proving the bytes have not changed.
+2. **Identity** (`@dotit/sign`) — an Ed25519 signature proving a specific key-holder signed this hash.
+3. **Authority** (`@dotit/sign` + UTS) — a certification binding that key to a verified organization.
+
+This page starts with Layer 1 (the everyday default) and builds up to Layers 2 and 3.
 
 ## The trust lifecycle
 
@@ -78,21 +87,19 @@ dotit verify contract.it
 ```
 
 ```
-✓ Document integrity verified
-  Signer: Ahmed Al-Rashid (CEO)
-  Sealed: 2026-03-06T14:33:00Z
-  Hash: sha256:a1b2c3...
-  Amendments: 0
-  Status: INTACT — no modifications detected
+✅  Document intact
+    Sealed:   2026-03-06T14:33:00Z
+    Signers:  Ahmed Al-Rashid (CEO) ✅
+    Hash:     sha256:a1b2c3... ✅ matches
 ```
 
 If someone edits the file:
 
 ```
-✗ Document integrity FAILED
-  Expected hash: sha256:a1b2c3...
-  Actual hash:   sha256:x9y8z7...
-  Status: TAMPERED — content has been modified since sealing
+❌  Document has been modified since sealing
+    Sealed:   2026-03-06T14:33:00Z
+    Expected: sha256:a1b2c3...
+    Current:  sha256:x9y8z7...
 ```
 
 ## Step 5: Amend (when needed)
@@ -135,13 +142,11 @@ dotit verify contract.it
 ```
 
 ```
-✓ Document integrity verified
-  Signer: Ahmed Al-Rashid (CEO)
-  Sealed: 2026-03-06T14:33:00Z
-  Hash: sha256:a1b2c3...
-  Amendments: 1
-    #1: Payment terms updated (2026-03-15) by Ahmed Al-Rashid
-  Status: INTACT — original seal preserved, 1 amendment applied
+✅  Document intact
+    Sealed:     2026-03-06T14:33:00Z
+    Signers:    Ahmed Al-Rashid (CEO) ✅
+    Hash:       sha256:a1b2c3... ✅ matches
+    Amendments: 1
 ```
 
 ## View history
@@ -232,6 +237,24 @@ exact, byte-level spec — with a reference reimplementation that reproduces the
 hash — is **[SPEC §4.1](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md)**.
 :::
 
+## Storing sealed documents in a database
+
+A `.it` file is just a UTF-8 string — store it in any `TEXT`/blob column, string in, string
+out. Because the seal hash covers the **exact bytes**, the only risk is a storage layer that
+silently re-encodes, trims, or converts line endings (CRLF). To guarantee byte-exact
+storage, `@dotit/core` ships DB-safe wrappers:
+
+```typescript
+import { toStorageRecord, fromStorageRecord, verifyStorageRecord } from "@dotit/core";
+
+const record = toStorageRecord(sealedSource);   // { source, bytesSha256 } — persist this
+const restored = fromStorageRecord(record);     // byte-exact restore
+const intact = verifyStorageRecord(record);     // true if the bytes survived the round-trip
+```
+
+For indexing or diffing without touching the stored bytes, `documentToSource(parseIntentText(src))`
+is a lossless text ↔ JSON round-trip — a sealed document still verifies after it.
+
 ## What sealing does — and doesn't — prove
 
 Be precise about the guarantee, because "signed" means different things in different
@@ -252,18 +275,118 @@ systems:
 
 This is the right default for the overwhelming majority of business documents — invoices,
 agreements, approvals — where the question is "has this been altered since we agreed to
-it?" rather than "can I prove in court who signed it." When you need more, the model is
-designed to **layer** without changing the file format:
+it?" When you need more, the model **layers** without changing the file format. Each higher
+layer attests the _same canonical hash_ defined above, so a plain tamper-evident `.it` file
+can gain cryptographic identity or authority later without rewriting its content:
 
-| Tier | What it adds | Status |
+| Layer | What it adds | Package |
 | --- | --- | --- |
-| **Tamper-evidence** | SHA-256 seal, self-verifiable | Built in, free, today |
-| **Trusted timestamp** | RFC-3161 / notary attestation of _when_ | Managed/paid path |
-| **Identity binding** | X.509 / PKI signature over the same hash | Managed/paid path |
+| **1 · Integrity** | SHA-256 seal, self-verifiable, offline | `@dotit/core` (built in) |
+| **2 · Identity** | Ed25519 signature binding a key to _this_ hash | `@dotit/sign` |
+| **3 · Authority** | UTS certification binding the key to a verified org identity | `@dotit/sign` + UTS |
 
-The higher tiers attest the _same canonical hash_ defined above — so a document can start
-as a plain tamper-evident `.it` file and gain notarization or PKI later without rewriting
-its content.
+## Layer 2 — Identity (Ed25519 signatures)
+
+A core `sign:` line proves the content is intact, but anyone who can edit the file can
+re-seal it under any name. To prove a **specific key-holder** signed this exact hash,
+upgrade the signature with `@dotit/sign`. It adds `key:` and `sig:` fields — an Ed25519
+signature over the document hash — that nobody without the private key can forge.
+
+```bash
+# Generate a keypair (keep the private key secret)
+npx -p @dotit/sign dotit-sign keygen --out ceo-key.json
+
+# Sign the document — embeds the public key + signature
+npx -p @dotit/sign dotit-sign sign contract.it --key ceo-key.json --signer "Ahmed Al-Rashid" --role "CEO"
+
+# Verify — needs nothing but the file (the public key travels in the line)
+npx -p @dotit/sign dotit-sign verify contract.it
+```
+
+The signed line carries the proof inline:
+
+```intenttext
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3... | key: ed25519:<pubkey> | sig: <signature>
+```
+
+A plain `sign: Name | role: …` with **no** `key:`/`sig:` is only a named approval, like
+`approve:`. From code:
+
+```typescript
+import { generateSigningKey, signDocumentCrypto, verifyCryptoSignatures } from "@dotit/sign";
+
+const key = generateSigningKey(); // { privateKey, publicKey } — base64url
+const { source } = signDocumentCrypto(contractSource, {
+  signer: "Ahmed Al-Rashid",
+  role: "CEO",
+  privateKey: key.privateKey,
+});
+const checks = verifyCryptoSignatures(source);
+// [{ signer, role, at, publicKey, cryptographic: true, valid: true }]
+```
+
+**Honest scope:** a valid signature proves "the holder of public key `<pub>` signed this
+exact hash." It does **not** by itself prove the signer's real-world identity — that is
+Layer 3.
+
+## Layer 3 — Authority (UTS certification)
+
+Layer 3 binds a signing key to a **verified organization identity**. A certification
+authority (UTS) verifies the account/entity once, then issues `certify:` lines that anyone
+can re-check offline. `verifyCertifications()` reports a certification as `valid` only when
+its signature verifies **and** its key chains to a trusted authority.
+
+```intenttext
+certify: UTS | account: al-diwan | entity: Al-Diwan Contracting W.L.L. | at: 2026-06-13T19:56:11Z | hash: sha256:a1b2c3... | key: ed25519:<pubkey> | sig: <signature> | ica: <intermediate-cert>
+```
+
+```typescript
+import { certifyDocument, verifyCertifications } from "@dotit/sign";
+
+// Run by the AUTHORITY with its key (never the document author)
+const { source } = certifyDocument(contractSource, {
+  issuer: "UTS",
+  account: "al-diwan",
+  entity: "Al-Diwan Contracting W.L.L.",
+  issuerPrivateKey: utsKey.privateKey,
+  intermediateCert: icaToken, // optional — chains to an offline root (below)
+});
+
+// trustedIssuers maps issuer name → its published public key
+const certs = verifyCertifications(source, { UTS: rootPublicKey });
+// [{ issuer, account, entity, publicKey, signatureValid, trusted, valid, chain }]
+```
+
+### Root → intermediate certificate hierarchy
+
+`@dotit/sign` 1.3 adds the same key hierarchy a real CA uses: an **offline root** key
+vouches for a short-lived **online intermediate** key that signs the daily certifications.
+The root signs an intermediate's public key offline, producing a compact `ica:` token that
+embeds in each `certify:` line. Verifiers trust **only the root key** — if the online
+intermediate leaks, you rotate it without re-trusting anything.
+
+```typescript
+import { issueIntermediate, verifyIntermediateCert } from "@dotit/sign";
+
+// ROOT operation — run OFFLINE on the air-gapped root machine
+const ica = issueIntermediate({
+  rootPrivateKey,            // never leaves the offline machine
+  intermediatePublicKey,     // the online daily signer's public key
+  issuer: "UTS",
+  days: 365,
+});
+// `ica` is an opaque base64url token — pass it to certifyDocument({ intermediateCert: ica })
+
+// A verifier checks the token against the trusted ROOT key alone:
+verifyIntermediateCert(ica, { UTS: rootPublicKey }, new Date().toISOString());
+```
+
+When a `certify:` line carries `ica:`, `verifyCertifications` validates the chain root →
+intermediate → certification and returns a `chain: { rootPublicKey, notBefore, notAfter }`,
+anchoring trust in the offline root.
+
+**Lifecycle:** `track → approve → sign → freeze` (Layer 1) `→ Ed25519 sign` (Layer 2) `→
+certify` (Layer 3) `→ verify`. Each layer is opt-in and verifiable offline.
 
 ---
 

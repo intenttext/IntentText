@@ -118,72 +118,73 @@ meta: | type: document | theme: corporate
 
 ### In the editor
 
-The web editor and VS Code extension have a theme picker dropdown — select a theme and it's applied in real time.
+The web editor (and the embeddable `@dotit/editor` component) has a theme picker dropdown — select a theme and it's applied in real time.
 
 ## Theme resolution order
 
 When rendering, the theme is resolved in this order:
 
-1. **CLI flag** — `--theme corporate` (highest priority)
+1. **CLI flag / render option** — `--theme corporate` (highest priority)
 2. **Document metadata** — `meta: | theme: corporate`
-3. **Local theme** — `~/.intenttext/themes/custom.json`
-4. **Installed theme** — themes installed from the Hub
-5. **Built-in theme** — the 8 themes shipped with IntentText
-6. **Hub fetch** — download from the Hub on first use
+3. **Built-in fallback** — `corporate` (used when none is given or the name is unknown)
 
-## Theme JSON format
+The 8 built-in themes are available everywhere with no download step.
 
-Create custom themes as JSON files:
+## Theme object format
 
-```json
-{
-  "name": "my-brand",
-  "version": "1.0.0",
-  "description": "Custom brand theme",
-  "colors": {
-    "primary": "#e11d48",
-    "background": "#ffffff",
-    "text": "#1e293b",
-    "heading": "#0f172a",
-    "accent": "#e11d48",
-    "muted": "#64748b",
-    "border": "#e2e8f0"
+A theme is a plain object with `colors`, `fonts`, and `spacing` groups (plus optional
+`description`, `author`, `blocks`, and `print`). Register one at runtime with
+[`registerBuiltinTheme`](./core-api#registerbuiltinthemetheme) so it resolves by name:
+
+```typescript
+import { registerBuiltinTheme } from "@dotit/core";
+
+registerBuiltinTheme({
+  name: "my-brand",
+  version: "1.0",
+  description: "Custom brand theme",
+  colors: {
+    text: "#1e293b",
+    heading: "#0f172a",
+    muted: "#64748b",
+    accent: "#e11d48",
+    border: "#e2e8f0",
+    background: "#ffffff",
+    "code-bg": "#f5f5f5",
   },
-  "fonts": {
-    "body": "Helvetica, Arial, sans-serif",
-    "heading": "Helvetica Bold, Arial Bold, sans-serif",
-    "mono": "Menlo, Monaco, monospace"
+  fonts: {
+    body: "Helvetica, Arial, sans-serif",
+    heading: "Helvetica Bold, Arial Bold, sans-serif",
+    mono: "Menlo, Monaco, monospace",
+    size: "11pt",
+    leading: "1.6",
   },
-  "spacing": {
-    "sectionGap": "2em",
-    "blockGap": "1em",
-    "sideMargin": "0"
-  }
-}
+  spacing: {
+    "page-margin": "1in",
+    "section-gap": "2rem",
+    "block-gap": "0.75rem",
+    indent: "0",
+  },
+});
 ```
+
+See the full [`IntentTheme` interface](./core-api#intenttheme) in the Core API.
 
 ## Managing themes
 
 ```bash
-# List installed themes
+# List the built-in themes
 dotit theme list
 
-# Theme details
+# Show a theme's fonts, colors, and metadata
 dotit theme info corporate
-
-# Install from Hub
-dotit theme install my-brand
-
-# Publish to Hub
-dotit theme publish my-brand.json
 ```
 
-## Local themes
+`theme list` and `theme info` are the only `dotit theme` subcommands. Custom themes
+are registered programmatically via `registerBuiltinTheme` (above) or passed inline
+as a theme object to `renderHTML` / `renderPrint`.
 
-Save custom theme files to `~/.intenttext/themes/`:
-
-```bash
-cp my-brand.json ~/.intenttext/themes/
-```
-
-Local themes are available to all projects on the machine.
+:::note Planned
+A Hub-backed theme gallery with `dotit theme install` / `publish` is **planned** —
+today themes are the 8 built-ins plus any you register in code.
+:::

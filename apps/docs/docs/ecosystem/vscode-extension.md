@@ -5,7 +5,7 @@ title: VS Code Extension
 
 # VS Code Extension
 
-Full IntentText support inside VS Code: syntax highlighting, hover documentation, completions, snippets, diagnostics, and trust commands.
+IntentText support inside VS Code: syntax highlighting, hover documentation, completions, snippets, diagnostics, a live preview, and trust commands.
 
 ## Installation
 
@@ -14,6 +14,9 @@ Search "IntentText" in the VS Code Extensions panel, or:
 ```bash
 code --install-extension intenttext.intenttext
 ```
+
+The extension is also published as a `.vsix` in the repo (`packages/vscode`) for
+manual install.
 
 ## Features
 
@@ -26,7 +29,7 @@ IntentText keywords, aliases, and template markers are highlighted with semantic
 | Document identity | Blue   | title, summary, meta, context, track                                                   |
 | Content           | Green  | note, quote, warning, tip, code, image, link, cite, def, figure, contact               |
 | Structure         | Purple | section, sub, break, group, ref, deadline                                              |
-| Data              | Orange | input, output, table, metric                                                           |
+| Data              | Orange | input, output, columns, row, metric                                                    |
 | Agent             | Red    | step, gate, trigger, emit, decision, context, memory, prompt, tool, audit, done, error |
 | Trust             | Gold   | approve, sign, freeze, revision, policy, amendment                                     |
 | Layout            | Teal   | page, font, header, footer, watermark, signline                                        |
@@ -44,76 +47,57 @@ Hover over any keyword to see:
 
 ### Completions
 
-Type any keyword and get intelligent completions:
+Type at the start of a line and get keyword completions; type after a `|` and get
+the pipe properties for that block type:
 
-- Keyword names with descriptions
+- Keyword names (with descriptions)
+- Alias suggestions (the canonical keyword is shown)
 - Pipe properties after `|`
-- Template variable names inside `{{}}`
-- Theme names after `--theme`
-- Alias suggestions (with canonical keyword shown)
 
 ### Snippets
 
-Type a keyword prefix and press Tab:
+Type a prefix and press Tab. The bundled snippets cover the common blocks, for example:
 
-| Prefix         | Expands to                   |
-| -------------- | ---------------------------- |
-| `it-doc`       | Full document skeleton       |
-| `it-section`   | Section with content         |
-| `it-table`     | Table with headers and rows  |
-| `it-step`      | Step with details            |
-| `it-gate`      | Gate with condition          |
-| `it-approve`   | Approval block               |
-| `it-seal`      | Sign/seal block              |
-| `it-template`  | Template with variables      |
-| `it-metric`    | Metric with value and target |
-| `it-contact`   | Contact with details         |
-| `it-deadline`  | Deadline with date           |
-| `it-amendment` | Amendment block              |
+| Prefix      | Expands to                   |
+| ----------- | ---------------------------- |
+| `doc`       | Full document skeleton       |
+| `section`   | Section with content         |
+| `task`      | Task block                   |
+| `step`      | Workflow step                |
+| `gate`      | Gate with condition          |
+| `approve`   | Approval block               |
+| `sign`      | Signature block              |
+| `metric`    | Metric with value and target |
+| `contact`   | Contact with details         |
+| `deadline`  | Deadline with date           |
+| `amendment` | Amendment block              |
+
+(Run `Insert Snippet` to see the full list — there are snippets for most keywords,
+including `workflow`, `columns`, `input`/`output`, `memory`, `prompt`, `tool`, `track`,
+`freeze`, `revision`, `header`/`footer`/`watermark`, and `style`.)
 
 ### Diagnostics
 
-Real-time error detection:
-
-- Unknown keywords flagged
-- Missing required properties
-- Invalid pipe property combinations
-- Duplicate section names
-- Trust chain warnings (e.g., modifying content after seal)
+Inline diagnostics surface the core validator's findings as you type — semantic issues
+(broken references, unresolved variables, structural problems) and the parser's own
+diagnostics, each marked as an error or warning.
 
 ### Commands
 
 Access via Command Palette (`Cmd+Shift+P`):
 
-| Command                       | Description                         |
-| ----------------------------- | ----------------------------------- |
-| `IntentText: Seal Document`   | Seal the current file               |
-| `IntentText: Verify Document` | Check integrity                     |
-| `IntentText: Amend Document`  | Create amendment to frozen document |
-| `IntentText: View History`    | Show trust history                  |
-| `IntentText: Preview`         | Render and preview in side panel    |
-| `IntentText: Change Theme`    | Switch preview theme                |
-| `IntentText: Pull Template`   | Download template from Hub          |
+| Command                              | Description                          |
+| ------------------------------------ | ------------------------------------ |
+| `IntentText: Open Preview`           | Render and preview the current file  |
+| `IntentText: Open Preview to the Side` | Open the preview in a side panel   |
+| `IntentText: Seal Document`          | Seal the current file                |
+| `IntentText: Verify Document`        | Check integrity                      |
+| `IntentText: Show Document History`  | Show the document's trust history    |
 
 ### Preview panel
 
-Live-rendered preview in a side panel:
-
-- Updates on save
-- Theme picker in the toolbar
-- Trust status badge (sealed/verified/amended)
-- Print preview mode
-
-## Configuration
-
-```json
-{
-  "intenttext.defaultTheme": "corporate",
-  "intenttext.preview.autoOpen": true,
-  "intenttext.diagnostics.enabled": true,
-  "intenttext.hub.autoSuggestTemplates": true
-}
-```
+A live-rendered HTML preview (`Open Preview` / `Open Preview to the Side`) that
+re-renders as you edit the document.
 
 ## Source
 

@@ -99,20 +99,23 @@ dotit article.it --print --theme minimal
 
 ## Export to PDF
 
-One command:
+One command (writes `article.pdf` next to the source; requires puppeteer):
 
 ```bash
-dotit article.it --print --theme editorial --pdf article.pdf
+dotit article.it --theme editorial --pdf
 ```
 
 The print renderer reads `font:` and `page:` blocks for typography and layout:
 
 ```intenttext
-font: | family: Georgia | size: 12pt | leading: 1.8 | heading: Playfair Display
-page: | size: A4 | margins: 25mm
-header: | right: Elena Vasquez — The Future of Structured Documents
+font: | family: Georgia | size: 12pt | leading: 1.8
+page: | size: A4 | margin: 25mm
+header: | right: The Future of Structured Documents
 footer: | center: Page {{page}} of {{pages}}
 ```
+
+The `font:` block sets the body `family`, `size`, and `leading`; `page:` sets the sheet
+`size` and `margin`; `header:`/`footer:` fill the `left`/`center`/`right` print zones.
 
 ## Citations and sources
 
@@ -126,18 +129,18 @@ cite: The Pragmatic Programmer | author: Hunt, Thomas | date: 2019 | url: https:
 
 Within any block, use:
 
-| Syntax         | Result            |
-| -------------- | ----------------- |
-| `*text*`       | **bold**          |
-| `_text_`       | _italic_          |
-| `~text~`       | ~~strikethrough~~ |
-| ` ```text``` ` | `inline code`     |
-| `` `text` ``   | label / badge     |
-| `{text}`       | label / badge     |
-| `^text^`       | highlighted       |
-| `[[text]]`     | inline note       |
-| `@person`      | mention           |
-| `#topic`       | tag               |
+| Syntax           | Result             |
+| ---------------- | ------------------ |
+| `*text*`         | **bold**           |
+| `_text_`         | _italic_           |
+| `~text~`         | ~~strikethrough~~  |
+| ` ```text``` `   | `inline code`      |
+| `` `text` ``     | label / badge pill |
+| `{text}`         | label / badge pill |
+| `^text^`         | highlighted        |
+| `[[text]]`       | inline note        |
+| `@person`        | mention            |
+| `#topic`         | tag                |
 
 ## Code blocks
 
@@ -172,7 +175,7 @@ text: Run ```npm install``` to set up the project.
 4. `track:` to activate history
 5. `approve:` for editorial sign-off
 6. Export with `--pdf`
-7. Publish the template to the Hub for others to use
+7. Commit the `.it` source to version control — it stays a plain, readable file
 
 ---
 

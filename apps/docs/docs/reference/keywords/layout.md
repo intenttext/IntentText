@@ -22,25 +22,33 @@ page: | size: value | orientation: value | margin: value
 
 ### Properties
 
-| Property      | Type   | Description                                          |
-| ------------- | ------ | ---------------------------------------------------- |
-| `size`        | string | Paper size — `A4`, `letter`, `legal`, `A3`           |
-| `orientation` | string | `portrait` (default) or `landscape`                  |
-| `margin`      | string | CSS margin value — `1in`, `2cm`, `normal`, `narrow`  |
+| Property      | Type   | Description                                                          |
+| ------------- | ------ | ------------------------------------------------------------------- |
+| `size`        | string | `A5` `A4` `A3` `A2` `A1` `Letter` `Legal`, or a custom `<w> <h>`     |
+| `orientation` | string | `portrait` (default) or `landscape` — landscape swaps width/height  |
+| `margin`      | string | CSS margin value — e.g. `20mm`, `1in`, `2cm` (also accepts `margins:`) |
 
 ### Examples
 
 ```intenttext
-page: | size: A4 | orientation: portrait | margin: 1in
-page: | size: letter | orientation: landscape | margin: 2cm
+page: | size: A4 | orientation: portrait | margin: 20mm
+page: | size: A3 | orientation: landscape | margin: 18mm
+page: | size: A3 landscape | margin: 18mm
+page: | size: 80mm auto | margin: 4mm
 ```
 
 ### Notes
 
 - Browser rendering inherits the system default — `page:` primarily affects PDF export and print
 - Only one `page:` block per document is valid
-- `margin: normal` is equivalent to `1in` top/bottom, `1.25in` left/right (Word defaults)
-- `margin: narrow` is equivalent to `0.5in` on all sides
+- **True physical size.** The print/PDF `@page { size: … }` emits the real sheet size,
+  so A3/A2/A1 reports and wide tables output at full scale. ISO portrait dimensions
+  (w×h, mm): A5 148×210, A4 210×297, A3 297×420, A2 420×594, A1 594×841.
+- **Orientation** can be a separate property (`orientation: landscape`) or baked into the
+  size value as a shorthand (`size: A3 landscape`).
+- **Custom size** `<w> <h>` (e.g. `80mm auto`) makes a continuous roll with no
+  pagination — useful for thermal receipts. Narrow pages (≤120mm) default to a tight
+  4mm margin when none is set.
 
 ---
 
@@ -54,29 +62,32 @@ Defines the running header for multi-page output.
 ### Syntax
 
 ```
-header: content | align: value | show-on: value
+header: content | left: text | center: text | right: text | skip-first: true
 ```
 
 ### Properties
 
-| Property   | Type   | Description                                  |
-| ---------- | ------ | -------------------------------------------- |
-| `align`    | string | `left` (default), `center`, or `right`       |
-| `show-on`  | string | `all` (default), `odd`, `even`, `after-first` |
+| Property     | Type   | Description                                                       |
+| ------------ | ------ | ---------------------------------------------------------------- |
+| `left`       | string | Text in the top-left zone                                        |
+| `center`     | string | Text in the top-center zone                                      |
+| `right`      | string | Text in the top-right zone                                       |
+| `skip-first` | string | `true` suppresses the header on the first (title) page           |
 
 ### Examples
 
 ```intenttext
 header: Acme Corporation Confidential
-header: | align: right | show-on: all
-header: Service Agreement v1.0 | align: center | show-on: after-first
+header: | left: Acme Corp | right: Confidential
+header: | center: Service Agreement v1.0 | skip-first: true
 ```
 
 ### Notes
 
-- Header is hidden in web rendering — visible in print and PDF only
-- `show-on: after-first` is standard for formal documents — suppresses the header on the title page
-- Content can include template variables: `{{title}}`, `{{page}}`, `{{date}}`
+- Header is hidden in web rendering — visible in print and PDF only (uses CSS `@top-*` margin boxes)
+- The content-only form (`header: ACME Corp`) renders in the **center** zone
+- `skip-first: true` is standard for formal documents — suppresses the header on the title page
+- Content can include the print tokens `{{page}}` and `{{pages}}`
 
 ---
 
@@ -90,38 +101,42 @@ Defines the running footer for multi-page output, including page numbers.
 ### Syntax
 
 ```
-footer: content | align: value | show-on: value
+footer: content | left: text | center: text | right: text | skip-first: true
 ```
 
 ### Properties
 
-| Property   | Type   | Description                                  |
-| ---------- | ------ | -------------------------------------------- |
-| `align`    | string | `left`, `center` (default), or `right`       |
-| `show-on`  | string | `all` (default), `odd`, `even`, `after-first` |
+| Property     | Type   | Description                                                       |
+| ------------ | ------ | ---------------------------------------------------------------- |
+| `left`       | string | Text in the bottom-left zone                                     |
+| `center`     | string | Text in the bottom-center zone                                   |
+| `right`      | string | Text in the bottom-right zone                                    |
+| `skip-first` | string | `true` suppresses the footer on the first (title) page           |
 
 ### Examples
 
 ```intenttext
 footer: Page {{page}} of {{pages}}
-footer: Confidential — Acme Corporation | align: center | show-on: all
-footer: {{date}} | align: right | show-on: after-first
+footer: | left: Confidential | right: Page {{page}} of {{pages}}
+footer: | center: ACME — Confidential | skip-first: true
 ```
 
 ### Template variables
 
-| Variable     | Output                         |
-| ------------ | ------------------------------ |
-| `{{page}}`   | Current page number            |
-| `{{pages}}`  | Total page count               |
-| `{{title}}`  | Document title                 |
-| `{{date}}`   | Current date (render time)     |
-| `{{author}}` | Author from `meta:` block      |
+The print tokens `{{page}}` and `{{pages}}` become live page numbers in print and in
+the editor (they compile to CSS `counter(page)` / `counter(pages)`). These are the
+only substituted tokens — any other text in a header/footer zone renders literally.
+
+| Variable    | Output              |
+| ----------- | ------------------- |
+| `{{page}}`  | Current page number |
+| `{{pages}}` | Total page count    |
 
 ### Notes
 
 - Footer is hidden in web rendering — visible in print and PDF only
-- `show-on: after-first` is standard practice — suppresses footer on the title/cover page
+- The content-only form (`footer: …`) renders in the **center** zone
+- `skip-first: true` suppresses the footer on the title/cover page
 
 ---
 
@@ -181,15 +196,10 @@ Page break for print output. Invisible in web rendering — renders as `display:
 
 ```
 break:
-break: | before: value | keep: value
 ```
 
-### Properties
-
-| Property | Type    | Description                                                   |
-| -------- | ------- | ------------------------------------------------------------- |
-| `before` | boolean | Force a page break before the following content               |
-| `keep`   | string  | Keep surrounding content together — `together` or `avoid`    |
+A bare `break:` forces a page break at that point. The block carries no content — it is
+invisible in web output and forces a new page in print/PDF.
 
 ### Examples
 
@@ -203,9 +213,12 @@ section: Chapter Two
 text: New chapter starts on a fresh page.
 ```
 
-```intenttext
-break: | before: true | keep: together
-```
+### Advanced: scoped break rules
+
+A `break:` block may also carry `before:` and `keep:` properties whose **values name a CSS
+class** the renderer emits page-break rules for (`before:` → `page-break-before: always` on
+`.it-<value>`; `keep:` → `break-inside: avoid` on `.it-<value>`). These are for advanced
+print tuning; most documents only ever need a bare `break:`.
 
 ### `break:` vs `x-layout: divider`
 

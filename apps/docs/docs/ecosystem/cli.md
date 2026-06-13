@@ -58,6 +58,21 @@ dotit notes.md --to-it --output    # saves notes.it next to the source
 dotit page.html --to-it
 ```
 
+For spreadsheets and Word documents — and for writing `.it` *back out* to those
+formats — use `dotit convert <in> <out>`, which dispatches on the extension pair:
+
+```bash
+dotit convert report.xlsx report.it     # Spreadsheet → IntentText (one section per sheet)
+dotit convert contract.docx contract.it # Word document → IntentText
+dotit convert notes.md notes.it         # Markdown / HTML → IntentText
+dotit convert report.it report.xlsx     # IntentText → spreadsheet (each table → a sheet)
+dotit convert contract.it contract.docx # IntentText → Word document
+```
+
+Supported pairs: `.md` / `.html` / `.xlsx` / `.docx` → `.it`, and `.it` → `.xlsx` / `.docx`.
+The same four binary converters are available programmatically — see
+[Core API › Conversion](./core-api#conversion).
+
 ## Templates and document generation
 
 A template is a `.it` file with `{{placeholders}}`. Merge it with a JSON file and

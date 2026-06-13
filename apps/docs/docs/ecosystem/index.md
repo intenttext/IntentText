@@ -11,7 +11,7 @@ IntentText is more than a file format. It's a complete toolchain for structured 
 
 | Tool                       | Description                                          |
 | -------------------------- | ---------------------------------------------------- |
-| [Core Library](./core-api) | `@dotit/core` 1.1 — parse, render, query, merge, trust |
+| [Core Library](./core-api) | `@dotit/core` 1.5 — parse, render, query, merge, trust, convert |
 | `@dotit/pdf`          | Server-side PDFs — issue (merge → seal) → real PDF bytes; opt-in companion |
 | [CLI](./cli)               | Command-line tool for every operation                |
 
