@@ -13,7 +13,8 @@
 // render / keystroke — that is exactly how the badge stays live: editing a
 // signed document recomputes here and flips the state to `signed-broken`.
 
-import { verifyDocument, isSealed } from "@dotit/core";
+import { verifyDocument, isSealed, isTemplate } from "@dotit/core";
+import type { TrustTier } from "@dotit/core";
 import {
   verifyDocumentSignatures,
   verifyCertifications,
@@ -24,6 +25,7 @@ import {
 import { trustedIssuers } from "../uts-trust";
 
 export type TrustState =
+  | "template"
   | "draft"
   | "signed-valid"
   | "signed-broken"
@@ -43,6 +45,8 @@ export interface TrustStatus {
   icon: string;
   /** One-line plain-language verdict for the top of the panel. */
   verdict: string;
+  /** True when the open document is a TEMPLATE (blueprint) — outside trust. */
+  template: boolean;
 
   // ---- Content integrity (seal) layer ----
   sealed: boolean;
@@ -72,6 +76,37 @@ export interface TrustStatus {
   error?: string;
 }
 
+/**
+ * Map an evaluated TrustStatus → the ambient seal's TRUST TIER (gray/blue/green/
+ * gold). This reflects VERIFIED reality, not the document's claim:
+ *   - a tampered seal / broken signature / broken certification → "draft" (gray),
+ *     never a green or gold seal over a layer that failed to verify.
+ *   - a valid certification that CHAINS to the UTS root (ica:) → "root-certified".
+ *   - a valid certification without a chain → "certified".
+ *   - a valid signature or an intact seal → "signed".
+ *   - otherwise → "draft".
+ * Use this tier with renderSeal so the seal colour states the verified verdict.
+ */
+export function tierForStatus(status: TrustStatus): TrustTier {
+  // A template is outside the trust workflow — it gets the slate dashed seal,
+  // never a trust tier. This must be the first branch.
+  if (status.template) return "template";
+  // Any broken trust layer pins the seal to gray — honest tamper-evidence.
+  if (status.tone === "bad") return "draft";
+
+  const validCert = status.certifications.find((c) => c.valid);
+  if (validCert) {
+    return validCert.chain ? "root-certified" : "certified";
+  }
+  if (
+    (status.sealed && status.intact) ||
+    (status.signatureCount > 0 && status.allSignaturesValid)
+  ) {
+    return "signed";
+  }
+  return "draft";
+}
+
 /** Truncate a long hex/base64 token for display: `abcd12…ef90`. */
 export function truncateMiddle(s: string, head = 8, tail = 6): string {
   if (!s) return "";
@@ -92,6 +127,30 @@ export function truncateMiddle(s: string, head = 8, tail = 6): string {
  */
 export function evaluateTrust(source: string): TrustStatus {
   let error: string | undefined;
+
+  // A TEMPLATE (.it blueprint) is OUTSIDE the trust workflow — it can't be
+  // sealed/signed/certified, so there is no trust verdict to compute. Short-
+  // circuit to a distinct Template state (slate dashed seal via tierForStatus).
+  if (isTemplate(source)) {
+    return {
+      state: "template",
+      label: "Template",
+      tone: "neutral",
+      icon: "📐",
+      verdict:
+        "Template — not part of trust. Merge it with data to produce a signable document.",
+      template: true,
+      sealed: false,
+      intact: true,
+      hash: "",
+      signatures: [],
+      signatureCount: 0,
+      validSignatureCount: 0,
+      allSignaturesValid: false,
+      certifications: [],
+      certified: false,
+    };
+  }
 
   // ---- Integrity (seal) ----
   let sealed = false;
@@ -216,6 +275,7 @@ export function evaluateTrust(source: string): TrustStatus {
     tone,
     icon,
     verdict,
+    template: false,
     sealed,
     intact,
     hash,

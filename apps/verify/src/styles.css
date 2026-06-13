@@ -263,6 +263,23 @@ textarea.paste:focus-visible {
   font-size: 1.4rem;
   line-height: 1;
 }
+/* Prominent Hash-Based Ambient Seal — the "trust you can see" payoff. */
+.verdict .verdict-seal {
+  flex-shrink: 0;
+  display: inline-flex;
+  line-height: 0;
+}
+.verdict .verdict-seal svg {
+  display: block;
+}
+.verdict .verdict-seal.broken {
+  opacity: 0.72;
+  filter: grayscale(0.25);
+}
+.verdict .vtext {
+  display: flex;
+  flex-direction: column;
+}
 .verdict .vtext .vtitle {
   font-size: 1.02rem;
 }
@@ -270,6 +287,12 @@ textarea.paste:focus-visible {
   font-size: 0.84rem;
   font-weight: 400;
   margin-top: 2px;
+}
+.verdict .vtext .vseal-note {
+  font-size: 0.74rem;
+  font-weight: 400;
+  opacity: 0.72;
+  margin-top: 6px;
 }
 .verdict.verified {
   color: var(--green);
@@ -286,6 +309,14 @@ textarea.paste:focus-visible {
   color: var(--red);
   background: var(--red-bg);
   border-color: var(--red);
+}
+/* Template — outside the trust workflow: slate, dashed border echoing the
+   dashed template seal. Not a pass/fail state. */
+.verdict.template {
+  color: #475569;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  border-style: dashed;
 }
 
 /* ── Result card / layers ────────────────────────────────────────────────── */

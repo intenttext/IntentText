@@ -125,6 +125,11 @@ export {
   contentHashOf,
   TIER_STYLES,
 } from "./seal";
+export {
+  isTemplate,
+  hasUnresolvedMergeVars,
+  assertNotTemplate,
+} from "./template";
 export type {
   TrustTier,
   TierStyle,

@@ -864,6 +864,63 @@
   height: auto;
 }
 
+/* Live ambient seals — the hero row, rendered by @dotit/core at render time.
+   Four trust seals, then a divider, then the template seal (outside the tiers). */
+.liveSealRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem 1.5rem;
+  padding: 1.75rem 1.25rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08);
+}
+.liveSeal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 0 1 110px;
+}
+/* A thin rule fencing the template seal off from the four trust seals. */
+.liveSealDivider {
+  align-self: stretch;
+  width: 1px;
+  min-height: 96px;
+  background: var(--ifm-color-emphasis-300);
+  margin: 0 0.25rem;
+}
+/* The template seal is grouped with, but distinct from, the trust seals. */
+.liveSealTemplate .liveSealCaption {
+  color: #64748b;
+}
+.liveSealArt {
+  display: inline-flex;
+  line-height: 0;
+}
+.liveSealArt :global(svg) {
+  display: block;
+  width: 104px;
+  height: 104px;
+}
+.liveSealCaption {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-700);
+}
+@media (max-width: 600px) {
+  .liveSealRow {
+    gap: 1.25rem;
+  }
+  /* On a narrow, wrapped layout a vertical rule reads oddly — hide it. */
+  .liveSealDivider {
+    display: none;
+  }
+}
+
 /* ── Apps showcase (editor + desktop) ─────────────────────────────────── */
 .appShowcase {
   display: flex;

@@ -1,6 +1,6 @@
 {
   "name": "@dotit/editor",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Embeddable WYSIWYG visual editor for IntentText (.it) documents — Word-like pages, ribbon, trust banner, and WYSIWYG PDF/HTML export. Drop it into any React app (ERPs, portals, back offices).",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",

@@ -231,6 +231,7 @@ export default function App() {
           onExportPDF={() => exportDocumentPDF(content, theme)}
           onExportHTML={() => exportDocumentHTML(content, theme)}
           isSealed={trustState.trust.isSealed}
+          isTemplate={trustState.isTemplate}
           templateVarCount={templateVarCount}
           samples={DEMO_DOCS.map((d) => ({ id: d.id, title: d.title }))}
           onLoadSample={(id) => {
@@ -291,6 +292,7 @@ export default function App() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <TrustPanel
               trust={trustState.trust}
+              isTemplate={trustState.isTemplate}
               onTrack={trustState.startTracking}
               onApprove={trustState.addApproval}
               onSign={trustState.addSignature}

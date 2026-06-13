@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { VerifyReport } from "./verify";
-import { truncateMiddle } from "./verify";
+import { truncateMiddle, verifiedSeal } from "./verify";
 
 function CopyButton({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
@@ -66,18 +66,32 @@ const VERDICT_COPY: Record<
 
 export function VerdictBanner({ report }: { report: VerifyReport }) {
   const c = VERDICT_COPY[report.verdict];
+  // The Hash-Based Ambient Seal, tinted by the VERIFIED tier — not the document's
+  // claim. A failed trust layer renders gray/"UNVERIFIED", never green or gold.
+  const seal = useMemo(() => verifiedSeal(report), [report]);
   return (
     <div
       className={`verdict ${report.verdict}`}
       role="status"
       aria-live="polite"
     >
+      <div
+        className={`verdict-seal${seal.broken ? " broken" : ""}`}
+        title={`Ambient seal · verified tier: ${seal.tier}`}
+        aria-hidden
+        dangerouslySetInnerHTML={{ __html: seal.svg }}
+      />
       <span className="vicon" aria-hidden>
         {c.icon}
       </span>
       <span className="vtext">
         <span className="vtitle">{c.title(report)}</span>
         <span className="vsub">{c.sub}</span>
+        <span className="vseal-note">
+          {seal.broken
+            ? "Seal shown gray — this document's trust layer did not verify."
+            : "This seal is rendered live from the document's verified hash and tier."}
+        </span>
       </span>
     </div>
   );

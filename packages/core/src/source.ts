@@ -387,7 +387,12 @@ function serializeProperties(block: IntentBlock, exclude: string[] = []): string
   }
 
   return keys
-    .map((k) => `${k}: ${escapeIntentText(String(props[k]))}`)
+    .map((k) => {
+      // An empty value (a template/optional fill-in slot) serialises as a clean
+      // `key:` — no trailing space — so it round-trips byte-for-byte.
+      const v = escapeIntentText(String(props[k]));
+      return v === "" ? `${k}:` : `${k}: ${v}`;
+    })
     .join(" | ");
 }
 

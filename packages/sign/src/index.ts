@@ -19,7 +19,7 @@
  */
 
 import { ed25519 } from "@noble/curves/ed25519";
-import { computeDocumentHash } from "@dotit/core";
+import { computeDocumentHash, assertNotTemplate } from "@dotit/core";
 
 // ─── Encoding helpers (base64url, dependency-free) ───────────────────────────
 
@@ -106,6 +106,9 @@ export function signDocumentCrypto(
   source: string,
   options: { signer: string; role?: string; privateKey: string },
 ): CryptoSignResult {
+  // Templates are outside the trust workflow — a signature over placeholder
+  // content would break the moment the template is merged.
+  assertNotTemplate(source, "signed");
   const at = new Date().toISOString();
   const role = options.role ?? "";
   const publicKey = publicKeyFor(options.privateKey);
@@ -329,6 +332,8 @@ export function certifyDocument(
     intermediateCert?: string;
   },
 ): CertifyResult {
+  // Templates are outside the trust workflow — never certify a blueprint.
+  assertNotTemplate(source, "certified");
   const hash = computeDocumentHash(source);
   const issuerKey = publicKeyFor(options.issuerPrivateKey);
   const entity = options.entity ?? "";

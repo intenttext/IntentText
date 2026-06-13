@@ -26,6 +26,7 @@ interface Props {
   onExportPDF: () => void;
   onExportHTML: () => void;
   isSealed?: boolean;
+  isTemplate?: boolean;
   templateVarCount?: number;
   samples?: { id: string; title: string }[];
   onLoadSample?: (id: string) => void;
@@ -45,6 +46,7 @@ export function Toolbar({
   onExportPDF,
   onExportHTML,
   isSealed,
+  isTemplate = false,
   templateVarCount = 0,
   samples,
   onLoadSample,
@@ -71,11 +73,14 @@ export function Toolbar({
   const item = (
     label: string,
     action: () => void,
-    opts?: { kbd?: string; badge?: number },
+    opts?: { kbd?: string; badge?: number; disabled?: boolean; title?: string },
   ) => (
     <button
       className="dropdown-item"
+      disabled={opts?.disabled}
+      title={opts?.title}
       onClick={() => {
+        if (opts?.disabled) return;
         action();
         setOpenMenu(null);
       }}
@@ -122,7 +127,12 @@ export function Toolbar({
             {item("Template & merge…", () => onModal("template"), {
               badge: templateVarCount,
             })}
-            {item("Trust — sign, seal, verify…", () => onModal("trust"))}
+            {item("Trust — sign, seal, verify…", () => onModal("trust"), {
+              disabled: isTemplate,
+              title: isTemplate
+                ? "Templates can't be sealed — merge first."
+                : undefined,
+            })}
             {samples && samples.length > 0 && onLoadSample && (
               <>
                 <div className="dropdown-sep" />

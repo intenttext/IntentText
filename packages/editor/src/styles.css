@@ -1388,6 +1388,23 @@
 .docs-trust-banner__icon {
   line-height: 1;
 }
+/* Live Hash-Based Ambient Seal — sits at the head of the banner. */
+.docs-trust-banner__seal {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  line-height: 0;
+}
+.docs-trust-banner__seal svg {
+  width: 32px;
+  height: 32px;
+}
+.docs-trust-banner--draft {
+  background: #f7f7f6;
+  border-color: #e4e4e2;
+  color: #4b5563;
+}
 .docs-trust-banner__title {
   font-weight: 700;
   font-size: 11px;
@@ -1422,6 +1439,14 @@
   background: #f1f9f2;
   border-color: #cfe8d4;
   color: #1d6334;
+}
+/* Template — outside the trust workflow: slate, with a dashed border that
+   echoes the dashed template seal. */
+.docs-trust-banner--template {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  border-style: dashed;
+  color: #475569;
 }
 .docs-trust-banner__verify--ok {
   background: rgba(22, 163, 74, 0.12);
@@ -1674,6 +1699,9 @@
 }
 .trust-face--draft {
   color: #5f6368;
+}
+.trust-face--template {
+  color: #64748b;
 }
 .trust-face--signed {
   color: #1a73e8;

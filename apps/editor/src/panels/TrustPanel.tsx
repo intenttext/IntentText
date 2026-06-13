@@ -17,6 +17,8 @@ function stepIndex(lifecycle: TrustState["lifecycle"]): number {
 
 interface Props {
   trust: TrustState;
+  /** True when the open document is a template (.it blueprint). */
+  isTemplate?: boolean;
   onTrack: (id?: string) => void;
   onApprove: (by: string, role: string, note?: string) => void;
   onSign: (by: string, role: string) => void;
@@ -36,6 +38,7 @@ interface Props {
 
 export function TrustPanel({
   trust,
+  isTemplate = false,
   onTrack,
   onApprove,
   onSign,
@@ -109,6 +112,74 @@ export function TrustPanel({
     setAmendRef("");
     setView("main");
   };
+
+  // A TEMPLATE (.it blueprint) is OUTSIDE the trust workflow — it can't be
+  // tracked / approved / signed / sealed (the hash would cover placeholder
+  // text). Show the Template state with a slate dashed seal and the merge-first
+  // guidance instead of any trust action. This MUST be the first branch.
+  if (isTemplate) {
+    return (
+      <div className="side-panel trust-panel">
+        <div className="side-panel-header">
+          <span className="side-panel-title">Trust</span>
+        </div>
+        <div className="side-panel-body">
+          <div className="trust-template-card">
+            <div
+              className="trust-template-seal"
+              aria-hidden="true"
+              style={{
+                width: 56,
+                height: 56,
+                margin: "0 auto 12px",
+                borderRadius: "50%",
+                border: "2px dashed #94a3b8",
+                color: "#94a3b8",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg viewBox="0 0 16 16" width="22" height="22" fill="currentColor">
+                <path d="M8 1a4 4 0 00-4 4v2H3a1 1 0 00-1 1v6a1 1 0 001 1h10a1 1 0 001-1V8a1 1 0 00-1-1h-1V5a4 4 0 00-4-4zm-2 4a2 2 0 114 0v2H6V5z" />
+              </svg>
+            </div>
+            <div
+              className="trust-action-title"
+              style={{ textAlign: "center" }}
+            >
+              📐 Template
+            </div>
+            <p className="trust-desc" style={{ textAlign: "center" }}>
+              This document is a template — outside the trust workflow. A
+              blueprint with fill-in slots can't be tracked, signed, or sealed.
+            </p>
+            <p className="trust-desc" style={{ textAlign: "center" }}>
+              Merge it with data to produce a signable document, then seal or
+              sign the result.
+            </p>
+            <button
+              className="trust-seal-btn"
+              disabled
+              title="Templates can't be sealed — merge first."
+              style={{ opacity: 0.5, cursor: "not-allowed", width: "100%" }}
+            >
+              <svg
+                viewBox="0 0 16 16"
+                width="12"
+                height="12"
+                fill="currentColor"
+                style={{ verticalAlign: "middle", marginRight: 4 }}
+              >
+                <path d="M8 1a4 4 0 00-4 4v2H3a1 1 0 00-1 1v6a1 1 0 001 1h10a1 1 0 001-1V8a1 1 0 00-1-1h-1V5a4 4 0 00-4-4zm-2 4a2 2 0 114 0v2H6V5z" />
+              </svg>
+              Seal Document
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (view === "amend") {
     return (

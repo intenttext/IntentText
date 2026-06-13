@@ -592,7 +592,9 @@ export function VisualEditor({
           locked={locked}
         />
       )}
-      {showTrustBanner && <TrustBanner trust={trust} intact={sealIntact} />}
+      {showTrustBanner && (
+        <TrustBanner trust={trust} intact={sealIntact} source={value} />
+      )}
       {showTrustBanner && <DocPropsBar source={value} />}
       {unsupported.length > 0 && (
         <div className="docs-fidelity-warning" role="status">

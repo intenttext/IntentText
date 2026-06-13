@@ -1145,6 +1145,12 @@ body {
   cursor: pointer;
   white-space: nowrap;
 }
+.trust-badge .tb-seal {
+  margin-inline-start: -2px;
+}
+.trust-badge .tb-seal svg {
+  display: block;
+}
 .trust-badge .tb-icon {
   font-size: 12px;
   line-height: 1;
@@ -1211,6 +1217,25 @@ body {
   gap: 7px;
   font-size: 13px;
   font-weight: 700;
+}
+/* Verdict row with the large ambient seal alongside the plain-language verdict. */
+.tp-seal-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.tp-seal-row .tp-seal {
+  flex-shrink: 0;
+}
+.tp-seal-row .tp-seal svg {
+  display: block;
+}
+.tp-seal-row .tp-verdict {
+  padding: 0;
+  border-bottom: none;
+  background: none !important;
 }
 .tp-verdict {
   font-size: 12.5px;

@@ -5,10 +5,50 @@
 // broken" with no dialog). The panel mirrors the verify portal's layered,
 // honest breakdown: Content Integrity, Signatures, UTS Certified.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ShieldCheck, X } from "lucide-react";
+import { renderSeal } from "@dotit/core";
 import type { TrustStatus } from "../lib/trust-status";
-import { truncateMiddle } from "../lib/trust-status";
+import { truncateMiddle, tierForStatus } from "../lib/trust-status";
+
+/**
+ * The live Hash-Based Ambient Seal for the open document, tinted by the VERIFIED
+ * trust tier (tierForStatus) and drawn from the document's live content hash, so
+ * editing redraws the crown and a broken layer drops it to the gray draft tier.
+ */
+function DocSeal({
+  status,
+  size,
+  text = true,
+  className,
+}: {
+  status: TrustStatus;
+  size: number;
+  text?: boolean;
+  className?: string;
+}) {
+  const svg = useMemo(() => {
+    try {
+      return renderSeal({
+        hash: status.hash || "sha256:00000000",
+        tier: tierForStatus(status),
+        size,
+        text,
+      });
+    } catch {
+      return null;
+    }
+  }, [status, size, text]);
+  if (!svg) return null;
+  return (
+    <span
+      className={className}
+      style={{ display: "inline-flex", width: size, height: size, lineHeight: 0 }}
+      aria-hidden
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+}
 
 function Mark({ kind }: { kind: "pass" | "fail" | "warn" | "off" }) {
   const ch =
@@ -251,14 +291,38 @@ export function TrustPanel({
           <X size={14} />
         </button>
       </div>
-      <div className={`tp-verdict ${status.tone}`} role="status">
-        {status.verdict}
+      <div className="tp-seal-row">
+        <DocSeal status={status} size={72} className="tp-seal" />
+        <div className={`tp-verdict ${status.tone}`} role="status">
+          {status.verdict}
+        </div>
       </div>
-      <div className="tp-layers">
-        <IntegrityLayer status={status} />
-        <SignatureLayer status={status} />
-        <CertifiedLayer status={status} />
-      </div>
+      {status.template ? (
+        // A template is outside the trust workflow — there are no integrity /
+        // signature / certification layers to show. State it plainly instead.
+        <div className="tp-layers">
+          <section className="tp-layer muted">
+            <div className="tp-layer-head">
+              <Mark kind="off" />
+              <span>Outside the trust workflow</span>
+            </div>
+            <div className="tp-layer-body">
+              <p className="tp-note">
+                This is a template (a blueprint with fill-in slots), not a
+                finished document. It can&apos;t be sealed, signed, or certified.
+                Merge it with data to produce a signable document, then trust the
+                result.
+              </p>
+            </div>
+          </section>
+        </div>
+      ) : (
+        <div className="tp-layers">
+          <IntegrityLayer status={status} />
+          <SignatureLayer status={status} />
+          <CertifiedLayer status={status} />
+        </div>
+      )}
       {status.error && <div className="tp-error">{status.error}</div>}
     </div>
   );
@@ -284,6 +348,7 @@ export function TrustBadge({
       title="Trust status — click for details"
       aria-expanded={open}
     >
+      <DocSeal status={status} size={18} text={false} className="tb-seal" />
       <span className="tb-icon" aria-hidden>
         {status.icon}
       </span>

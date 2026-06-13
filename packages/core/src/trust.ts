@@ -1,6 +1,7 @@
 import { sha256Hex, randomHex } from "./sha256";
 import { IntentDocument, RegistryEntry } from "./types";
 import { parseIntentText } from "./parser";
+import { assertNotTemplate } from "./template";
 
 // ─── Hash Computation ───────────────────────────────────────────────────────
 
@@ -337,6 +338,8 @@ export function signDocument(
 }
 
 export function sealDocument(source: string, options: SealOptions): SealResult {
+  // Templates are outside the trust workflow — refuse before doing anything.
+  assertNotTemplate(source, "sealed");
   // Idempotent: re-sealing an already-sealed document is a no-op rather than
   // appending a second freeze:/sign: pair (the repeat-click corruption bug).
   if (isSealed(source)) {

@@ -8,6 +8,26 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- **Templates are formally OUTSIDE the trust workflow (`@dotit/core` 1.7.0,
+  `@dotit/sign` 1.4.0).** A template is a blueprint, not a record — signing one is
+  broken (the hash covers placeholder text, and the later merge changes the content,
+  invalidating any signature). New `isTemplate(source)` (exported) returns true for
+  `meta: type: template`, an `input:` block, or unresolved `{{ }}` merge variables —
+  but NOT for empty values (a final document may legitimately leave a field blank and
+  stays trustable). `sealDocument` / `signDocumentCrypto` / `certifyDocument` now
+  refuse a template with a clear error (`assertNotTemplate`). The seal gains a distinct
+  slate, dashed **`template`** tier (no hash crown — a blueprint has no meaningful
+  fingerprint), and `detectTrustState` reports it. All four trust surfaces — both
+  editors, the desktop badge, and the verify portal — show "Template — outside the
+  trust workflow" and gate/disable Seal/Sign/Certify actions for templates. Empty
+  property values now also serialise as a clean `key:` (no trailing space) for
+  byte-exact round-trips.
+
+- **Live Ambient Seal on every trust surface.** The generative seal (core 1.6.0) is
+  now the trust indicator in the editor banner, the desktop badge/panel, the verify
+  portal (reflecting *verified* reality — gold/green only when the chain/seal actually
+  checks out, gray when it fails), and as live SVGs on the docs homepage.
+
 - **Hash-Based Ambient Seal — a generative trust stamp (`@dotit/core` 1.6.0).**
   `renderSeal({ hash, tier })` turns a document's SHA-256 hash into a notary-style
   ring whose radial "crown" is derived deterministically from the hash — same

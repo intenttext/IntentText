@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { runVerification, type VerifyReport } from "./verify";
+import { runVerification, templateSeal, type VerifyReport } from "./verify";
 import { VerdictBanner, ResultCard } from "./ResultCard";
 import { Preview } from "./Preview";
 import { SignHelper } from "./SignHelper";
@@ -91,6 +91,38 @@ function Disclosure({ report }: { report: VerifyReport }) {
           <strong>UTS identity attestation</strong> (Phase 3b), coming next.
         </li>
       </ul>
+    </div>
+  );
+}
+
+/**
+ * A loaded TEMPLATE has nothing to verify — it's a blueprint with fill-in slots,
+ * outside the trust workflow. Short-circuit the pass/fail verdict and say so,
+ * with the slate dashed template seal.
+ */
+function TemplateNotice() {
+  return (
+    <div className="verdict template" role="status" aria-live="polite">
+      <div
+        className="verdict-seal"
+        title="Template — outside the trust workflow"
+        aria-hidden
+        dangerouslySetInnerHTML={{ __html: templateSeal() }}
+      />
+      <span className="vicon" aria-hidden>
+        📐
+      </span>
+      <span className="vtext">
+        <span className="vtitle">
+          This is a template — there&apos;s nothing to verify.
+        </span>
+        <span className="vsub">
+          A template is a blueprint with fill-in slots ({"{{ … }}"} / input
+          fields), outside the trust workflow — it can&apos;t be sealed, signed,
+          or certified. Merge it with data to produce a document, then verify
+          that.
+        </span>
+      </span>
     </div>
   );
 }
@@ -226,15 +258,26 @@ function VerifyTab() {
               Verifying: <strong>{filename}</strong>
             </p>
           )}
-          <VerdictBanner report={report} />
-          {report.parseError && (
-            <div className="helper-note" role="alert">
-              Could not fully parse this document: {report.parseError}
-            </div>
+          {report.template ? (
+            // A template is outside the trust workflow — show the template
+            // notice instead of a pass/fail verdict + layered result card.
+            <>
+              <TemplateNotice />
+              {report.previewHTML && <Preview html={report.previewHTML} />}
+            </>
+          ) : (
+            <>
+              <VerdictBanner report={report} />
+              {report.parseError && (
+                <div className="helper-note" role="alert">
+                  Could not fully parse this document: {report.parseError}
+                </div>
+              )}
+              <ResultCard report={report} />
+              {report.previewHTML && <Preview html={report.previewHTML} />}
+              <Disclosure report={report} />
+            </>
           )}
-          <ResultCard report={report} />
-          {report.previewHTML && <Preview html={report.previewHTML} />}
-          <Disclosure report={report} />
         </div>
       )}
     </>

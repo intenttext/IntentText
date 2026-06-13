@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { sealDocument } from "@dotit/core";
+import { sealDocument, isTemplate } from "@dotit/core";
 
 interface Props {
   content: string;
@@ -12,7 +12,15 @@ export function SealModal({ content, onApply, onClose }: Props) {
   const [role, setRole] = useState("");
   const [error, setError] = useState("");
 
+  // A template (.it blueprint) is outside the trust workflow — sealing it would
+  // hash placeholder text. Refuse and tell the user to merge first.
+  const template = isTemplate(content);
+
   const handleSeal = () => {
+    if (template) {
+      setError("Templates can't be sealed — merge first.");
+      return;
+    }
     if (!signer.trim()) {
       setError("Signer name is required");
       return;
@@ -37,12 +45,30 @@ export function SealModal({ content, onApply, onClose }: Props) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2>Seal Document</h2>
-        <p
-          style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}
-        >
-          Sealing creates a content hash that prevents tampering. No further
-          edits are allowed without an amendment.
-        </p>
+        {template ? (
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--text-muted)",
+              marginBottom: 16,
+            }}
+          >
+            📐 This is a <strong>template</strong> — outside the trust workflow.
+            Templates can't be sealed. Merge it with data to produce a signable
+            document, then seal the result.
+          </p>
+        ) : (
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--text-muted)",
+              marginBottom: 16,
+            }}
+          >
+            Sealing creates a content hash that prevents tampering. No further
+            edits are allowed without an amendment.
+          </p>
+        )}
         <label>Signer Name *</label>
         <input
           type="text"
@@ -65,7 +91,14 @@ export function SealModal({ content, onApply, onClose }: Props) {
           <button className="btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button className="btn-primary" onClick={handleSeal}>
+          <button
+            className="btn-primary"
+            onClick={handleSeal}
+            disabled={template}
+            title={
+              template ? "Templates can't be sealed — merge first." : undefined
+            }
+          >
             Seal Document
           </button>
         </div>

@@ -17,6 +17,7 @@ import {
   unsealDocument,
   verifyDocument,
   isSealed as coreIsSealed,
+  isTemplate,
 } from "@dotit/core";
 import { ShieldCheck, PenTool, FileLock2, LockOpen, ChevronDown } from "lucide-react";
 import type { TrustState } from "./trust-state";
@@ -85,6 +86,9 @@ export function TrustControl({ content, onChange, trust, intact }: Props) {
   }, [open]);
 
   const sealed = trust.isSealed || coreIsSealed(content);
+  // A template (.it blueprint) is outside the trust workflow — Sign/Seal are
+  // refused (the hash would cover placeholder text). Gate the actions here.
+  const template = isTemplate(content);
 
   const doSign = useCallback(() => {
     const name = signer.trim();
@@ -158,7 +162,13 @@ export function TrustControl({ content, onChange, trust, intact }: Props) {
   let faceIcon = <PenTool size={15} />;
   let faceLabel = "Draft";
   let faceClass = "trust-face--draft";
-  if (sealed) {
+  if (template) {
+    // Template — not a trust state. Show it distinctly; the popover refuses
+    // Sign/Seal below.
+    faceIcon = <PenTool size={15} />;
+    faceLabel = "Template";
+    faceClass = "trust-face--template";
+  } else if (sealed) {
     faceIcon = <FileLock2 size={15} />;
     faceLabel = intact === false ? "Sealed · changed!" : "Sealed";
     faceClass =
@@ -194,7 +204,18 @@ export function TrustControl({ content, onChange, trust, intact }: Props) {
         <div className="trust-popover">
           {/* Current state line */}
           <div className="trust-popover__state">
-            {sealed ? (
+            {template ? (
+              <>
+                <strong>📐 Template — not part of trust</strong>
+                <div className="trust-popover__meta">
+                  A blueprint with fill-in slots, outside the trust workflow.
+                </div>
+                <div className="trust-popover__warn">
+                  Merge it with data to produce a signable document, then seal or
+                  sign the result.
+                </div>
+              </>
+            ) : sealed ? (
               <>
                 <strong>🔒 Sealed — read-only</strong>
                 <div className="trust-popover__meta">
@@ -253,7 +274,26 @@ export function TrustControl({ content, onChange, trust, intact }: Props) {
           <div className="trust-popover__divider" />
 
           {/* Actions for the current state */}
-          {sealed ? (
+          {template ? (
+            // A template can't be sealed or signed — show the actions disabled
+            // so it's clear WHY, with the merge-first explanation in the tooltip.
+            <>
+              <button
+                className="trust-popover__action"
+                disabled
+                title="Templates can't be sealed — merge first."
+              >
+                <PenTool size={14} /> Sign
+              </button>
+              <button
+                className="trust-popover__action trust-popover__action--primary"
+                disabled
+                title="Templates can't be sealed — merge first."
+              >
+                <FileLock2 size={14} /> Seal (freeze)
+              </button>
+            </>
+          ) : sealed ? (
             <>
               <div className="trust-popover__verify">
                 {verifyResult ? (

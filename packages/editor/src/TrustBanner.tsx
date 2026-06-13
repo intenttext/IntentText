@@ -9,7 +9,8 @@
 //    which is otherwise invisible in the page.
 
 import { useMemo, useState } from "react";
-import { parseIntentText } from "@dotit/core";
+import { parseIntentText, sealForDocument, isTemplate } from "@dotit/core";
+import type { TrustTier } from "@dotit/core";
 import type { TrustState } from "./trust-state";
 
 /* ── Trust status banner ─────────────────────────────────────── */
@@ -18,18 +19,90 @@ interface TrustBannerProps {
   trust: TrustState;
   /** verifyDocument().intact — null when the document is not sealed. */
   intact: boolean | null;
+  /** Live `.it` source — drives the hash-based ambient seal. */
+  source: string;
 }
 
 function who(by: string, role?: string): string {
   return role ? `${by} (${role})` : by;
 }
 
-export function TrustBanner({ trust, intact }: TrustBannerProps) {
+/**
+ * Map the editor's lifecycle + integrity verdict to a seal TRUST TIER so the
+ * ambient seal reflects the same verdict the banner shows. Honest by design:
+ * a sealed doc whose hash no longer matches is NOT painted blue/"sealed" — it
+ * drops to the gray draft tier (the crown still changes with the content, so a
+ * tampered doc reads as a different, untrusted seal).
+ */
+function tierFor(trust: TrustState, intact: boolean | null): TrustTier | undefined {
+  if (trust.isSealed) return intact === false ? "draft" : "signed";
+  if (trust.signatures.length > 0) return "signed";
+  // tracked / approved / draft carry no crypto layer → leave undefined so
+  // sealForDocument detects the claimed tier from the source (e.g. certify:).
+  return undefined;
+}
+
+/**
+ * The live Hash-Based Ambient Seal for the document being edited. Rendered from
+ * the current source on every change, so the crown updates as you type and its
+ * colour tracks the banner's verdict. Sized small to sit inside the banner.
+ */
+function BannerSeal({
+  source,
+  trust,
+  intact,
+}: {
+  source: string;
+  trust: TrustState;
+  intact: boolean | null;
+}) {
+  const seal = useMemo(() => {
+    try {
+      return sealForDocument(source, { size: 64, tier: tierFor(trust, intact) });
+    } catch {
+      return null;
+    }
+  }, [source, trust, intact]);
+  if (!seal) return null;
+  return (
+    <span
+      className="docs-trust-banner__seal"
+      title={`Ambient seal · ${seal.hash.replace(/^sha256:/, "").slice(0, 12)}`}
+      aria-hidden
+      dangerouslySetInnerHTML={{ __html: seal.svg }}
+    />
+  );
+}
+
+export function TrustBanner({ trust, intact, source }: TrustBannerProps) {
+  // A TEMPLATE (.it blueprint) is OUTSIDE the trust workflow — it can't be
+  // sealed/signed/certified, so it has no Draft/Signed/Sealed state at all. This
+  // MUST be the first branch: the slate dashed seal (rendered for free by
+  // sealForDocument, which detects the template tier) plus template wording, and
+  // never a trust verdict. Merge it with data first to get a signable document.
+  if (isTemplate(source)) {
+    return (
+      <div
+        className="docs-trust-banner docs-trust-banner--template"
+        role="status"
+      >
+        <BannerSeal source={source} trust={trust} intact={intact} />
+        <span className="docs-trust-banner__icon">📐</span>
+        <span className="docs-trust-banner__title">Template</span>
+        <span className="docs-trust-banner__text">
+          outside the trust workflow · merge with data to produce a signable
+          document
+        </span>
+      </div>
+    );
+  }
+
   if (trust.isSealed) {
     const signer = trust.sealedBy || "unknown";
     const role = trust.signatures[trust.signatures.length - 1]?.role;
     return (
       <div className="docs-trust-banner docs-trust-banner--sealed" role="status">
+        <BannerSeal source={source} trust={trust} intact={intact} />
         <span className="docs-trust-banner__icon">🔒</span>
         <span className="docs-trust-banner__title">Sealed</span>
         <span className="docs-trust-banner__text">
@@ -57,6 +130,7 @@ export function TrustBanner({ trust, intact }: TrustBannerProps) {
     // them. Sealing locks it read-only; that's a separate action.
     return (
       <div className="docs-trust-banner docs-trust-banner--signed" role="status">
+        <BannerSeal source={source} trust={trust} intact={intact} />
         <span className="docs-trust-banner__icon">✍</span>
         <span className="docs-trust-banner__title">Signed</span>
         <span className="docs-trust-banner__text">
@@ -78,6 +152,7 @@ export function TrustBanner({ trust, intact }: TrustBannerProps) {
         className="docs-trust-banner docs-trust-banner--approved"
         role="status"
       >
+        <BannerSeal source={source} trust={trust} intact={intact} />
         <span className="docs-trust-banner__icon">✓</span>
         <span className="docs-trust-banner__title">Approved</span>
         <span className="docs-trust-banner__text">
@@ -90,7 +165,19 @@ export function TrustBanner({ trust, intact }: TrustBannerProps) {
     );
   }
 
-  return null;
+  // Draft — no trust block yet. Still show the live ambient seal (gray crown)
+  // so the seal is present from the first keystroke and visibly changes as the
+  // document evolves; it turns blue/green/gold the moment a trust line lands.
+  return (
+    <div className="docs-trust-banner docs-trust-banner--draft" role="status">
+      <BannerSeal source={source} trust={trust} intact={intact} />
+      <span className="docs-trust-banner__icon">📝</span>
+      <span className="docs-trust-banner__title">Draft</span>
+      <span className="docs-trust-banner__text">
+        not signed or sealed yet · the seal updates as you edit
+      </span>
+    </div>
+  );
 }
 
 /* ── Document properties strip ───────────────────────────────── */

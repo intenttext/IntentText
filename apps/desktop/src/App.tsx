@@ -19,6 +19,7 @@ import {
   exportDocumentPDF,
 } from "@dotit/editor";
 import type { TrustAction } from "@dotit/editor";
+import { isTemplate } from "@dotit/core";
 import {
   BadgeCheck,
   Code2,
@@ -101,6 +102,12 @@ export default function App() {
   // A freshly opened/created doc always starts in the read-only viewer.
   const docIsSealed = useMemo(
     () => (doc ? trustOps.sealed(doc.content) : false),
+    [doc?.content],
+  );
+  // A template (.it blueprint) is outside the trust workflow — Sign/Approve/Seal
+  // are disabled for it (the hash would cover placeholder text).
+  const docIsTemplate = useMemo(
+    () => (doc ? isTemplate(doc.content) : false),
     [doc?.content],
   );
 
@@ -201,11 +208,27 @@ export default function App() {
       setSourceView((v) => !v);
     },
     focusSearch,
-    trustSeal: () => doc && setTrustDialog("seal"),
-    trustSign: () => doc && setTrustDialog("sign"),
-    trustApprove: () => doc && setTrustDialog("approve"),
+    // A template is outside the trust workflow — the Trust menu's seal/sign/
+    // approve/track items are refused for it (the panel explains why). Trust
+    // applies only to the merged document.
+    trustSeal: () =>
+      doc &&
+      (isTemplate(doc.content) ? setTrustPanelOpen(true) : setTrustDialog("seal")),
+    trustSign: () =>
+      doc &&
+      (isTemplate(doc.content) ? setTrustPanelOpen(true) : setTrustDialog("sign")),
+    trustApprove: () =>
+      doc &&
+      (isTemplate(doc.content)
+        ? setTrustPanelOpen(true)
+        : setTrustDialog("approve")),
     trustTrack: () => {
-      if (doc) void docApi.applyAndSave(trustOps.startTracking(doc.content));
+      if (!doc) return;
+      if (isTemplate(doc.content)) {
+        setTrustPanelOpen(true);
+        return;
+      }
+      void docApi.applyAndSave(trustOps.startTracking(doc.content));
     },
     trustUnseal: () => {
       if (doc && trustOps.sealed(doc.content)) {
@@ -398,19 +421,37 @@ export default function App() {
               <span className="topbar-divider" />
               <button
                 className="icon-btn"
-                title="Sign document"
+                title={
+                  docIsTemplate
+                    ? "Templates can't be signed — merge first."
+                    : "Sign document"
+                }
+                disabled={docIsTemplate}
                 onClick={() => setTrustDialog("sign")}
               >
                 <PenLine size={15} />
               </button>
               <button
                 className="icon-btn"
-                title="Approve document"
+                title={
+                  docIsTemplate
+                    ? "Templates can't be approved — merge first."
+                    : "Approve document"
+                }
+                disabled={docIsTemplate}
                 onClick={() => setTrustDialog("approve")}
               >
                 <BadgeCheck size={15} />
               </button>
-              {docIsSealed ? (
+              {docIsTemplate ? (
+                <button
+                  className="icon-btn"
+                  title="Templates can't be sealed — merge first."
+                  disabled
+                >
+                  <Lock size={15} />
+                </button>
+              ) : docIsSealed ? (
                 <button
                   className="icon-btn"
                   title="Unseal document"

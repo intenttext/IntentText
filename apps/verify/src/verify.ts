@@ -11,7 +11,10 @@ import {
   renderPrint,
   verifyDocument,
   computeDocumentHash,
+  renderSeal,
+  isTemplate,
   type VerifyResult,
+  type TrustTier,
 } from "@dotit/core";
 
 import {
@@ -46,6 +49,12 @@ export interface IntegrityResult {
 export interface VerifyReport {
   /** Did the source parse / verify at all? */
   ok: boolean;
+  /**
+   * True when the source is a TEMPLATE (.it blueprint) — outside the trust
+   * workflow. There is nothing to verify; the UI short-circuits to a template
+   * message instead of a pass/fail verdict.
+   */
+  template: boolean;
   parseError?: string;
   integrity: IntegrityResult;
   signatures: FullVerifyResult;
@@ -55,6 +64,70 @@ export interface VerifyReport {
   previewHTML: string;
   /** The overall verdict for the top banner. */
   verdict: Verdict;
+}
+
+/**
+ * The ambient seal for a VERIFIED report. Unlike core's sealForDocument (which
+ * trusts the document's CLAIM), this reflects what actually verified here:
+ *
+ *   broken=true  — a present trust layer FAILED (modified seal / invalid signature
+ *                  / tampered or untrusted certification). We do NOT paint such a
+ *                  document blue/green/gold; the seal is gray "DRAFT", honest about
+ *                  the fact that nothing here can be trusted.
+ *   root-certified — a certification verified AND chains to the offline UTS root.
+ *   certified      — a certification verified against a trusted UTS key (no chain).
+ *   signed         — a seal is intact, or every cryptographic signature is valid.
+ *   draft          — nothing to verify (unsealed, unsigned).
+ *
+ * The crown is always drawn from the live content hash, so a tampered document
+ * also reads as a *different* seal than the original — visible tamper-evidence.
+ */
+export function verifiedSeal(report: VerifyReport): {
+  svg: string;
+  tier: TrustTier;
+  broken: boolean;
+} {
+  const { integrity, signatures, certifications, verdict } = report;
+  const validCert = certifications.find((c) => c.valid);
+  const broken =
+    verdict === "modified" ||
+    verdict === "invalid" ||
+    (integrity.sealed && !integrity.intact) ||
+    certifications.some((c) => !c.signatureValid);
+
+  let tier: TrustTier;
+  let label: string | undefined;
+  if (broken) {
+    tier = "draft";
+    label = "UNVERIFIED";
+  } else if (validCert) {
+    tier = validCert.chain ? "root-certified" : "certified";
+  } else if (
+    (integrity.sealed && integrity.intact) ||
+    (signatures.validCount > 0 && signatures.allSignaturesValid)
+  ) {
+    tier = "signed";
+    label = integrity.sealed ? "SEALED" : "SIGNED";
+  } else {
+    tier = "draft";
+  }
+
+  const svg = renderSeal({
+    hash: integrity.hash || signatures.hash || "sha256:00000000",
+    tier,
+    label,
+    size: 132,
+  });
+  return { svg, tier, broken };
+}
+
+/**
+ * The slate, dashed TEMPLATE seal — rendered when the loaded source is a
+ * blueprint. No hash crown, no trust tier: it visibly reads as "outside the
+ * trust workflow", matching the seal core renders for `tier: "template"`.
+ */
+export function templateSeal(): string {
+  return renderSeal({ hash: "sha256:00000000", tier: "template", size: 132 });
 }
 
 /** Truncate a long hex/base64 token for display: `abcd12…ef90`. */
@@ -162,6 +235,7 @@ export function runVerification(source: string): VerifyReport {
 
   return {
     ok: !parseError,
+    template: isTemplate(source),
     parseError,
     integrity,
     signatures,

@@ -21,8 +21,14 @@
  * pass a verified tier in when you have one.
  */
 import { computeDocumentHash, isSealed } from "./trust";
+import { isTemplate } from "./template";
 
-export type TrustTier = "draft" | "signed" | "certified" | "root-certified";
+export type TrustTier =
+  | "draft"
+  | "signed"
+  | "certified"
+  | "root-certified"
+  | "template";
 
 export interface TierStyle {
   /** Primary ink — rings, monogram, arc text. */
@@ -31,22 +37,28 @@ export interface TierStyle {
   accent: string;
 }
 
-/** gray → blue → green → gold, the four tiers the seal communicates by colour. */
+/**
+ * gray → blue → green → gold for the four trust tiers; slate for `template`,
+ * which is OUTSIDE the trust workflow (a blueprint, not a record).
+ */
 export const TIER_STYLES: Record<TrustTier, TierStyle> = {
   draft: { color: "#6b7280", accent: "#cbd5e1" },
   signed: { color: "#2563eb", accent: "#93c5fd" },
   certified: { color: "#059669", accent: "#6ee7b7" },
   "root-certified": { color: "#a16207", accent: "#fcd34d" },
+  template: { color: "#94a3b8", accent: "#cbd5e1" },
 };
 
 export interface TrustState {
   tier: TrustTier;
-  /** Display label (DRAFT / SIGNED / SEALED / CERTIFIED). */
+  /** Display label (DRAFT / SIGNED / SEALED / CERTIFIED / TEMPLATE). */
   label: string;
   sealed: boolean;
   signed: boolean;
   certified: boolean;
   rootCertified: boolean;
+  /** True when this is a template (blueprint) — outside the trust workflow. */
+  template: boolean;
 }
 
 /**
@@ -55,6 +67,18 @@ export interface TrustState {
  * pass the result into renderSeal directly.
  */
 export function detectTrustState(source: string): TrustState {
+  // A template is outside the trust workflow — never a trust tier.
+  if (isTemplate(source)) {
+    return {
+      tier: "template",
+      label: "TEMPLATE",
+      sealed: false,
+      signed: false,
+      certified: false,
+      rootCertified: false,
+      template: true,
+    };
+  }
   const lines = source.split("\n").map((l) => l.trimStart());
   const certifyLines = lines.filter((l) => l.startsWith("certify:"));
   const certified = certifyLines.length > 0;
@@ -83,7 +107,7 @@ export function detectTrustState(source: string): TrustState {
     tier = "draft";
     label = "DRAFT";
   }
-  return { tier, label, sealed, signed, certified, rootCertified };
+  return { tier, label, sealed, signed, certified, rootCertified, template: false };
 }
 
 // ─── Geometry helpers (deterministic, integer-friendly SVG) ──────────────────
@@ -152,6 +176,26 @@ export function renderSeal(opts: SealRenderOptions): string {
   const uid = `s${(cleanHex.slice(0, 8) || "0")}-${tier}`;
   const cx = 50;
   const cy = 50;
+
+  // Template — a blueprint, OUTSIDE the trust workflow. No hash crown (the hash of
+  // placeholder content is meaningless), a DASHED ring to read as "unsealed", and
+  // a TEMPLATE label. Visually unmistakable from a real trust seal.
+  if (tier === "template") {
+    const tlabel = opts.label ?? "TEMPLATE";
+    const tArc = showText
+      ? `<defs><path id="${uid}-top" d="${arcPath(cx, cy, 40, 212, 328, 1)}"/></defs>` +
+        `<text class="sl-arc" fill="${color}"><textPath href="#${uid}-top" startOffset="50%" text-anchor="middle">${esc(tlabel)}</textPath></text>`
+      : "";
+    return (
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${esc(tlabel)} — not part of the trust workflow">` +
+      `<style>.sl-mono{font:700 17px ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;letter-spacing:-0.5px;}.sl-arc{font:600 6.2px ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;letter-spacing:1.4px;}</style>` +
+      `<circle cx="50" cy="50" r="46.5" fill="none" stroke="${color}" stroke-width="1.4" stroke-dasharray="3 3"/>` +
+      `<circle cx="50" cy="50" r="23.5" fill="none" stroke="${color}" stroke-width="0.8" stroke-dasharray="2 2.5"/>` +
+      `<text x="50" y="56" text-anchor="middle" class="sl-mono" fill="${color}">.it</text>` +
+      tArc +
+      `</svg>`
+    );
+  }
 
   // Hash-derived radial crown — the visual fingerprint.
   const N = 84;

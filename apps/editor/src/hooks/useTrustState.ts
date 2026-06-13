@@ -7,6 +7,7 @@ import {
   parseIntentText,
   sealDocument,
   verifyDocument,
+  isTemplate,
 } from "@dotit/core";
 import { extractTrustState } from "@dotit/editor";
 import type { TrustState } from "@dotit/editor";
@@ -27,6 +28,10 @@ export function useTrustState(
   }, [content]);
 
   const trust = useMemo(() => extractTrustState(doc), [doc]);
+
+  // A template (.it blueprint) is OUTSIDE the trust workflow — Sign/Seal are
+  // refused (the hash would cover placeholder text). Merge it with data first.
+  const isTemplateDoc = useMemo(() => isTemplate(content), [content]);
 
   const contentRef = useRef(content);
   contentRef.current = content;
@@ -108,6 +113,14 @@ export function useTrustState(
 
   const seal = useCallback(
     (signer: string, role?: string) => {
+      // Refuse to seal a template — merge first. (Defensive: the UI also
+      // disables the seal action, but never let the source-mutating path run.)
+      if (isTemplate(contentRef.current)) {
+        return {
+          success: false,
+          error: "Templates can't be sealed — merge first.",
+        };
+      }
       try {
         // Seal must NEVER add a signature — signing is the separate
         // addSignature() action. skipSign:true writes only the freeze: line, so
@@ -152,6 +165,7 @@ export function useTrustState(
 
   return {
     trust,
+    isTemplate: isTemplateDoc,
     startTracking,
     addApproval,
     addSignature,
