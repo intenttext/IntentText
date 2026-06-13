@@ -74,6 +74,21 @@ export interface AuthorityKeyDoc {
   enc: { v: 1; alg: "aes-256-gcm"; iv: string; ct: string; tag: string };
   active: boolean;
   createdAt: Date;
+  /**
+   * The role of this key in the root→intermediate hierarchy. The online service's
+   * key is the "intermediate" (it signs daily certifications). Optional for
+   * backward compatibility — docs written before the hierarchy lack this field and
+   * are treated as intermediate (legacy single-key). The "root" never lives here:
+   * it is offline (see scripts/root-ca.mjs).
+   */
+  role?: "intermediate" | "root";
+  /**
+   * The provisioned ICA token (root's signed vouch for THIS key as an
+   * intermediate). When present and matching this key, every certification chains
+   * to the root. Absent in legacy single-key mode. Issued offline by the root CLI
+   * and POSTed to /admin/intermediate-cert (or supplied via UTS_ICA).
+   */
+  intermediateCert?: string;
 }
 
 export interface Collections {

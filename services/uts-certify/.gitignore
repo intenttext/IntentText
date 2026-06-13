@@ -1,5 +1,7 @@
-# NEVER commit the authority private key, the legacy account store, or env secrets.
+# NEVER commit the authority private key, the OFFLINE root key, the legacy
+# account store, or env secrets.
 .keys/
+.root/
 accounts.json
 .env
 .env.local

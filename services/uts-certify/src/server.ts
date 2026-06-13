@@ -16,8 +16,13 @@
  *           to api.uts.qa.
  */
 import express, { type Request, type Response, type NextFunction } from "express";
-import { certifyDocument, verifyCertifications } from "@dotit/sign";
-import { createKeyProvider, type KeyProvider } from "./keys.js";
+import {
+  certifyDocument,
+  verifyCertifications,
+  parseIntermediateCert,
+  verifyIntermediateCert,
+} from "@dotit/sign";
+import { createKeyProvider, MongoKeyProvider, type KeyProvider } from "./keys.js";
 import { connectDb, isConnected, getCollections, type AccountDoc } from "./db.js";
 import {
   createAccount,
@@ -32,6 +37,24 @@ import {
 const PORT = Number(process.env.PORT ?? 8787);
 const ISSUER = process.env.ISSUER ?? "UTS";
 const ADMIN_TOKEN = process.env.UTS_ADMIN_TOKEN?.trim();
+
+/**
+ * The ROOT public key — the trust anchor verifiers pin (baked into trust stores).
+ * When set, certifications chain to it via the intermediate cert, and /verify
+ * validates that chain against the root. When unset, the service runs in legacy
+ * single-key mode: the signing key is itself the trust anchor. Generated OFFLINE
+ * by scripts/root-ca.mjs; its private half NEVER touches this service.
+ */
+const ROOT_PUBLIC_KEY = process.env.UTS_ROOT_PUBLIC_KEY?.trim() || undefined;
+
+/**
+ * The key verifiers should pin: the ROOT when configured, else the current
+ * signing key (legacy single-key). With a root, certs carry an `ica:` chain that
+ * verifyCertifications validates against this key.
+ */
+function trustAnchorKey(): string {
+  return ROOT_PUBLIC_KEY ?? keys.getPublicKey();
+}
 
 // The authority key provider is initialized in start(), AFTER connectDb(), so
 // the default MongoKeyProvider can load/create the envelope-encrypted key from
@@ -90,11 +113,21 @@ function requireAdmin(req: Request, res: Response, next: NextFunction): void {
 // it at build time. The private key is NEVER served.
 // Built per request (the key provider is initialized in start(), after this
 // module loads), so it always reflects the active authority key.
-const pubkeyPayload = () => ({
-  issuer: ISSUER,
-  publicKey: keys.getPublicKey(),
-  algorithm: "ed25519" as const,
-});
+// `publicKey` is the PINNABLE trust anchor (root when configured, else the
+// signing key in legacy mode); `trustAnchor` says which. `intermediate` is the
+// current online signing key, and `intermediateCert` the root's vouch for it (the
+// ICA token) when provisioned — exposed for transparency / chain inspection.
+const pubkeyPayload = () => {
+  const intermediateCert = keys.getIntermediateCert();
+  return {
+    issuer: ISSUER,
+    publicKey: trustAnchorKey(),
+    trustAnchor: ROOT_PUBLIC_KEY ? ("root" as const) : ("key" as const),
+    intermediate: keys.getPublicKey(),
+    ...(intermediateCert ? { intermediateCert } : {}),
+    algorithm: "ed25519" as const,
+  };
+};
 app.get("/.well-known/uts-pubkey", (_req, res) => res.json(pubkeyPayload()));
 app.get("/pubkey", (_req, res) => res.json(pubkeyPayload()));
 
@@ -115,11 +148,15 @@ app.post("/certify", authenticate, async (req: Request, res: Response) => {
 
   try {
     const entity = account.entityVerified && account.entity ? account.entity : undefined;
+    // When provisioned with an ICA, chain every cert to the root; otherwise this
+    // is undefined and certifyDocument behaves exactly as legacy single-key mode.
+    const intermediateCert = keys.getIntermediateCert();
     const result = certifyDocument(source, {
       issuer: ISSUER,
       account: account.account,
       entity,
       issuerPrivateKey: keys.getPrivateKey(), // signed in-process; never leaves
+      ...(intermediateCert ? { intermediateCert } : {}),
     });
 
     // Audit log (skip if it was an idempotent no-op re-certify).
@@ -167,8 +204,17 @@ app.post("/verify", (req: Request, res: Response) => {
     res.status(400).json({ error: "bad_request", detail: "Body must include a `source` string." });
     return;
   }
-  const checks = verifyCertifications(source, { [ISSUER]: keys.getPublicKey() });
-  res.json({ issuer: ISSUER, publicKey: keys.getPublicKey(), certifications: checks });
+  // Trust the ROOT when configured (chained certs verify against it via `ica:`),
+  // else the signing key (legacy certs). One map covers both, since the lib picks
+  // the trust model per-line based on whether the certify: line carries `ica:`.
+  const anchor = trustAnchorKey();
+  const checks = verifyCertifications(source, { [ISSUER]: anchor });
+  res.json({
+    issuer: ISSUER,
+    publicKey: anchor,
+    trustAnchor: ROOT_PUBLIC_KEY ? "root" : "key",
+    certifications: checks,
+  });
 });
 
 // ── Admin (UTS_ADMIN_TOKEN) ───────────────────────────────────────────────────
@@ -239,12 +285,94 @@ app.post("/admin/keys/:prefix/revoke", requireAdmin, async (req: Request, res: R
   res.json({ revoked: true, prefix: req.params.prefix });
 });
 
+// ── Root → intermediate provisioning (admin) ──────────────────────────────────
+
+// Read the current intermediate PUBLIC key — carry it to the offline root machine
+// (`root:issue --intermediate-pub <this>`) to mint an ICA token for it.
+app.get("/admin/intermediate-pubkey", requireAdmin, (_req: Request, res: Response) => {
+  res.json({
+    issuer: ISSUER,
+    intermediate: keys.getPublicKey(),
+    algorithm: "ed25519",
+    provisioned: !!keys.getIntermediateCert(),
+    rootConfigured: !!ROOT_PUBLIC_KEY,
+  });
+});
+
+// Provision the ICA token minted offline by the root. Validates that the token
+// parses, vouches for THIS signing key, and (when a root is configured) verifies
+// against it — then stores it on the active AuthorityKeyDoc. From then on every
+// certification chains to the root.
+app.post("/admin/intermediate-cert", requireAdmin, async (req: Request, res: Response) => {
+  const { ica } = (req.body ?? {}) as { ica?: unknown };
+  if (typeof ica !== "string" || ica.trim() === "") {
+    res.status(400).json({ error: "bad_request", detail: "Body must include a non-empty `ica` token string." });
+    return;
+  }
+  const token = ica.trim();
+
+  const cert = parseIntermediateCert(token);
+  if (!cert) {
+    res.status(400).json({ error: "bad_request", detail: "`ica` is not a valid intermediate certificate token." });
+    return;
+  }
+
+  const intermediate = keys.getPublicKey();
+  if (cert.intermediatePublicKey !== intermediate) {
+    res.status(400).json({
+      error: "bad_request",
+      detail: "ICA does not vouch for this service's signing key.",
+      icaVouchesFor: cert.intermediatePublicKey,
+      thisIntermediate: intermediate,
+    });
+    return;
+  }
+
+  // When a root is configured, the token must verify against it (right root,
+  // valid root signature). Without a configured root we can only check the
+  // self-consistency above — accept, but say so.
+  if (ROOT_PUBLIC_KEY) {
+    const vr = verifyIntermediateCert(token, { [ISSUER]: ROOT_PUBLIC_KEY });
+    if (!vr.valid) {
+      res.status(400).json({
+        error: "bad_request",
+        detail: `ICA does not verify against the configured root: ${vr.reason}`,
+      });
+      return;
+    }
+  }
+
+  if (!(keys instanceof MongoKeyProvider)) {
+    res.status(400).json({
+      error: "unsupported",
+      detail:
+        "Persisting an ICA requires the Mongo key provider. In env mode, supply the token via the UTS_ICA env var instead.",
+    });
+    return;
+  }
+
+  const stored = await keys.setIntermediateCert(token);
+  if (!stored) {
+    res.status(400).json({ error: "bad_request", detail: "ICA failed validation and was not stored." });
+    return;
+  }
+  res.json({
+    ok: true,
+    issuer: ISSUER,
+    intermediate,
+    rootPublicKey: cert.rootPublicKey,
+    notBefore: cert.notBefore,
+    notAfter: cert.notAfter,
+    rootVerified: !!ROOT_PUBLIC_KEY,
+  });
+});
+
 // JSON error guard (e.g. malformed body) — don't leak internals.
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   res.status(400).json({ error: "bad_request", detail: "Invalid request." });
 });
 
-export { app, ISSUER, keys };
+export { app, ISSUER, ROOT_PUBLIC_KEY, keys };
 
 /** Start the HTTP server after the DB is connected. */
 /**
@@ -266,7 +394,15 @@ export async function start(): Promise<void> {
     console.log(`\n  UTS certification service (reference impl for api.uts.qa)`);
     console.log(`  Listening on http://localhost:${PORT}`);
     console.log(`  Issuer:      ${ISSUER}`);
-    console.log(`  Public key:  ${keys.getPublicKey()}`);
+    console.log(`  Intermediate (signing) key: ${keys.getPublicKey()}`);
+    if (ROOT_PUBLIC_KEY) {
+      console.log(`  Trust anchor: ROOT  ${ROOT_PUBLIC_KEY}`);
+      console.log(
+        `  Chain:        ${keys.getIntermediateCert() ? "PROVISIONED — certs chain to the root" : "NOT provisioned — set UTS_ICA or POST /admin/intermediate-cert"}`,
+      );
+    } else {
+      console.log(`  Trust anchor: KEY (legacy single-key — set UTS_ROOT_PUBLIC_KEY to enable the hierarchy)`);
+    }
     console.log(`  Pubkey URL:  http://localhost:${PORT}/.well-known/uts-pubkey`);
     console.log(`  Admin:       ${ADMIN_TOKEN ? "enabled" : "DISABLED (set UTS_ADMIN_TOKEN)"}`);
     console.log(`\n  curl -s http://localhost:${PORT}/pubkey\n`);

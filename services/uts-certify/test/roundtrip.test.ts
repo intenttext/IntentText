@@ -8,7 +8,13 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import supertest from "supertest";
-import { generateSigningKey, publicKeyFor, verifyCertifications } from "@dotit/sign";
+import {
+  generateSigningKey,
+  publicKeyFor,
+  verifyCertifications,
+  issueIntermediate,
+  certifyDocument,
+} from "@dotit/sign";
 
 const ADMIN = "test-admin-token";
 const PRIV = generateSigningKey().privateKey;
@@ -89,6 +95,92 @@ describe("key custody + admin hashing (no DB)", () => {
     expect(h).toMatch(/^[0-9a-f]{64}$/);
     expect(h).not.toContain(k);
     expect(keyPrefix(k)).toHaveLength(12);
+  });
+});
+
+describe("root → intermediate chain (no DB)", () => {
+  // Mirror the service's chained path WITHOUT Mongo: a root issues an ICA for an
+  // intermediate, the intermediate signs a certify line carrying that ICA, and a
+  // verifier holding ONLY the root public key validates the whole chain offline.
+  const root = generateSigningKey();
+  const intermediate = generateSigningKey();
+  const ICA = issueIntermediate({
+    rootPrivateKey: root.privateKey,
+    intermediatePublicKey: intermediate.publicKey,
+    issuer: "UTS",
+    days: 365,
+  });
+
+  it("certifyDocument (intermediate key + ICA) → verifies against ONLY the root", () => {
+    const c = certifyDocument("title: Chained\nbody: x\n", {
+      issuer: "UTS",
+      account: "acme-corp",
+      entity: "Acme Corp WLL",
+      issuerPrivateKey: intermediate.privateKey, // the INTERMEDIATE signs
+      intermediateCert: ICA,
+    });
+    expect(c.source).toContain("ica:");
+
+    // Verifier pins the ROOT (not the intermediate) and still validates.
+    const ok = verifyCertifications(c.source, { UTS: root.publicKey });
+    expect(ok[0].valid).toBe(true);
+    expect(ok[0].trusted).toBe(true);
+    expect(ok[0].signatureValid).toBe(true);
+    expect(ok[0].publicKey).toBe(intermediate.publicKey);
+    expect(ok[0].chain?.rootPublicKey).toBe(root.publicKey);
+    expect(ok[0].entity).toBe("Acme Corp WLL");
+  });
+
+  it("wrong root → invalid; tampered content → invalid", () => {
+    const c = certifyDocument("title: Chained\nbody: x\n", {
+      issuer: "UTS",
+      account: "acme-corp",
+      issuerPrivateKey: intermediate.privateKey,
+      intermediateCert: ICA,
+    });
+
+    // A verifier pinning a DIFFERENT root rejects the chain.
+    const wrongRoot = generateSigningKey().publicKey;
+    const bad = verifyCertifications(c.source, { UTS: wrongRoot });
+    expect(bad[0].valid).toBe(false);
+    expect(bad[0].trusted).toBe(false);
+
+    // Editing the document after certification flips it invalid.
+    const tampered = c.source.replace("body: x", "body: tampered");
+    const tam = verifyCertifications(tampered, { UTS: root.publicKey });
+    expect(tam[0].valid).toBe(false);
+    expect(tam[0].signatureValid).toBe(false);
+  });
+
+  it("EnvKeyProvider surfaces a matching UTS_ICA and drops a mismatched one", async () => {
+    const keysMod = await import("../src/keys.js");
+    const prevIca = process.env.UTS_ICA;
+    const prevPriv = process.env.UTS_PRIVATE_KEY;
+    try {
+      // Provision UTS_PRIVATE_KEY = the intermediate, UTS_ICA = its matching cert.
+      process.env.UTS_PRIVATE_KEY = intermediate.privateKey;
+      process.env.UTS_ICA = ICA;
+      const p = new keysMod.EnvKeyProvider();
+      expect(p.getPublicKey()).toBe(intermediate.publicKey);
+      expect(p.getIntermediateCert()).toBe(ICA);
+
+      // An ICA minted for a DIFFERENT intermediate must be dropped (treated as
+      // unprovisioned) — never embedded, or certs would fail to verify.
+      const otherInter = generateSigningKey();
+      const mismatchedIca = issueIntermediate({
+        rootPrivateKey: root.privateKey,
+        intermediatePublicKey: otherInter.publicKey,
+        issuer: "UTS",
+      });
+      process.env.UTS_ICA = mismatchedIca;
+      const p2 = new keysMod.EnvKeyProvider();
+      expect(p2.getIntermediateCert()).toBeUndefined();
+    } finally {
+      if (prevIca === undefined) delete process.env.UTS_ICA;
+      else process.env.UTS_ICA = prevIca;
+      if (prevPriv === undefined) delete process.env.UTS_PRIVATE_KEY;
+      else process.env.UTS_PRIVATE_KEY = prevPriv;
+    }
   });
 });
 

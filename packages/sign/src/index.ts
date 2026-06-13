@@ -319,6 +319,14 @@ export function certifyDocument(
     issuerPrivateKey: string;
     /** Override the timestamp (testing/determinism); defaults to now. */
     at?: string;
+    /**
+     * The intermediate certificate (ICA token) issued OFFLINE by the root,
+     * vouching for this signing key (see issueIntermediate). When present, the
+     * certify line chains to the root: verifiers trust the ROOT public key, and
+     * `issuerPrivateKey` here is the INTERMEDIATE key. Omit for the legacy
+     * single-key model (the signing key is trusted directly).
+     */
+    intermediateCert?: string;
   },
 ): CertifyResult {
   const hash = computeDocumentHash(source);
@@ -353,6 +361,7 @@ export function certifyDocument(
     `hash: ${hash}`,
     `key: ed25519:${issuerKey}`,
     `sig: ${toB64url(sig)}`,
+    options.intermediateCert ? `ica: ${options.intermediateCert}` : null,
   ]
     .filter(Boolean)
     .join(" | ");
@@ -388,6 +397,16 @@ export interface CertificationCheck {
   signatureValid: boolean;
   /** true if the embedded key matches a key in trustedIssuers. */
   trusted: boolean;
+  /**
+   * Present when the certification chains to a root via an intermediate cert
+   * (the `ica:` field). Reports the root that anchors trust and the validity
+   * window of the intermediate that actually signed.
+   */
+  chain?: {
+    rootPublicKey: string;
+    notBefore?: string;
+    notAfter?: string;
+  };
   reason?: string;
 }
 
@@ -439,8 +458,47 @@ export function verifyCertifications(
     } catch {
       signatureValid = false;
     }
-    const trustedKey = trustedIssuers[issuer];
-    const trusted = !!trustedKey && trustedKey === publicKey;
+    // Trust decision — two models, chosen by whether the line carries `ica:`.
+    //  (a) CHAINED (preferred): an `ica:` intermediate certificate is present.
+    //      The signing key is an INTERMEDIATE vouched-for by the root. We trust
+    //      the ROOT (trustedIssuers[issuer] = root public key), verify the root's
+    //      signature over the intermediate, that the intermediate IS the signing
+    //      key, and that `at` falls inside the intermediate's validity window.
+    //      Self-contained and fully offline — the doc carries the whole chain.
+    //  (b) LEGACY: no `ica:`; the signing key must itself be the trusted key.
+    let trusted = false;
+    let chain: CertificationCheck["chain"];
+    let reason: string | undefined;
+    if (p.ica) {
+      const vr = verifyIntermediateCert(p.ica, trustedIssuers, at);
+      const keyMatches = vr.intermediatePublicKey === publicKey;
+      trusted = vr.valid && keyMatches;
+      if (vr.valid) {
+        chain = {
+          rootPublicKey: vr.rootPublicKey!,
+          notBefore: vr.notBefore,
+          notAfter: vr.notAfter,
+        };
+      }
+      reason = !signatureValid
+        ? "signature does not match current content"
+        : !vr.valid
+          ? `intermediate certificate not trusted: ${vr.reason}`
+          : !keyMatches
+            ? "signing key is not the key vouched for by the intermediate certificate"
+            : undefined;
+    } else {
+      const trustedKey = trustedIssuers[issuer];
+      trusted = !!trustedKey && trustedKey === publicKey;
+      reason = !signatureValid
+        ? "signature does not match current content"
+        : !trusted
+          ? trustedKey
+            ? "issuer key does not match the trusted key (possible forgery)"
+            : "issuer not in trusted set"
+          : undefined;
+    }
+
     out.push({
       issuer,
       account,
@@ -450,14 +508,231 @@ export function verifyCertifications(
       signatureValid,
       trusted,
       valid: signatureValid && trusted,
-      reason: !signatureValid
-        ? "signature does not match current content"
-        : !trusted
-          ? trustedKey
-            ? "issuer key does not match the trusted key (possible forgery)"
-            : "issuer not in trusted set"
-          : undefined,
+      chain,
+      reason,
     });
   }
   return out;
+}
+
+// ─── Root → Intermediate hierarchy (offline root, online issuing key) ─────────
+//
+// A flat model trusts ONE key directly: the key that signs certifications is the
+// key in every verifier's trust store. That key must therefore be online (it
+// signs daily) AND irreplaceable (it's the trust anchor) — a contradiction. One
+// process compromise = total compromise, and rotation means re-rooting every
+// verifier.
+//
+// The fix is the same hierarchy a Certificate Authority (offline root CA →
+// online issuing CA) and a Stellar asset (cold issuer → hot distribution) use:
+//
+//   ROOT key          OFFLINE (HSM / air-gapped). In every trust store. Signs
+//                     ONLY intermediates, rarely. Never touches the service.
+//        │  issueIntermediate()  ← run offline, output = an ICA token
+//        ▼
+//   INTERMEDIATE key  ONLINE. Signs the daily certifications. If it leaks, the
+//                     root revokes it and issues a new one — the root (in the
+//                     trust stores) never moves, so no ecosystem-wide re-root.
+//
+// The intermediate certificate ("ICA token") is the root's signed statement
+// "I, root R, vouch for intermediate key I, valid [nb, na], as issuer X." It is
+// a compact base64url blob embedded in each certify line (`ica:`), so a verifier
+// holding only the ROOT public key validates the entire chain OFFLINE — no
+// network, no key lookup. trustedIssuers[issuer] now holds the ROOT key.
+
+/** The root's signed statement vouching for an intermediate key. */
+export interface IntermediateCert {
+  /** Issuer name this intermediate may certify under (e.g. "UTS"). */
+  issuer: string;
+  /** The intermediate's Ed25519 public key (base64url) — the daily signer. */
+  intermediatePublicKey: string;
+  /** ISO 8601 — not valid before. */
+  notBefore: string;
+  /** ISO 8601 — not valid after (rotate before this). */
+  notAfter: string;
+  /** The root's Ed25519 public key (base64url) — the trust anchor. */
+  rootPublicKey: string;
+  /** The root's signature over the canonical payload (base64url). */
+  signature: string;
+}
+
+/** Canonical bytes the ROOT signs to vouch for an intermediate. Versioned. */
+function icaPayload(
+  issuer: string,
+  intermediatePublicKey: string,
+  notBefore: string,
+  notAfter: string,
+): Uint8Array {
+  return enc(
+    `uts-ica-v1\n${issuer}\n${intermediatePublicKey}\n${notBefore}\n${notAfter}`,
+  );
+}
+
+const MS_PER_DAY = 86_400_000;
+
+/**
+ * ROOT operation — run OFFLINE on the air-gapped root machine. Signs an
+ * intermediate's PUBLIC key with the root's PRIVATE key, producing an opaque
+ * ICA token to provision to the online service. The root private key never
+ * leaves this call site; only the token travels.
+ *
+ * The token is base64url(JSON) using only [A-Za-z0-9_-], so it embeds safely in
+ * a pipe-delimited `certify:` line.
+ */
+export function issueIntermediate(options: {
+  /** Root Ed25519 private key (base64url). OFFLINE secret. */
+  rootPrivateKey: string;
+  /** Intermediate Ed25519 PUBLIC key to vouch for (base64url). */
+  intermediatePublicKey: string;
+  /** Issuer name the intermediate may certify under. */
+  issuer: string;
+  /** ISO 8601 start; defaults to now. */
+  notBefore?: string;
+  /** ISO 8601 end; defaults to notBefore + `days`. */
+  notAfter?: string;
+  /** Validity length in days when notAfter is omitted (default 365). */
+  days?: number;
+}): string {
+  const notBefore = options.notBefore ?? new Date().toISOString();
+  const notAfter =
+    options.notAfter ??
+    new Date(
+      Date.parse(notBefore) + (options.days ?? 365) * MS_PER_DAY,
+    ).toISOString();
+  const rootPublicKey = publicKeyFor(options.rootPrivateKey);
+  const sig = ed25519.sign(
+    icaPayload(
+      options.issuer,
+      options.intermediatePublicKey,
+      notBefore,
+      notAfter,
+    ),
+    fromB64url(options.rootPrivateKey),
+  );
+  const token = {
+    v: 1,
+    iss: options.issuer,
+    pub: options.intermediatePublicKey,
+    nb: notBefore,
+    na: notAfter,
+    root: rootPublicKey,
+    sig: toB64url(sig),
+  };
+  return toB64url(enc(JSON.stringify(token)));
+}
+
+/** Decode an ICA token. Returns null if malformed. Does NOT verify the signature. */
+export function parseIntermediateCert(token: string): IntermediateCert | null {
+  try {
+    const obj = JSON.parse(
+      new TextDecoder().decode(fromB64url(token)),
+    ) as Record<string, unknown>;
+    if (
+      obj.v !== 1 ||
+      typeof obj.iss !== "string" ||
+      typeof obj.pub !== "string" ||
+      typeof obj.nb !== "string" ||
+      typeof obj.na !== "string" ||
+      typeof obj.root !== "string" ||
+      typeof obj.sig !== "string"
+    ) {
+      return null;
+    }
+    return {
+      issuer: obj.iss,
+      intermediatePublicKey: obj.pub,
+      notBefore: obj.nb,
+      notAfter: obj.na,
+      rootPublicKey: obj.root,
+      signature: obj.sig,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export interface IntermediateVerifyResult {
+  valid: boolean;
+  issuer?: string;
+  intermediatePublicKey?: string;
+  rootPublicKey?: string;
+  notBefore?: string;
+  notAfter?: string;
+  reason?: string;
+}
+
+/**
+ * Verify an ICA token against a set of trusted ROOT keys (issuer → root pubkey).
+ * Valid only if: the token parses, the root's signature over the canonical
+ * payload verifies, the embedded root matches the trusted root for that issuer
+ * (so a forged token with a different root is rejected), and — when `at` is
+ * given — `at` falls within [notBefore, notAfter]. ISO-8601 UTC strings compare
+ * lexicographically, so string comparison is correct chronological comparison.
+ */
+export function verifyIntermediateCert(
+  token: string,
+  trustedRoots: Record<string, string> = {},
+  at?: string,
+): IntermediateVerifyResult {
+  const cert = parseIntermediateCert(token);
+  if (!cert)
+    return { valid: false, reason: "malformed intermediate certificate" };
+
+  const base = {
+    issuer: cert.issuer,
+    intermediatePublicKey: cert.intermediatePublicKey,
+    rootPublicKey: cert.rootPublicKey,
+    notBefore: cert.notBefore,
+    notAfter: cert.notAfter,
+  };
+
+  let sigOk = false;
+  try {
+    sigOk = ed25519.verify(
+      fromB64url(cert.signature),
+      icaPayload(
+        cert.issuer,
+        cert.intermediatePublicKey,
+        cert.notBefore,
+        cert.notAfter,
+      ),
+      fromB64url(cert.rootPublicKey),
+    );
+  } catch {
+    sigOk = false;
+  }
+  if (!sigOk) {
+    return { ...base, valid: false, reason: "root signature does not verify" };
+  }
+
+  const trustedRoot = trustedRoots[cert.issuer];
+  if (!trustedRoot) {
+    return { ...base, valid: false, reason: "issuer root not in trusted set" };
+  }
+  if (trustedRoot !== cert.rootPublicKey) {
+    return {
+      ...base,
+      valid: false,
+      reason: "root key does not match the trusted root (possible forgery)",
+    };
+  }
+
+  if (at) {
+    if (cert.notBefore && at < cert.notBefore) {
+      return {
+        ...base,
+        valid: false,
+        reason: "intermediate not yet valid at certification time",
+      };
+    }
+    if (cert.notAfter && at > cert.notAfter) {
+      return {
+        ...base,
+        valid: false,
+        reason: "intermediate expired at certification time",
+      };
+    }
+  }
+
+  return { ...base, valid: true };
 }

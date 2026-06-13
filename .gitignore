@@ -129,5 +129,6 @@ docs-internal/
 *.pem
 *.key
 **/.keys/
+**/.root/
 **/accounts.json
 *.dmp

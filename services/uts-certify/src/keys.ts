@@ -22,7 +22,7 @@
  * In all cases the private key is handed only to @dotit/sign's signer; it is
  * never logged, persisted to Mongo, or served.
  */
-import { generateSigningKey, publicKeyFor } from "@dotit/sign";
+import { generateSigningKey, publicKeyFor, parseIntermediateCert } from "@dotit/sign";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -44,6 +44,56 @@ export interface KeyProvider {
   getPrivateKey(): string;
   /** The base64url Ed25519 public key, safe to publish. */
   getPublicKey(): string;
+  /**
+   * The ICA token (root's signed vouch) provisioned for the CURRENT signing
+   * (intermediate) key, or `undefined` in legacy single-key mode. When defined,
+   * the service embeds it in each `certify:` line so the cert chains to the root.
+   * The token is validated against this key's public key before being returned —
+   * a mismatched token is never surfaced (treated as unprovisioned).
+   */
+  getIntermediateCert(): string | undefined;
+}
+
+/**
+ * Sanity-check a provisioned ICA token against the key it is supposed to vouch
+ * for: it must parse AND its `intermediatePublicKey` must equal this key's own
+ * public key. A mismatch means the token was issued for a DIFFERENT intermediate
+ * (e.g. stale env var after a key rotation) — embedding it would produce certs
+ * that never verify, so we log loudly and treat the service as unprovisioned.
+ */
+function validateIca(
+  token: string | undefined,
+  ownPublicKey: string,
+  sourceLabel: string,
+): string | undefined {
+  if (!token) return undefined;
+  const cert = parseIntermediateCert(token);
+  if (!cert) {
+    console.warn(
+      `  [keys] LOUD WARNING: the ICA token from ${sourceLabel} is malformed — ` +
+        "ignoring it. Certifications will fall back to legacy single-key mode.",
+    );
+    return undefined;
+  }
+  if (cert.intermediatePublicKey !== ownPublicKey) {
+    console.warn(
+      [
+        "",
+        "  ************************************************************************",
+        "  *  LOUD WARNING: provisioned ICA token does NOT match this signing key *",
+        `  *  source:               ${sourceLabel}`,
+        `  *  ICA vouches for:       ${cert.intermediatePublicKey}`,
+        `  *  this signing key is:   ${ownPublicKey}`,
+        "  *  The token was issued for a DIFFERENT intermediate (stale/rotated?). *",
+        "  *  Re-issue an ICA for THIS key (root:issue --intermediate-pub <this>).*",
+        "  *  Treating the service as UNPROVISIONED — legacy single-key mode.     *",
+        "  ************************************************************************",
+        "",
+      ].join("\n"),
+    );
+    return undefined;
+  }
+  return token;
 }
 
 /**
@@ -134,6 +184,10 @@ export class EnvKeyProvider implements KeyProvider {
   }
   getPublicKey(): string {
     return this.publicKey;
+  }
+  /** ICA token from `UTS_ICA` (env mode), validated against this key. */
+  getIntermediateCert(): string | undefined {
+    return validateIca(process.env.UTS_ICA?.trim() || undefined, this.publicKey, "UTS_ICA env");
   }
 }
 
@@ -241,10 +295,36 @@ function openPrivateKey(enc: AuthorityKeyDoc["enc"], kek: Buffer): string {
 }
 
 export class MongoKeyProvider implements KeyProvider {
+  /** Validated ICA token for the active (intermediate) key, or undefined. */
+  private intermediateCert: string | undefined;
+
   private constructor(
+    private readonly coll: Collection<AuthorityKeyDoc>,
     private readonly privateKey: string,
     private readonly publicKey: string,
-  ) {}
+    intermediateCert: string | undefined,
+  ) {
+    this.intermediateCert = intermediateCert;
+  }
+
+  /**
+   * Resolve the ICA token for the active key. Preference order:
+   *   1. the persisted `AuthorityKeyDoc.intermediateCert` (the canonical source,
+   *      set via /admin/intermediate-cert), then
+   *   2. the `UTS_ICA` env var (a bootstrap fallback).
+   * Whichever is found is sanity-checked against `publicKey` — a mismatch logs
+   * loudly and is dropped (treated as unprovisioned).
+   */
+  private static resolveIca(
+    doc: { intermediateCert?: string } | null,
+    publicKey: string,
+  ): string | undefined {
+    const fromDoc = doc?.intermediateCert?.trim();
+    if (fromDoc) {
+      return validateIca(fromDoc, publicKey, "AuthorityKeyDoc.intermediateCert");
+    }
+    return validateIca(process.env.UTS_ICA?.trim() || undefined, publicKey, "UTS_ICA env");
+  }
 
   static async create(
     coll: Collection<AuthorityKeyDoc>,
@@ -255,7 +335,9 @@ export class MongoKeyProvider implements KeyProvider {
       const privateKey = openPrivateKey(existing.enc, kek);
       // Re-derive the public key so it can't drift from / be tampered vs the
       // private key.
-      return new MongoKeyProvider(privateKey, publicKeyFor(privateKey));
+      const publicKey = publicKeyFor(privateKey);
+      const ica = MongoKeyProvider.resolveIca(existing, publicKey);
+      return new MongoKeyProvider(coll, privateKey, publicKey, ica);
     }
     const key = generateSigningKey();
     const doc: AuthorityKeyDoc = {
@@ -264,12 +346,14 @@ export class MongoKeyProvider implements KeyProvider {
       enc: sealPrivateKey(key.privateKey, kek),
       active: true,
       createdAt: new Date(),
+      role: "intermediate",
     };
     await coll.insertOne(doc);
     console.log(
       `  UTS authority key created in MongoDB (envelope-encrypted). Public key: ${key.publicKey}`,
     );
-    return new MongoKeyProvider(key.privateKey, key.publicKey);
+    const ica = MongoKeyProvider.resolveIca(null, key.publicKey);
+    return new MongoKeyProvider(coll, key.privateKey, key.publicKey, ica);
   }
 
   getPrivateKey(): string {
@@ -277,6 +361,27 @@ export class MongoKeyProvider implements KeyProvider {
   }
   getPublicKey(): string {
     return this.publicKey;
+  }
+  getIntermediateCert(): string | undefined {
+    return this.intermediateCert;
+  }
+
+  /**
+   * Persist a newly-provisioned ICA token onto the active AuthorityKeyDoc and
+   * cache it in-process. The caller (POST /admin/intermediate-cert) has already
+   * verified the token against this key and the configured root — but we
+   * re-validate the key-match here as a guard, so a bad token never gets stored.
+   * Returns false (and stores nothing) if the token doesn't vouch for this key.
+   */
+  async setIntermediateCert(token: string): Promise<boolean> {
+    const validated = validateIca(token, this.publicKey, "setIntermediateCert");
+    if (!validated) return false;
+    await this.coll.updateOne(
+      { active: true },
+      { $set: { intermediateCert: validated, role: "intermediate" } },
+    );
+    this.intermediateCert = validated;
+    return true;
   }
 }
 

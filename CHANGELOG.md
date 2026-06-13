@@ -8,6 +8,25 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- **Root → intermediate key hierarchy for UTS certification (`@dotit/sign` 1.3.0).**
+  Certifications can now chain to an OFFLINE root key. `issueIntermediate()` (run
+  offline on the air-gapped root machine) signs a compact intermediate certificate
+  ("ICA token") vouching for an online intermediate key; `certifyDocument()` accepts
+  an `intermediateCert` and embeds it as an `ica:` field in the certify line;
+  `verifyCertifications()` (and the new `verifyIntermediateCert()`) validate the
+  whole chain against ONLY the root public key — fully offline, the document carries
+  the chain. The verifier checks the root's signature over the intermediate, that the
+  signing key is the one the root vouched for, and that the cert time falls in the
+  intermediate's validity window. If an intermediate leaks it is revoked and the root
+  issues a new one — the root (in every trust store) never moves. Legacy single-key
+  certifications (no `ica:`) still verify directly against the trusted key.
+  The `uts-certify` service now holds an **intermediate** (its Mongo envelope-encrypted
+  key, role-stamped), publishes the **root** as the trust anchor via `/pubkey`
+  (`trustAnchor: "root"`), provisions the ICA via `GET /admin/intermediate-pubkey` +
+  `POST /admin/intermediate-cert`, and ships an offline `root-ca` CLI
+  (`root:init` / `root:issue` / `root:pubkey`, root key encrypted at rest with
+  `UTS_ROOT_PASSPHRASE`). Provisioning runbook in `DEPLOYMENT.md`.
+
 - **XLSX and DOCX converters (both directions) in `@dotit/core`.** Four new
   pure-JS functions convert between IntentText and Office documents:
   `convertXlsxToIntentText(bytes)` (each sheet → a `section:` + table, numbers
