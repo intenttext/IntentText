@@ -57,9 +57,17 @@ export async function printDocument(
 ): Promise<void> {
   try {
     const html = buildPrintHTML(content, theme);
+    // Auto-open the print dialog on load so it's one action, not two (the user
+    // shouldn't have to press Cmd+P again in the browser).
+    const autoPrint =
+      `<script>window.addEventListener("load",function(){` +
+      `setTimeout(function(){window.print();},350);});</script>`;
+    const withPrint = /<\/body>/i.test(html)
+      ? html.replace(/<\/body>/i, `${autoPrint}</body>`)
+      : html + autoPrint;
     const dir = await tempDir();
     const file = await join(dir, `intenttext-print-${Date.now()}.html`);
-    await writeFile(file, html);
+    await writeFile(file, withPrint);
     await openExternal(file);
   } catch (err) {
     await reportError("Print failed", err);
