@@ -6,6 +6,19 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-06-13
+
+### Changed (trust visuals + RTL)
+
+- **Professional signature & approval blocks.** `sign:` now renders as a proper
+  signature line (name, role · date, a signature rule below, a ✓ Signed badge).
+  `approve:` is a single grid row with the date anchored top-right — it no longer
+  wraps the date onto a second line. The printed page says "Signed", never
+  "verified" (it can't run the check; the editor / verify.uts.qa do).
+- **Per-paragraph direction.** A block carrying `dir: rtl|ltr|auto` renders in that
+  direction independently — select some rows, turn on RTL, and only those
+  paragraphs mirror (Word-style), without flipping the whole document.
+
 ## [1.2.0] — 2026-06-13
 
 ### Fixed (enterprise hardening)

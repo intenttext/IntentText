@@ -218,21 +218,27 @@ sup.it-fn-ref a{color:#111;text-decoration:none;border-bottom:1px solid #999;}
 /* ── v2.8 Document Trust ───────────────────────────────── */
 /* Trust blocks are typeset like entries in a legal document — hairlines and
    small-caps labels, no colored fills (ink-first; prints exactly as shown). */
-.it-approval{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;margin:12px 0;padding:7px 2px;border-bottom:1px solid #ddd;}
+/* Approval — one row: a ✓ APPROVED label + what + who flow on the left, the
+   date stays anchored top-right (grid, never wraps the date to its own line). */
+.it-approval{display:grid;grid-template-columns:1fr auto;gap:6px 14px;align-items:baseline;margin:10px 0;padding:7px 2px;border-bottom:1px solid #e3e3e3;}
 .it-approval__icon{display:none;}
-.it-approval__body{display:contents;}
-.it-approval__label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2e7d32;flex-shrink:0;}
+.it-approval__main{display:inline;line-height:1.5;}
+.it-approval__label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2e7d32;white-space:nowrap;}
 .it-approval__label::before{content:'✓ ';}
-.it-approval__what{font-size:0.9rem;font-weight:600;color:#111;}
-.it-approval__who{font-size:0.9rem;color:#555;}
-.it-approval__date{font-size:0.8rem;color:#777;margin-inline-start:auto;font-variant-numeric:tabular-nums;}
-.it-signature{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;margin:14px 0 10px;padding:7px 2px 5px;border-top:1px solid #111;}
-.it-signature--valid{border-top-color:#111;}
-.it-signature--invalid{border-top-color:#c62828;}
+.it-approval__what{font-size:0.9rem;font-weight:600;color:#111;margin-inline-start:8px;}
+.it-approval__who{font-size:0.9rem;color:#555;margin-inline-start:8px;}
+.it-approval__date{font-size:0.8rem;color:#777;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:end;}
+/* Signature — name first, then role · date, then a signature rule below it
+   (modern receipt-style: you read the name, the line confirms it). The badge
+   sits at the line end. */
+.it-signature{display:flex;gap:14px;align-items:flex-end;justify-content:space-between;margin:16px 0 8px;padding:0;}
+.it-signature__body{flex:1;min-width:0;display:flex;flex-direction:column;}
 .it-signature__name{font-weight:600;font-size:0.95rem;color:#111;}
-.it-signature__role{font-size:0.85rem;color:#555;}
-.it-signature__date{font-size:0.8rem;color:#777;font-variant-numeric:tabular-nums;}
-.it-signature__status{font-size:0.72rem;font-weight:600;margin-inline-start:auto;text-transform:uppercase;letter-spacing:0.08em;color:#2e7d32;}
+.it-signature__meta{font-size:0.82rem;color:#666;margin-top:1px;}
+.it-signature__rule{display:block;margin-top:6px;border-top:1px solid #111;width:100%;height:0;}
+.it-signature__badge{flex-shrink:0;font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:#2e7d32;white-space:nowrap;align-self:flex-end;padding-bottom:7px;}
+.it-signature--invalid .it-signature__rule{border-top-color:#c62828;}
+.it-signature--invalid .it-signature__badge{color:#c62828;}
 .it-signature--invalid .it-signature__status{color:#c62828;}
 .it-sealed-banner{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;margin:18px 0;padding:8px 2px;border-top:1px solid #111;border-bottom:1px solid #111;}
 .it-sealed-banner__icon{display:none;}

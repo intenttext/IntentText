@@ -102,3 +102,27 @@ describe("info callout — quiet variant", () => {
     expect(html).toContain("intent-callout-content");
   });
 });
+
+describe("trust visuals + per-paragraph direction (1.2.1)", () => {
+  it("approve: renders one grid row with date anchored (no wrap to 2nd line)", () => {
+    const html = renderHTML(parseIntentText("approve: Commercial terms | by: Fahad Al-Thani | role: Managing Director | at: 2026-06-11"));
+    expect(html).toContain('class="it-approval"');
+    expect(html).toContain('it-approval__main');
+    expect(html).toContain('it-approval__date');
+  });
+
+  it("sign: renders the signature-line look and never claims 'verified' on a plain hash", () => {
+    const plain = renderHTML(parseIntentText("sign: Ahmed | role: CEO | at: 2026-06-12 | hash: sha256:abc"));
+    expect(plain).toContain('it-signature__rule');
+    expect(plain).toContain('Signed');
+    expect(plain).not.toContain('verified');
+    const crypto = renderHTML(parseIntentText("sign: Ahmed | role: CEO | at: 2026-06-12 | hash: sha256:abc | key: ed25519:k | sig: s"));
+    expect(crypto).toContain('✓ Signed');
+  });
+
+  it("per-paragraph dir: makes one block RTL without flipping others", () => {
+    const html = renderHTML(parseIntentText("text: English\n\ntext: عربي | dir: rtl\n\ntext: More English"));
+    const rtlBlocks = html.match(/<p class="intent-text[^"]*" dir="rtl"/g) || [];
+    expect(rtlBlocks.length).toBe(1);
+  });
+})

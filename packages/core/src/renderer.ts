@@ -403,21 +403,29 @@ function renderBlock(block: IntentBlock): string {
   const alignClass = getAlignmentClass(props);
   const inlineStyle = extractInlineStyles(props);
   const styleAttr = inlineStyle ? ` style="${inlineStyle}"` : "";
+  // Per-paragraph direction: a block carrying `dir: rtl|ltr|auto` renders RTL/LTR
+  // independently of the document — so selecting some rows and turning on RTL
+  // mirrors just those paragraphs (Word-style), without flipping the whole doc.
+  const blockDir =
+    props.dir === "rtl" || props.dir === "ltr" || props.dir === "auto"
+      ? String(props.dir)
+      : "";
+  const dirAttr = blockDir ? ` dir="${blockDir}"` : "";
 
   const { inner: splitContent, splitClass } = splitEnd(content, props);
 
   switch (block.type) {
     case "title":
-      return `<h1 class="intent-title${alignClass}${splitClass}"${styleAttr}>${splitContent}</h1>`;
+      return `<h1 class="intent-title${alignClass}${splitClass}"${dirAttr}${styleAttr}>${splitContent}</h1>`;
 
     case "summary":
-      return `<div class="intent-summary${alignClass}"${styleAttr}>${content}</div>`;
+      return `<div class="intent-summary${alignClass}"${dirAttr}${styleAttr}>${content}</div>`;
 
     case "section":
-      return `<h2 id="${slugify(block.content)}" class="intent-section${alignClass}${splitClass}"${styleAttr}>${splitContent}</h2>`;
+      return `<h2 id="${slugify(block.content)}" class="intent-section${alignClass}${splitClass}"${dirAttr}${styleAttr}>${splitContent}</h2>`;
 
     case "sub":
-      return `<h3 id="${slugify(block.content)}" class="intent-sub${alignClass}${splitClass}"${styleAttr}>${splitContent}</h3>`;
+      return `<h3 id="${slugify(block.content)}" class="intent-sub${alignClass}${splitClass}"${dirAttr}${styleAttr}>${splitContent}</h3>`;
 
     case "divider":
       const dividerStyle = props.style
@@ -432,9 +440,9 @@ function renderBlock(block: IntentBlock): string {
       </div>`;
 
     case "text":
-      return `<p class="intent-text${alignClass}${splitClass}"${styleAttr}>${splitContent}</p>`;
+      return `<p class="intent-text${alignClass}${splitClass}"${dirAttr}${styleAttr}>${splitContent}</p>`;
     case "body-text":
-      return `<p class="intent-prose${alignClass}${splitClass}"${styleAttr}>${splitContent}</p>`;
+      return `<p class="intent-prose${alignClass}${splitClass}"${dirAttr}${styleAttr}>${splitContent}</p>`;
 
     case "info": {
       const CALLOUT_VARIANTS: Record<string, string> = {
@@ -1031,10 +1039,18 @@ function renderBlock(block: IntentBlock): string {
       const approveBy = props.by ? escapeHtml(String(props.by)) : "Unknown";
       const approveRole = props.role ? escapeHtml(String(props.role)) : "";
       const approveAt = props.at ? formatTrustDate(String(props.at)) : "";
+      // Grid (content | date) keeps the date anchored top-right so a long
+      // approval never spills the date onto its own second line.
       return `<div class="it-approval">
-        <span class="it-approval__label">Approved</span>
-        ${content ? `<span class="it-approval__what">${content}</span>` : ""}
-        <span class="it-approval__who">${approveBy}${approveRole ? `, ${approveRole}` : ""}</span>
+        <div class="it-approval__main">
+          <span class="it-approval__label">Approved</span>${
+            content ? `<span class="it-approval__what">${content}</span>` : ""
+          }${
+            approveBy
+              ? `<span class="it-approval__who">${approveBy}${approveRole ? `, ${approveRole}` : ""}</span>`
+              : ""
+          }
+        </div>
         ${approveAt ? `<span class="it-approval__date">${approveAt}</span>` : ""}
       </div>`;
     }
@@ -1043,12 +1059,19 @@ function renderBlock(block: IntentBlock): string {
       const signerName = escapeHtml(block.content);
       const signRole = props.role ? escapeHtml(String(props.role)) : "";
       const signAt = props.at ? formatTrustDate(String(props.at)) : "";
-      const signValid = props.hash ? true : false; // Basic: assume valid if hash present
-      return `<div class="it-signature${signValid ? " it-signature--valid" : " it-signature--invalid"}">
-        <span class="it-signature__name">${signerName}</span>
-        ${signRole ? `<span class="it-signature__role">${signRole}</span>` : ""}
-        ${signAt ? `<span class="it-signature__date">${signAt}</span>` : ""}
-        <span class="it-signature__status">${signValid ? "Signed · verified" : "Unverified"}</span>
+      // A `sign:` carrying key:+sig: is a real Ed25519 signature; otherwise it's
+      // a hash-bound record. The static renderer does NOT run the crypto check
+      // (that's @dotit/sign / the verify portal / the editor), so a printed page
+      // says "Signed", never "verified" — it must not assert a check it can't do.
+      const isCrypto = !!props.sig && !!props.key;
+      const meta = [signRole, signAt].filter(Boolean).join(" · ");
+      return `<div class="it-signature">
+        <div class="it-signature__body">
+          <span class="it-signature__rule"></span>
+          <span class="it-signature__name">${signerName}</span>
+          ${meta ? `<span class="it-signature__meta">${meta}</span>` : ""}
+        </div>
+        <span class="it-signature__badge">${isCrypto ? "✓ Signed" : "Signed"}</span>
       </div>`;
     }
 
