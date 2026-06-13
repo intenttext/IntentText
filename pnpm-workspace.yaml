@@ -1,6 +1,7 @@
 packages:
   # Publishable packages (npm)
   - 'packages/core'
+  - 'packages/sign'
   - 'packages/editor'
   - 'packages/pdf'
   - 'packages/mcp'
@@ -11,6 +12,7 @@ packages:
   - 'apps/editor'
   - 'apps/desktop'
   - 'apps/hub'
+  - 'apps/verify'
   # Demos (runnable integration examples)
   - 'demo/erp-integration'
   # Non-JS package (python) — managed by pip / pyproject.toml, not pnpm

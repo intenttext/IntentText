@@ -1,0 +1,48 @@
+{
+  "name": "@dotit/sign",
+  "version": "1.0.0",
+  "description": "Ed25519 cryptographic signatures for IntentText (.it) documents — provable 'who signed', self-verifying and offline. The opt-in identity layer on top of @dotit/core's integrity seal.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "dotit-sign": "./cli.js"
+  },
+  "files": [
+    "dist",
+    "cli.js",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "test": "vitest run",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "intenttext",
+    "ed25519",
+    "signature",
+    "crypto",
+    "trust",
+    "verify"
+  ],
+  "author": "UTS",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/intenttext/IntentText.git",
+    "directory": "packages/sign"
+  },
+  "homepage": "https://dotit.uts.qa",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@dotit/core": "workspace:^",
+    "@noble/curves": "^1.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
