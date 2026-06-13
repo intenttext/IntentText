@@ -44,7 +44,6 @@ import { useTrustBadges } from "./hooks/useTrustBadges";
 import { VaultSidebar } from "./components/VaultSidebar";
 import { SearchPanel } from "./components/SearchPanel";
 import { StatusBar } from "./components/StatusBar";
-import { DocumentViewer } from "./components/DocumentViewer";
 import { TrustDialogs } from "./components/TrustDialogs";
 import type { TrustDialogKind } from "./components/TrustDialogs";
 
@@ -239,10 +238,7 @@ export default function App() {
 
   const mainPane = useMemo(() => {
     if (!doc) return null;
-    if (mode === "view") {
-      return <DocumentViewer content={doc.content} theme={theme} />;
-    }
-    if (sourceView) {
+    if (sourceView && mode === "edit") {
       return (
         <textarea
           className="source-view"
@@ -252,6 +248,10 @@ export default function App() {
         />
       );
     }
+    // View and Edit render with the SAME engine (@dotit/editor) so the page
+    // layout, pagination, and spacing are byte-identical between modes — only
+    // editing and the ribbon toggle. View = read-only, no ribbon (a clean
+    // paginated "reading" view); Edit = full editor.
     return (
       <IntentTextEditor
         value={doc.content}
@@ -259,6 +259,8 @@ export default function App() {
         theme={theme}
         onThemeChange={setTheme}
         onTrustAction={onTrustAction}
+        readOnly={mode === "view"}
+        showRibbon={mode === "edit"}
       />
     );
   }, [doc, mode, sourceView, theme, docApi, onTrustAction]);
