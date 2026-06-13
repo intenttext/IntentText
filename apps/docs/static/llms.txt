@@ -62,7 +62,8 @@ DATA tier:
 CONTRACT (trust) tier:
   track:    Start version tracking.                  track: | id: DOC-1 | by: Ahmed
   approve:  Named approval (HASHED with body).       approve: Legal ok | by: Sara | role: Counsel | at: 2026-03-28
-  sign:     Tamper-evident signature.                sign: Ahmed | role: CEO | at: 2026-04-01T09:00:00Z | hash: sha256:…
+  sign:     Signature. Plain = approval; with key:+sig: = Ed25519 (provable).
+            sign: Ahmed | role: CEO | at: … | hash: sha256:… | key: ed25519:<pub> | sig: <sig>
   freeze:   Seal the document (locks content).       freeze: | at: … | hash: sha256:… | status: locked
   amendment: Additive change to a sealed doc.        amendment: Terms updated | was: Net 30 | now: Net 15 | by: Ahmed
   history:  Boundary line — everything below is the append-only audit log (never hashed).

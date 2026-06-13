@@ -278,16 +278,46 @@ included — an approval is part of what gets approved), joined with LF, trimmed
 UTF-8. `sealDocument()` computes it and inserts the `sign:` + `freeze:` lines;
 `verifyDocument()` recomputes and compares.
 
-Be honest about the model — it is **tamper-evidence, not PKI**:
+The base seal is **tamper-evidence (integrity)**:
 
 - It proves the content is byte-identical to what was sealed. Anyone with any
   SHA-256 implementation can recompute it — no vendor, no key registry.
-- It does **not** prove *who* sealed it (the `sign:` name is a claim, not a
-  cryptographic identity), does not provide non-repudiation, key-based signatures,
-  or trusted timestamps. If you need those, layer your PKI/eIDAS infrastructure on
-  top — e.g. detach-sign the sealed `.it` bytes, or store the hash in your
-  signing/timestamping system. The `.it` seal still gives you the canonical,
-  recomputable content fingerprint to bind those signatures to.
+- The bare `sign:` *name* is a claim, not a cryptographic identity. For provable
+  identity, add **`@dotit/sign` (Ed25519)** — see below.
+
+### 2.9a Cryptographic signatures — `@dotit/sign` (provable "who")
+
+`@dotit/sign` upgrades a `sign:` line from a typed name to a real **Ed25519
+signature**. Each signer has a keypair; the `sign:` line embeds the signature and
+the public key, so a signed `.it` is **self-verifying and offline** — it carries
+everything needed to check it, nothing leaves the machine.
+
+```ts
+import { generateSigningKey, signDocumentCrypto, verifyDocumentSignatures } from "@dotit/sign";
+
+const key = generateSigningKey();                       // { privateKey, publicKey }
+const signed = signDocumentCrypto(src, { signer: "Ahmed", role: "CEO", privateKey: key.privateKey });
+//  sign: Ahmed | role: CEO | at: … | hash: sha256:… | key: ed25519:<pub> | sig: <sig>
+const v = verifyDocumentSignatures(signed.source);      // { allSignaturesValid, validCount, signatures[] }
+```
+
+CLI / CI gate:
+
+```bash
+dotit-sign keygen --out key.json
+dotit-sign sign contract.it --key key.json --signer "Ahmed" --role CEO
+dotit-sign verify contract.it        # exit 0 = all valid, 1 = invalid
+```
+
+Editing the document invalidates its signatures; swapping the embedded public key
+is rejected (no forgery); signing is idempotent per key; signatures survive
+sealing. Public verification for anyone (no install): **https://verify.uts.qa** —
+runs entirely in the browser, the file never uploads.
+
+What it still does **not** prove on its own: that a public key belongs to a
+specific real person (that binding is UTS certification — provable *time* and
+*identity attestation* are the next layers). This is exactly the PGP/SSH/code-
+signing model: a key proves the holder signed; a CA later vouches for the key.
 - Append-only evolution: `amendment:` lines and everything below `history:` are
   excluded from the hash, so a frozen contract can record changes without breaking
   its seal. Never edit above `history:` after sealing.
