@@ -65,7 +65,7 @@ describe("issueDocument (merge → seal → print HTML, no Chrome)", () => {
   it("produces print HTML with page counters and totals rows", () => {
     const issued = issueDocument(TEMPLATE, DATA, { signer: "Jadwal Billing" });
     expect(issued.html).toContain("counter(page)");
-    expect(issued.html).toContain('it-metric-row__value">1,575');
+    expect(issued.html).toContain('it-metric-row__value" dir="auto">1,575');
   });
 });
 

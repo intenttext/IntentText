@@ -1,8 +1,13 @@
 const { MongoClient } = require("mongodb");
 const { parseIntentText } = require("@dotit/core");
 
-const uri =
-  "mongodb+srv://emadjumaah1_db_user:99GNzlbJXl8E1u4c@cluster0.z4qzdog.mongodb.net/intenttext-hub?retryWrites=true&w=majority&appName=Cluster0";
+// One-off migration: derive `trust` metadata for already-published templates.
+// Usage: MONGODB_URI="mongodb+srv://…" node backfill-trust.js
+const uri = process.env.MONGODB_URI;
+if (!uri) {
+  console.error("MONGODB_URI env var not set");
+  process.exit(1);
+}
 
 (async () => {
   const client = new MongoClient(uri);

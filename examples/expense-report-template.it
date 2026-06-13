@@ -1,0 +1,24 @@
+// Template + data pair — merge the each: row loop with expense-report-data.json:
+//   node cli.js examples/expense-report-template.it --data examples/expense-report-data.json --print
+
+title: Expense Report — {{report.month}}
+summary: Monthly expense report for {{employee.name}} ({{employee.department}}).
+
+page: | size: A4 | margin: 20mm
+footer: {{report.ref}} · Page {{page}} of {{pages}}
+
+section: Employee
+text: Name | end: {{employee.name}}
+text: Department | end: {{employee.department}}
+text: Submitted | end: {{report.submitted}}
+
+section: Expenses
+| Date | Category | Description | Amount | each: expenses |
+| {{expense.date}} | {{expense.category}} | {{expense.description}} | {{expense.amount}} |
+
+metric: Total claimed | value: {{totals.claimed}}
+metric: Advance deducted | value: {{totals.advance}}
+metric: Net payable | value: {{totals.net}}
+
+section: Approval
+task: Approve report | owner: {{approver.name}} | due: {{report.approvalDue}}

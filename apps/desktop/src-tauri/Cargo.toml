@@ -1,7 +1,7 @@
 [package]
 name = "intenttext-desktop"
-version = "1.0.0"
-description = "Dotit Desktop — native .it document editor"
+version = "2.0.0"
+description = "Dotit Desktop — enterprise document manager for .it files"
 authors = ["Dotit Labs"]
 license = "MIT"
 edition = "2021"
@@ -21,12 +21,7 @@ log = "0.4"
 tauri = { version = "2.10.0", features = [] }
 tauri-plugin-log = "2"
 tauri-plugin-dialog = "2"
-tauri-plugin-fs = "2"
 tauri-plugin-window-state = "2"
 notify = { version = "7", features = ["macos_fsevent"] }
 walkdir = "2"
 trash = "5"
-grep-regex = "0.1"
-grep-searcher = "0.1"
-intenttext = { path = "../../intenttext-rust" }
-dirs = "6"

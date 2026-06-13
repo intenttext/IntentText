@@ -79,6 +79,8 @@ logical properties), and aliases round-trip **as written** — an Arabic documen
 stays Arabic through every parse/serialize cycle, so sealed Arabic documents keep
 their hash. One query (`--type task`) finds tasks across languages.
 
+> **Integrating dotit into your software?** → [INTEGRATION.md](INTEGRATION.md) — the complete developer / AI-agent guide: format crash course, ERP & archive recipes, all packages, CLI and API reference (also served at [dotit.uts.qa/integration.md](https://dotit.uts.qa/integration.md)).
+
 ## Quick start
 
 ### CLI

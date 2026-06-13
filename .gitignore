@@ -9,6 +9,7 @@ pnpm-debug.log*
 # ── Build outputs ────────────────────────────────────────────
 dist/
 build/
+media/
 out/
 *.tsbuildinfo
 intenttext.browser.js
@@ -31,6 +32,7 @@ __pycache__/
 *.egg-info/
 .venv/
 *.dist-info/
+.pytest_cache/
 
 # WASM build artifacts
 *.wasm
@@ -43,6 +45,9 @@ rust-core_bg*
 .env.test.local
 .env.production.local
 .env.*.local
+
+# Claude Code local state (settings.json may be tracked later; lock is per-machine)
+.claude/scheduled_tasks.lock
 
 # ── IDE files ─────────────────────────────────────────────────
 .idea/

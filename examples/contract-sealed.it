@@ -1,0 +1,31 @@
+// Sealed service agreement — approve:, sign:, freeze: carry a real SHA-256 hash.
+// Check it: node cli.js verify examples/contract-sealed.it   (any body edit breaks the seal)
+
+title: Service Agreement — Dalil Technology and Acme Corporation
+summary: Fixed-term platform development agreement, sealed and tamper-evident.
+
+meta: | author: Legal | type: contract
+
+section: Parties
+text: **Dalil Technology LLC**, registered in Doha, Qatar ("Provider")
+text: **Acme Corporation**, registered in Doha, Qatar ("Client")
+
+section: 1. Scope
+text: The Provider shall design, build, and maintain the Client document platform as described in Schedule A.
+
+section: 2. Term
+text: This agreement runs from 2026-07-01 to 2027-06-30 unless terminated under Section 4.
+
+section: 3. Fees
+text: Monthly fee | end: 12,000 QAR
+text: Payment terms | end: Net 14 days
+deadline: First invoice due | date: 2026-07-15
+
+section: 4. Termination
+text: Either party may terminate with 30 days written notice.
+
+section: Approvals
+approve: Legal review complete | by: Sara Hassan | role: Legal Counsel | at: 2026-06-10
+approve: Commercial terms approved | by: Fahad Al-Thani | role: Managing Director | at: 2026-06-11
+sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-12T19:28:41.022Z | hash: sha256:f0c9fdb466c91409d285b540a6ed207313b2d6989526e68876037262f5721b08
+freeze: | at: 2026-06-12T19:28:41.022Z | hash: sha256:f0c9fdb466c91409d285b540a6ed207313b2d6989526e68876037262f5721b08 | status: locked

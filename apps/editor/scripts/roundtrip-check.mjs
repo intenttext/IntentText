@@ -42,7 +42,7 @@ const corpus = [];
 const docsDir = join(repoRoot, "demo/folder-query/docs");
 for (const f of readdirSync(docsDir))
   if (f.endsWith(".it")) corpus.push(join(docsDir, f));
-for (const f of ["simple.it", "meeting-notes.it"])
+for (const f of ["contract-sealed.it", "project-tasks.it"])
   corpus.push(join(repoRoot, "examples", f));
 
 let pass = 0;

@@ -1,0 +1,46 @@
+{
+  "report": {
+    "ref": "EXP-2026-058",
+    "month": "May 2026",
+    "submitted": "2026-06-02",
+    "approvalDue": "2026-06-16"
+  },
+  "employee": {
+    "name": "Lina Haddad",
+    "department": "Field Operations"
+  },
+  "expenses": [
+    {
+      "date": "2026-05-04",
+      "category": "Travel",
+      "description": "Taxi — client site visits",
+      "amount": "180 QAR"
+    },
+    {
+      "date": "2026-05-11",
+      "category": "Meals",
+      "description": "Lunch with vendor team",
+      "amount": "240 QAR"
+    },
+    {
+      "date": "2026-05-19",
+      "category": "Supplies",
+      "description": "Site survey equipment",
+      "amount": "1,150 QAR"
+    },
+    {
+      "date": "2026-05-27",
+      "category": "Travel",
+      "description": "Airport transfer — Riyadh trip",
+      "amount": "95 QAR"
+    }
+  ],
+  "totals": {
+    "claimed": "1,665 QAR",
+    "advance": "500 QAR",
+    "net": "1,165 QAR"
+  },
+  "approver": {
+    "name": "Omar Farouk"
+  }
+}

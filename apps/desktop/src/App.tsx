@@ -1,466 +1,323 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import { Toolbar } from "./toolbar/Toolbar";
-import { StatusBar } from "./status/StatusBar";
-import { MonacoEditor } from "./editor/MonacoEditor";
-import { VisualEditor } from "./visual/VisualEditor";
-import { Preview } from "./preview/Preview";
-import { Sidebar } from "./sidebar/Sidebar";
-import { SealModal } from "./modals/SealModal";
-import { VerifyModal } from "./modals/VerifyModal";
-import { HistoryModal } from "./modals/HistoryModal";
-import { AmendModal } from "./modals/AmendModal";
-import { ConvertModal } from "./modals/ConvertModal";
-import { HelpOverlay } from "./modals/HelpOverlay";
-import { useWorkspace } from "./hooks/useWorkspace";
-import { useFile } from "./hooks/useFile";
-import { useAutoSave } from "./hooks/useAutoSave";
-import { useDocument } from "./hooks/useDocument";
-import { useTrustState } from "./hooks/useTrustState";
-import { SearchShowcasePanel } from "./showcase/SearchShowcasePanel";
-import { TrustShowcasePanel } from "./showcase/TrustShowcasePanel";
-import { WorkflowShowcasePanel } from "./showcase/WorkflowShowcasePanel";
-import { FirstRunGuide } from "./showcase/FirstRunGuide";
+// Dotit Desktop — enterprise document manager for .it files.
+//
+// Shell layout: native menu bar (Tauri) + library/search sidebar + the
+// embeddable @dotit/editor WYSIWYG canvas + status bar. The desktop app owns
+// files, search and trust flows; all editor chrome comes from the package.
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
-  DEMO_DOCS,
-  DEFAULT_DEMO_DOC_ID,
-  getDemoDocById,
-  type DemoDoc,
-} from "./showcase/demoVault";
-import type * as monaco from "monaco-editor";
-import type { EditorMode } from "./visual/types";
+  IntentTextEditor,
+  exportDocumentHTML,
+  exportDocumentPDF,
+} from "@dotit/editor";
+import type { TrustAction } from "@dotit/editor";
+import {
+  FileText,
+  FolderOpen,
+  Library,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Search,
+} from "lucide-react";
 
-const WELCOME = `// Welcome to Dotit Desktop
-// Open a folder (Cmd+Shift+O) or a file (Cmd+O) to begin.
+import { isTauri } from "./lib/backend";
+import { installAppMenu } from "./lib/menu";
+import type { MenuActions } from "./lib/menu";
+import * as trustOps from "./lib/trust";
+import { useWorkspace } from "./hooks/useWorkspace";
+import { useOpenDocument } from "./hooks/useOpenDocument";
+import { useTrustBadges } from "./hooks/useTrustBadges";
+import { LibraryPanel } from "./components/LibraryPanel";
+import { SearchPanel } from "./components/SearchPanel";
+import { StatusBar } from "./components/StatusBar";
+import { TrustDialogs } from "./components/TrustDialogs";
+import type { TrustDialogKind } from "./components/TrustDialogs";
 
-title: My First Document
-summary: A document written in Dotit
-
-section: Getting Started
-note: Every line in Dotit starts with a keyword.
-note: The preview on the right updates as you type.
-tip: Try changing the theme using the Theme picker above.
-
-section: Learn More
-link: Documentation | to: https://itdocs.vercel.app
-link: Browse Templates | to: https://intenttext-hub.vercel.app
-link: GitHub | to: https://github.com/intenttext/IntentText
-`;
-
-export type LayoutMode = "split" | "editor" | "preview";
-export type EditorThemeMode = "dark" | "light";
-type ShowcaseMode = "search" | "trust" | "workflow";
-export type ModalType =
-  | "seal"
-  | "verify"
-  | "history"
-  | "amend"
-  | "convert"
-  | "help"
-  | null;
+type SidebarTab = "library" | "search";
 
 export default function App() {
-  const [state, actions] = useWorkspace();
-  const { content, setContent, filename, setFilename, isUnsaved, markSaved } =
-    state;
+  const workspaceApi = useWorkspace();
+  const { workspace } = workspaceApi;
 
-  const docState = useDocument(content);
-  const trustState = useTrustState(content, setContent);
-  const { openFile, saveFile, newFile } = useFile(
-    state,
-    actions.openFileByPath,
-  );
-  const { hasRestore, restore, dismiss } = useAutoSave(content, setContent);
+  const docApi = useOpenDocument({
+    defaultDir: workspace?.path ?? null,
+    onSaved: () => workspaceApi.refresh(),
+  });
+  const { doc } = docApi;
 
-  const [layout, setLayout] = useState<LayoutMode>("split");
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("it-editor-theme") || "corporate",
-  );
-  const [editorTheme, setEditorTheme] = useState<EditorThemeMode>(
-    () =>
-      (localStorage.getItem("it-editor-color") as EditorThemeMode) || "light",
-  );
-  const [modal, setModal] = useState<ModalType>(null);
-  const [editorMode, setEditorMode] = useState<EditorMode>(
-    () => (localStorage.getItem("it-editor-mode") as EditorMode) || "visual",
-  );
-  const [showcaseMode, setShowcaseMode] = useState<ShowcaseMode>("search");
-  const [trustShowcaseDocId, setTrustShowcaseDocId] =
-    useState("service-agreement");
-  const [showFirstRunGuide, setShowFirstRunGuide] = useState(false);
-  const [dividerPos, setDividerPos] = useState(50);
   const [sidebarVisible, setSidebarVisible] = useState(
-    () => localStorage.getItem("it-sidebar-visible") !== "false",
+    () => localStorage.getItem("dotit.ui.sidebar") !== "0",
   );
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const panelsRef = useRef<HTMLDivElement>(null);
+  const [sidebarTab, setSidebarTab] = useState<SidebarTab>("library");
+  const [sourceView, setSourceView] = useState(false);
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("dotit.doc.theme") ?? "corporate",
+  );
+  const [trustDialog, setTrustDialog] = useState<TrustDialogKind>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Persist theme choices
+  const badges = useTrustBadges(
+    workspace?.itFiles ?? [],
+    workspaceApi.revision,
+  );
+
   useEffect(() => {
-    localStorage.setItem("it-editor-theme", theme);
-  }, [theme]);
-  useEffect(() => {
-    localStorage.setItem("it-editor-color", editorTheme);
-    document.documentElement.setAttribute("data-theme", editorTheme);
-  }, [editorTheme]);
-  useEffect(() => {
-    localStorage.setItem("it-sidebar-visible", String(sidebarVisible));
+    localStorage.setItem("dotit.ui.sidebar", sidebarVisible ? "1" : "0");
   }, [sidebarVisible]);
   useEffect(() => {
-    localStorage.setItem("it-editor-mode", editorMode);
-  }, [editorMode]);
+    localStorage.setItem("dotit.doc.theme", theme);
+  }, [theme]);
 
-  // Set initial content
-  useEffect(() => {
-    if (!content && !hasRestore) {
-      const defaultDoc = getDemoDocById(DEFAULT_DEMO_DOC_ID);
-      setContent(defaultDoc?.source || WELCOME);
-      setFilename(defaultDoc ? `${defaultDoc.id}.it` : "untitled.it");
-      markSaved();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const openFile = useCallback(
+    async (path: string) => {
+      try {
+        await docApi.openPath(path);
+        workspaceApi.noteRecent(path);
+      } catch (err) {
+        console.error("Failed to open file:", err);
+      }
+    },
+    [docApi, workspaceApi],
+  );
 
-  useEffect(() => {
-    const seen = localStorage.getItem("it-desktop-showcase-onboarded") === "1";
-    if (!seen) {
-      setShowFirstRunGuide(true);
-    }
+  const openFileViaDialog = useCallback(async () => {
+    const selected = await openDialog({
+      multiple: false,
+      filters: [{ name: "IntentText", extensions: ["it"] }],
+    });
+    if (typeof selected === "string") await openFile(selected);
+  }, [openFile]);
+
+  const focusSearch = useCallback(() => {
+    setSidebarVisible(true);
+    setSidebarTab("search");
+    setTimeout(() => searchInputRef.current?.focus(), 50);
   }, []);
 
-  // Update window title
+  // ----- native menu (always sees latest state through the ref) -----
+  const actionsRef = useRef<MenuActions>(null!);
+  actionsRef.current = {
+    newDocument: () => void docApi.newDocument(),
+    openFile: () => void openFileViaDialog(),
+    openWorkspace: () => void workspaceApi.chooseWorkspace(),
+    save: () => void docApi.save(),
+    saveAs: () => void docApi.saveAs(),
+    exportPDF: () => {
+      if (doc) exportDocumentPDF(doc.content, theme);
+    },
+    exportHTML: () => {
+      if (doc) exportDocumentHTML(doc.content, theme);
+    },
+    toggleSidebar: () => setSidebarVisible((v) => !v),
+    toggleSourceView: () => setSourceView((v) => !v),
+    focusSearch,
+    trustSeal: () => doc && setTrustDialog("seal"),
+    trustSign: () => doc && setTrustDialog("sign"),
+    trustApprove: () => doc && setTrustDialog("approve"),
+    trustTrack: () => {
+      if (doc) void docApi.applyAndSave(trustOps.startTracking(doc.content));
+    },
+    trustVerify: () => doc && setTrustDialog("verify"),
+  };
+
   useEffect(() => {
-    const parts = ["Dotit"];
-    if (filename) parts.push(filename);
-    if (state.folderName) parts.push(state.folderName);
-    document.title = parts.join(" — ");
-  }, [filename, state.folderName]);
+    installAppMenu(() => actionsRef.current).catch((err) =>
+      console.warn("App menu unavailable:", err),
+    );
+  }, []);
 
-  const loadDemoDoc = useCallback(
-    (doc: DemoDoc) => {
-      setContent(doc.source);
-      setFilename(`${doc.id}.it`);
-      markSaved();
-      setShowFirstRunGuide(false);
-      localStorage.setItem("it-desktop-showcase-onboarded", "1");
-    },
-    [setContent, setFilename, markSaved],
-  );
+  // ----- native window title: filename + dirty dot -----
+  useEffect(() => {
+    const title = doc
+      ? `${doc.dirty ? "• " : ""}${doc.name} — Dotit`
+      : workspace
+        ? `${workspace.name} — Dotit`
+        : "Dotit";
+    document.title = title;
+    if (isTauri) getCurrentWindow().setTitle(title).catch(() => {});
+  }, [doc, doc?.name, doc?.dirty, workspace]);
 
-  const loadTrustDocById = useCallback(
-    (docId: string) => {
-      const doc = getDemoDocById(docId);
-      if (!doc) return;
-      setTrustShowcaseDocId(docId);
-      loadDemoDoc(doc);
-    },
-    [loadDemoDoc],
-  );
+  // ----- file association: .it opened from the OS -----
+  useEffect(() => {
+    if (!isTauri) return;
+    const un = listen<string>("open-file", (e) => void openFile(e.payload));
+    return () => {
+      un.then((f) => f());
+    };
+  }, [openFile]);
 
-  // Keyboard shortcuts
+  // ----- keyboard fallbacks (menu accelerators cover the Tauri shell) -----
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
-      if (mod && e.key === "s") {
+      if (!mod) return;
+      const key = e.key.toLowerCase();
+      if (key === "s" && !e.shiftKey) {
         e.preventDefault();
-        saveFile();
-      } else if (mod && e.key === "o" && !e.shiftKey) {
-        e.preventDefault();
-        openFile();
-      } else if (mod && e.shiftKey && e.key === "O") {
-        e.preventDefault();
-        actions.openFolder();
-      } else if (mod && e.key === "n") {
-        e.preventDefault();
-        newFile(WELCOME);
-      } else if (mod && e.key === "b") {
+        void docApi.save();
+      } else if (key === "b" && !e.shiftKey) {
         e.preventDefault();
         setSidebarVisible((v) => !v);
-      } else if (mod && e.key === "w") {
+      } else if (key === "f" && e.shiftKey) {
         e.preventDefault();
-        newFile(WELCOME);
-      } else if (mod && e.key === "\\") {
+        focusSearch();
+      } else if (key === "e" && !e.shiftKey) {
         e.preventDefault();
-        if (e.shiftKey) {
-          setLayout("preview");
-        } else {
-          setLayout((l) => (l === "split" ? "editor" : "split"));
-        }
-      } else if (mod && e.shiftKey && e.key === "V") {
-        e.preventDefault();
-        setModal("verify");
-      } else if (e.key === "Escape") {
-        setModal(null);
+        setSourceView((v) => !v);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [saveFile, openFile, newFile, actions]);
+  }, [docApi, focusSearch]);
 
-  // Divider drag
-  const onDividerDown = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      const panels = panelsRef.current;
-      if (!panels) return;
-      const startX = e.clientX;
-      const startPos = dividerPos;
-      const rect = panels.getBoundingClientRect();
-      const divEl = e.currentTarget as HTMLElement;
-      divEl.classList.add("dragging");
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
+  const onTrustAction = useCallback((action: TrustAction) => {
+    setTrustDialog(action);
+  }, []);
 
-      const onMove = (me: MouseEvent) => {
-        const dx = me.clientX - startX;
-        const pct = startPos + (dx / rect.width) * 100;
-        setDividerPos(Math.max(20, Math.min(80, pct)));
-      };
-      const onUp = () => {
-        divEl.classList.remove("dragging");
-        document.body.style.cursor = "";
-        document.body.style.userSelect = "";
-        window.removeEventListener("mousemove", onMove);
-        window.removeEventListener("mouseup", onUp);
-      };
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
-    },
-    [dividerPos],
-  );
-
-  // Drag and drop files
-  useEffect(() => {
-    const handler = (e: DragEvent) => {
-      e.preventDefault();
-      const file = e.dataTransfer?.files[0];
-      if (!file) return;
-      if (file.name.endsWith(".it") || file.name.endsWith(".json")) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const text = reader.result as string;
-          if (file.name.endsWith(".json")) {
-            setModal("convert");
-          } else {
-            setContent(text);
-            setFilename(file.name);
-            markSaved();
-          }
-        };
-        reader.readAsText(file);
-      }
-    };
-    const prevent = (e: DragEvent) => e.preventDefault();
-    window.addEventListener("drop", handler);
-    window.addEventListener("dragover", prevent);
-    return () => {
-      window.removeEventListener("drop", handler);
-      window.removeEventListener("dragover", prevent);
-    };
-  }, [setContent, setFilename, markSaved]);
-
-  const showEditor = layout !== "preview";
-  const showPreview = layout !== "editor";
-
-  return (
-    <div className="desktop-layout">
-      {/* Titlebar overlay region */}
-      <div className="titlebar-region" data-tauri-drag-region />
-
-      {hasRestore && (
-        <div className="restore-banner">
-          <span>Unsaved session found. Restore previous work?</span>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn-primary" onClick={restore}>
-              Restore
-            </button>
-            <button className="btn-secondary" onClick={dismiss}>
-              Dismiss
-            </button>
-          </div>
-        </div>
-      )}
-
-      <Toolbar
-        filename={filename}
-        onFilenameChange={setFilename}
-        editorMode={editorMode}
-        onEditorModeChange={setEditorMode}
-        layout={layout}
-        onLayoutChange={setLayout}
+  const editorPane = useMemo(() => {
+    if (!doc) return null;
+    if (sourceView) {
+      return (
+        <textarea
+          className="source-view"
+          spellCheck={false}
+          value={doc.content}
+          onChange={(e) => docApi.setContent(e.target.value)}
+        />
+      );
+    }
+    return (
+      <IntentTextEditor
+        value={doc.content}
+        onChange={docApi.setContent}
         theme={theme}
         onThemeChange={setTheme}
-        onNew={() => newFile(WELCOME)}
-        onOpen={openFile}
-        onOpenFolder={actions.openFolder}
-        onSave={saveFile}
-        onModal={setModal}
-        content={content}
-        onContentChange={setContent}
+        onTrustAction={onTrustAction}
       />
+    );
+  }, [doc, sourceView, theme, docApi, onTrustAction]);
 
-      <div className="main-area">
-        <Sidebar
-          visible={sidebarVisible}
-          files={state.files}
-          activeFilePath={state.activeFilePath}
-          folderPath={state.folderPath}
-          folderName={state.folderName}
-          isFileUnsaved={isUnsaved}
-          onFileOpen={actions.openFileByPath}
-          onRefresh={actions.refreshFiles}
-        />
+  return (
+    <div className="app">
+      <header className="topbar" data-tauri-drag-region>
+        <div className="topbar-left" data-tauri-drag-region>
+          <button
+            className="icon-btn"
+            title="Toggle library (⌘B)"
+            onClick={() => setSidebarVisible((v) => !v)}
+          >
+            {sidebarVisible ? (
+              <PanelLeftClose size={16} />
+            ) : (
+              <PanelLeftOpen size={16} />
+            )}
+          </button>
+        </div>
+        <div className="topbar-title" data-tauri-drag-region>
+          {doc ? (
+            <>
+              <FileText size={13} />
+              <span>{doc.name}</span>
+              {doc.dirty && <span className="dirty-dot">•</span>}
+            </>
+          ) : (
+            <span className="muted">Dotit</span>
+          )}
+        </div>
+        <div className="topbar-right" data-tauri-drag-region />
+      </header>
 
-        <div className="panels" ref={panelsRef}>
-          {showEditor && (
-            <div
-              className="panel-editor"
-              style={
-                layout === "split" ? { flex: `0 0 ${dividerPos}%` } : undefined
-              }
-            >
-              {editorMode === "source" ? (
-                <MonacoEditor
-                  value={content}
-                  onChange={setContent}
-                  editorRef={editorRef}
-                  editorTheme={editorTheme}
-                />
-              ) : (
-                <VisualEditor
-                  value={content}
-                  onChange={setContent}
-                  theme={theme}
-                />
+      <div className="body">
+        {sidebarVisible && (
+          <aside className="sidebar">
+            <div className="sidebar-tabs">
+              <button
+                className={`sidebar-tab${sidebarTab === "library" ? " active" : ""}`}
+                onClick={() => setSidebarTab("library")}
+              >
+                <Library size={14} /> Library
+              </button>
+              <button
+                className={`sidebar-tab${sidebarTab === "search" ? " active" : ""}`}
+                onClick={() => setSidebarTab("search")}
+              >
+                <Search size={14} /> Search
+              </button>
+            </div>
+            {sidebarTab === "library" ? (
+              <LibraryPanel
+                api={workspaceApi}
+                badges={badges}
+                activePath={doc?.path ?? null}
+                dirty={doc?.dirty ?? false}
+                onOpenFile={(p) => void openFile(p)}
+              />
+            ) : (
+              <SearchPanel
+                ref={searchInputRef}
+                workspace={workspace}
+                onOpenFile={(p) => void openFile(p)}
+              />
+            )}
+          </aside>
+        )}
+
+        <main className="main">
+          {doc ? (
+            editorPane
+          ) : (
+            <div className="empty-state">
+              <h1>Dotit</h1>
+              <p>Manage, search, and seal your .it documents.</p>
+              <div className="empty-actions">
+                <button
+                  className="btn primary"
+                  onClick={() => workspaceApi.chooseWorkspace()}
+                >
+                  <FolderOpen size={15} /> Open Workspace…
+                </button>
+                <button className="btn" onClick={() => docApi.newDocument()}>
+                  New Document
+                </button>
+                <button className="btn" onClick={() => openFileViaDialog()}>
+                  Open File…
+                </button>
+              </div>
+              {workspaceApi.recentFiles.length > 0 && (
+                <div className="empty-recents">
+                  <div className="panel-subtitle">Recent</div>
+                  {workspaceApi.recentFiles.slice(0, 6).map((p) => (
+                    <button
+                      key={p}
+                      className="link"
+                      onClick={() => void openFile(p)}
+                      title={p}
+                    >
+                      {p.split("/").pop()}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           )}
-
-          {layout === "split" && (
-            <div className="panel-divider" onMouseDown={onDividerDown} />
-          )}
-
-          {showPreview && (
-            <div
-              className="panel-preview"
-              style={
-                layout === "split"
-                  ? { flex: `0 0 ${100 - dividerPos}%` }
-                  : undefined
-              }
-            >
-              <Preview
-                content={content}
-                theme={theme}
-                errors={docState.errors}
-              />
-            </div>
-          )}
-
-          {showcaseMode === "search" && (
-            <SearchShowcasePanel
-              mode={showcaseMode}
-              onModeChange={setShowcaseMode}
-              activeTitle={filename}
-              folderPath={state.folderPath}
-              activeFilePath={state.activeFilePath}
-              onFileOpen={actions.openFileByPath}
-              onLoadDemo={loadDemoDoc}
-            />
-          )}
-          {showcaseMode === "trust" && (
-            <TrustShowcasePanel
-              mode={showcaseMode}
-              onModeChange={setShowcaseMode}
-              trust={trustState.trust}
-              demoDocs={DEMO_DOCS}
-              activeDocId={trustShowcaseDocId}
-              onSelectDoc={loadTrustDocById}
-              content={content}
-              onContentChange={setContent}
-              onTrack={trustState.startTracking}
-              onApprove={trustState.addApproval}
-              onSign={trustState.addSignature}
-              onSeal={trustState.seal}
-              onVerify={trustState.verify}
-              onAmend={trustState.addAmendment}
-            />
-          )}
-          {showcaseMode === "workflow" && (
-            <WorkflowShowcasePanel
-              content={content}
-              mode={showcaseMode}
-              onModeChange={setShowcaseMode}
-            />
-          )}
-        </div>
+        </main>
       </div>
 
       <StatusBar
-        blocks={docState.blocks}
-        lines={docState.lines}
-        keywords={docState.keywords}
-        words={docState.words}
-        errors={docState.errorCount}
-        theme={theme}
-        mainFolderPath={state.folderPath}
-        isUnsaved={isUnsaved}
-        editorTheme={editorTheme}
-        onToggleEditorTheme={() =>
-          setEditorTheme((t) => (t === "dark" ? "light" : "dark"))
-        }
-        onChangeMainFolder={actions.openFolder}
-        onErrorClick={() => {
-          if (docState.firstErrorLine && editorRef.current) {
-            editorRef.current.revealLineInCenter(docState.firstErrorLine);
-            editorRef.current.setPosition({
-              lineNumber: docState.firstErrorLine,
-              column: 1,
-            });
-          }
-        }}
+        workspace={workspace}
+        doc={doc}
+        onChooseWorkspace={() => workspaceApi.chooseWorkspace()}
       />
 
-      {/* Modals */}
-      {modal === "seal" && (
-        <SealModal
-          content={content}
-          onApply={setContent}
-          onClose={() => setModal(null)}
-        />
-      )}
-      {modal === "verify" && (
-        <VerifyModal content={content} onClose={() => setModal(null)} />
-      )}
-      {modal === "history" && (
-        <HistoryModal content={content} onClose={() => setModal(null)} />
-      )}
-      {modal === "amend" && (
-        <AmendModal
-          content={content}
-          onApply={setContent}
-          onClose={() => setModal(null)}
-        />
-      )}
-      {modal === "convert" && (
-        <ConvertModal
-          onApply={(text) => {
-            setContent(text);
-            setModal(null);
-          }}
-          onClose={() => setModal(null)}
-        />
-      )}
-      {modal === "help" && <HelpOverlay onClose={() => setModal(null)} />}
-
-      {showFirstRunGuide && (
-        <FirstRunGuide
-          docs={DEMO_DOCS}
-          mainFolderPath={state.folderPath}
-          onChangeMainFolder={actions.openFolder}
-          onPick={loadDemoDoc}
-          onClose={() => {
-            setShowFirstRunGuide(false);
-            localStorage.setItem("it-desktop-showcase-onboarded", "1");
-          }}
+      {doc && (
+        <TrustDialogs
+          kind={trustDialog}
+          content={doc.content}
+          onApply={(next) => docApi.applyAndSave(next)}
+          onClose={() => setTrustDialog(null)}
         />
       )}
     </div>

@@ -9,13 +9,22 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <title>Dotit</title>
     <style>
+      :root {
+        color-scheme: light dark;
+      }
       html,
       body {
         margin: 0;
         padding: 0;
         height: 100%;
         overflow: hidden;
-        background: #f8fafc;
+        background: #f3f4f6;
+      }
+      @media (prefers-color-scheme: dark) {
+        html,
+        body {
+          background: #1e2024;
+        }
       }
     </style>
   </head>

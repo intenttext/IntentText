@@ -1,0 +1,32 @@
+// Project plan — task:/done:/deadline:/metric: with owners and ISO due dates.
+// Query it: node cli.js examples/project-tasks.it --query "type=task priority=high"
+title: Platform Launch Plan | end: 2026-06-12
+summary: Workstreams, owners, and deadlines for the July platform launch.
+meta: | author: PMO | type: project
+track: doc-1781311819690 | at: 2026-06-13
+track: doc-1781311819225 | at: 2026-06-13
+track: doc-1781311815990 | at: 2026-06-13
+track: doc-1781311743014 | at: 2026-06-13
+section: Milestones
+deadline: Feature freeze | date: 2026-06-20
+deadline: Security review sign-off | date: 2026-06-27
+deadline: Public launch | date: 2026-07-08
+section: Engineering
+task: Finish billing integration | owner: Ahmed | priority: high | due: 2026-06-18
+task: Load-test the API gateway | owner: Lina | priority: high | due: 2026-06-24
+done: Migrate database to v3 schema | time: 2026-06-05
+done: Set up staging environment | time: 2026-05-28
+section: Design and Content
+task: Final landing page copy | owner: Sara | priority: medium | due: 2026-06-22
+task: Onboarding walkthrough screens | owner: Sara | priority: medium | due: 2026-06-30
+ask: Do we localize the onboarding flow for Arabic at launch?
+section: Status
+metric: Sprint velocity | value: 42 points
+metric: Open blockers | value: 1
+info: Payment-provider sandbox outage is blocking billing integration tests. | type: warning
+text: Decision on Arabic onboarding is due at the 2026-06-16 steering meeting.
+text: 
+text: 
+text: Hello
+text: 
+text: 

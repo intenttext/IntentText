@@ -35,10 +35,15 @@ registry; CI fails on drift.
 | `packages/vscode` | VSCode extension: syntax highlighting, snippets, hover. |
 | `apps/editor` | Web editor (the primary human-facing app). Imports `@dotit/core` directly; pure TS, no WASM. |
 
-## Packages — experimental (kept, not part of the supported release)
+## Apps
 
-`apps/hub`, `apps/desktop`, `apps/docs`, `apps/builder`. These build against the same
-core but carry no support or stability promise. See each app's README banner.
+`apps/desktop` (Tauri enterprise document manager), `apps/editor` (web editor),
+`apps/docs` (Docusaurus site + landing), `apps/hub` (Next.js template gallery).
+They build against the same `@dotit/*` packages.
+
+> `apps/builder` was retired (2026-06). Its ERP integration patterns — Express /
+> Fastify handlers, server-PDF issuance, the template-artifact flow — live in
+> `demo/erp-integration/`.
 
 ## Data flow
 

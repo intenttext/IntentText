@@ -1,0 +1,35 @@
+// English invoice — pipe tables, metric: totals, end: two-sided rows,
+// and page:/header:/footer: print chrome. Render: node cli.js examples/invoice.it --print
+
+title: Tax Invoice | end: INV-2026-0114
+summary: Dalil Technology LLC — June platform services invoice for Acme Corporation.
+
+meta: | author: Billing | type: invoice | theme: corporate
+
+page: | size: A4 | margin: 20mm 25mm 25mm 25mm
+header: Dalil Technology LLC — Tax Invoice
+footer: INV-2026-0114 · Page {{page}} of {{pages}}
+
+section: Bill To
+text: **Acme Corporation** | end: Issued 2026-06-12
+text: Pearl Boulevard, Doha, Qatar
+contact: Accounts Payable | email: ap@acme.com | phone: +974 4444 0000
+
+section: Line Items
+| Description | Qty | Unit Price | Total |
+| Platform development — June 2026 | 1 | 12,000 QAR | 12,000 QAR |
+| UX design services | 8 hrs | 450 QAR | 3,600 QAR |
+| Hosting and infrastructure | 1 month | 900 QAR | 900 QAR |
+
+metric: Subtotal | value: 16,500 QAR
+metric: VAT (5%) | value: 825 QAR
+metric: Total Due | value: 17,325 QAR
+
+section: Payment
+text: Bank | end: Qatar National Bank
+text: IBAN | end: QA57QNBA000000000123456789001
+text: Reference | end: INV-2026-0114
+deadline: Payment due | date: 2026-06-26
+info: Late payments are subject to 1.5% monthly interest.
+
+text: Thank you for your business. | align: center

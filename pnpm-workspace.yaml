@@ -9,7 +9,6 @@ packages:
   # Applications (deployed / distributed)
   - 'apps/docs'
   - 'apps/editor'
-  - 'apps/builder'
   - 'apps/desktop'
   - 'apps/hub'
   # Demos (runnable integration examples)

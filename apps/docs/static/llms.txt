@@ -16,7 +16,10 @@ Every non-empty line is: `keyword: content | prop: value | prop: value`
 - Content is everything after `:` up to the first ` | `.
 - Pipe properties are `key: value` pairs separated by ` | `. The `|` character is
   RESERVED as the property delimiter — it cannot appear inside content or values.
-- Blank lines separate blocks visually; they are not significant.
+- Blank lines separate blocks. They ARE significant between consecutive prose
+  (`text:`) lines: without a blank line, adjacent `text:` lines merge into one
+  paragraph and only the FIRST line's pipe properties are kept. Put a blank line
+  between paragraphs that each carry their own properties.
 - `// comment` lines are comments.
 - Unknown keywords NEVER error — they parse as type:"custom" with the keyword
   preserved (`computer: mac | ram: 16GB` is valid and queryable). This means you can
@@ -158,17 +161,20 @@ hash covers exact bytes). Never edit above history: after sealing; use amendment
 
 ## 7. Rendering and PDFs
 
-  renderHTML(doc, { theme })   → complete self-contained HTML document
-  renderPrint(doc, { theme })  → print-ready HTML: @page size/margins, running
-                                 header/footer with page counters, multi-page tables
+  renderHTML(doc, { theme })   → HTML fragment (<div class="intent-document">…)
+  renderPrint(doc, { theme })  → complete print-ready HTML document: @page
+                                 size/margins, running header/footer with page
+                                 counters, multi-page tables
 Browser: print renderPrint output via an iframe → native dialog → PDF (zero deps).
 Server PDFs: npm i @dotit/pdf →
   issuePDF(template, data, { signer }) → { source (sealed .it), hash, at, pdf (bytes) }
 
 ## 8. Query — a folder of .it files is a database
 
-  queryBlocks(doc, "type:task owner:Ahmed sort:due:asc limit:5")
-  CLI: dotit query ./docs "type:invoice status:Unpaid"
+  queryBlocks(doc, "type=task owner=Ahmed sort:due:asc limit:5")
+  CLI: dotit query ./docs "type=invoice status=Unpaid"
+WHERE clauses use `=` (also `<` `>` `<=` `>=` `!=`, date-aware on ISO values);
+SORT uses `sort:field:asc|desc`; paging uses `limit:N` / `offset:N`.
 Folder indexing is shallow, per-folder (.it-index), self-healing on query.
 
 ## 9. Generation rules (follow these exactly)
@@ -190,12 +196,12 @@ Folder indexing is shallow, per-folder (.it-index), self-healing on query.
 
 ## 10. Minimal valid documents
 
-Simplest:                       Agent workflow:
+Simplest:                       Agent workflow (every then:/else: must point at a real id:):
   title: Hello                    title: Onboarding Agent
   text: World.                    step: Validate form | tool: validate | id: s1
-                                  decision: Valid? | then: s2 | else: fail
-Meeting notes:                    gate: Human review | approver: Ops
-  title: Sprint Planning          step: Provision | tool: infra | id: s2
+                                  decision: Valid? | then: s2 | else: s3
+Meeting notes:                    step: Provision | tool: infra | id: s2
+  title: Sprint Planning          step: Notify failure | tool: email | id: s3
   done: OAuth shipped             result: Done | status: success
   task: Index builder | owner: A
   decision: Perf over features | by: Ahmed

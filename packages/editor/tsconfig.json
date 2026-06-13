@@ -7,11 +7,9 @@
     "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
+    "noEmit": true,
     "jsx": "react-jsx",
-    "isolatedModules": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "outDir": "dist"
+    "isolatedModules": true
   },
   "include": ["src"]
 }

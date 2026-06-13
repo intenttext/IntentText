@@ -1,381 +1,230 @@
-import { useState, useCallback, useRef, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
+// useWorkspace — the document library: a user-chosen workspace folder with a
+// live tree of .it files, file operations (create/rename/delete) and recents.
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import {
+  buildTree,
+  deleteFile,
+  flattenItFiles,
+  isTauri,
+  openFolderInfo,
+  renameFile,
+  watchFolder,
+  writeFile,
+} from "../lib/backend";
+import type { TreeNode } from "../lib/backend";
 
-export interface ItFileEntry {
-  name: string;
-  path: string;
-  relativePath: string;
-  isDir: boolean;
-  isFrozen: boolean;
-  hasErrors: boolean;
-  isUnsaved: boolean;
-  depth: number;
-  size: number;
-  modified: number;
-  title?: string;
-  domain?: string;
-  children?: ItFileEntry[];
-}
-
-interface WorkspaceFile {
-  name: string;
-  path: string;
-  relative_path: string;
-  is_dir: boolean;
-  depth: number;
-  size: number;
-  modified: number;
-}
-
-interface WorkspaceInfo {
-  name: string;
-  path: string;
-  files: WorkspaceFile[];
-}
-
-interface IndexEntry {
-  name: string;
-  path: string;
-  title?: string;
-  domain?: string;
-  is_frozen: boolean;
-  keywords: string[];
-  deadlines: DeadlineEntry[];
-}
-
-export interface DeadlineEntry {
-  file: string;
-  relative_path: string;
-  line: number;
-  date: string;
-  label: string;
-}
-
-interface ItIndex {
-  folder: string;
-  files: IndexEntry[];
-}
-
-export interface WorkspaceState {
-  folderPath: string | null;
-  folderName: string | null;
-  files: ItFileEntry[];
-  activeFilePath: string | null;
-  content: string;
-  setContent: (content: string) => void;
-  filename: string;
-  setFilename: (name: string) => void;
-  isUnsaved: boolean;
-  markSaved: () => void;
-  fileHandle: null;
-  setFileHandle: (h: null) => void;
-  deadlines: DeadlineEntry[];
-  indexCache: ItIndex | null;
-  recentFiles: string[];
-}
-
-export interface WorkspaceActions {
-  openFolder: () => Promise<void>;
-  openFileByPath: (path: string) => Promise<void>;
-  refreshFiles: () => Promise<void>;
-  rebuildIndex: () => Promise<void>;
-}
-
-interface VaultInfo {
-  path: string;
-  collection_count: number;
-  document_count: number;
-  updated_at: string;
-  is_new: boolean;
-}
+const LAST_WORKSPACE_KEY = "dotit.workspace.last";
+const RECENT_KEY = "dotit.files.recent";
+const MAX_RECENT = 12;
 
 function loadRecent(): string[] {
   try {
-    const raw = localStorage.getItem("it-desktop-recent");
-    return raw ? JSON.parse(raw) : [];
+    return JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]");
   } catch {
     return [];
   }
 }
 
-function saveRecent(files: string[]) {
-  localStorage.setItem("it-desktop-recent", JSON.stringify(files.slice(0, 20)));
+export interface Workspace {
+  path: string;
+  name: string;
+  tree: TreeNode[];
+  /** Flat list of every .it file (for search + trust badges). */
+  itFiles: TreeNode[];
 }
 
-export function addRecentFile(path: string) {
-  const recent = loadRecent().filter((f) => f !== path);
-  recent.unshift(path);
-  saveRecent(recent);
+export interface WorkspaceApi {
+  workspace: Workspace | null;
+  recentFiles: string[];
+  /** Bumped whenever the tree is refreshed (watcher or file ops). */
+  revision: number;
+  chooseWorkspace: () => Promise<void>;
+  openWorkspacePath: (path: string) => Promise<void>;
+  refresh: () => Promise<void>;
+  createFile: (name: string) => Promise<string | null>;
+  renameEntry: (path: string, newName: string) => Promise<string | null>;
+  deleteEntry: (path: string) => Promise<boolean>;
+  noteRecent: (path: string) => void;
 }
 
-function buildTree(
-  flat: WorkspaceFile[],
-  indexMap: Map<string, IndexEntry>,
-): ItFileEntry[] {
-  return flat.map((f) => {
-    const idx = indexMap.get(f.path);
-    return {
-      name: f.name,
-      path: f.path,
-      relativePath: f.relative_path,
-      isDir: f.is_dir,
-      isFrozen: idx?.is_frozen ?? false,
-      hasErrors: false,
-      isUnsaved: false,
-      depth: f.depth,
-      size: f.size,
-      modified: f.modified,
-      title: idx?.title,
-      domain: idx?.domain,
-    };
-  });
-}
-
-export function useWorkspace(): [WorkspaceState, WorkspaceActions] {
-  const [content, setContentRaw] = useState("");
-  const [filename, setFilename] = useState("untitled.it");
-  const [isUnsaved, setIsUnsaved] = useState(false);
-  const [folderPath, setFolderPath] = useState<string | null>(null);
-  const [folderName, setFolderName] = useState<string | null>(null);
-  const [files, setFiles] = useState<ItFileEntry[]>([]);
-  const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
-  const [deadlines, setDeadlines] = useState<DeadlineEntry[]>([]);
-  const [indexCache, setIndexCache] = useState<ItIndex | null>(null);
+export function useWorkspace(): WorkspaceApi {
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [recentFiles, setRecentFiles] = useState<string[]>(loadRecent);
-  const savedContentRef = useRef("");
+  const [revision, setRevision] = useState(0);
+  const workspaceRef = useRef<Workspace | null>(null);
+  workspaceRef.current = workspace;
 
-  const setContent = useCallback((text: string) => {
-    setContentRaw(text);
-    setIsUnsaved(text !== savedContentRef.current);
+  const openWorkspacePath = useCallback(async (path: string) => {
+    const info = await openFolderInfo(path);
+    const tree = buildTree(info.files);
+    setWorkspace({
+      path: info.path,
+      name: info.name,
+      tree,
+      itFiles: flattenItFiles(tree),
+    });
+    setRevision((r) => r + 1);
+    localStorage.setItem(LAST_WORKSPACE_KEY, info.path);
+    try {
+      await watchFolder(info.path);
+    } catch (err) {
+      console.warn("File watcher unavailable:", err);
+    }
   }, []);
 
-  const markSaved = useCallback(() => {
-    setIsUnsaved(false);
-    setContentRaw((c) => {
-      savedContentRef.current = c;
-      return c;
+  const chooseWorkspace = useCallback(async () => {
+    const selected = await openDialog({
+      directory: true,
+      multiple: false,
+      title: "Choose Workspace Folder",
+    });
+    if (typeof selected === "string") await openWorkspacePath(selected);
+  }, [openWorkspacePath]);
+
+  const refresh = useCallback(async () => {
+    const ws = workspaceRef.current;
+    if (!ws) return;
+    try {
+      const info = await openFolderInfo(ws.path);
+      const tree = buildTree(info.files);
+      setWorkspace({
+        path: info.path,
+        name: info.name,
+        tree,
+        itFiles: flattenItFiles(tree),
+      });
+      setRevision((r) => r + 1);
+    } catch (err) {
+      console.error("Failed to refresh workspace:", err);
+    }
+  }, []);
+
+  // Restore the last workspace on launch.
+  useEffect(() => {
+    if (!isTauri) return;
+    const last = localStorage.getItem(LAST_WORKSPACE_KEY);
+    if (last) {
+      openWorkspacePath(last).catch(() => {
+        localStorage.removeItem(LAST_WORKSPACE_KEY);
+      });
+    }
+  }, [openWorkspacePath]);
+
+  // Live-refresh the tree on filesystem events (debounced).
+  useEffect(() => {
+    if (!isTauri) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const schedule = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => refresh(), 400);
+    };
+    const subs = ["file-created", "file-modified", "file-deleted"].map((ev) =>
+      listen(ev, schedule),
+    );
+    return () => {
+      clearTimeout(timer);
+      subs.forEach((p) => p.then((un) => un()));
+    };
+  }, [refresh]);
+
+  const noteRecent = useCallback((path: string) => {
+    setRecentFiles((prev) => {
+      const next = [path, ...prev.filter((p) => p !== path)].slice(
+        0,
+        MAX_RECENT,
+      );
+      localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+      return next;
     });
   }, []);
 
-  const rebuildIndex = useCallback(async () => {
-    if (!folderPath) return;
-    try {
-      const idx = await invoke<ItIndex>("build_index_recursive", {
-        root: folderPath,
-      });
-      setIndexCache(idx);
-
-      // Collect all deadlines
-      const allDeadlines: DeadlineEntry[] = [];
-      for (const file of idx.files) {
-        allDeadlines.push(...file.deadlines);
-      }
-      setDeadlines(allDeadlines);
-
-      // Update frozen status on file entries
-      const indexMap = new Map(idx.files.map((f) => [f.path, f]));
-      setFiles((prev) =>
-        prev.map((f) => ({
-          ...f,
-          isFrozen: indexMap.get(f.path)?.is_frozen ?? false,
-        })),
-      );
-    } catch (err) {
-      console.error("Failed to build index:", err);
-    }
-  }, [folderPath]);
-
-  const refreshFiles = useCallback(async () => {
-    if (!folderPath) return;
-    try {
-      const info = await invoke<WorkspaceInfo>("open_folder", {
-        path: folderPath,
-      });
-      const indexMap = new Map(
-        (indexCache?.files ?? []).map((f) => [f.path, f]),
-      );
-      setFiles(buildTree(info.files, indexMap));
-    } catch (err) {
-      console.error("Failed to refresh files:", err);
-    }
-  }, [folderPath, indexCache]);
-
-  const openFolder = useCallback(async () => {
-    const selected = await open({ directory: true, multiple: false });
-    if (!selected) return;
-
-    const path = typeof selected === "string" ? selected : selected;
-    const info = await invoke<WorkspaceInfo>("open_folder", { path });
-
-    setFolderPath(path);
-    setFolderName(info.name);
-
-    try {
-      await invoke<VaultInfo>("register_vault_cmd", { path });
-    } catch (err) {
-      console.error("Failed to register vault:", err);
-    }
-
-    // Build index first, then apply to files
-    let indexMap = new Map<string, IndexEntry>();
-    try {
-      const idx = await invoke<ItIndex>("build_index_recursive", {
-        root: path,
-      });
-      setIndexCache(idx);
-      indexMap = new Map(idx.files.map((f) => [f.path, f]));
-
-      const allDeadlines: DeadlineEntry[] = [];
-      for (const file of idx.files) {
-        allDeadlines.push(...file.deadlines);
-      }
-      setDeadlines(allDeadlines);
-    } catch {
-      // Index build failed — continue without it
-    }
-
-    setFiles(buildTree(info.files, indexMap));
-
-    // Start watching
-    try {
-      await invoke("watch_folder", { path });
-    } catch (err) {
-      console.error("Failed to start watcher:", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    const restoreVault = async () => {
+  const createFile = useCallback(
+    async (name: string): Promise<string | null> => {
+      const ws = workspaceRef.current;
+      if (!ws) return null;
+      const clean = name.trim().replace(/\.it$/i, "");
+      if (!clean) return null;
+      const path = `${ws.path}/${clean}.it`;
+      const starter = `title: ${clean}\nsummary: \n\nsection: Overview\nnote: New document.\n`;
       try {
-        const info = await invoke<VaultInfo | null>("app_startup");
-        if (!info?.path) return;
-
-        const folderInfo = await invoke<WorkspaceInfo>("open_folder", {
-          path: info.path,
-        });
-
-        setFolderPath(info.path);
-        setFolderName(folderInfo.name);
-
-        try {
-          const idx = await invoke<ItIndex>("build_index_recursive", {
-            root: info.path,
-          });
-          setIndexCache(idx);
-          const indexMap = new Map(idx.files.map((f) => [f.path, f]));
-          setFiles(buildTree(folderInfo.files, indexMap));
-
-          const allDeadlines: DeadlineEntry[] = [];
-          for (const file of idx.files) {
-            allDeadlines.push(...file.deadlines);
-          }
-          setDeadlines(allDeadlines);
-        } catch {
-          setFiles(buildTree(folderInfo.files, new Map()));
-        }
-
-        await invoke("watch_folder", { path: info.path });
+        await writeFile(path, starter);
+        await refresh();
+        return path;
       } catch (err) {
-        console.error("Failed to restore vault:", err);
-      }
-    };
-
-    restoreVault();
-  }, []);
-
-  const openFileByPath = useCallback(
-    async (path: string) => {
-      // Prompt save if unsaved
-      if (isUnsaved) {
-        const ok = confirm("You have unsaved changes. Continue?");
-        if (!ok) return;
-      }
-
-      try {
-        const text = await invoke<string>("read_file", { path });
-        setContentRaw(text);
-        savedContentRef.current = text;
-        setIsUnsaved(false);
-
-        const name = path.split("/").pop() ?? path.split("\\").pop() ?? path;
-        setFilename(name);
-        setActiveFilePath(path);
-
-        addRecentFile(path);
-        setRecentFiles(loadRecent());
-      } catch (err) {
-        console.error("Failed to open file:", err);
+        console.error("Failed to create file:", err);
+        return null;
       }
     },
-    [isUnsaved],
+    [refresh],
   );
 
-  // Listen for file system events
-  useEffect(() => {
-    const unlisteners: Promise<() => void>[] = [];
+  const renameEntry = useCallback(
+    async (path: string, newName: string): Promise<string | null> => {
+      const clean = newName.trim();
+      if (!clean) return null;
+      const dir = path.slice(0, Math.max(path.lastIndexOf("/"), 0));
+      const finalName =
+        path.endsWith(".it") && !clean.endsWith(".it") ? `${clean}.it` : clean;
+      const to = `${dir}/${finalName}`;
+      if (to === path) return path;
+      try {
+        await renameFile(path, to);
+        await refresh();
+        return to;
+      } catch (err) {
+        console.error("Failed to rename:", err);
+        return null;
+      }
+    },
+    [refresh],
+  );
 
-    unlisteners.push(
-      listen("file-created", () => {
-        refreshFiles();
-        rebuildIndex();
-      }),
-    );
-    unlisteners.push(
-      listen("file-modified", (event: { payload: { paths: string[] } }) => {
-        // Don't refresh if the modified file is the current one (we have latest)
-        const modifiedPaths = event.payload.paths;
-        if (activeFilePath && modifiedPaths.includes(activeFilePath)) {
-          // External modification — could prompt user
-        }
-        refreshFiles();
-        rebuildIndex();
-      }),
-    );
-    unlisteners.push(
-      listen("file-deleted", () => {
-        refreshFiles();
-        rebuildIndex();
-      }),
-    );
+  const deleteEntry = useCallback(
+    async (path: string): Promise<boolean> => {
+      try {
+        await deleteFile(path);
+        setRecentFiles((prev) => {
+          const next = prev.filter((p) => p !== path);
+          localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+          return next;
+        });
+        await refresh();
+        return true;
+      } catch (err) {
+        console.error("Failed to delete:", err);
+        return false;
+      }
+    },
+    [refresh],
+  );
 
-    // Handle file association — file opened from Finder
-    unlisteners.push(
-      listen<string>("open-file", (event) => {
-        openFileByPath(event.payload);
-      }),
-    );
-
-    return () => {
-      unlisteners.forEach((p) => p.then((f) => f()));
-    };
-  }, [refreshFiles, rebuildIndex, activeFilePath, openFileByPath]);
-
-  const state: WorkspaceState = {
-    folderPath,
-    folderName,
-    files,
-    activeFilePath,
-    content,
-    setContent,
-    filename,
-    setFilename,
-    isUnsaved,
-    markSaved,
-    fileHandle: null,
-    setFileHandle: () => {},
-    deadlines,
-    indexCache,
-    recentFiles,
-  };
-
-  const actions: WorkspaceActions = {
-    openFolder,
-    openFileByPath,
-    refreshFiles,
-    rebuildIndex,
-  };
-
-  return [state, actions];
+  return useMemo(
+    () => ({
+      workspace,
+      recentFiles,
+      revision,
+      chooseWorkspace,
+      openWorkspacePath,
+      refresh,
+      createFile,
+      renameEntry,
+      deleteEntry,
+      noteRecent,
+    }),
+    [
+      workspace,
+      recentFiles,
+      revision,
+      chooseWorkspace,
+      openWorkspacePath,
+      refresh,
+      createFile,
+      renameEntry,
+      deleteEntry,
+      noteRecent,
+    ],
+  );
 }

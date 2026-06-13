@@ -7,7 +7,6 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .setup(|app| {
             if cfg!(debug_assertions) {
@@ -48,15 +47,6 @@ pub fn run() {
             commands::workspace::open_folder,
             commands::workspace::watch_folder,
             commands::workspace::unwatch_folder,
-            commands::vault::app_startup,
-            commands::vault::register_vault_cmd,
-            commands::vault::open_vault_cmd,
-            commands::vault::vault_info_cmd,
-            commands::vault::search_vault_cmd,
-            commands::vault::search_vault_folder_cmd,
-            commands::index::build_index,
-            commands::index::build_index_recursive,
-            commands::index::read_index,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

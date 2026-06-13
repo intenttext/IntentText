@@ -1,0 +1,30 @@
+// Styling without CSS — document-wide style: rules, Word-parity paragraph
+// spacing, inline [text]{ … } spans, and a print watermark.
+// Render: node cli.js examples/styling-demo.it --print
+
+title: House Style Demo
+summary: style: rules, leading and space-before/space-after, inline spans, watermark.
+
+meta: | theme: corporate
+
+page: | size: A4 | margin: 20mm
+watermark: DRAFT | opacity: 0.08
+
+style: section | color: #0a7466 | weight: 600
+style: text | leading: 1.7
+style: quote | color: #555555
+
+section: Style Rules
+text: Every section heading in this document is teal and semi-bold, and every paragraph uses 1.7 line spacing — declared once with style: rules, not repeated per line.
+
+section: Inline Spans
+text: Revenue grew [18%]{ color: #0a7466; weight: bold } quarter over quarter, while churn fell to [1.2%]{ color: #b3261e }.
+text: Spans take ;-separated constrained style keys inside the braces — never raw CSS, so content stays queryable.
+
+section: Paragraph Spacing
+text: This paragraph carries extra room before and after it — the Word-parity spacing controls. | space-before: 18px | space-after: 24px
+text: And this one is back to the document default right after.
+
+section: Marks
+text: Classic marks still work alongside spans: **bold**, _italic_, `code`, and ~struck~.
+quote: Make the common case effortless and the precise case possible. | by: IntentText design notes
