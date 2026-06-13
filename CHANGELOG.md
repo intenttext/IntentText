@@ -6,6 +6,38 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-06-13
+
+### Added
+
+- **Lossless text ↔ JSON interchange.** `.it` text and its JSON model
+  (`IntentDocument`) are now losslessly interchangeable: `parseIntentText` and
+  `documentToSource` are inverses at the information level. `documentToSource`
+  is **idempotent** (one pass canonicalizes; further passes are no-ops), the
+  canonical text round-trips **exactly** (`parseIntentText(documentToSource(doc))`
+  deep-equals `doc`, excluding the volatile sequential `id`), and **no
+  information is dropped** — every block, pipe property, block-level
+  dir/align/style, table, list, trust line, and `meta:`/`track:` line survives a
+  round-trip. Comments and blank-line layout are preserved verbatim. New
+  `tests/lossless-roundtrip.test.ts` gates all three properties over every
+  `examples/*.it` plus a 3000-document generated corpus. See SPEC §5.1.
+  Byte-preservation of *arbitrary* author formatting is **not** guaranteed — the
+  first serialize pass canonicalizes representation (markdown tables → keyword
+  tables, bare prose → `text:`); the guarantee is canonical-form + information
+  losslessness.
+
+### Fixed
+
+- **Adjacent prose merge no longer loses content or properties on serialize.**
+  Two `text:` blocks (whether blank-separated or consecutive) round-trip as
+  distinct lines with all their properties intact, instead of collapsing into
+  one block. This also fixed a **seal-breaking** bug: serializing a sealed
+  document dropped blank lines and merged prose, changing the bytes
+  `computeDocumentHash` sees — a sealed/signed document now still verifies after
+  a `documentToSource(parseIntentText(...))` round-trip.
+- **`meta:` and `track:` lines lifted into document metadata are now re-emitted**
+  by `documentToSource` in their original position (previously dropped).
+
 ## [1.2.4] — 2026-06-13
 
 ### Added

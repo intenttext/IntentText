@@ -1237,6 +1237,7 @@ export function parseIntentText(
   let codeContent: string[] = [];
   let codeStartLine = 0;
   let pendingCodeProperties: Record<string, string | number> | null = null;
+  let pendingCodeLead: string | undefined;
 
   // v2.8: Detect history boundary and split lines
   const historyBoundaryIdx = detectHistoryBoundary(lines);
@@ -1318,9 +1319,48 @@ export function parseIntentText(
     /** Keywords as written (e.g. أعمدة/صف) — preserved on serialize. */
     headersKeyword?: string;
     rowKeyword?: string;
+    /** Verbatim trivia before the table's first line (lossless round-trip). */
+    lead?: string;
   } | null = null;
 
   let previousLineWasBlank = false;
+
+  // Lossless round-trip: accumulate verbatim trivia (blank + comment lines) so
+  // documentToSource can re-emit it. Without this the canonical text — and the
+  // bytes computeDocumentHash sees — would drift, breaking sealed documents and
+  // merging blank-separated prose blocks on re-parse.
+  let pendingTrivia: string[] = [];
+  function takeTrivia(): string | undefined {
+    if (pendingTrivia.length === 0) return undefined;
+    const text = pendingTrivia.join("\n");
+    pendingTrivia = [];
+    return text;
+  }
+  // Lifted-metadata lines (meta:/track: before a section, etc.) are not emitted
+  // as blocks; record them verbatim with their position so they round-trip.
+  const liftedLines: import("./types").LiftedSourceLine[] = [];
+  function recordLifted(text: string): void {
+    liftedLines.push({
+      text,
+      // undefined = no preceding trivia; "" = exactly one blank line.
+      lead: pendingTrivia.length === 0 ? undefined : pendingTrivia.join("\n"),
+      afterBlockIndex: blocks.length - 1,
+    });
+    pendingTrivia = [];
+  }
+
+  // Snapshot a prose block as a self-contained merge part (no trivia/children).
+  function stripParts(b: IntentBlock): IntentBlock {
+    return {
+      id: b.id,
+      type: b.type,
+      content: b.content,
+      ...(b.originalContent != null && { originalContent: b.originalContent }),
+      ...(b.keywordAlias != null && { keywordAlias: b.keywordAlias }),
+      ...(b.properties && { properties: b.properties }),
+      ...(b.inline && { inline: b.inline }),
+    };
+  }
 
   function appendBlockWithProseMerge(
     target: IntentBlock[],
@@ -1329,12 +1369,22 @@ export function parseIntentText(
     const last = target[target.length - 1];
     if (
       !previousLineWasBlank &&
+      // Don't merge across trivia (e.g. a `// comment` line between two prose
+      // lines) — that would silently drop the comment and break round-trip.
+      !block._lead &&
       last &&
       (last.type === "text" || last.type === "body-text") &&
       (block.type === "text" || block.type === "body-text")
     ) {
       const mergedOriginal = `${last.originalContent || last.content} ${block.originalContent || block.content}`;
       const parsed = parseInline(mergedOriginal);
+      // Lossless round-trip: record each consecutive prose line as a distinct
+      // part so documentToSource re-emits them on their own lines (the form the
+      // hash was computed over). Without this, two prose lines collapse to one
+      // line on serialize and the document hash — and any seal — would break.
+      // Re-parsing the re-split lines reproduces the same merged block + parts.
+      const lastParts = last._merged ?? [stripParts(last)];
+      last._merged = [...lastParts, stripParts(block)];
       last.originalContent = mergedOriginal;
       last.content = parsed.content;
       last.inline = parsed.inline;
@@ -1364,6 +1414,7 @@ export function parseIntentText(
       id: nextId(),
       type: "table",
       content: pendingTable.originalHeaders || "",
+      _lead: pendingTable.lead,
       table: {
         headers: pendingTable.headers,
         rows: pendingTable.rows,
@@ -1415,7 +1466,9 @@ export function parseIntentText(
           ...(pendingCodeProperties
             ? { properties: pendingCodeProperties }
             : {}),
+          _lead: pendingCodeLead,
         };
+        pendingCodeLead = undefined;
         if (currentSection && currentSection.children) {
           currentSection.children.push(codeBlock);
         } else {
@@ -1433,11 +1486,16 @@ export function parseIntentText(
       continue;
     }
 
-    // Comment lines (// ...) are silently ignored
-    if (trimmed.startsWith("//")) continue;
+    // Comment lines (// ...) — preserved verbatim as trivia for lossless
+    // round-trip (they are part of the bytes computeDocumentHash sees).
+    if (trimmed.startsWith("//")) {
+      pendingTrivia.push(line);
+      continue;
+    }
 
     if (!trimmed) {
       previousLineWasBlank = true;
+      pendingTrivia.push(line);
       continue;
     }
 
@@ -1460,6 +1518,7 @@ export function parseIntentText(
       if (fenceLang) {
         pendingCodeProperties = { lang: fenceLang };
       }
+      pendingCodeLead = takeTrivia();
       codeCaptureMode = true;
       codeCaptureType = "fence";
       codeStartLine = i + 1;
@@ -1473,6 +1532,7 @@ export function parseIntentText(
         id: nextId(),
         type: "divider",
         content: "",
+        _lead: takeTrivia(),
       };
       if (currentSection && currentSection.children) {
         currentSection.children.push(dividerBlock);
@@ -1514,6 +1574,7 @@ export function parseIntentText(
             type: "code",
             content: codeValue,
             ...(Object.keys(props).length > 0 ? { properties: props } : {}),
+            _lead: takeTrivia(),
           };
           if (currentSection && currentSection.children) {
             currentSection.children.push(codeBlock);
@@ -1527,6 +1588,7 @@ export function parseIntentText(
           if (afterOpen.trim()) {
             codeContent.push(afterOpen);
           }
+          pendingCodeLead = takeTrivia();
           codeCaptureMode = true;
           codeCaptureType = "fence";
           codeStartLine = i + 1;
@@ -1562,6 +1624,7 @@ export function parseIntentText(
 
           // Enter fence capture mode with properties from code: line
           pendingCodeProperties = Object.keys(props).length > 0 ? props : null;
+          pendingCodeLead = takeTrivia();
           codeCaptureMode = true;
           codeCaptureType = "fence";
           codeStartLine = i + 1;
@@ -1576,6 +1639,7 @@ export function parseIntentText(
         id: nextId(),
         type: "code",
         content: afterCode,
+        _lead: takeTrivia(),
       };
       if (currentSection && currentSection.children) {
         currentSection.children.push(codeBlock);
@@ -1617,6 +1681,7 @@ export function parseIntentText(
             rows: [],
             originalHeaders: trimmed,
             headerLine: i + 1,
+            lead: takeTrivia(),
           };
         } else {
           // Subsequent rows are data rows
@@ -1638,6 +1703,7 @@ export function parseIntentText(
         originalHeaders: block.originalContent || block.content,
         headerLine: i + 1,
         headersKeyword: block.keywordAlias,
+        lead: takeTrivia(),
       };
       previousLineWasBlank = false;
       continue;
@@ -1678,7 +1744,9 @@ export function parseIntentText(
         for (const [k, v] of Object.entries(metaProps)) {
           metaAccumulator[k] = String(v);
         }
-        // Don't emit meta: as a visible block — metadata only
+        // Don't emit meta: as a visible block — metadata only. Record verbatim
+        // so documentToSource can re-emit it in place (lossless round-trip).
+        recordLifted(line);
         continue;
       }
       // After a section: fall through to normal block handling
@@ -1703,6 +1771,7 @@ export function parseIntentText(
       } else if (block.type === ("model" as BlockType) || xType === "model") {
         agenticMetadata.model = block.content;
       }
+      recordLifted(line);
       continue;
     }
 
@@ -1725,7 +1794,9 @@ export function parseIntentText(
         by: block.properties?.by ? String(block.properties.by) : "",
         active: true,
       };
-      // Don't emit track: as a visible block — it's metadata
+      // Don't emit track: as a visible block — it's metadata. Record verbatim
+      // for lossless round-trip.
+      recordLifted(line);
       continue;
     }
 
@@ -1769,6 +1840,10 @@ export function parseIntentText(
         block.properties.id = `step-${stepAutoIdCounter}`;
       }
     }
+
+    // Lossless round-trip: attach accumulated trivia (blank/comment lines) that
+    // preceded this block so documentToSource re-emits them verbatim.
+    block._lead = takeTrivia();
 
     // Handle section hierarchy (section -> sub -> sub2, max 3 levels)
     if (block.type === "section") {
@@ -1847,8 +1922,10 @@ export function parseIntentText(
       type: "code",
       content: codeContent.join("\n"),
       ...(pendingCodeProperties ? { properties: pendingCodeProperties } : {}),
+      _lead: pendingCodeLead,
     };
     pendingCodeProperties = null;
+    pendingCodeLead = undefined;
 
     if (currentSection && currentSection.children) {
       currentSection.children.push(codeBlock);
@@ -1936,6 +2013,8 @@ export function parseIntentText(
     metadata,
     diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
     ...(historySection != null && { history: historySection }),
+    ...(liftedLines.length > 0 && { _liftedLines: liftedLines }),
+    ...(pendingTrivia.length > 0 && { _trailing: pendingTrivia.join("\n") }),
   };
 
   // Extension validations

@@ -85,9 +85,27 @@ const HEADER_TYPES = new Set([
 export function documentToSource(doc: IntentDocument): string {
   if (!doc || !Array.isArray(doc.blocks)) return "";
 
+  // Lossless mode: the document carries the verbatim source trivia captured by
+  // parseIntentText (`_lead` on blocks, `_liftedLines`, `_trailing`). Reproduce
+  // the exact line/blank-line layout so the canonical text round-trips and the
+  // bytes computeDocumentHash sees are unchanged (sealed documents keep their
+  // hash). Re-parsing the output reproduces the same trivia, so this is also
+  // idempotent.
+  const hasTrivia =
+    (doc._liftedLines && doc._liftedLines.length > 0) ||
+    doc._trailing != null ||
+    blocksHaveLead(doc.blocks);
+
+  if (hasTrivia) {
+    return serializeLossless(doc);
+  }
+
+  // Legacy / synthetic mode: documents built without the trivia fields (e.g. by
+  // the visual editor, or hand-constructed JSON). Emit a deterministic canonical
+  // form: header blocks first, then content, with a blank line separating
+  // consecutive prose blocks so two distinct `text:` blocks never re-merge.
   const lines: string[] = [];
 
-  // Separate header blocks from content blocks
   const headerBlocks: IntentBlock[] = [];
   const contentBlocks: IntentBlock[] = [];
 
@@ -118,21 +136,84 @@ export function documentToSource(doc: IntentDocument): string {
     }
   }
 
+  // Reconstruct `meta:` lifted into metadata when no meta block is present —
+  // otherwise meta-only documents would silently drop their metadata.
+  if (
+    !headerBlocks.some((b) => b.type === "meta") &&
+    doc.metadata?.meta &&
+    Object.keys(doc.metadata.meta).length > 0
+  ) {
+    const metaProps = Object.entries(doc.metadata.meta)
+      .map(([k, v]) => `${k}: ${escapeIntentText(String(v))}`)
+      .join(" | ");
+    lines.push(`meta: | ${metaProps}`);
+  }
+
   // Blank line after headers if any were emitted
-  if (headerBlocks.length > 0 && contentBlocks.length > 0) {
+  if (lines.length > 0 && contentBlocks.length > 0) {
     lines.push("");
   }
 
-  // Emit content blocks
+  // Emit content blocks, inserting a blank line between consecutive prose
+  // (text/body-text) blocks so they re-parse as distinct blocks instead of
+  // merging.
+  let prevWasProse = false;
   for (const block of contentBlocks) {
+    const isProse = block.type === "text" || block.type === "body-text";
+    if (prevWasProse && isProse) lines.push("");
     emitBlock(block, lines);
+    prevWasProse = isProse;
   }
+
+  return lines.join("\n");
+}
+
+/** True if any block in the tree carries captured trivia or merge parts. */
+function blocksHaveLead(blocks: IntentBlock[]): boolean {
+  for (const b of blocks) {
+    if (b._lead != null || (b._merged && b._merged.length > 0)) return true;
+    if (b.children && b.children.length > 0 && blocksHaveLead(b.children))
+      return true;
+  }
+  return false;
+}
+
+/**
+ * Lossless serialization: walk top-level blocks in source order, emitting each
+ * block's captured leading trivia, then the block (and its children), then any
+ * lifted-metadata lines (meta:/track:) anchored after that block. Finally emit
+ * the trailing trivia. Reproduces the exact canonical source bytes.
+ */
+function serializeLossless(doc: IntentDocument): string {
+  const lines: string[] = [];
+  const lifted = doc._liftedLines ?? [];
+
+  const emitLifted = (afterIndex: number) => {
+    for (const l of lifted) {
+      if (l.afterBlockIndex === afterIndex) {
+        // `lead === ""` means exactly one blank line — push it (it's not null).
+        if (l.lead != null) lines.push(l.lead);
+        lines.push(l.text);
+      }
+    }
+  };
+
+  // Lifted lines that precede every block (afterBlockIndex === -1).
+  emitLifted(-1);
+
+  for (let i = 0; i < doc.blocks.length; i++) {
+    emitBlock(doc.blocks[i], lines);
+    emitLifted(i);
+  }
+
+  if (doc._trailing != null) lines.push(doc._trailing);
 
   return lines.join("\n");
 }
 
 /**
  * Emit a block and, for container blocks, its children as following lines.
+ * Prepends the block's captured leading trivia (`_lead`) verbatim.
  *
  * `list-item` / `step-item` are bullets: their single child carries the real
  * block (e.g. a `task`), and serializeBlock renders it inline (`- task: ...`),
@@ -140,6 +221,14 @@ export function documentToSource(doc: IntentDocument): string {
  * (sections, etc.) emit children as following lines, recursively.
  */
 function emitBlock(block: IntentBlock, lines: string[]): void {
+  // `_lead === ""` means exactly one blank line — push it (it's not null).
+  if (block._lead != null) lines.push(block._lead);
+  // Re-split a merged prose paragraph back into its original per-line blocks so
+  // the canonical text (and hashed bytes) round-trip exactly.
+  if (block._merged && block._merged.length > 0) {
+    for (const part of block._merged) lines.push(serializeBlock(part));
+    return;
+  }
   lines.push(serializeBlock(block));
   if (
     block.children &&

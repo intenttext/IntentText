@@ -168,6 +168,14 @@ Determinism notes for re-implementers:
   `documentToSource()` produces canonical text; editing in the visual editor preserves
   trust lines verbatim (see the editor's `itTrust` node) so a save does not perturb the
   hash.
+- **A serialize round-trip preserves the hashed bytes.** `documentToSource(parseIntentText(src))`
+  reproduces the canonical body byte-for-byte for a document already in canonical form
+  (which a sealed document is — it was hashed over its canonical text), so a sealed or
+  signed document **still verifies** after a parse → serialize round-trip. This is the
+  reason the parser captures comments, blank lines, and prose-merge boundaries as trivia
+  (see §5.1): without it, re-serialization would drop blank lines and collapse adjacent
+  prose, changing the bytes the hash sees and breaking the seal. Seal a document *after*
+  canonicalizing it (the editor and `documentToSource` both emit canonical text).
 - `approve:` lines are **not** stripped — an approval is part of the body it approves and
   is included in the hash.
 
@@ -186,6 +194,35 @@ at end of file) a `sign:` line — `sign: <signer> | role: <role> | at: <ISO8601
 - **One implementation.** The TypeScript core is canonical (see
   [`ARCHITECTURE.md`](../../ARCHITECTURE.md)). No other language re-implements the
   grammar.
+
+### 5.1 Lossless text ↔ JSON interchange
+
+`.it` **text** and its parsed **JSON model** (`IntentDocument`) are **losslessly
+interchangeable**: `parseIntentText` (text → JSON) and `documentToSource` (JSON → text)
+are inverses at the information level. Concretely:
+
+- **`documentToSource` is idempotent.** For any valid `.it` text `t`, one serialize pass
+  canonicalizes and every further pass is a no-op:
+  `documentToSource(parseIntentText(documentToSource(parseIntentText(t))))` equals
+  `documentToSource(parseIntentText(t))`.
+- **Canonical text round-trips exactly.** For a canonical document `doc`,
+  `parseIntentText(documentToSource(doc))` deep-equals `doc`. The only field excluded
+  from this equality is the **`id`** — block ids are sequential (`b-1`, `b-2`, …) and
+  regenerated on every parse, so they are volatile by design.
+- **No information loss.** Every block, every pipe property and value, every block-level
+  `dir`/`align`/style, tables, lists, trust lines (`approve:`/`sign:`/`freeze:`/
+  `certify:`/`amendment:`), and `meta:`/`track:` lines survive a round-trip — nothing is
+  dropped or merged away. Comment lines and blank-line layout are preserved verbatim
+  (the parser captures them as trivia: `_lead` on blocks, `_liftedLines`/`_trailing` on
+  the document; two consecutive prose lines that merge into one paragraph block keep
+  their original per-line form in `_merged` so they re-emit unchanged).
+
+**What is *not* guaranteed:** byte-preservation of *arbitrary* author formatting. The
+**first** serialize pass may normalize representation — a markdown `| a | b |` table
+becomes the canonical `headers:`/`row:` form, and bare prose gains its implicit `text:`
+prefix. After that single canonicalizing pass, text ↔ JSON round-trip exactly (byte-for-
+byte for text, deep-equal for JSON). The guarantee is **canonical-form + information
+losslessness**, not preservation of every incidental keystroke.
 
 ## 6. Indexing & folder query
 

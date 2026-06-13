@@ -17,6 +17,16 @@ export interface IntentBlock {
   originalContent?: string; // original text with formatting marks
   properties?: Record<string, string | number>; // pipe metadata: owner, due, time, at, to, caption, title, ...
   inline?: InlineNode[];
+  /** Lossless round-trip: verbatim trivia (blank + comment lines) that
+   *  immediately preceded this block in source. Re-emitted by documentToSource
+   *  so the canonical text — and the bytes computeDocumentHash sees — round-trip
+   *  exactly. Deterministic, so it participates in JSON deep-equality. */
+  _lead?: string;
+  /** Lossless round-trip: when consecutive prose lines are merged into one
+   *  paragraph block, the original per-line blocks, so documentToSource can
+   *  re-emit them on separate lines (the form the hash was computed over).
+   *  Re-parsing the re-split lines reproduces the same merged block + parts. */
+  _merged?: IntentBlock[];
   children?: IntentBlock[]; // nested blocks (e.g. list-items inside a section)
   table?: {
     headers?: string[];
@@ -306,6 +316,27 @@ export interface IntentDocument {
   diagnostics?: Diagnostic[];
   /** v2.8: History section data, only populated when includeHistorySection is true. */
   history?: HistorySection;
+  /** Lossless round-trip: verbatim source lines that the parser lifts into
+   *  document metadata instead of emitting as blocks (e.g. `meta:`/`track:`
+   *  lines before the first section). Each carries its leading trivia and the
+   *  index of the top-level block it followed, so documentToSource can re-emit
+   *  them in their original position. Deterministic; participates in equality. */
+  _liftedLines?: LiftedSourceLine[];
+  /** Lossless round-trip: trailing trivia (blank/comment lines) after the last
+   *  emitted line in source, so the canonical text round-trips exactly. */
+  _trailing?: string;
+}
+
+/** A source line lifted into metadata, recorded verbatim for lossless re-emission. */
+export interface LiftedSourceLine {
+  /** Verbatim source line (e.g. `meta: | author: Legal | type: contract`). */
+  text: string;
+  /** Verbatim trivia (blank/comment lines) immediately before this line.
+   *  undefined = none; "" = exactly one blank line. */
+  lead?: string;
+  /** Index in doc.blocks of the top-level block this line followed (-1 = before
+   *  any block). The serializer emits the line right after that block. */
+  afterBlockIndex: number;
 }
 
 /** v2.8: Parsed history section below the history boundary. */
