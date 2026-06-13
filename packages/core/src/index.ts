@@ -118,6 +118,20 @@ export {
   verifyStorageRecord,
 } from "./storage";
 export type { StoredDocument } from "./storage";
+export {
+  renderSeal,
+  sealForDocument,
+  detectTrustState,
+  contentHashOf,
+  TIER_STYLES,
+} from "./seal";
+export type {
+  TrustTier,
+  TierStyle,
+  TrustState,
+  SealRenderOptions,
+  DocumentSeal,
+} from "./seal";
 export type {
   SealOptions,
   SealResult,

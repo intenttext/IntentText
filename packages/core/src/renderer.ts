@@ -1,9 +1,17 @@
 import { IntentBlock, IntentDocument, InlineNode, PrintLayout } from "./types";
 import { DOCUMENT_CSS } from "./document-css";import { IntentTheme, getBuiltinTheme, generateThemeCSS } from "./theme";
+import { sealForDocument, type TrustTier } from "./seal";
+import { documentToSource } from "./source";
 
 export interface RenderOptions {
   /** Theme name (built-in) or IntentTheme object */
   theme?: string | IntentTheme;
+  /**
+   * Stamp the Hash-Based Ambient Seal in the top-right corner of the first page.
+   * `true` auto-detects the tier (and colour) from the document's trust lines;
+   * pass an object to force a verified tier or set the size (pt). Default off.
+   */
+  seal?: boolean | { tier?: TrustTier; size?: number };
 }
 
 function resolveThemeSync(ref: string | IntentTheme | undefined): IntentTheme {
@@ -1643,6 +1651,20 @@ export function renderPrint(
 @media print{.it-print-minimal *{background-color:transparent !important;color:black !important;}.it-print-minimal strong,.it-print-minimal b{font-weight:bold;color:black !important;}.it-print-minimal em,.it-print-minimal i{font-style:italic;color:black !important;}.it-print-minimal .it-border{border:1px solid black !important;}}`
       : "";
 
+  // Trust seal — opt-in stamp in the top-right corner of the first page.
+  let sealHtml = "";
+  let sealCSS = "";
+  if (options?.seal) {
+    const sealOpts = typeof options.seal === "object" ? options.seal : {};
+    const sz = sealOpts.size ?? 84;
+    const { svg } = sealForDocument(documentToSource(doc), {
+      tier: sealOpts.tier,
+      size: sz,
+    });
+    sealHtml = `<div class="it-trust-seal">${svg}</div>`;
+    sealCSS = `body.it-print .it-trust-seal{float:right;width:${sz}pt;height:${sz}pt;margin:0 0 8pt 14pt;}body.it-print .it-trust-seal svg{width:100%;height:100%;display:block;}`;
+  }
+
   return `<!DOCTYPE html><html ${direction}><head><meta charset="utf-8"><style>
 ${dynamicCSS}
 ${DOCUMENT_CSS}
@@ -1655,6 +1677,7 @@ ${headerFooterCSS}
 ${backwardCompatCSS}
 ${breakCSS}
 ${minimalInkCSS}
+${sealCSS}
 @page{counter-increment:page;}
 @media print{body{margin:0;}.it-page-break{page-break-after:always;}.it-no-print{display:none;}a{text-decoration:none;color:inherit;}}
 body.it-print{color:#000;background:#fff;}
@@ -1709,5 +1732,5 @@ body.it-print .it-signline-rule{border-bottom:1pt solid #000;margin-bottom:4pt;}
 body.it-print .it-contact{border:none;padding:0;margin:0.3em 0;}
 body.it-print .it-deadline{border-inline-start:3pt solid #000;padding-inline-start:8pt;margin:0.5em 0;}
 body.it-print .it-deadline-date{font-weight:bold;text-decoration:underline;}
-</style></head><body class="${bodyClass}"><div class="intent-document">${watermarkHtml}${html}</div></body></html>`;
+</style></head><body class="${bodyClass}"><div class="intent-document">${watermarkHtml}${sealHtml}${html}</div></body></html>`;
 }

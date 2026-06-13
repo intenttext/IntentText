@@ -8,6 +8,19 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- **Hash-Based Ambient Seal — a generative trust stamp (`@dotit/core` 1.6.0).**
+  `renderSeal({ hash, tier })` turns a document's SHA-256 hash into a notary-style
+  ring whose radial "crown" is derived deterministically from the hash — same
+  document → byte-identical seal; any change → a completely different crown, so
+  tamper-evidence becomes visible at a glance. Tinted by trust tier:
+  gray = draft, blue = signed/sealed, green = certified, gold = root-certified
+  (with a ★). `detectTrustState(source)` reads the claimed tier from the trust
+  lines; `sealForDocument(source)` is the one-call detect-hash-render helper.
+  `renderPrint(doc, { seal: true })` stamps it in the top-right corner of the
+  first page (auto-detects tier, or pass a verified tier). Pure-string SVG, no DOM
+  — usable in the renderer/print/PDF, editor banner, desktop badge, and verify
+  portal. 14 tests.
+
 - **Root → intermediate key hierarchy for UTS certification (`@dotit/sign` 1.3.0).**
   Certifications can now chain to an OFFLINE root key. `issueIntermediate()` (run
   offline on the air-gapped root machine) signs a compact intermediate certificate
