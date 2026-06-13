@@ -5,7 +5,7 @@
 #   - uts-certify:  the Node/Express service; signs UTS certifications.
 #
 # Secrets come from a local .env file (see .env.example) — NEVER commit real
-# values. Generate them with the commands in .env.example / DEPLOYMENT.md.
+# values. Generate them with the commands in .env.example.
 #
 #   cp .env.example .env       # then fill in UTS_KEK, UTS_ADMIN_TOKEN, ...
 #   docker compose up --build

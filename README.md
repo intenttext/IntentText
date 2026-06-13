@@ -299,7 +299,6 @@ the single canonical implementation of the grammar (see
 - **Docs** — guide, reference, cookbook: [dotit.uts.qa](https://dotit.uts.qa)
 - **Spec** — the canonical grammar: [packages/core/SPEC.md](packages/core/SPEC.md)
 - **Changelog** — [CHANGELOG.md](CHANGELOG.md)
-- **Roadmap** — [ROADMAP.md](ROADMAP.md)
 - **For LLMs** — [dotit.uts.qa/llms.txt](https://dotit.uts.qa/llms.txt)
 
 ## Status

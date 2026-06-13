@@ -25,7 +25,7 @@ The format is based on Keep a Changelog.
   (`trustAnchor: "root"`), provisions the ICA via `GET /admin/intermediate-pubkey` +
   `POST /admin/intermediate-cert`, and ships an offline `root-ca` CLI
   (`root:init` / `root:issue` / `root:pubkey`, root key encrypted at rest with
-  `UTS_ROOT_PASSPHRASE`). Provisioning runbook in `DEPLOYMENT.md`.
+  `UTS_ROOT_PASSPHRASE`). Provisioning runbook in the internal deployment docs.
 
 - **XLSX and DOCX converters (both directions) in `@dotit/core`.** Four new
   pure-JS functions convert between IntentText and Office documents:
