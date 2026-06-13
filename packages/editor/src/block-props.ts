@@ -22,7 +22,12 @@ import { mergeAttributes } from "@tiptap/core";
 import type { Editor } from "@tiptap/core";
 
 /** Core property keys managed by the paragraph-level commands. */
-export type BlockPropKey = "leading" | "space-before" | "space-after" | "end";
+export type BlockPropKey =
+  | "leading"
+  | "space-before"
+  | "space-after"
+  | "end"
+  | "dir";
 
 /** Core property key → paragraph attribute name. */
 const PARA_ATTR: Record<BlockPropKey, string> = {
@@ -30,6 +35,7 @@ const PARA_ATTR: Record<BlockPropKey, string> = {
   "space-before": "spaceBefore",
   "space-after": "spaceAfter",
   end: "end",
+  dir: "dir",
 };
 
 // Node types that keep ALL their line properties in a JSON `props` attribute
@@ -56,9 +62,24 @@ function safeParseProps(val: unknown): Record<string, string> {
   }
 }
 
+// Per-block `dir: rtl|ltr` rides on every block type core renders a dir on
+// (title/section/sub/summary/text/prose + the generic blocks that keep a props
+// JSON). Plain paragraphs carry it as a real attribute; props-JSON nodes store
+// it in their props object — both round-trip through the bridge as `| dir: …`.
+const PROPS_JSON_DIR = new Set([
+  "itTitle",
+  "itSummary",
+  "itSection",
+  "itSub",
+  "itQuote",
+  "itCallout",
+  "itGenericBlock",
+]);
+
 function supportsKey(typeName: string, key: BlockPropKey): boolean {
   if (typeName === "paragraph") return true;
   if (key === "end") return PROPS_JSON_END.has(typeName);
+  if (key === "dir") return PROPS_JSON_DIR.has(typeName);
   return PROPS_JSON_SPACING.has(typeName);
 }
 
@@ -96,6 +117,17 @@ export const ITParagraph = Paragraph.extend({
         parseHTML: (el) => el.getAttribute("data-it-end"),
         renderHTML: (attrs) =>
           attrs.end ? { "data-it-end": attrs.end } : {},
+      },
+      // Per-paragraph direction (Word's RTL paragraph button). Rendered as a
+      // real `dir` DOM attribute so the caret + text flow mirror for THIS block
+      // independently, regardless of the document direction.
+      dir: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("dir") || null,
+        renderHTML: (attrs) =>
+          attrs.dir === "rtl" || attrs.dir === "ltr" || attrs.dir === "auto"
+            ? { dir: attrs.dir }
+            : {},
       },
     };
   },
