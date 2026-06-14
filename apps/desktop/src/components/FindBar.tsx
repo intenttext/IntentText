@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 
 const docRoot = () =>
+  document.querySelector<HTMLElement>(".tiptap") ??
   document.querySelector<HTMLElement>(".docs-container");
 const highlightRegistry = () =>
   (CSS as unknown as { highlights?: Map<string, unknown> }).highlights;
@@ -18,10 +19,14 @@ function collectRanges(query: string): Range[] {
   const q = query.toLowerCase();
   const ranges: Range[] = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode: (n) =>
-      n.nodeValue && n.nodeValue.trim()
-        ? NodeFilter.FILTER_ACCEPT
-        : NodeFilter.FILTER_REJECT,
+    acceptNode: (n) => {
+      if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      // Skip text that isn't visually rendered — comments hidden in view mode,
+      // or anything inside a display:none element (offsetParent is null then).
+      const el = (n as Text).parentElement;
+      if (!el || el.offsetParent === null) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    },
   });
   let node = walker.nextNode() as Text | null;
   while (node) {
