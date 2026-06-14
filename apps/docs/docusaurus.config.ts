@@ -52,6 +52,14 @@ const config: Config = {
     {
       tagName: "link",
       attributes: {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "/img/it-logo.svg",
+      },
+    },
+    {
+      tagName: "link",
+      attributes: {
         rel: "apple-touch-icon",
         sizes: "180x180",
         href: "/img/apple-touch-icon.png",
@@ -86,8 +94,7 @@ const config: Config = {
       title: "IntentText",
       logo: {
         alt: "IntentText Logo",
-        src: "img/logo.png",
-        srcDark: "img/logo-dark.png",
+        src: "img/it-logo.svg",
       },
       items: [
         {
