@@ -3,7 +3,48 @@
 // mutation — safe inside the editor), and scrolls match-to-match. Falls back to
 // scroll-only if the Highlight API is unavailable.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Replace, X } from "lucide-react";
+
+/** Edit-mode replace plumbing. When present, the bar grows a Replace row whose
+ *  Replace / Replace All operate on the DOCUMENT SOURCE (doc.content) — not the
+ *  rendered DOM — via these callbacks, so structure is never corrupted. */
+export interface ReplaceApi {
+  /** Current document source. */
+  getContent: () => string;
+  /** Persist the new source through the app's content-update path. */
+  setContent: (next: string) => void;
+}
+
+/** Count literal (case-insensitive) occurrences of `q` in `text`. */
+function countMatches(text: string, q: string): number {
+  if (!q) return 0;
+  const hay = text.toLowerCase();
+  const needle = q.toLowerCase();
+  let n = 0;
+  let i = hay.indexOf(needle);
+  while (i !== -1) {
+    n += 1;
+    i = hay.indexOf(needle, i + needle.length);
+  }
+  return n;
+}
+
+/** Replace the first case-insensitive occurrence at/after `from`. Returns the
+ *  new string and the index just past the replacement, or null if none. */
+function replaceFirst(
+  text: string,
+  q: string,
+  repl: string,
+  from: number,
+): { next: string; at: number } | null {
+  if (!q) return null;
+  const i = text.toLowerCase().indexOf(q.toLowerCase(), from);
+  if (i === -1) return null;
+  return {
+    next: text.slice(0, i) + repl + text.slice(i + q.length),
+    at: i + repl.length,
+  };
+}
 
 const docRoot = () =>
   document.querySelector<HTMLElement>(".tiptap") ??
@@ -67,8 +108,17 @@ function revealRange(r: Range): void {
   });
 }
 
-export function FindBar({ onClose }: { onClose: () => void }) {
+export function FindBar({
+  onClose,
+  replace,
+}: {
+  onClose: () => void;
+  /** When provided (edit mode), the bar offers source-level find & replace. */
+  replace?: ReplaceApi;
+}) {
   const [query, setQuery] = useState("");
+  const [replacement, setReplacement] = useState("");
+  const [showReplace, setShowReplace] = useState(false);
   const [count, setCount] = useState(0);
   const [pos, setPos] = useState(0); // 0-based index of the current match
   const rangesRef = useRef<Range[]>([]);
@@ -80,15 +130,25 @@ export function FindBar({ onClose }: { onClose: () => void }) {
     return clearHighlights;
   }, []);
 
-  // Re-run the search whenever the query changes.
+  // Re-run the search whenever the query changes. For replace we count against
+  // the source string so the count is right even for text the viewer collapses;
+  // the DOM highlight is best-effort visual feedback.
+  const recount = useCallback(
+    (q: string) => {
+      const ranges = collectRanges(q);
+      rangesRef.current = ranges;
+      const n = replace ? countMatches(replace.getContent(), q) : ranges.length;
+      setCount(n);
+      setPos(0);
+      setHighlights(ranges, 0);
+      if (ranges[0]) revealRange(ranges[0]);
+    },
+    [replace],
+  );
+
   useEffect(() => {
-    const ranges = collectRanges(query);
-    rangesRef.current = ranges;
-    setCount(ranges.length);
-    setPos(0);
-    setHighlights(ranges, 0);
-    if (ranges[0]) revealRange(ranges[0]);
-  }, [query]);
+    recount(query);
+  }, [query, recount]);
 
   const go = useCallback((dir: 1 | -1) => {
     const ranges = rangesRef.current;
@@ -101,46 +161,120 @@ export function FindBar({ onClose }: { onClose: () => void }) {
     });
   }, []);
 
+  // Replace the next match in the SOURCE, then re-sync the highlight overlay.
+  const doReplaceOne = useCallback(() => {
+    if (!replace || !query) return;
+    const res = replaceFirst(replace.getContent(), query, replacement, 0);
+    if (!res) return;
+    replace.setContent(res.next);
+    // The editor re-renders from the new source; re-collect on the next frame.
+    requestAnimationFrame(() => recount(query));
+  }, [replace, query, replacement, recount]);
+
+  const doReplaceAll = useCallback(() => {
+    if (!replace || !query) return;
+    let text = replace.getContent();
+    let from = 0;
+    let changed = false;
+    for (;;) {
+      const res = replaceFirst(text, query, replacement, from);
+      if (!res) break;
+      text = res.next;
+      from = res.at;
+      changed = true;
+    }
+    if (changed) {
+      replace.setContent(text);
+      requestAnimationFrame(() => recount(query));
+    }
+  }, [replace, query, replacement, recount]);
+
   return (
-    <div className="find-bar">
-      <input
-        ref={inputRef}
-        className="find-input"
-        placeholder="Find in document…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            go(e.shiftKey ? -1 : 1);
-          } else if (e.key === "Escape") {
-            e.preventDefault();
-            onClose();
-          }
-        }}
-      />
-      <span className="find-count">
-        {count ? `${pos + 1}/${count}` : query ? "0/0" : ""}
-      </span>
-      <button
-        className="icon-btn"
-        title="Previous (⇧⏎)"
-        onClick={() => go(-1)}
-        disabled={!count}
-      >
-        <ChevronUp size={14} />
-      </button>
-      <button
-        className="icon-btn"
-        title="Next (⏎)"
-        onClick={() => go(1)}
-        disabled={!count}
-      >
-        <ChevronDown size={14} />
-      </button>
-      <button className="icon-btn" title="Close (Esc)" onClick={onClose}>
-        <X size={14} />
-      </button>
+    <div className={`find-bar${showReplace ? " has-replace" : ""}`}>
+      <div className="find-row">
+        {replace && (
+          <button
+            className={`icon-btn${showReplace ? " active" : ""}`}
+            title="Toggle Replace"
+            onClick={() => setShowReplace((v) => !v)}
+          >
+            <Replace size={14} />
+          </button>
+        )}
+        <input
+          ref={inputRef}
+          className="find-input"
+          placeholder="Find in document…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              go(e.shiftKey ? -1 : 1);
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              onClose();
+            }
+          }}
+        />
+        <span className="find-count">
+          {count ? `${pos + 1}/${count}` : query ? "0/0" : ""}
+        </span>
+        <button
+          className="icon-btn"
+          title="Previous (⇧⏎)"
+          onClick={() => go(-1)}
+          disabled={!count}
+        >
+          <ChevronUp size={14} />
+        </button>
+        <button
+          className="icon-btn"
+          title="Next (⏎)"
+          onClick={() => go(1)}
+          disabled={!count}
+        >
+          <ChevronDown size={14} />
+        </button>
+        <button className="icon-btn" title="Close (Esc)" onClick={onClose}>
+          <X size={14} />
+        </button>
+      </div>
+      {replace && showReplace && (
+        <div className="find-row replace-row">
+          <input
+            className="find-input"
+            placeholder="Replace with…"
+            value={replacement}
+            onChange={(e) => setReplacement(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                doReplaceOne();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                onClose();
+              }
+            }}
+          />
+          <button
+            className="btn small"
+            onClick={doReplaceOne}
+            disabled={!count}
+            title="Replace next match"
+          >
+            Replace
+          </button>
+          <button
+            className="btn small"
+            onClick={doReplaceAll}
+            disabled={!count}
+            title="Replace all matches"
+          >
+            All
+          </button>
+        </div>
+      )}
     </div>
   );
 }

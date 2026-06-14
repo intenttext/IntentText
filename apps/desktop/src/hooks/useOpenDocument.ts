@@ -41,6 +41,10 @@ note: Start typing, or use the ribbon to format your document.
 export function useOpenDocument(opts: {
   defaultDir?: string | null;
   onSaved?: (path: string) => void;
+  /** When false, on-disk documents don't autosave on a debounce. Default true. */
+  autosave?: boolean;
+  /** Page size baked into the `page:` block of freshly created documents. */
+  defaultPageSize?: string;
 }): OpenDocumentApi {
   const [doc, setDoc] = useState<OpenDocument | null>(null);
   const docRef = useRef<OpenDocument | null>(null);
@@ -140,10 +144,16 @@ export function useOpenDocument(opts: {
   const newDocument = useCallback(async () => {
     if (!(await confirmDiscard())) return;
     clearTimeout(autosaveTimer.current);
+    // Bake the preferred page size into the starter (A4 is already the renderer
+    // default, so only add a page: block for non-default sizes — keeps simple
+    // docs clean).
+    const size = optsRef.current.defaultPageSize;
+    const content =
+      size && size !== "A4" ? `page:\nsize: ${size}\n\n${STARTER}` : STARTER;
     setDoc({
       path: null,
       name: "untitled.it",
-      content: STARTER,
+      content,
       dirty: false,
       savedAt: null,
     });
@@ -195,12 +205,13 @@ export function useOpenDocument(opts: {
     }
   }, []);
 
-  // Debounced autosave for documents that exist on disk.
+  // Debounced autosave for documents that exist on disk (opt-out via settings).
   useEffect(() => {
+    if (opts.autosave === false) return;
     if (!doc?.dirty || !doc.path) return;
     autosaveTimer.current = setTimeout(() => void writeNow(), AUTOSAVE_DELAY_MS);
     return () => clearTimeout(autosaveTimer.current);
-  }, [doc?.content, doc?.dirty, doc?.path, writeNow]);
+  }, [doc?.content, doc?.dirty, doc?.path, writeNow, opts.autosave]);
 
   return useMemo(
     () => ({

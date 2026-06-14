@@ -21,6 +21,22 @@ The format is based on Keep a Changelog.
 
 ### Fixed / Added
 
+- **Desktop 2.9.0 — reader/editor depth + a 1:1 page rail.** A batch of shell and
+  editor work that brings the app closer to "Acrobat Reader + word processor at once":
+  - **Preferences** dialog (Cmd+,) with a light/dark theme toggle (`data-theme` on the
+    document root, persisted), default page size, autosave, and default folder.
+  - **About** and a **keyboard-shortcuts** cheat sheet (Cmd+/).
+  - **Drag-and-drop** to open `.it`/`.docx` files onto the window.
+  - **Open Recent** submenu under File.
+  - **Find & Replace** — the find bar now also replaces (Replace / Replace All operate
+    on the document source, case-insensitive, not the DOM).
+  - **Page thumbnails are now a true mirror of the page** — each thumbnail copies the
+    live resolved content margins and text **direction** onto its clone, so RTL (Arabic)
+    and LTR documents render in the rail exactly as they do on the page (content no
+    longer recentres or loses its right-to-left flow).
+  - Settings on disk now **merge** top-level keys (vaults + UI prefs coexist in
+    `settings.json`) instead of being overwritten.
+
 - **Desktop 2.2.0 — true native macOS print panel.** `Cmd+P` / Print now opens the
   real macOS print dialog via AppKit's `NSPrintOperation` (driven through the
   `WKWebView` handle with `objc2` — `printOperationWithPrintInfo:`), not the browser

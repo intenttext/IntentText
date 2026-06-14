@@ -51,13 +51,29 @@ function Thumb({ index, info }: { index: number; info: PageInfo }) {
     clone
       .querySelectorAll("[contenteditable]")
       .forEach((e) => e.removeAttribute("contenteditable"));
-    // Carry the page margins over explicitly — the content (.tiptap) insets by
-    // --page-mx-l/r; if those don't survive the clone the text recentres.
-    const cs = getComputedStyle(page);
-    for (const v of ["--page-mx-l", "--page-mx-r"]) {
-      const val = page.style.getPropertyValue(v) || cs.getPropertyValue(v);
-      if (val) clone.style.setProperty(v, val);
+
+    // Make the clone a 1:1 MIRROR of the live page. The content column gets its
+    // margins from --page-mx custom props on .tiptap and its direction from a `dir`
+    // attribute set imperatively on the editable element — neither reliably survives
+    // a detached clone, so the text recentres / loses RTL. Copy the *resolved*
+    // padding + direction straight from the live element onto the clone.
+    const liveTip = page.querySelector<HTMLElement>(".tiptap, .ProseMirror");
+    const cloneTip = clone.querySelector<HTMLElement>(".tiptap, .ProseMirror");
+    if (liveTip && cloneTip) {
+      const cs = getComputedStyle(liveTip);
+      cloneTip.style.paddingLeft = cs.paddingLeft;
+      cloneTip.style.paddingRight = cs.paddingRight;
+      cloneTip.style.margin = "0";
+      cloneTip.style.maxWidth = "none";
+      cloneTip.style.textAlign = cs.textAlign;
+      cloneTip.setAttribute("dir", liveTip.getAttribute("dir") || cs.direction);
     }
+    const flow = document.querySelector<HTMLElement>(".docs-page-flow");
+    clone.setAttribute(
+      "dir",
+      page.getAttribute("dir") || flow?.getAttribute("dir") || "ltr",
+    );
+
     clone.style.transform = `scale(${s})`;
     clone.style.transformOrigin = "top left";
     clone.style.width = `${info.pageW}px`;

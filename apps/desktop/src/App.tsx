@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { open as openDialog, ask } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { invoke } from "@tauri-apps/api/core";
 import { IntentTextEditor } from "@dotit/editor";
 import type { TrustAction } from "@dotit/editor";
@@ -33,17 +34,25 @@ import {
   PenLine,
   Printer,
   Search,
+  Settings,
   Unlock,
 } from "lucide-react";
 
 import { isTauri, windowFile } from "./lib/backend";
-import { printDocument, exportHTML, exportDOCX, importDOCX } from "./lib/export";
+import {
+  printDocument,
+  exportHTML,
+  exportDOCX,
+  importDOCX,
+  importDOCXFromPath,
+} from "./lib/export";
 import { installAppMenu } from "./lib/menu";
 import type { MenuActions } from "./lib/menu";
 import * as trustOps from "./lib/trust";
 import { evaluateTrust } from "./lib/trust-status";
 import { TrustBadge, TrustPanel } from "./components/TrustBadge";
 import { useVaults } from "./hooks/useVaults";
+import { useSettings } from "./hooks/useSettings";
 import { useOpenDocument } from "./hooks/useOpenDocument";
 import { useTrustBadges } from "./hooks/useTrustBadges";
 import { VaultSidebar } from "./components/VaultSidebar";
@@ -55,15 +64,24 @@ import { SearchPanel } from "./components/SearchPanel";
 import { StatusBar } from "./components/StatusBar";
 import { TrustDialogs } from "./components/TrustDialogs";
 import type { TrustDialogKind } from "./components/TrustDialogs";
+import {
+  AboutDialog,
+  PreferencesDialog,
+  ShortcutsDialog,
+} from "./components/AppDialogs";
 
 type SidebarTab = "library" | "search";
 type DocMode = "view" | "edit";
 
 export default function App() {
   const vaultsApi = useVaults();
+  const settingsApi = useSettings();
+  const { settings } = settingsApi;
 
   const docApi = useOpenDocument({
-    defaultDir: vaultsApi.activeVault?.path ?? null,
+    defaultDir: settings.defaultFolder || (vaultsApi.activeVault?.path ?? null),
+    autosave: settings.autosave,
+    defaultPageSize: settings.defaultPageSize,
     onSaved: () => {
       const v = vaultsApi.activeVault;
       if (v) void vaultsApi.refreshVault(v.path);
@@ -91,6 +109,10 @@ export default function App() {
   );
   const [trustDialog, setTrustDialog] = useState<TrustDialogKind>(null);
   const [trustPanelOpen, setTrustPanelOpen] = useState(false);
+  const [appDialog, setAppDialog] = useState<
+    "preferences" | "about" | "shortcuts" | null
+  >(null);
+  const [dragOver, setDragOver] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Live trust status — recomputed from the CURRENT content on every render, so
@@ -195,6 +217,18 @@ export default function App() {
     setTrustPanelOpen(false);
   }, [docApi]);
 
+  const importDocxFromPath = useCallback(
+    async (path: string) => {
+      const imported = await importDOCXFromPath(path);
+      if (!imported) return;
+      await docApi.openSource(imported.source, imported.suggestedName);
+      setMode("edit");
+      setSourceView(false);
+      setTrustPanelOpen(false);
+    },
+    [docApi],
+  );
+
   const focusSearch = useCallback(() => {
     setSidebarVisible(true);
     setSidebarTab("search");
@@ -216,6 +250,12 @@ export default function App() {
   actionsRef.current = {
     newDocument: () => void newDocument(),
     openFile: () => void openFileViaDialog(),
+    openRecent: (p) => void openFile(p),
+    recentFiles: vaultsApi.recentFiles,
+    clearRecent: () => vaultsApi.clearRecent(),
+    openPreferences: () => setAppDialog("preferences"),
+    showAbout: () => setAppDialog("about"),
+    showShortcuts: () => setAppDialog("shortcuts"),
     addFolder: () => void vaultsApi.addFolder(),
     save: () => void guardedSave(),
     saveAs: () => void docApi.saveAs(),
@@ -266,11 +306,13 @@ export default function App() {
     trustVerify: () => doc && setTrustPanelOpen(true),
   };
 
+  // Rebuild the menu whenever the recents change so "Open Recent" stays current
+  // (the Tauri menu is static once built; we re-set it on each change).
   useEffect(() => {
     installAppMenu(() => actionsRef.current).catch((err) =>
       console.warn("App menu unavailable:", err),
     );
-  }, []);
+  }, [vaultsApi.recentFiles]);
 
   // ----- native window title: filename + dirty dot -----
   useEffect(() => {
@@ -334,11 +376,53 @@ export default function App() {
       } else if (key === "p" && !e.shiftKey) {
         e.preventDefault();
         if (doc) printDocument(doc.content, theme);
+      } else if (key === ",") {
+        e.preventDefault();
+        setAppDialog("preferences");
+      } else if (key === "/") {
+        e.preventDefault();
+        setAppDialog("shortcuts");
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [docApi, focusSearch, toggleEdit, doc, theme, guardedSave]);
+
+  // ----- drag-and-drop to open (.it / .docx onto the window) -----
+  useEffect(() => {
+    if (!isTauri) return;
+    let unlisten: (() => void) | undefined;
+    let active = true;
+    getCurrentWebview()
+      .onDragDropEvent((e) => {
+        if (e.payload.type === "over") {
+          setDragOver(true);
+        } else if (e.payload.type === "drop") {
+          setDragOver(false);
+          const paths = e.payload.paths ?? [];
+          // Open the first .it; otherwise import the first .docx. (A single
+          // window holds one document, so we take the first usable file.)
+          const it = paths.find((p) => p.toLowerCase().endsWith(".it"));
+          if (it) {
+            void openFile(it);
+            return;
+          }
+          const docx = paths.find((p) => p.toLowerCase().endsWith(".docx"));
+          if (docx) void importDocxFromPath(docx);
+        } else {
+          setDragOver(false);
+        }
+      })
+      .then((un) => {
+        if (active) unlisten = un;
+        else un();
+      })
+      .catch((err) => console.warn("Drag-drop unavailable:", err));
+    return () => {
+      active = false;
+      unlisten?.();
+    };
+  }, [openFile, importDocxFromPath]);
 
   const onTrustAction = useCallback((action: TrustAction) => {
     if (action === "verify") {
@@ -424,6 +508,13 @@ export default function App() {
               <Files size={16} />
             </button>
           )}
+          <button
+            className="icon-btn topbar-gear"
+            title="Preferences (⌘,)"
+            onClick={() => setAppDialog("preferences")}
+          >
+            <Settings size={16} />
+          </button>
         </div>
         <div className="topbar-title" data-tauri-drag-region>
           {doc ? (
@@ -600,7 +691,19 @@ export default function App() {
         )}
 
         <main className={`main${doc && mode === "view" ? " main-viewer" : ""}`}>
-          {doc && findOpen && <FindBar onClose={() => setFindOpen(false)} />}
+          {doc && findOpen && (
+            <FindBar
+              onClose={() => setFindOpen(false)}
+              replace={
+                mode === "edit" && !docIsSealed
+                  ? {
+                      getContent: () => docApi.doc?.content ?? "",
+                      setContent: docApi.setContent,
+                    }
+                  : undefined
+              }
+            />
+          )}
           <div className="main-row">
           {doc && leftPanel === "outline" && (
             <OutlinePanel
@@ -719,6 +822,23 @@ export default function App() {
           }}
           onClose={() => setQuickOpen(false)}
         />
+      )}
+
+      {appDialog === "preferences" && (
+        <PreferencesDialog api={settingsApi} onClose={() => setAppDialog(null)} />
+      )}
+      {appDialog === "about" && <AboutDialog onClose={() => setAppDialog(null)} />}
+      {appDialog === "shortcuts" && (
+        <ShortcutsDialog onClose={() => setAppDialog(null)} />
+      )}
+
+      {dragOver && (
+        <div className="drop-overlay">
+          <div className="drop-card">
+            <FileUp size={28} />
+            Drop to open
+          </div>
+        </div>
       )}
     </div>
   );

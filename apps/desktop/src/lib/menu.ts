@@ -9,6 +9,10 @@ import { isTauri } from "./backend";
 export interface MenuActions {
   newDocument: () => void;
   openFile: () => void;
+  openRecent: (path: string) => void;
+  /** Snapshot of recent file paths, read fresh each time the menu rebuilds. */
+  recentFiles: string[];
+  clearRecent: () => void;
   addFolder: () => void;
   save: () => void;
   saveAs: () => void;
@@ -20,6 +24,9 @@ export interface MenuActions {
   toggleEdit: () => void;
   toggleSourceView: () => void;
   focusSearch: () => void;
+  openPreferences: () => void;
+  showAbout: () => void;
+  showShortcuts: () => void;
   trustSeal: () => void;
   trustSign: () => void;
   trustApprove: () => void;
@@ -46,12 +53,17 @@ export async function installAppMenu(
   const sep = () => PredefinedMenuItem.new({ item: "Separator" });
 
   const isMac = navigator.userAgent.includes("Mac");
+  const basename = (p: string) => p.split(/[\\/]/).pop() ?? p;
 
   const appMenu = isMac
     ? await Submenu.new({
         text: "Dotit",
         items: [
-          await PredefinedMenuItem.new({ item: { About: null } }),
+          await item("About Dotit", undefined, (a) => a.showAbout()),
+          await sep(),
+          await item("Preferences…", "CmdOrCtrl+,", (a) =>
+            a.openPreferences(),
+          ),
           await sep(),
           await PredefinedMenuItem.new({ item: "Services" }),
           await sep(),
@@ -64,11 +76,37 @@ export async function installAppMenu(
       })
     : null;
 
+  // "Open Recent" — populated from the recents snapshot the host passes in.
+  // The menu is rebuilt whenever recents change (see installAppMenu caller), so
+  // these items always reflect the current list.
+  const recents = getActions().recentFiles.slice(0, 12);
+  const recentItems = recents.length
+    ? [
+        ...(await Promise.all(
+          recents.map((path) =>
+            item(basename(path), undefined, (a) => a.openRecent(path)),
+          ),
+        )),
+        await sep(),
+        await item("Clear Recent", undefined, (a) => a.clearRecent()),
+      ]
+    : [
+        await MenuItem.new({
+          text: "No Recent Documents",
+          enabled: false,
+        }),
+      ];
+  const openRecentMenu = await Submenu.new({
+    text: "Open Recent",
+    items: recentItems,
+  });
+
   const fileMenu = await Submenu.new({
     text: "File",
     items: [
       await item("New Document", "CmdOrCtrl+N", (a) => a.newDocument()),
       await item("Open…", "CmdOrCtrl+O", (a) => a.openFile()),
+      openRecentMenu,
       await item("Import Word (.docx)…", undefined, (a) => a.importDOCX()),
       await item("Add Folder to Library…", "CmdOrCtrl+Shift+O", (a) =>
         a.addFolder(),
@@ -144,6 +182,26 @@ export async function installAppMenu(
     ],
   });
 
+  // Help — Keyboard Shortcuts always; About + Preferences here too on non-mac
+  // (where there's no application menu to host them).
+  const helpMenu = await Submenu.new({
+    text: "Help",
+    items: [
+      await item("Keyboard Shortcuts", "CmdOrCtrl+/", (a) =>
+        a.showShortcuts(),
+      ),
+      ...(isMac
+        ? []
+        : [
+            await sep(),
+            await item("Preferences…", "CmdOrCtrl+,", (a) =>
+              a.openPreferences(),
+            ),
+            await item("About Dotit", undefined, (a) => a.showAbout()),
+          ]),
+    ],
+  });
+
   const menu = await Menu.new({
     items: [
       ...(appMenu ? [appMenu] : []),
@@ -152,6 +210,7 @@ export async function installAppMenu(
       viewMenu,
       trustMenu,
       windowMenu,
+      helpMenu,
     ],
   });
 

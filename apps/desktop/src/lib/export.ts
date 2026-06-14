@@ -164,13 +164,19 @@ export interface ImportedDoc {
  * can open it as a new untitled document. Returns null if cancelled/failed.
  */
 export async function importDOCX(): Promise<ImportedDoc | null> {
-  try {
-    const selected = await open({
-      multiple: false,
-      filters: [{ name: "Word", extensions: ["docx"] }],
-    });
-    if (typeof selected !== "string") return null;
+  const selected = await open({
+    multiple: false,
+    filters: [{ name: "Word", extensions: ["docx"] }],
+  });
+  if (typeof selected !== "string") return null;
+  return importDOCXFromPath(selected);
+}
 
+/** Convert a specific .docx path (e.g. a drag-dropped file) to IntentText. */
+export async function importDOCXFromPath(
+  selected: string,
+): Promise<ImportedDoc | null> {
+  try {
     const bytes = await readBinaryFile(selected);
     if (!bytes || bytes.length === 0) {
       await message(
