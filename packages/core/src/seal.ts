@@ -42,11 +42,11 @@ export interface TierStyle {
  * which is OUTSIDE the trust workflow (a blueprint, not a record).
  */
 export const TIER_STYLES: Record<TrustTier, TierStyle> = {
-  draft: { color: "#6b7280", accent: "#cbd5e1" },
-  signed: { color: "#2563eb", accent: "#93c5fd" },
-  certified: { color: "#059669", accent: "#6ee7b7" },
-  "root-certified": { color: "#a16207", accent: "#fcd34d" },
-  template: { color: "#94a3b8", accent: "#cbd5e1" },
+  draft: { color: "#6b7280", accent: "#9ca3af" },
+  signed: { color: "#2f6fed", accent: "#2f6fed" },
+  certified: { color: "#0e9f6e", accent: "#0e9f6e" },
+  "root-certified": { color: "#c58a1a", accent: "#c58a1a" },
+  template: { color: "#94a3b8", accent: "#94a3b8" },
 };
 
 export interface TrustState {
@@ -145,6 +145,58 @@ function esc(s: string): string {
   );
 }
 
+// Gelasio ".it" outline (the new logo's serif mark), EM 1000. Bounding box
+// x 66..932, y -714..14 → centre (499, -350), height 728. Embedded so core needs
+// no font at runtime.
+const IT_PATH =
+  "M66.9-64.5Q66.9-93.7 88.1-114.5Q109.4-135.3 140.1-135.3Q170.9-135.3 192.4-114.5Q213.9-93.7 213.9-64.5Q213.9-35.2 192.4-12.7Q170.9 9.8 140.1 9.8Q109.4 9.8 88.1-12.7Q66.9-35.2 66.9-64.5M551.3 0L331.5 0Q323.2 0 319.1-7.3Q314.9-14.6 314.9-20Q314.9-36.1 331.1-38.1Q349.1-40.5 368.2-46.6Q387.2-52.7 387.2-68.4L387.7-379.9Q387.7-410.2 375-421.4Q362.3-432.6 345.2-434.8Q328.1-437 314.9-440.4Q310.1-442.9 306.6-446.8Q303.2-450.7 303.2-460Q303.2-465.8 306.2-473.4Q309.1-481 314.9-481.4Q367.7-484.9 410.4-485.8Q453.1-486.8 476.1-486.8Q480-486.8 484.9-482.9Q489.7-479 490.7-467.3L490.7-84.5Q490.7-64 500.7-54.7Q510.7-45.4 524.7-42.5Q538.6-39.6 550.3-38.1Q560.5-37.1 564.2-34.2Q567.9-31.2 567.9-20Q567.9-14.6 563.7-7.3Q559.6 0 551.3 0M437.5-570.8Q408.7-570.8 390.4-591.6Q372.1-612.3 372.1-642.6Q372.1-673.3 390.4-693.8Q408.7-714.4 437.5-714.4Q466.3-714.4 484.6-693.8Q502.9-673.3 502.9-642.6Q502.9-612.3 484.6-591.6Q466.3-570.8 437.5-570.8M798.3 14.6Q754.9 14.6 726.1 2.2Q697.3-10.3 682.9-37.6Q668.5-64.9 668.5-108.9L668.5-440.9L612.8-440.9Q606.9-441.4 604-447Q601.1-452.6 601.1-458.5Q601.1-479 614.3-479.5Q647.5-483.9 668.7-497.6Q689.9-511.2 703.9-540.3Q717.8-569.3 729-619.1Q730.5-626.5 736.3-629.2Q742.2-631.8 752.9-631.8Q764.6-631.8 768.1-628.9Q771.5-626 771.5-619.1L771.5-485.4L908.7-485.4Q914.6-484.9 917.5-479.7Q920.4-474.6 920.4-468.7Q920.4-457.5 916.3-449.2Q912.1-440.9 906.7-440.9L771.5-440.9L771.5-146Q771.5-104.5 779.1-82.8Q786.6-61 798.8-53Q811-44.9 823.7-44.9Q854.5-44.9 874.8-51.5Q895-58.1 913.1-69.8Q918.5-73.2 923.3-66.2Q928.2-59.1 930.9-50.3Q933.6-41.5 930.2-38.6Q919.4-28.8 898.2-16.4Q877-3.9 850.3 5.4Q823.7 14.6 798.3 14.6";
+
+/** Place the Gelasio ".it" mark centred at (cx,cy) with cap-box height `h`. */
+function itMark(cx: number, cy: number, h: number, fill: string): string {
+  const k = h / 728;
+  return `<g transform="translate(${r2(cx - 499 * k)},${r2(cy + 350 * k)}) scale(${k.toFixed(4)})"><path d="${IT_PATH}" fill="${fill}"/></g>`;
+}
+
+/** Deterministic [0,1) pseudo-random keyed on the hash bytes + an index. */
+function rngFor(bytes: number[]): (k: number) => number {
+  const n = bytes.length;
+  const at = (k: number) => bytes[((k % n) + n) % n];
+  return (k) =>
+    (((at(k) * 131 + at(k * 7 + 3) * 17 + at(k * 13 + 5) * 7 + k * 101) >>> 0) %
+      10007) /
+    10007;
+}
+
+/**
+ * The hash-derived dot BLOOM — an organic, borderless ring of dots whose density
+ * swirl, radii and sizes all come from the hash. This IS the mark (no enclosing
+ * circle — a round bordered stamp reads as a generic rubber stamp). Same hash →
+ * identical bloom; any change → a visibly different constellation.
+ */
+function bloom(bytes: number[], color: string): string {
+  const r = rngFor(bytes);
+  const cx = 50;
+  const cy = 50;
+  const rIn = 24;
+  const rOut = 40;
+  const N = 950;
+  let s = "";
+  for (let i = 0; i < N; i++) {
+    const ang = r(i * 2) * Math.PI * 2;
+    const tri = (r(i * 2 + 1) + r(i * 5 + 9)) / 2; // triangular → denser middle
+    const rad = rIn + (rOut - rIn) * tri;
+    const dens =
+      0.3 + 0.7 * Math.pow(0.5 + 0.5 * Math.sin(ang * 3 + r(i) * 6.28), 1.7);
+    if (r(i * 3 + 7) > dens) continue; // thin out → dense/sparse arcs (swirl)
+    const x = cx + Math.cos(ang) * rad;
+    const y = cy + Math.sin(ang) * rad;
+    const sz = 0.5 + r(i * 11) * 1.05;
+    const op = 0.3 + r(i * 9) * 0.62;
+    s += `<circle cx="${r2(x)}" cy="${r2(y)}" r="${sz.toFixed(2)}" fill="${color}" opacity="${op.toFixed(2)}"/>`;
+  }
+  return s;
+}
+
 // ─── The seal ────────────────────────────────────────────────────────────────
 
 export interface SealRenderOptions {
@@ -166,80 +218,60 @@ export interface SealRenderOptions {
  */
 export function renderSeal(opts: SealRenderOptions): string {
   const tier = opts.tier ?? "draft";
-  const { color, accent } = TIER_STYLES[tier];
+  const { color } = TIER_STYLES[tier];
   const size = opts.size ?? 100;
   const showText = opts.text !== false;
   const label = opts.label ?? tier.replace(/-/g, " ").toUpperCase();
   const bytes = hashBytes(opts.hash);
   const cleanHex = opts.hash.replace(/^sha256:/i, "").replace(/[^0-9a-fA-F]/g, "");
   const shortHash = (cleanHex.slice(0, 8) || "00000000").toUpperCase();
-  const uid = `s${(cleanHex.slice(0, 8) || "0")}-${tier}`;
+  const uid = `s${cleanHex.slice(0, 8) || "0"}-${tier}`;
   const cx = 50;
   const cy = 50;
+  const style =
+    `<style>` +
+    `.sl-arc{font:600 6px Georgia,"Times New Roman",serif;letter-spacing:2px;}` +
+    `.sl-hash{font:500 5.4px ui-monospace,"SFMono-Regular",Menlo,monospace;letter-spacing:1.5px;}` +
+    `.sl-star{font:6px serif;}` +
+    `</style>`;
 
-  // Template — a blueprint, OUTSIDE the trust workflow. No hash crown (the hash of
-  // placeholder content is meaningless), a DASHED ring to read as "unsealed", and
-  // a TEMPLATE label. Visually unmistakable from a real trust seal.
+  // Template — OUTSIDE the trust workflow. No bloom (a blueprint has no meaningful
+  // hash); a faint dashed ring + TEMPLATE label, clearly not a sealed record.
   if (tier === "template") {
     const tlabel = opts.label ?? "TEMPLATE";
     const tArc = showText
-      ? `<defs><path id="${uid}-top" d="${arcPath(cx, cy, 40, 212, 328, 1)}"/></defs>` +
-        `<text class="sl-arc" fill="${color}"><textPath href="#${uid}-top" startOffset="50%" text-anchor="middle">${esc(tlabel)}</textPath></text>`
+      ? `<defs><path id="${uid}t" d="${arcPath(cx, cy, 44, 210, 330, 1)}"/></defs>` +
+        `<text class="sl-arc" fill="${color}"><textPath href="#${uid}t" startOffset="50%" text-anchor="middle">${esc(tlabel)}</textPath></text>`
       : "";
     return (
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${esc(tlabel)} — not part of the trust workflow">` +
-      `<style>.sl-mono{font:700 17px ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;letter-spacing:-0.5px;}.sl-arc{font:600 6.2px ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;letter-spacing:1.4px;}</style>` +
-      `<circle cx="50" cy="50" r="46.5" fill="none" stroke="${color}" stroke-width="1.4" stroke-dasharray="3 3"/>` +
-      `<circle cx="50" cy="50" r="23.5" fill="none" stroke="${color}" stroke-width="0.8" stroke-dasharray="2 2.5"/>` +
-      `<text x="50" y="56" text-anchor="middle" class="sl-mono" fill="${color}">.it</text>` +
+      style +
+      `<circle cx="50" cy="50" r="40" fill="none" stroke="${color}" stroke-width="0.6" stroke-dasharray="1.5 3" opacity="0.7"/>` +
+      itMark(cx, cy, 23, color) +
       tArc +
       `</svg>`
     );
   }
 
-  // Hash-derived radial crown — the visual fingerprint.
-  const N = 84;
-  const rInner = 27;
-  let ticks = "";
-  for (let i = 0; i < N; i++) {
-    const x = bytes[i % bytes.length];
-    const y = bytes[(i * 5 + 7) % bytes.length];
-    const amp = (x ^ y) / 255; // 0..1
-    const len = 2 + amp * 10; // 2..12
-    const deg = (i / N) * 360 - 90; // start at top, sweep clockwise
-    const [x1, y1] = polar(cx, cy, rInner, deg);
-    const [x2, y2] = polar(cx, cy, rInner + len, deg);
-    ticks += `<line x1="${r2(x1)}" y1="${r2(y1)}" x2="${r2(x2)}" y2="${r2(y2)}"/>`;
-  }
-
   const star =
     tier === "root-certified"
-      ? `<text x="50" y="30.5" text-anchor="middle" class="sl-star" fill="${color}">★</text>`
+      ? `<text x="50" y="20" text-anchor="middle" class="sl-star" fill="${color}">★</text>`
       : "";
 
   const arcText = showText
     ? `<defs>` +
-      `<path id="${uid}-top" d="${arcPath(cx, cy, 40, 212, 328, 1)}"/>` +
-      `<path id="${uid}-bot" d="${arcPath(cx, cy, 39, 148, 32, 0)}"/>` +
+      `<path id="${uid}t" d="${arcPath(cx, cy, 44, 210, 330, 1)}"/>` +
+      `<path id="${uid}b" d="${arcPath(cx, cy, 44, 150, 30, 0)}"/>` +
       `</defs>` +
-      `<text class="sl-arc" fill="${color}"><textPath href="#${uid}-top" startOffset="50%" text-anchor="middle">${esc(label)}</textPath></text>` +
-      `<text class="sl-arc sl-hash" fill="${color}"><textPath href="#${uid}-bot" startOffset="50%" text-anchor="middle">${shortHash}</textPath></text>`
+      `<text class="sl-arc" fill="${color}"><textPath href="#${uid}t" startOffset="50%" text-anchor="middle">${esc(label)}</textPath></text>` +
+      `<text class="sl-hash" fill="${color}" opacity="0.8"><textPath href="#${uid}b" startOffset="50%" text-anchor="middle">${shortHash}</textPath></text>`
     : "";
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${esc(label)} trust seal ${shortHash}">` +
-    `<style>` +
-    `.sl-mono{font:700 17px ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;letter-spacing:-0.5px;}` +
-    `.sl-arc{font:600 6.2px ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;letter-spacing:1.4px;}` +
-    `.sl-hash{font-weight:500;letter-spacing:1.1px;}` +
-    `.sl-star{font:9px serif;}` +
-    `</style>` +
-    `<circle cx="50" cy="50" r="46.5" fill="none" stroke="${color}" stroke-width="1.6"/>` +
-    `<circle cx="50" cy="50" r="43" fill="none" stroke="${color}" stroke-width="0.5" opacity="0.45"/>` +
-    `<g stroke="${accent}" stroke-width="1.1" stroke-linecap="round">${ticks}</g>` +
-    `<circle cx="50" cy="50" r="23.5" fill="#fff"/>` +
-    `<circle cx="50" cy="50" r="23.5" fill="none" stroke="${color}" stroke-width="0.8"/>` +
-    `<text x="50" y="56" text-anchor="middle" class="sl-mono" fill="${color}">.it</text>` +
+    style +
+    bloom(bytes, color) +
+    itMark(cx, cy, 23, color) +
     star +
     arcText +
     `</svg>`

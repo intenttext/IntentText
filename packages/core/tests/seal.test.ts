@@ -37,7 +37,8 @@ describe("renderSeal", () => {
     expect(svg.startsWith("<svg")).toBe(true);
     expect(svg.trim().endsWith("</svg>")).toBe(true);
     expect(svg).toContain('width="120"');
-    expect(svg).toContain(".it"); // monogram
+    expect(svg).toContain("<path"); // the Gelasio ".it" outline
+    expect(svg).toContain("<circle"); // the bloom dots
     // balanced tags (no stray < that breaks XML)
     const open = (svg.match(/</g) || []).length;
     const close = (svg.match(/>/g) || []).length;

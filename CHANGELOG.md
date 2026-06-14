@@ -6,6 +6,19 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed
+
+- **Ambient Seal redesigned — the "borderless bloom" (`@dotit/core` 1.8.0).** The seal's
+  hash-derived crown is now an organic, BORDERLESS dot constellation (a particle swirl
+  whose density/radii/sizes all come from the hash) instead of the radial-tick ring +
+  circle border (a round bordered stamp read as a generic rubber stamp). The centre is
+  now the **Gelasio serif `.it`** (matching the new logo), embedded as a vector path so
+  core needs no font at runtime. Refined tier colours (signed #2f6fed, certified #0e9f6e,
+  root-certified #c58a1a + ★). Template tier renders a faint dashed ring (no bloom) — a
+  blueprint, not a record. `renderSeal` API unchanged; all surfaces (editor/desktop/
+  verify/docs) get the new look automatically.
+
+
 ### Fixed / Added
 
 - **Desktop 2.2.0 — true native macOS print panel.** `Cmd+P` / Print now opens the
