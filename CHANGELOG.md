@@ -8,6 +8,15 @@ The format is based on Keep a Changelog.
 
 ### Security
 
+- **Content-Security-Policy on the web trust surfaces (verify + editor).** Added a strict
+  CSP via `vercel.json` to `verify.uts.qa` (the public surface that renders untrusted `.it`)
+  and `editor.uts.qa`: `script-src 'self'`, `object-src`/`frame-src` locked down,
+  `base-uri 'self'`, `connect-src` limited to self + the UTS pubkey host (editor also
+  allows the Google Fonts hosts it uses). Each was **verified in a real browser**
+  (headless Chrome): the app mounts, no CSP violations, and the verify portal's sandboxed
+  `srcdoc` preview still renders. (docs/hub use framework inline scripts and need a
+  nonce-based CSP — tracked separately.)
+
 - **Governance & supply-chain — Wave 5/6 of the hardening plan.**
   - **SBOM** (CycloneDX, via Syft) is now generated and attached to every npm release.
   - **`PRIVACY.md`** documents the privacy-by-design posture accurately (client-side
