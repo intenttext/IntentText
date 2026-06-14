@@ -643,6 +643,12 @@ export default function Home(): React.ReactElement {
                   Open the editor
                 </Link>
                 <Link
+                  className="button button--secondary button--lg"
+                  to="/download"
+                >
+                  <Monitor size={18} /> Download desktop
+                </Link>
+                <Link
                   className="button button--link button--lg"
                   to="pathname:///llms.txt"
                 >
