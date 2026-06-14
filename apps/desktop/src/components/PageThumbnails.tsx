@@ -32,7 +32,11 @@ function readPageInfo(): PageInfo | null {
 
 function jumpToPage(index: number, info: PageInfo): void {
   const canvas = document.querySelector<HTMLElement>(".docs-canvas");
-  canvas?.scrollTo({ top: index * info.pageH * info.zoom, behavior: "smooth" });
+  if (!canvas) return;
+  // Proportional within the canvas's own scroll range — robust against zoom and
+  // any top offset (pages are uniform height, so page i top ≈ (i/N)·scrollHeight).
+  const top = info.count > 0 ? (index / info.count) * canvas.scrollHeight : 0;
+  canvas.scrollTo({ top, behavior: "smooth" });
 }
 
 function Thumb({ index, info }: { index: number; info: PageInfo }) {

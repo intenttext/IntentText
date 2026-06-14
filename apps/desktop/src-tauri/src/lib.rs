@@ -1,7 +1,9 @@
 pub mod commands;
 
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
-use tauri::{Emitter, Manager, RunEvent};
+use tauri::{Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
 
 /// A `.it` path the app was asked to open but the frontend hasn't drained yet.
 /// Set at cold start (CLI arg on Windows/Linux, or the macOS open event) and
@@ -14,6 +16,76 @@ struct PendingOpen(Mutex<Option<String>>);
 #[tauri::command]
 fn take_pending_open(state: tauri::State<PendingOpen>) -> Option<String> {
     state.0.lock().unwrap().take()
+}
+
+/// Maps a doc-window label → the `.it` path it should open. The window drains its
+/// entry once, on mount (`window_file`). The label is a hash of the path, so the
+/// same file always maps to the same window → focus-or-create dedup.
+#[derive(Default)]
+struct DocWindows(Mutex<HashMap<String, String>>);
+
+/// True once a frontend has mounted. Before that a macOS file-open is a COLD
+/// launch (the main window opens it in place); after, it's WARM (open the file
+/// in its own doc window).
+#[derive(Default)]
+struct AppReady(AtomicBool);
+
+#[tauri::command]
+fn mark_ready(state: tauri::State<AppReady>) {
+    state.0.store(true, Ordering::SeqCst);
+}
+
+/// Take (once) the `.it` path a freshly-created doc window should open.
+#[tauri::command]
+fn window_file(window: tauri::WebviewWindow) -> Option<String> {
+    let label = window.label().to_string();
+    window
+        .app_handle()
+        .state::<DocWindows>()
+        .0
+        .lock()
+        .unwrap()
+        .remove(&label)
+}
+
+/// Open `path` in its own window — focus the existing one if already open, else
+/// create a new doc window (labelled by a hash of the path for dedup).
+#[tauri::command]
+fn open_doc_window(app: tauri::AppHandle, path: String) {
+    open_or_focus_doc_window(&app, &path);
+}
+
+fn doc_label(path: &str) -> String {
+    let mut h: u64 = 5381;
+    for b in path.bytes() {
+        h = h.wrapping_mul(33).wrapping_add(b as u64);
+    }
+    format!("doc-{:x}", h)
+}
+
+fn open_or_focus_doc_window(app: &tauri::AppHandle, path: &str) {
+    let label = doc_label(path);
+    if let Some(w) = app.get_webview_window(&label) {
+        let _ = w.show();
+        let _ = w.unminimize();
+        let _ = w.set_focus();
+        return;
+    }
+    app.state::<DocWindows>()
+        .0
+        .lock()
+        .unwrap()
+        .insert(label.clone(), path.to_string());
+    let title = std::path::Path::new(path)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("Document")
+        .to_string();
+    let _ = WebviewWindowBuilder::new(app, &label, WebviewUrl::App("index.html".into()))
+        .title(format!("{title} — Dotit"))
+        .inner_size(1180.0, 820.0)
+        .min_inner_size(720.0, 480.0)
+        .build();
 }
 
 /// Minimal `file://` URL → filesystem path (with %xx decoding) so we don't pull
@@ -54,6 +126,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .manage(PendingOpen::default())
+        .manage(DocWindows::default())
+        .manage(AppReady::default())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -78,6 +152,9 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             take_pending_open,
+            mark_ready,
+            window_file,
+            open_doc_window,
             commands::fs::read_file,
             commands::fs::write_file,
             commands::fs::write_binary_file,
@@ -104,22 +181,18 @@ pub fn run() {
         // CLI args. Store the path so a cold-started frontend can drain it, and
         // emit open-file so an already-running (warm) instance opens it live.
         if let RunEvent::Opened { urls } = event {
-            let mut opened_any = false;
+            let ready = app_handle.state::<AppReady>().0.load(Ordering::SeqCst);
             for u in &urls {
                 if let Some(path) = url_to_path(u.as_str()) {
-                    *app_handle.state::<PendingOpen>().0.lock().unwrap() =
-                        Some(path.clone());
-                    let _ = app_handle.emit("open-file", path);
-                    opened_any = true;
-                }
-            }
-            // Bring the (already-running) window to the front — without this the
-            // file opened but the app stayed behind whatever you were looking at.
-            if opened_any {
-                if let Some(win) = app_handle.webview_windows().values().next() {
-                    let _ = win.show();
-                    let _ = win.unminimize();
-                    let _ = win.set_focus();
+                    if ready {
+                        // Warm: app already running — each file in its own window
+                        // (focus the existing one, or create it).
+                        open_or_focus_doc_window(app_handle, &path);
+                    } else {
+                        // Cold launch: the main window drains this on mount.
+                        *app_handle.state::<PendingOpen>().0.lock().unwrap() =
+                            Some(path);
+                    }
                 }
             }
         }

@@ -9,7 +9,6 @@
 // registered folder + Add Folder) + the document viewer/editor + status bar.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { listen } from "@tauri-apps/api/event";
 import { open as openDialog, ask } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
@@ -37,7 +36,7 @@ import {
   Unlock,
 } from "lucide-react";
 
-import { isTauri } from "./lib/backend";
+import { isTauri, windowFile, markReady } from "./lib/backend";
 import { printDocument, exportHTML, exportDOCX, importDOCX } from "./lib/export";
 import { installAppMenu } from "./lib/menu";
 import type { MenuActions } from "./lib/menu";
@@ -282,22 +281,30 @@ export default function App() {
     if (isTauri) getCurrentWindow().setTitle(title).catch(() => {});
   }, [doc, doc?.name, doc?.dirty]);
 
-  // ----- file association: .it opened from the OS -----
+  // ----- which file this window opens -----
   useEffect(() => {
     if (!isTauri) return;
-    // Cold start (the app was launched BY double-clicking a file): drain the
-    // path the OS handed us. This is the fix for "opens blank, have to open it
-    // again" — the launch event used to fire before this listener existed.
-    invoke<string | null>("take_pending_open")
-      .then((p) => {
-        if (p) void openFile(p);
-      })
-      .catch(() => {});
-    // Warm start (app already running, OS sends another file): live event.
-    const un = listen<string>("open-file", (e) => void openFile(e.payload));
-    return () => {
-      un.then((f) => f());
-    };
+    // A doc window opens the file it was created for; the main window drains the
+    // cold-start pending-open (launch-by-double-click). Then mark ready so later
+    // OS file-opens spawn their own windows (warm path, handled in Rust).
+    (async () => {
+      try {
+        const assigned = await windowFile();
+        if (assigned) {
+          await openFile(assigned);
+        } else {
+          const pending = await invoke<string | null>("take_pending_open");
+          if (pending) await openFile(pending);
+        }
+      } catch {
+        /* ignore */
+      }
+      try {
+        await markReady();
+      } catch {
+        /* ignore */
+      }
+    })();
   }, [openFile]);
 
   // ----- keyboard fallbacks (menu accelerators cover the Tauri shell) -----

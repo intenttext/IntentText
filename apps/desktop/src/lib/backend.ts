@@ -49,6 +49,21 @@ export function openExternal(path: string): Promise<void> {
   return invoke("open_external", { path });
 }
 
+/** Open a .it file in its own window (focus the existing window if already open). */
+export function openDocWindow(path: string): Promise<void> {
+  return invoke("open_doc_window", { path });
+}
+
+/** The .it path this (doc) window was created to open — null for the main window. */
+export function windowFile(): Promise<string | null> {
+  return invoke<string | null>("window_file");
+}
+
+/** Tell the backend the frontend has mounted (so later OS file-opens spawn windows). */
+export function markReady(): Promise<void> {
+  return invoke("mark_ready");
+}
+
 /** Recursive listing of a workspace folder (.it files + directories). */
 export function openFolderInfo(path: string): Promise<WorkspaceInfo> {
   return invoke<WorkspaceInfo>("open_folder", { path });
