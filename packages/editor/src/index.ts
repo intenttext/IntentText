@@ -39,3 +39,8 @@ export {
   PAGE_SIZE_OPTIONS,
 } from "./page-geometry";
 export type { PageGeometry } from "./page-geometry";
+
+// Read-only "read like a PDF" paginated view (static page sheets — reliable
+// pagination + the surface print renders).
+export { DocumentView } from "./DocumentView";
+export type { DocumentViewProps } from "./DocumentView";

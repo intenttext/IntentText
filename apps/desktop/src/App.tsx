@@ -14,7 +14,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { IntentTextEditor } from "@dotit/editor";
+import { IntentTextEditor, DocumentView } from "@dotit/editor";
 import type { TrustAction } from "@dotit/editor";
 import { isTemplate } from "@dotit/core";
 import {
@@ -464,10 +464,13 @@ export default function App() {
         />
       );
     }
-    // View and Edit render with the SAME engine (@dotit/editor) so the page
-    // layout, pagination, and spacing are byte-identical between modes — only
-    // editing and the ribbon toggle. View = read-only, no ribbon (a clean
-    // paginated "reading" view); Edit = full editor.
+    // VIEW = the static "read like a PDF" DocumentView: real, separate page-sheets
+    // that paint reliably (unlike the live editor's decoration-based pagination,
+    // which macOS WKWebView left unpainted in read-only). EDIT = the full live
+    // editor. Both render through core's renderPrint engine so layout matches.
+    if (mode === "view") {
+      return <DocumentView value={doc.content} theme={theme} />;
+    }
     return (
       <IntentTextEditor
         value={doc.content}
@@ -475,8 +478,8 @@ export default function App() {
         theme={theme}
         onThemeChange={setTheme}
         onTrustAction={onTrustAction}
-        readOnly={mode === "view"}
-        showRibbon={mode === "edit"}
+        readOnly={false}
+        showRibbon={true}
         showTrustBanner={false}
       />
     );
