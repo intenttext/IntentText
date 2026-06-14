@@ -48,6 +48,7 @@ const sidebars: SidebarsConfig = {
     "reference/templates",
     "reference/query",
     "reference/index-file",
+    "reference/trust-spec",
     "reference/cli",
   ],
 
