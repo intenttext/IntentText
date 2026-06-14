@@ -1505,3 +1505,49 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .doc-surface { animation: none; }
 }
+
+/* ---------- Contents (outline) panel ---------- */
+.main-row {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+}
+.main-row .doc-surface {
+  min-width: 0;
+}
+.outline-panel {
+  flex: 0 0 248px;
+  width: 248px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel);
+  overflow: hidden;
+  animation: docOpen 180ms ease-out;
+}
+.outline-list {
+  overflow-y: auto;
+  padding: 2px 6px 10px;
+}
+.outline-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.35;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.outline-row:hover { background: var(--bg-inset); }
+.outline-row.lvl-1 { font-weight: 600; }
+.outline-row.lvl-2 { padding-left: 14px; }
+.outline-row.lvl-3 { padding-left: 28px; color: var(--text-muted); font-size: 12px; }

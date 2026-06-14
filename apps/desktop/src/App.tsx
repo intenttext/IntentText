@@ -20,6 +20,7 @@ import {
   BadgeCheck,
   Clock,
   Code2,
+  ListTree,
   FileDown,
   FileText,
   FileType2,
@@ -46,6 +47,7 @@ import { useVaults } from "./hooks/useVaults";
 import { useOpenDocument } from "./hooks/useOpenDocument";
 import { useTrustBadges } from "./hooks/useTrustBadges";
 import { VaultSidebar } from "./components/VaultSidebar";
+import { OutlinePanel, buildOutline } from "./components/OutlinePanel";
 import { SearchPanel } from "./components/SearchPanel";
 import { StatusBar } from "./components/StatusBar";
 import { TrustDialogs } from "./components/TrustDialogs";
@@ -68,6 +70,11 @@ export default function App() {
 
   const [sidebarVisible, setSidebarVisible] = useState(
     () => localStorage.getItem("dotit.ui.sidebar") !== "0",
+  );
+  const [outlineOpen, setOutlineOpen] = useState(false);
+  const hasOutline = useMemo(
+    () => (doc ? buildOutline(doc.content).length > 1 : false),
+    [doc],
   );
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("library");
   const [mode, setMode] = useState<DocMode>("view");
@@ -378,6 +385,15 @@ export default function App() {
               <PanelLeftOpen size={16} />
             )}
           </button>
+          {doc && hasOutline && (
+            <button
+              className={`icon-btn${outlineOpen ? " active" : ""}`}
+              title="Contents / outline"
+              onClick={() => setOutlineOpen((v) => !v)}
+            >
+              <ListTree size={16} />
+            </button>
+          )}
         </div>
         <div className="topbar-title" data-tauri-drag-region>
           {doc ? (
@@ -554,6 +570,13 @@ export default function App() {
         )}
 
         <main className={`main${doc && mode === "view" ? " main-viewer" : ""}`}>
+          <div className="main-row">
+          {doc && outlineOpen && (
+            <OutlinePanel
+              source={doc.content}
+              onClose={() => setOutlineOpen(false)}
+            />
+          )}
           {/* keyed on the file path so each switch remounts + plays the
               document-open transition — a file should feel like it OPENS, not
               blink in like a database row. */}
@@ -626,6 +649,7 @@ export default function App() {
               )}
             </div>
           )}
+          </div>
           </div>
         </main>
       </div>
