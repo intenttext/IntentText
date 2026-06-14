@@ -132,3 +132,7 @@ docs-internal/
 **/.root/
 **/accounts.json
 *.dmp
+
+# generated mobile icon sets (desktop bundle is macOS/Win/Linux only)
+apps/desktop/src-tauri/icons/android/
+apps/desktop/src-tauri/icons/ios/
