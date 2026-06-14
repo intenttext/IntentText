@@ -69,6 +69,19 @@ The format is based on Keep a Changelog.
 
 ### Fixed / Added
 
+- **Desktop 2.10.1 — fixes for print, sign, and page thumbnails.**
+  - **Print** now prints the *document*, not the app. The native macOS print path
+    (NSPrintOperation on the WKWebView) doesn't reliably switch to print media, so the
+    old `@media print`-only isolation left the app chrome visible. The document is now
+    isolated at the screen level for the duration of the print panel.
+  - **Sign** is no longer invisible. A plain `sign:` line is a *recorded signature of
+    intent* (not cryptographic), but the badge only counted cryptographic signatures, so
+    signing appeared to do nothing. The badge now shows "Signed ✍ N" with a verdict that
+    explains it's an on-record signature and points to Seal for tamper-evidence.
+  - **Page thumbnails removed.** The rail couldn't stay faithful to the page (stale on
+    file-switch; view mode isn't paginated; live edits are hard to track) — and it's not
+    a feature comparable apps offer. Removed rather than ship something misleading.
+
 - **Desktop 2.10.0 — security hardening (Wave 1 of the hardening plan).**
   - **Content-Security-Policy enabled** (was `null`): `script-src 'self'`, `object-src`/
     `frame-src 'none'`, `base-uri 'self'`, with `connect-src` limited to self + the UTS

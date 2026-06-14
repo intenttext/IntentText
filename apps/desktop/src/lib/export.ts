@@ -65,15 +65,19 @@ function injectPrintDom(content: string, theme: string): void {
   container.innerHTML = `${styleBlocks}${bodyInner}`;
   document.body.appendChild(container);
 
+  // Isolate at the SCREEN level, not only inside @media print: the macOS native
+  // print path (NSPrintOperation on the WKWebView) does not reliably switch to
+  // print media, so an @media-print-only rule left the whole app visible and it
+  // printed the application chrome instead of the document. Hiding every other
+  // body child outright makes the webview show ONLY the document for the brief
+  // moment the print panel is up; cleanupPrintDom() restores the app afterwards.
   const style = document.createElement("style");
   style.id = PRINT_STYLE_ID;
   style.textContent = `
-    #${PRINT_ROOT_ID}{position:absolute;left:-10000px;top:0;}
-    @media print{
-      html,body{background:#fff !important;}
-      body > *:not(#${PRINT_ROOT_ID}){display:none !important;}
-      #${PRINT_ROOT_ID}{position:static !important;left:auto !important;display:block !important;}
-    }`;
+    html,body{background:#fff !important;}
+    body > *:not(#${PRINT_ROOT_ID}){display:none !important;}
+    #${PRINT_ROOT_ID}{position:static !important;left:auto !important;top:auto !important;display:block !important;}
+  `;
   document.head.appendChild(style);
 }
 

@@ -27,6 +27,7 @@ import { trustedIssuers } from "../uts-trust";
 export type TrustState =
   | "template"
   | "draft"
+  | "signed-record"
   | "signed-valid"
   | "signed-broken"
   | "sealed-intact"
@@ -190,6 +191,9 @@ export function evaluateTrust(source: string): TrustStatus {
   }
   const cryptoSigs = signatures.filter((s) => s.cryptographic);
   const signatureCount = cryptoSigs.length;
+  // Plain `sign:` lines with no key/sig — a recorded signature of intent, not a
+  // cryptographic proof. Surfaced so the Sign action visibly changes the badge.
+  const onRecordCount = signatures.length - signatureCount;
 
   // ---- Certification (UTS) ----
   let certifications: CertificationCheck[] = [];
@@ -233,6 +237,12 @@ export function evaluateTrust(source: string): TrustStatus {
       label = "Signature broken";
       icon = "✍";
     }
+  } else if (onRecordCount > 0) {
+    // On-record signatures (intent), no cryptographic proof and not sealed.
+    state = "signed-record";
+    tone = "neutral";
+    label = `Signed ✍ ${onRecordCount}`;
+    icon = "✍";
   } else {
     state = "draft";
     tone = "neutral";
@@ -265,6 +275,8 @@ export function evaluateTrust(source: string): TrustStatus {
     verdict = certified
       ? `Signed and UTS certified${certifiedEntity ? ` for ${certifiedEntity}` : ""} — content intact.`
       : `Signed — ${validSignatureCount} signature${validSignatureCount === 1 ? "" : "s"} verify against the current content.`;
+  } else if (state === "signed-record") {
+    verdict = `Signed on record by ${onRecordCount} ${onRecordCount === 1 ? "person" : "people"} — a recorded signature of intent. Seal the document to make it tamper-evident.`;
   } else {
     verdict = "Draft — not signed or sealed yet.";
   }

@@ -20,7 +20,6 @@ import {
   BadgeCheck,
   Clock,
   Code2,
-  Files,
   ListTree,
   FileDown,
   FileText,
@@ -57,7 +56,6 @@ import { useOpenDocument } from "./hooks/useOpenDocument";
 import { useTrustBadges } from "./hooks/useTrustBadges";
 import { VaultSidebar } from "./components/VaultSidebar";
 import { OutlinePanel, buildOutline } from "./components/OutlinePanel";
-import { PageThumbnails } from "./components/PageThumbnails";
 import { FindBar } from "./components/FindBar";
 import { QuickOpen } from "./components/QuickOpen";
 import { SearchPanel } from "./components/SearchPanel";
@@ -92,9 +90,7 @@ export default function App() {
   const [sidebarVisible, setSidebarVisible] = useState(
     () => localStorage.getItem("dotit.ui.sidebar") !== "0",
   );
-  const [leftPanel, setLeftPanel] = useState<"none" | "outline" | "pages">(
-    "none",
-  );
+  const [leftPanel, setLeftPanel] = useState<"none" | "outline">("none");
   const [findOpen, setFindOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const hasOutline = useMemo(
@@ -497,17 +493,6 @@ export default function App() {
               <ListTree size={16} />
             </button>
           )}
-          {doc && (
-            <button
-              className={`icon-btn${leftPanel === "pages" ? " active" : ""}`}
-              title="Page thumbnails"
-              onClick={() =>
-                setLeftPanel((p) => (p === "pages" ? "none" : "pages"))
-              }
-            >
-              <Files size={16} />
-            </button>
-          )}
           <button
             className="icon-btn topbar-gear"
             title="Preferences (⌘,)"
@@ -707,12 +692,6 @@ export default function App() {
           <div className="main-row">
           {doc && leftPanel === "outline" && (
             <OutlinePanel
-              source={doc.content}
-              onClose={() => setLeftPanel("none")}
-            />
-          )}
-          {doc && leftPanel === "pages" && (
-            <PageThumbnails
               source={doc.content}
               onClose={() => setLeftPanel("none")}
             />
