@@ -237,6 +237,34 @@ export function VisualEditor({
   }, [geometry, editor]);
   const pageRef = useRef<HTMLDivElement>(null);
 
+  // Read-only / view mode fires no edit transactions, so if the FIRST pagination
+  // pass measured before web fonts + layout settled (heights too small → it
+  // thinks everything fits one page), it would never self-correct the way edit
+  // mode does on each keystroke. Re-nudge a few times after mount and once fonts
+  // are ready. Each nudge is an empty transaction; the plugin no-ops when the
+  // page signature is unchanged, so this is safe + cheap in both modes.
+  useEffect(() => {
+    if (!editor) return;
+    const nudge = () => {
+      if (!editor.isDestroyed) editor.view.dispatch(editor.state.tr);
+    };
+    const timers = [
+      setTimeout(nudge, 120),
+      setTimeout(nudge, 400),
+      setTimeout(nudge, 900),
+    ];
+    let cancelled = false;
+    const fonts = (document as unknown as { fonts?: { ready?: Promise<unknown> } })
+      .fonts;
+    void fonts?.ready?.then(() => {
+      if (!cancelled) nudge();
+    });
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+  }, [editor, value]);
+
   // Word count for the page indicator
   const getWordCount = useCallback(() => {
     if (!editor) return 0;

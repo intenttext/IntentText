@@ -79,6 +79,17 @@ The format is based on Keep a Changelog.
 
 ### Fixed / Added
 
+- **Desktop 2.11.1 — print + view-mode pagination fixes.**
+  - **Print now reliably prints the document, not the app.** The native WKWebView print
+    path (NSPrintOperation) could capture the app chrome; print now renders the document
+    as a standalone page and opens it in the system browser, which auto-opens the print /
+    Save-as-PDF dialog. Always prints the document, with correct page breaks.
+  - **View (read-only) mode now separates into pages** like edit mode. Both modes share
+    the same engine, but read-only fires no edit transactions — so if the first
+    pagination pass measured before fonts/layout settled, it never self-corrected. The
+    editor (`@dotit/editor` 1.4.2) now re-nudges pagination after mount and once fonts are
+    ready (a no-op when already stable), so the read view paginates correctly.
+
 - **Desktop 2.11.0 — real cryptographic signing with a keychain-backed identity.**
   Signing now produces a *verifiable* Ed25519 signature instead of a plaintext record:
   - First time you sign, the app creates your **signing identity** (an Ed25519 keypair).
