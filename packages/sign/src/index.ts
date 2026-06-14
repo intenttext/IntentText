@@ -19,7 +19,11 @@
  */
 
 import { ed25519 } from "@noble/curves/ed25519";
-import { computeDocumentHash, assertNotTemplate } from "@dotit/core";
+import {
+  computeDocumentHash,
+  computeDocumentHashLegacy,
+  assertNotTemplate,
+} from "@dotit/core";
 
 // ─── Encoding helpers (base64url, dependency-free) ───────────────────────────
 
@@ -34,14 +38,39 @@ function toB64url(bytes: Uint8Array): string {
 }
 
 function fromB64url(s: string): Uint8Array {
+  // Validate before decoding: a malformed key/signature must raise a clear error
+  // (callers treat a throw as "invalid"), not silently produce garbage bytes that
+  // could make a verification quietly fail or, worse, appear to pass.
+  if (typeof s !== "string" || s.length === 0) {
+    throw new Error("invalid base64url: empty");
+  }
+  if (!/^[A-Za-z0-9_-]+$/.test(s)) {
+    throw new Error("invalid base64url: unexpected characters");
+  }
   const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
-  const bin =
-    typeof atob !== "undefined"
-      ? atob(b64)
-      : Buffer.from(b64, "base64").toString("binary");
+  let bin: string;
+  try {
+    bin =
+      typeof atob !== "undefined"
+        ? atob(b64)
+        : Buffer.from(b64, "base64").toString("binary");
+  } catch {
+    throw new Error("invalid base64url: decode failed");
+  }
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
+}
+
+// Decode a base64url Ed25519 key and assert its length. Ed25519 public/private
+// keys are exactly 32 bytes; anything else is rejected rather than handed to the
+// curve implementation.
+function decodeEd25519Key(b64: string, label: string): Uint8Array {
+  const k = fromB64url(b64);
+  if (k.length !== 32) {
+    throw new Error(`invalid ${label}: expected 32 bytes, got ${k.length}`);
+  }
+  return k;
 }
 
 const enc = (s: string): Uint8Array => new TextEncoder().encode(s);
@@ -113,10 +142,15 @@ export function signDocumentCrypto(
   const role = options.role ?? "";
   const publicKey = publicKeyFor(options.privateKey);
 
-  // Idempotent: skip if this public key already signed.
-  const already = source
-    .split("\n")
-    .some((l) => l.trimStart().startsWith("sign:") && l.includes(publicKey));
+  // Idempotent: skip if this public key already signed. Parse the key: field
+  // rather than a substring match — otherwise the public key merely *appearing*
+  // anywhere in the document body (e.g. quoted in content) would block signing.
+  const already = source.split("\n").some((l) => {
+    const line = l.trimStart();
+    if (!line.startsWith("sign:")) return false;
+    const k = (parseProps(line).key || "").replace(/^ed25519:/, "");
+    return k === publicKey;
+  });
   if (already) {
     return { success: true, source, at, publicKey, note: "already-signed" };
   }
@@ -190,6 +224,9 @@ function parseProps(line: string): Record<string, string> {
  */
 export function verifyCryptoSignatures(source: string): SignatureCheck[] {
   const currentHash = computeDocumentHash(source);
+  // Accept the legacy (pre-NFC-normalization) hash too, so signatures made before
+  // Unicode normalization still verify against unchanged content.
+  const legacyHash = computeDocumentHashLegacy(source);
   const out: SignatureCheck[] = [];
 
   for (const raw of source.split("\n")) {
@@ -216,11 +253,13 @@ export function verifyCryptoSignatures(source: string): SignatureCheck[] {
 
     const publicKey = keyField.replace(/^ed25519:/, "");
     try {
-      const ok = ed25519.verify(
-        fromB64url(sigField),
-        signingPayload(currentHash, signer, role ?? "", at ?? ""),
-        fromB64url(publicKey),
-      );
+      const pub = decodeEd25519Key(publicKey, "public key");
+      const sig = fromB64url(sigField);
+      const payloadFor = (h: string) =>
+        signingPayload(h, signer, role ?? "", at ?? "");
+      const ok =
+        ed25519.verify(sig, payloadFor(currentHash), pub) ||
+        ed25519.verify(sig, payloadFor(legacyHash), pub);
       out.push({
         signer,
         role,
@@ -690,6 +729,15 @@ export function verifyIntermediateCert(
     notBefore: cert.notBefore,
     notAfter: cert.notAfter,
   };
+
+  // Reject malformed key material before trusting the chain — an intermediate or
+  // root key that isn't a well-formed 32-byte Ed25519 key is invalid outright.
+  try {
+    decodeEd25519Key(cert.intermediatePublicKey, "intermediate public key");
+    decodeEd25519Key(cert.rootPublicKey, "root public key");
+  } catch (e) {
+    return { ...base, valid: false, reason: (e as Error).message };
+  }
 
   let sigOk = false;
   try {

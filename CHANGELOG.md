@@ -19,6 +19,14 @@ The format is based on Keep a Changelog.
   `color` values are now stripped of CSS metacharacters so a stray `;` can't inject
   extra declarations (e.g. an exfiltrating `background:url(...)`).
 
+- **Signature/certificate input hardening (`@dotit/sign` 1.4.1).** `fromB64url` now
+  validates its input (throws on non-base64url instead of producing garbage bytes);
+  Ed25519 keys are length-checked (exactly 32 bytes) before use in both signature and
+  intermediate-certificate verification; the "already-signed" check now parses the
+  `key:` field instead of a substring match (so the public key merely appearing in the
+  body no longer blocks signing). Crypto verification accepts both the NFC and legacy
+  content hash, so signatures made before normalization still verify.
+
 ### Changed
 
 - **Document hashes are Unicode-normalized to NFC before hashing (`@dotit/core` 1.9.0).**

@@ -160,4 +160,36 @@ describe("@dotit/sign — certification identity (Phase 3b: verified entity)", (
     expect(chk.valid).toBe(true);
     expect(chk.entity).toBeUndefined();
   });
+
+  describe("input hardening", () => {
+    it("reports a malformed signature as invalid instead of crashing", () => {
+      const key = generateSigningKey();
+      const signed = signDocumentCrypto(DOC, { signer: "A", privateKey: key.privateKey }).source;
+      // Corrupt the sig field with non-base64url characters.
+      const tampered = signed.replace(/sig: [^\n]+/, "sig: not!!valid!!base64");
+      const [chk] = verifyCryptoSignatures(tampered);
+      expect(chk.valid).toBe(false);
+      expect(chk.cryptographic).toBe(true);
+    });
+
+    it("rejects a wrong-length (non-32-byte) public key", () => {
+      const key = generateSigningKey();
+      const signed = signDocumentCrypto(DOC, { signer: "A", privateKey: key.privateKey }).source;
+      const tampered = signed.replace(/key: ed25519:[^\s|]+/, "key: ed25519:AAAA");
+      const [chk] = verifyCryptoSignatures(tampered);
+      expect(chk.valid).toBe(false);
+    });
+
+    it("does not treat the public key merely appearing in the body as already-signed", () => {
+      const key = generateSigningKey();
+      // The signer's public key is quoted in the document content.
+      const doc = `title: Note\ntext: my key is ed25519:${key.publicKey}\n`;
+      const res = signDocumentCrypto(doc, { signer: "A", privateKey: key.privateKey });
+      expect(res.note).not.toBe("already-signed");
+      // And it genuinely signed.
+      const [chk] = verifyCryptoSignatures(res.source);
+      expect(chk.cryptographic).toBe(true);
+      expect(chk.valid).toBe(true);
+    });
+  });
 });
