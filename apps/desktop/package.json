@@ -1,11 +1,12 @@
 {
   "name": "intenttext-desktop",
   "private": true,
-  "version": "2.11.3",
+  "version": "2.11.4",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "build:deps": "pnpm --filter @dotit/core build && pnpm --filter @dotit/sign build && pnpm --filter @dotit/editor build",
+    "dev": "pnpm run build:deps && vite",
+    "build": "pnpm run build:deps && tsc && vite build",
     "preview": "vite preview",
     "icons:sync": "node scripts/sync-icons.mjs",
     "tauri": "tauri",

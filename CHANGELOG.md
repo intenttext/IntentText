@@ -79,6 +79,20 @@ The format is based on Keep a Changelog.
 
 ### Fixed / Added
 
+- **Desktop 2.11.4 — the real fixes for page separation + native print (root-caused).**
+  - **Stale-dist trap fixed (this was the actual bug).** The desktop bundles `@dotit/editor`
+    from its built `dist/`, but the desktop build never rebuilt it — so pulling source fixes
+    and rebuilding kept shipping the OLD editor. `build`/`dev` now run a `build:deps` step
+    that rebuilds `@dotit/core`, `@dotit/sign`, and `@dotit/editor` first. This is why the
+    page-separation/pagination fixes weren't appearing in earlier rebuilds.
+  - **Page separation now visible** (verified in a real browser): the page gap was painted
+    `#f9fbfd` (≈ the white page) so breaks were invisible; it's now a clear grey desk
+    (`#e4e6eb`) — white sheets, grey gaps, like a PDF — in both view and edit.
+  - **Native print restored.** Print again uses the in-app macOS print panel
+    (NSPrintOperation) on the isolated document (renderPrint `@page` output), so it prints
+    the paginated DOCUMENT — not the app, not via a browser. Browser print is now only an
+    automatic fallback if the native path is unavailable.
+
 - **Desktop 2.11.1 — print + view-mode pagination fixes.**
   - **Print now reliably prints the document, not the app.** The native WKWebView print
     path (NSPrintOperation) could capture the app chrome; print now renders the document

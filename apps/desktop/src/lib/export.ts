@@ -10,6 +10,7 @@
 //   • import → open a .docx, convert to IntentText source, hand back to the app.
 
 import { save, open, message } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 import { tempDir, join } from "@tauri-apps/api/path";
 import {
   parseIntentText,
@@ -44,22 +45,72 @@ function defaultName(content: string, fallback = "document"): string {
   }
 }
 
+const PRINT_ROOT_ID = "it-print-root";
+const PRINT_STYLE_ID = "it-print-style";
+
 /**
- * Print / Save-as-PDF. Renders the document as a STANDALONE HTML page and opens
- * it in the system default browser, which auto-opens the print dialog (Cmd+P /
- * Save-as-PDF). This reliably prints the DOCUMENT with correct pagination — the
- * native WKWebView print path (NSPrintOperation) could capture the app chrome
- * instead of the document, so we use the dependable browser path.
+ * Isolate the print-rendered document into the webview's own DOM so a NATIVE
+ * print of the webview shows ONLY the document — not the app chrome. We render
+ * core's renderPrint output (which carries @page rules NSPrintOperation honors
+ * for true pagination), drop it into a top-level container, and hide every other
+ * body child at the SCREEN level (the macOS native print path doesn't reliably
+ * switch to print media, so an @media-print-only rule isn't enough). cleanup
+ * restores the app afterwards.
+ */
+function injectPrintDom(content: string, theme: string): void {
+  const html = buildPrintHTML(content, theme);
+  const bodyInner = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1] ?? html;
+  const styleBlocks = [...html.matchAll(/<style[^>]*>[\s\S]*?<\/style>/gi)]
+    .map((m) => m[0])
+    .join("\n");
+  const bodyClass = (html.match(/<body[^>]*class="([^"]*)"/i)?.[1] ?? "").trim();
+
+  cleanupPrintDom();
+  const container = document.createElement("div");
+  container.id = PRINT_ROOT_ID;
+  if (bodyClass) container.className = bodyClass;
+  container.innerHTML = `${styleBlocks}${bodyInner}`;
+  document.body.appendChild(container);
+
+  const style = document.createElement("style");
+  style.id = PRINT_STYLE_ID;
+  style.textContent = `
+    html,body{background:#fff !important;}
+    body > *:not(#${PRINT_ROOT_ID}){display:none !important;}
+    #${PRINT_ROOT_ID}{position:static !important;left:auto !important;top:auto !important;display:block !important;}
+  `;
+  document.head.appendChild(style);
+}
+
+function cleanupPrintDom(): void {
+  document.getElementById(PRINT_ROOT_ID)?.remove();
+  document.getElementById(PRINT_STYLE_ID)?.remove();
+}
+
+/**
+ * Print / Save-as-PDF. Uses the NATIVE macOS print panel (NSPrintOperation via
+ * the WKWebView handle) on the isolated document, so the real system print dialog
+ * shows the paginated DOCUMENT — in the app, not a browser. Falls back to opening
+ * the print HTML in the default browser only if the native path is unavailable
+ * (non-macOS) or throws.
  */
 export async function printDocument(
   content: string,
   theme: string,
 ): Promise<void> {
-  await browserPrint(content, theme);
+  injectPrintDom(content, theme);
+  // Let layout/fonts settle before the print snapshot.
+  await new Promise((r) => setTimeout(r, 150));
+  try {
+    await invoke("native_print"); // blocks until the native panel is dismissed
+    cleanupPrintDom();
+  } catch {
+    cleanupPrintDom();
+    await browserPrint(content, theme);
+  }
 }
 
-/** Render to a temp .html and open it in the default browser, where Cmd+P /
- *  Save-as-PDF work. Auto-opens the dialog so it's a single action. */
+/** Fallback only: render to a temp .html and open it in the default browser. */
 async function browserPrint(content: string, theme: string): Promise<void> {
   try {
     const html = buildPrintHTML(content, theme);
