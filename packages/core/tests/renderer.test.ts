@@ -270,3 +270,33 @@ done: Domain secured`;
     expect(html).toContain("Domain secured");
   });
 });
+
+describe("Embed XSS hardening", () => {
+  it("strips <script> and on* handlers from an embedded SVG", () => {
+    const input =
+      'embed: | type: svg | content: <svg onload="alert(1)"><script>alert(2)</script><rect width="10" height="10"/></svg>';
+    const html = renderHTML(parseIntentText(input));
+    // The vector graphic survives…
+    expect(html).toContain("<rect");
+    // …but nothing executable does.
+    expect(html).not.toContain("<script>");
+    expect(html).not.toContain("alert(2)");
+    expect(html.toLowerCase()).not.toContain("onload");
+  });
+
+  it("drops javascript: hrefs inside an embedded SVG", () => {
+    const input =
+      'embed: | type: svg | content: <svg><a href="javascript:alert(1)"><circle r="5"/></a></svg>';
+    const html = renderHTML(parseIntentText(input));
+    expect(html).toContain("<circle");
+    expect(html.toLowerCase()).not.toContain("javascript:");
+  });
+
+  it("escapes mermaid embed content (no raw HTML injection)", () => {
+    const input =
+      "embed: | type: mermaid | content: <img src=x onerror=alert(1)>";
+    const html = renderHTML(parseIntentText(input));
+    expect(html).not.toContain("<img src=x onerror");
+    expect(html).toContain("&lt;img");
+  });
+});

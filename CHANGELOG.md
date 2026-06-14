@@ -6,6 +6,29 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Security
+
+- **Embed XSS closed + watermark CSS injection closed (`@dotit/core` 1.9.0).** When a
+  document is rendered, `embed: | type: svg` content is now sanitized (script /
+  foreignObject / SMIL-animation / `on*` handlers / `javascript:` & `data:text/html`
+  refs / `expression()` styles are stripped — the vector graphic still renders), and
+  `type: mermaid` content is HTML-escaped (Mermaid reads `textContent`, so this is
+  safe and correct). Previously both injected their raw `content` into the page —
+  arbitrary script execution when rendering an untrusted `.it` in any surface
+  (verify portal, editor preview, desktop). The page watermark's `angle`/`size`/
+  `color` values are now stripped of CSS metacharacters so a stray `;` can't inject
+  extra declarations (e.g. an exfiltrating `background:url(...)`).
+
+### Changed
+
+- **Document hashes are Unicode-normalized to NFC before hashing (`@dotit/core` 1.9.0).**
+  Two byte-different but visually identical documents (precomposed "é" vs decomposed
+  "e"+combining-acute) now produce the **same** content hash — so re-saving a sealed
+  contract in another editor can't silently invalidate the seal. Backward compatible:
+  documents sealed under the previous rule still verify (new `hashMatches` /
+  `computeDocumentHashLegacy` exports accept either form). `computeDocumentHash` now
+  always emits the NFC hash.
+
 ### Changed
 
 - **Ambient Seal redesigned — the "borderless bloom" (`@dotit/core` 1.8.0).** The seal's

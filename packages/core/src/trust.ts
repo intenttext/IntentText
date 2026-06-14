@@ -6,16 +6,14 @@ import { assertNotTemplate } from "./template";
 // ─── Hash Computation ───────────────────────────────────────────────────────
 
 /**
- * Compute SHA-256 hash of document content above the history boundary,
- * excluding sign: and freeze: lines (since their hashes reference the body without them).
+ * Extract the canonical hashed body: content above the history boundary, with
+ * the seal/authority metadata lines removed (their hash fields reference the
+ * body WITHOUT them, so adding a signature/seal/certification must not change
+ * the content hash — approve: IS part of the hashed record).
  */
-export function computeDocumentHash(source: string): string {
+function hashedBody(source: string): string {
   const boundary = findHistoryBoundaryInSource(source);
   const content = boundary === -1 ? source : source.slice(0, boundary);
-  // Strip sign:/freeze:/certify: lines — these are seal & authority metadata
-  // ABOUT the content (their hash fields reference the content without them), so
-  // adding a signature, seal, or UTS certification must not change the content
-  // hash. (approve: IS part of the hashed record.)
   const bodyLines = content
     .split("\n")
     .filter(
@@ -25,8 +23,39 @@ export function computeDocumentHash(source: string): string {
         !line.startsWith("certify:") &&
         !line.startsWith("amendment:"),
     );
-  const body = bodyLines.join("\n").trim();
-  return "sha256:" + sha256Hex(body);
+  return bodyLines.join("\n").trim();
+}
+
+/**
+ * Compute SHA-256 hash of the document's content body.
+ *
+ * The body is Unicode-normalized to NFC before hashing so two byte-different but
+ * visually identical documents (e.g. precomposed "é" U+00E9 vs decomposed
+ * "e"+◌́ U+0065 U+0301) produce the SAME hash — essential for legal/contract
+ * use where a re-save in another editor must not invalidate a seal.
+ */
+export function computeDocumentHash(source: string): string {
+  return "sha256:" + sha256Hex(hashedBody(source).normalize("NFC"));
+}
+
+/**
+ * Legacy (pre-NFC-normalization) hash. Retained ONLY so documents sealed before
+ * the normalization change still verify. Never write this — see hashMatches().
+ */
+export function computeDocumentHashLegacy(source: string): string {
+  return "sha256:" + sha256Hex(hashedBody(source));
+}
+
+/**
+ * True if `expected` matches the document's content hash under either the
+ * current (NFC) rule or the legacy rule — backward-compatible verification.
+ */
+export function hashMatches(source: string, expected: string): boolean {
+  if (!expected) return false;
+  return (
+    computeDocumentHash(source) === expected ||
+    computeDocumentHashLegacy(source) === expected
+  );
 }
 
 /**
@@ -411,7 +440,11 @@ export function verifyDocument(source: string): VerifyResult {
 
   const currentHash = computeDocumentHash(source);
   const expectedHash = doc.metadata.freeze.hash;
-  const intact = currentHash === expectedHash;
+  // Accept either the NFC or legacy hash so documents sealed before Unicode
+  // normalization still verify intact.
+  const intact = hashMatches(source, expectedHash);
+  const legacyHash = computeDocumentHashLegacy(source);
+  const matchesCurrent = (h: string) => h === currentHash || h === legacyHash;
 
   const signers =
     doc.metadata.signatures?.map((sig) => ({
@@ -419,7 +452,7 @@ export function verifyDocument(source: string): VerifyResult {
       role: sig.role,
       at: sig.at,
       valid: sig.hash === expectedHash,
-      signedCurrentVersion: sig.hash === currentHash,
+      signedCurrentVersion: matchesCurrent(sig.hash),
     })) || [];
 
   return {

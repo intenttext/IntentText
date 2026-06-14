@@ -109,6 +109,14 @@ function escapeHtml(text: string): string {
     .replace(/'/g, "&#39;");
 }
 
+// Sanitize a value destined for a CSS property inside an inline style="" — strips
+// the metacharacters (`;{}<>"\`) that would let it inject extra declarations or
+// break out of the attribute. Callers should still escapeHtml() for the HTML
+// attribute context.
+function cssValue(value: string): string {
+  return value.replace(/[;{}<>"\\]/g, "");
+}
+
 /**
  * Build a CSS `content` value for an @page margin box (running header/footer).
  *
@@ -221,6 +229,86 @@ function sanitizeUrl(url: string): string {
   }
 
   return "#";
+}
+
+// SVG elements that can execute script or load active/external content. An
+// embedded `type: svg` is meant to be a static vector graphic, so these are
+// stripped entirely before the SVG is inlined into the document.
+const SVG_FORBIDDEN_TAGS = new Set([
+  "script",
+  "foreignobject",
+  "iframe",
+  "object",
+  "embed",
+  "link",
+  "audio",
+  "video",
+  "animate",
+  "animatetransform",
+  "animatemotion",
+  "set",
+  "handler",
+]);
+
+// Sanitize an embedded SVG: keep the vector graphic, remove anything that can
+// run JavaScript (script/foreignObject/SMIL animation→href, on* handlers,
+// javascript:/vbscript:/data:text-html refs, expression() in inline styles).
+// Parses with node-html-parser (already a core dependency, works in Node and the
+// browser); if the parser is unavailable for any reason, fails safe by escaping.
+function sanitizeSvg(svg: string): string {
+  let root: { toString(): string; childNodes?: unknown[] };
+  try {
+    // Lazy require mirrors html-to-it.ts so the parser isn't pulled into
+    // bundles that never embed SVG.
+    const { parse } = require("node-html-parser");
+    root = parse(svg, { comment: false });
+  } catch {
+    return escapeHtml(svg);
+  }
+
+  const walk = (node: any): void => {
+    const children = [...(node.childNodes || [])];
+    for (const child of children) {
+      // Element nodes expose rawTagName / attributes; skip text & comments.
+      const tag = String(child.rawTagName || "").toLowerCase();
+      if (!tag) continue;
+      if (SVG_FORBIDDEN_TAGS.has(tag)) {
+        child.remove();
+        continue;
+      }
+      const attrs = child.attributes || {};
+      for (const name of Object.keys(attrs)) {
+        const lname = name.toLowerCase();
+        const val = String(attrs[name] ?? "");
+        const lval = val.trim().toLowerCase();
+        if (lname.startsWith("on")) {
+          child.removeAttribute(name);
+        } else if (
+          (lname === "href" ||
+            lname === "xlink:href" ||
+            lname.endsWith(":href")) &&
+          (lval.startsWith("javascript:") ||
+            lval.startsWith("vbscript:") ||
+            lval.startsWith("data:text/html"))
+        ) {
+          child.removeAttribute(name);
+        } else if (
+          lname === "style" &&
+          /expression\s*\(|javascript:|vbscript:/i.test(val)
+        ) {
+          child.removeAttribute(name);
+        }
+      }
+      walk(child);
+    }
+  };
+
+  try {
+    walk(root);
+    return root.toString();
+  } catch {
+    return escapeHtml(svg);
+  }
 }
 
 // Apply inline AST nodes to produce safe HTML.
@@ -609,9 +697,12 @@ function renderBlock(block: IntentBlock): string {
         case "iframe":
           return `<div class="intent-embed"><iframe src="${escapeHtml(sanitizeUrl(src))}" frameborder="0" loading="lazy" style="width:100%;min-height:400px;border-radius:8px;"></iframe></div>`;
         case "mermaid":
-          return `<div class="intent-embed mermaid">${embedContent}</div>`;
+          // Mermaid reads the element's textContent, so escaping is both safe
+          // and correct — the library still sees the original diagram source.
+          return `<div class="intent-embed mermaid">${escapeHtml(embedContent)}</div>`;
         case "svg":
-          return `<div class="intent-embed svg">${embedContent}</div>`;
+          // Keep the vector graphic but strip any executable content.
+          return `<div class="intent-embed svg">${sanitizeSvg(embedContent)}</div>`;
         case "video":
           return `<div class="intent-embed video"><video src="${escapeHtml(sanitizeUrl(src))}" controls style="max-width:100%;border-radius:8px;"></video></div>`;
         case "audio":
@@ -1619,9 +1710,12 @@ export function renderPrint(
   let watermarkHtml = "";
   if (layout.watermark && layout.watermark.content) {
     const wp = layout.watermark.properties || {};
-    const color = wp.color ? String(wp.color) : "rgba(0,0,0,0.08)";
-    const angle = wp.angle ? String(wp.angle) : "-45";
-    const size = wp.size ? String(wp.size) : "80pt";
+    // escapeHtml blocks quote-breakout, but inside a style="" value a stray `;`
+    // would let an attacker inject extra CSS declarations (e.g. an exfiltrating
+    // background:url(...)). Strip CSS metacharacters from every value first.
+    const color = cssValue(wp.color ? String(wp.color) : "rgba(0,0,0,0.08)");
+    const angle = cssValue(wp.angle ? String(wp.angle) : "-45");
+    const size = cssValue(wp.size ? String(wp.size) : "80pt");
     watermarkHtml = `<div class="it-watermark" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(${escapeHtml(angle)}deg);font-size:${escapeHtml(size)};color:${escapeHtml(color)};z-index:-1;pointer-events:none;white-space:nowrap;">${escapeHtml(layout.watermark.content)}</div>`;
   }
 

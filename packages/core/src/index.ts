@@ -98,6 +98,8 @@ export type {
 // v2.8 trust and history
 export {
   computeDocumentHash,
+  computeDocumentHashLegacy,
+  hashMatches,
   findHistoryBoundaryInSource,
   sealDocument,
   signDocument,

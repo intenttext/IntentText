@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   computeDocumentHash,
+  computeDocumentHashLegacy,
+  hashMatches,
   sealDocument,
   signDocument,
   unsealDocument,
@@ -145,5 +147,29 @@ describe("storage integrity — DB-safe .it round-trip", () => {
     const src = "title: T\ntext: x\nfreeze: | hash: sha256:abc | status: locked";
     // seal hash excludes freeze:; storage hash covers the whole bytes
     expect(toStorageRecord(src).bytesSha256).not.toBe(computeDocumentHash(src).replace("sha256:", ""));
+  });
+});
+
+describe("Unicode normalization (NFC) before hashing", () => {
+  // precomposed e-acute (U+00E9) vs decomposed e + combining acute (U+0301).
+  // Written with \\u escapes so this file stays ASCII and cannot be re-normalized.
+  const base = "title: Caf\u00e9 Contract\ntext: due \u00e9";
+  const precomposed = base.normalize("NFC");
+  const decomposed = base.normalize("NFD");
+
+  it("hashes visually-identical NFC/NFD content to the same value", () => {
+    expect(precomposed).not.toBe(decomposed); // genuinely different bytes
+    expect(computeDocumentHash(precomposed)).toBe(computeDocumentHash(decomposed));
+  });
+
+  it("still verifies a document sealed under the legacy (pre-NFC) hash", () => {
+    // Simulate a doc sealed before normalization: freeze hash = legacy hash of
+    // the decomposed body. verifyDocument must still report it intact.
+    const legacy = computeDocumentHashLegacy(decomposed);
+    const sealed = `${decomposed}\nfreeze: | at: 2026-01-01T00:00:00Z | hash: ${legacy} | status: locked`;
+    const v = verifyDocument(sealed);
+    expect(v.frozen).toBe(true);
+    expect(v.intact).toBe(true);
+    expect(hashMatches(sealed, legacy)).toBe(true);
   });
 });
