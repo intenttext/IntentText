@@ -51,6 +51,13 @@ jobs:
       - name: Enforce core npm pack footprint
         run: node packages/core/scripts/check-pack-footprint.cjs
 
+      # ── Cryptographic trust layer ──────────────────────────────────────────
+      - name: Build sign
+        run: pnpm --filter @dotit/sign build
+
+      - name: Test sign
+        run: pnpm --filter @dotit/sign test
+
       # ── Supported downstream surface (build only — must compile against core) ─
       - name: Build MCP server
         run: pnpm --filter @dotit/mcp build
@@ -72,3 +79,10 @@ jobs:
         with:
           name: core-package-size
           path: core-package-size.json
+
+      # ── Dependency vulnerability scan ───────────────────────────────────────
+      # Non-blocking for now: the current high advisories are dev/build-only
+      # tooling (transitive esbuild via vite, dev-server-only). Surfaced here so
+      # they're visible; tighten to a hard gate once production deps are clean.
+      - name: Audit production dependencies (report-only)
+        run: pnpm audit --prod --audit-level high || true
