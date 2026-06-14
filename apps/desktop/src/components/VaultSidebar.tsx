@@ -15,6 +15,7 @@ import type { ReactNode } from "react";
 import {
   ChevronDown,
   ChevronRight,
+  Clock,
   FilePlus2,
   FileText,
   Folder,
@@ -24,6 +25,7 @@ import {
   Lock,
   RefreshCw,
   ShieldCheck,
+  X,
 } from "lucide-react";
 import type { TreeNode } from "../lib/backend";
 import { basename } from "../lib/backend";
@@ -261,6 +263,57 @@ export function VaultSidebar(props: {
           <span className="vault-label">Add Folder…</span>
         </button>
       </nav>
+
+      {/* ---- recent files ---- */}
+      {api.recentFiles.length > 0 && (
+        <div className="vault-recent">
+          <div className="panel-head">
+            <span className="panel-title">
+              <Clock size={12} /> Recent
+              <span className="panel-count"> {api.recentFiles.length}</span>
+            </span>
+            <span className="panel-actions">
+              <button
+                className="icon-btn"
+                title="Clear recent files"
+                onClick={() => api.clearRecent()}
+              >
+                <X size={14} />
+              </button>
+            </span>
+          </div>
+          <div className="recent-list">
+            {api.recentFiles.slice(0, 8).map((p) => {
+              const name = basename(p).replace(/\.it$/i, "");
+              const folder = p.split("/").slice(-2, -1)[0] ?? "";
+              const isActive = p === activePath;
+              const badge = badges.get(p);
+              return (
+                <button
+                  key={p}
+                  className={`tree-row recent-row${isActive ? " active" : ""}`}
+                  onClick={() => onOpenFile(p)}
+                  title={p}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    api.removeRecent(p);
+                  }}
+                >
+                  <FileText size={14} />
+                  <span className="tree-name">{name}</span>
+                  {folder && <span className="tree-vault">{folder}</span>}
+                  {badge && badge !== "draft" && badge !== "error" && (
+                    <span title={BADGE_TITLE[badge]}>
+                      <BadgeIcon badge={badge} />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ---- scoped file list ---- */}
       <div className="vault-files">

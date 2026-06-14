@@ -1,6 +1,6 @@
 {
   "productName": "Dotit",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "identifier": "qa.uts.dotit",
   "build": {
     "frontendDist": "../dist",

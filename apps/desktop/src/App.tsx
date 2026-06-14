@@ -18,6 +18,7 @@ import type { TrustAction } from "@dotit/editor";
 import { isTemplate } from "@dotit/core";
 import {
   BadgeCheck,
+  Clock,
   Code2,
   FileDown,
   FileText,
@@ -557,42 +558,66 @@ export default function App() {
             mainPane
           ) : (
             <div className="empty-state">
-              <div className="empty-brand">.it</div>
-              <h1>Dotit</h1>
-              <p>
-                A native home for your <code>.it</code> documents — register your
-                folders, search across all of them, and open any file like a PDF.
-              </p>
-              <div className="empty-actions">
-                <button
-                  className="btn primary"
-                  onClick={() => vaultsApi.addFolder()}
-                >
-                  <FolderPlus size={15} /> Add Folder…
-                </button>
-                <button className="btn" onClick={() => void newDocument()}>
-                  New Document
-                </button>
-                <button className="btn" onClick={() => openFileViaDialog()}>
-                  Open File…
-                </button>
-                <button className="btn" onClick={() => void importDocxFlow()}>
-                  Import Word…
-                </button>
+              <div className="home-hero">
+                <div className="empty-brand">.it</div>
+                <h1>Dotit</h1>
+                <p>
+                  Your documents — read like a PDF, edit like a word processor,
+                  prove like a notary.
+                </p>
+                <div className="empty-actions">
+                  <button
+                    className="btn primary"
+                    onClick={() => void newDocument()}
+                  >
+                    <FileText size={15} /> New Document
+                  </button>
+                  <button className="btn" onClick={() => openFileViaDialog()}>
+                    <FileUp size={15} /> Open File…
+                  </button>
+                  <button className="btn" onClick={() => void importDocxFlow()}>
+                    <FileType2 size={15} /> Import Word…
+                  </button>
+                  <button className="btn" onClick={() => vaultsApi.addFolder()}>
+                    <FolderPlus size={15} /> Add Folder…
+                  </button>
+                </div>
               </div>
+
               {vaultsApi.recentFiles.length > 0 && (
-                <div className="empty-recents">
-                  <div className="panel-subtitle">Recent</div>
-                  {vaultsApi.recentFiles.slice(0, 6).map((p) => (
+                <div className="home-recent">
+                  <div className="home-section-head">
+                    <span>
+                      <Clock size={14} /> Recent
+                    </span>
                     <button
-                      key={p}
-                      className="link"
-                      onClick={() => void openFile(p)}
-                      title={p}
+                      className="link small"
+                      onClick={() => vaultsApi.clearRecent()}
                     >
-                      {p.split("/").pop()?.replace(/\.it$/i, "")}
+                      Clear
                     </button>
-                  ))}
+                  </div>
+                  <div className="recent-grid">
+                    {vaultsApi.recentFiles.slice(0, 9).map((p) => {
+                      const name =
+                        p.split("/").pop()?.replace(/\.it$/i, "") ?? p;
+                      const folder = p.split("/").slice(-2, -1)[0] ?? "";
+                      return (
+                        <button
+                          key={p}
+                          className="recent-card"
+                          onClick={() => void openFile(p)}
+                          title={p}
+                        >
+                          <FileText size={20} className="recent-card-icon" />
+                          <span className="recent-card-name">{name}</span>
+                          {folder && (
+                            <span className="recent-card-folder">{folder}</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

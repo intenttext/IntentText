@@ -1396,3 +1396,94 @@ body {
   background: color-mix(in srgb, var(--danger) 10%, transparent);
   border-radius: 7px;
 }
+
+/* ---------- Home page (recents) ---------- */
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.home-recent {
+  width: 100%;
+  max-width: 640px;
+  margin: 34px auto 0;
+  text-align: left;
+}
+.home-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 4px 10px;
+}
+.home-section-head > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.recent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.recent-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-panel);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  min-width: 0;
+  transition: border-color 0.12s, box-shadow 0.12s, transform 0.06s;
+}
+.recent-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+.recent-card:active { transform: translateY(1px); }
+.recent-card-icon { color: var(--accent); }
+.recent-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recent-card-folder {
+  font-size: 11px;
+  color: var(--text-muted);
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .recent-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ---------- Sidebar: Recent section ---------- */
+.vault-recent {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 2px;
+}
+.recent-row .tree-vault {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}

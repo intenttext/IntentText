@@ -83,6 +83,8 @@ export interface VaultsApi {
   renameEntry: (path: string, newName: string) => Promise<string | null>;
   deleteEntry: (path: string) => Promise<boolean>;
   noteRecent: (path: string) => void;
+  removeRecent: (path: string) => void;
+  clearRecent: () => void;
   /** Which vault label a given file path belongs to (for search results). */
   vaultLabelFor: (path: string) => string;
 }
@@ -307,6 +309,19 @@ export function useVaults(): VaultsApi {
     });
   }, []);
 
+  const removeRecent = useCallback((path: string) => {
+    setRecentFiles((prev) => {
+      const next = prev.filter((p) => p !== path);
+      localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const clearRecent = useCallback(() => {
+    setRecentFiles([]);
+    localStorage.setItem(RECENT_KEY, JSON.stringify([]));
+  }, []);
+
   const createFile = useCallback(
     async (vaultPath: string, name: string): Promise<string | null> => {
       const clean = name.trim().replace(/\.it$/i, "");
@@ -414,6 +429,8 @@ export function useVaults(): VaultsApi {
       renameEntry,
       deleteEntry,
       noteRecent,
+      removeRecent,
+      clearRecent,
       vaultLabelFor,
     }),
     [
@@ -435,6 +452,8 @@ export function useVaults(): VaultsApi {
       renameEntry,
       deleteEntry,
       noteRecent,
+      removeRecent,
+      clearRecent,
       vaultLabelFor,
     ],
   );
