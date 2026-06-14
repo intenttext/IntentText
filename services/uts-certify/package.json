@@ -1,7 +1,7 @@
 {
   "name": "@dotit/uts-certify",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Reference UTS certification service — the backend for api.uts.qa. Signs Ed25519 timestamps over .it document content (Phase 3a). Identity/KYC = 3b, billing = 3c.",
   "type": "module",
   "main": "dist/server.js",

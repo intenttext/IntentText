@@ -57,7 +57,47 @@ export interface CertificationDoc {
   issuer: string;
   /** ISO timestamp embedded in the certify: line. */
   at: string;
+  /** The signing (intermediate) public key that issued this cert — lets a whole
+   *  key's output be revoked at once if that key is ever compromised. */
+  issuerKey?: string;
   createdAt: Date;
+}
+
+/**
+ * A revocation: a certification (by content hash) or an entire signing key that
+ * should no longer be trusted. /verify consults this, and it is published (signed)
+ * at /revocations so offline verifiers can pin it.
+ */
+export interface RevocationDoc {
+  /** "hash" revokes one certified content hash; "key" revokes a signing key. */
+  kind: "hash" | "key";
+  /** sha256:… content hash (kind="hash") or the ed25519 public key (kind="key"). */
+  value: string;
+  issuer: string;
+  reason: string;
+  /** ISO instant the revocation takes effect. */
+  revokedAt: string;
+  /** Admin token prefix / identifier that issued the revocation (audit). */
+  revokedBy: string;
+  createdAt: Date;
+}
+
+/**
+ * Append-only audit trail of privileged + security-relevant actions (account
+ * creation, KYC verification, key mint/revoke, ICA provisioning, revocations).
+ * Tamper-evidence is by being append-only + (optionally) WORM storage in prod.
+ */
+export interface AuditDoc {
+  /** Event type, e.g. "account.create", "key.revoke", "cert.revoke". */
+  action: string;
+  /** Who performed it — admin token prefix or API-key prefix. */
+  actor: string;
+  /** Subject of the action (account slug, key prefix, hash…). */
+  subject: string;
+  /** Arbitrary structured detail (no secrets). */
+  meta: Record<string, unknown>;
+  ip: string;
+  at: Date;
 }
 
 /**
@@ -96,6 +136,8 @@ export interface Collections {
   apiKeys: Collection<ApiKeyDoc>;
   certifications: Collection<CertificationDoc>;
   authorityKeys: Collection<AuthorityKeyDoc>;
+  revocations: Collection<RevocationDoc>;
+  audit: Collection<AuditDoc>;
 }
 
 let client: MongoClient | null = null;
@@ -126,6 +168,8 @@ export async function connectDb(): Promise<Collections> {
   const apiKeys = db.collection<ApiKeyDoc>("uts_api_keys");
   const certifications = db.collection<CertificationDoc>("uts_certifications");
   const authorityKeys = db.collection<AuthorityKeyDoc>("uts_authority_keys");
+  const revocations = db.collection<RevocationDoc>("uts_revocations");
+  const audit = db.collection<AuditDoc>("uts_audit");
 
   await Promise.all([
     accounts.createIndex({ account: 1 }, { unique: true }),
@@ -133,9 +177,11 @@ export async function connectDb(): Promise<Collections> {
     apiKeys.createIndex({ prefix: 1 }),
     certifications.createIndex({ account: 1, createdAt: -1 }),
     authorityKeys.createIndex({ active: 1 }),
+    revocations.createIndex({ kind: 1, value: 1 }, { unique: true }),
+    audit.createIndex({ at: -1 }),
   ]);
 
-  collections = { accounts, apiKeys, certifications, authorityKeys };
+  collections = { accounts, apiKeys, certifications, authorityKeys, revocations, audit };
   return collections;
 }
 

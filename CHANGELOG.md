@@ -8,6 +8,23 @@ The format is based on Keep a Changelog.
 
 ### Security
 
+- **UTS certificate service hardening — Wave 3 (`uts-certify` 0.2.0).** Brought the
+  certification authority closer to production-ready:
+  - **Certificate revocation** — a new revocation list (by certified content hash, or
+    by an entire compromised signing key), an admin `POST /admin/revoke` endpoint, a
+    public `GET /revocations` feed, and `/verify` now marks revoked certifications
+    `valid:false`. Certifications also record the issuing key so a key's whole output
+    can be revoked at once.
+  - **Rate limiting** on `/certify` (per key), `/verify` + `/revocations` + pubkey (per
+    IP), and `/admin/*` (per token), with `429` + `Retry-After`.
+  - **Admin input validation** — legal-entity / CR fields are length-capped and
+    charset-restricted (no control chars, no `|` field-separator smuggling).
+  - **Append-only audit log** of every privileged action (account create, KYC verify,
+    key mint/revoke, ICA provisioning, certification, revocation) with actor + IP.
+  - **Security headers** on every response; **HTTPS enforced** in production (behind a
+    trusted proxy); **boot-time guards** warn on weak admin token / plaintext key in
+    env / disabled HTTPS. +10 tests incl. a full revocation E2E.
+
 - **Embed XSS closed + watermark CSS injection closed (`@dotit/core` 1.9.0).** When a
   document is rendered, `embed: | type: svg` content is now sanitized (script /
   foreignObject / SMIL-animation / `on*` handlers / `javascript:` & `data:text/html`

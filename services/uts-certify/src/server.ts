@@ -33,6 +33,21 @@ import {
   resolveKeyToAccount,
   isValidSlug,
 } from "./accounts.js";
+import {
+  securityHeaders,
+  requireHttps,
+  createRateLimiter,
+  validateEntity,
+  validateCr,
+  clampString,
+} from "./security.js";
+import {
+  revoke,
+  isHashRevoked,
+  isKeyRevoked,
+  listRevocations,
+} from "./revocations.js";
+import { writeAudit } from "./audit.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 const ISSUER = process.env.ISSUER ?? "UTS";
@@ -63,14 +78,49 @@ function trustAnchorKey(): string {
 let keys!: KeyProvider;
 
 const app = express();
+// Behind a TLS-terminating proxy in production, so x-forwarded-* is trustworthy
+// (needed for requireHttps + real client IPs in rate limiting / audit). Opt out
+// with TRUST_PROXY=false.
+app.set("trust proxy", process.env.TRUST_PROXY === "false" ? false : 1);
+// Conservative headers + (in prod) HTTPS-only, on every route.
+app.use(securityHeaders);
+app.use(requireHttps);
 // .it documents are plain text but can be large; cap the body sensibly.
 app.use(express.json({ limit: "2mb" }));
+
+// ── Rate limiters (in-memory, per-instance) ────────────────────────────────────
+// /certify is the expensive, authenticated path → throttle per API key.
+const certifyLimiter = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_CERTIFY_PER_MIN ?? 60),
+});
+// /verify + /revocations are public → throttle per IP, more generously.
+const publicLimiter = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_PUBLIC_PER_MIN ?? 120),
+});
+// Admin actions → tight per-token cap.
+const adminLimiter = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_ADMIN_PER_MIN ?? 30),
+});
 
 /** Extract a Bearer token from the Authorization header. */
 function bearer(req: Request): string | undefined {
   const h = req.header("authorization") ?? "";
   const m = /^Bearer\s+(.+)$/i.exec(h.trim());
   return m ? m[1] : undefined;
+}
+
+/** Best-effort client IP for audit/throttle (trust-proxy resolves x-forwarded-for). */
+function clientIp(req: Request): string {
+  return req.ip ?? req.socket?.remoteAddress ?? "unknown";
+}
+
+/** A short, non-secret identifier for the admin actor (token prefix) for audit. */
+function adminActor(req: Request): string {
+  const t = bearer(req) ?? "";
+  return t ? `admin:${t.slice(0, 6)}…` : "admin:?";
 }
 
 type AuthedRequest = Request & { account: AccountDoc };
@@ -128,8 +178,14 @@ const pubkeyPayload = () => {
     algorithm: "ed25519" as const,
   };
 };
-app.get("/.well-known/uts-pubkey", (_req, res) => res.json(pubkeyPayload()));
-app.get("/pubkey", (_req, res) => res.json(pubkeyPayload()));
+app.get("/.well-known/uts-pubkey", publicLimiter, (_req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=300");
+  res.json(pubkeyPayload());
+});
+app.get("/pubkey", publicLimiter, (_req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=300");
+  res.json(pubkeyPayload());
+});
 
 // ── Health ──────────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => res.json({ ok: true, issuer: ISSUER, db: isConnected() }));
@@ -137,7 +193,7 @@ app.get("/health", (_req, res) => res.json({ ok: true, issuer: ISSUER, db: isCon
 // ── POST /certify (API-key auth) ──────────────────────────────────────────────
 // body: { source: string }. The account is taken from the API key. If the
 // account is KYC-verified, its verified entity is embedded + signed.
-app.post("/certify", authenticate, async (req: Request, res: Response) => {
+app.post("/certify", certifyLimiter, authenticate, async (req: Request, res: Response) => {
   const account = (req as AuthedRequest).account;
   const { source } = (req.body ?? {}) as { source?: unknown };
 
@@ -161,14 +217,23 @@ app.post("/certify", authenticate, async (req: Request, res: Response) => {
 
     // Audit log (skip if it was an idempotent no-op re-certify).
     if (result.note !== "already-certified") {
+      const hash = computeHashFromSource(result.source);
       const { certifications } = getCollections();
       await certifications.insertOne({
         account: result.account,
         entity: result.entity ?? null,
-        hash: computeHashFromSource(result.source),
+        hash,
         issuer: result.issuer,
         at: result.at,
+        issuerKey: keys.getPublicKey(),
         createdAt: new Date(),
+      });
+      void writeAudit({
+        action: "cert.issue",
+        actor: `key:${account.account}`,
+        subject: hash,
+        meta: { entity: result.entity ?? null, issuer: result.issuer },
+        ip: clientIp(req),
       });
     }
 
@@ -198,7 +263,7 @@ function computeHashFromSource(source: string): string {
 }
 
 // ── POST /verify (no auth, convenience) ──────────────────────────────────────
-app.post("/verify", (req: Request, res: Response) => {
+app.post("/verify", publicLimiter, async (req: Request, res: Response) => {
   const { source } = (req.body ?? {}) as { source?: unknown };
   if (typeof source !== "string") {
     res.status(400).json({ error: "bad_request", detail: "Body must include a `source` string." });
@@ -209,25 +274,86 @@ app.post("/verify", (req: Request, res: Response) => {
   // the trust model per-line based on whether the certify: line carries `ica:`.
   const anchor = trustAnchorKey();
   const checks = verifyCertifications(source, { [ISSUER]: anchor });
+
+  // Cross-check revocation. checks[i] corresponds to the i-th `certify:` line in
+  // document order, so we pair each with its line to read the certified hash + key.
+  const certLines = source
+    .split("\n")
+    .map((l) => l.trimStart())
+    .filter((l) => l.startsWith("certify:"));
+  const certifications = await Promise.all(
+    checks.map(async (c, i) => {
+      const line = certLines[i] ?? "";
+      const hash = /hash:\s*(sha256:[0-9a-f]+)/.exec(line)?.[1] ?? "";
+      const key = /key:\s*ed25519:([A-Za-z0-9_-]+)/.exec(line)?.[1] ?? "";
+      if (isConnected()) {
+        try {
+          if (hash && (await isHashRevoked(hash))) {
+            return { ...c, valid: false, trusted: false, revoked: true, reason: "certified hash has been revoked" };
+          }
+          if (key && (await isKeyRevoked(key))) {
+            return { ...c, valid: false, trusted: false, revoked: true, reason: "signing key has been revoked" };
+          }
+        } catch {
+          // Revocation store unavailable — fall through (do not weaken the signature result).
+        }
+      }
+      return { ...c, revoked: false };
+    }),
+  );
+
   res.json({
     issuer: ISSUER,
     publicKey: anchor,
     trustAnchor: ROOT_PUBLIC_KEY ? "root" : "key",
-    certifications: checks,
+    certifications,
   });
+});
+
+// ── GET /revocations (public) — the published revocation list ─────────────────
+// Verifiers can pin this to reject revoked certs offline. Served over TLS from the
+// authority; signing the list for offline tamper-evidence is a planned follow-up.
+app.get("/revocations", publicLimiter, async (_req: Request, res: Response) => {
+  if (!isConnected()) {
+    res.json({ issuer: ISSUER, revocations: [] });
+    return;
+  }
+  try {
+    const revocations = await listRevocations();
+    res.setHeader("Cache-Control", "public, max-age=60");
+    res.json({ issuer: ISSUER, revocations });
+  } catch {
+    res.status(500).json({ error: "internal_error" });
+  }
 });
 
 // ── Admin (UTS_ADMIN_TOKEN) ───────────────────────────────────────────────────
 
 // Create an account (entityVerified defaults false).
-app.post("/admin/accounts", requireAdmin, async (req: Request, res: Response) => {
+app.post("/admin/accounts", adminLimiter, requireAdmin, async (req: Request, res: Response) => {
   const { account, label, entity, cr, plan } = (req.body ?? {}) as Record<string, unknown>;
   if (!isValidSlug(account)) {
     res.status(400).json({ error: "bad_request", detail: "`account` must be a lowercase slug." });
     return;
   }
-  if (typeof label !== "string" || label.trim() === "") {
+  const cleanLabel = clampString(label, 120);
+  if (!cleanLabel) {
     res.status(400).json({ error: "bad_request", detail: "`label` is required." });
+    return;
+  }
+  // entity/cr are optional here but still validated when present.
+  let cleanEntity: string | undefined;
+  if (entity !== undefined && entity !== null && entity !== "") {
+    const ev = validateEntity(entity);
+    if (!ev.ok) {
+      res.status(400).json({ error: "bad_request", detail: ev.reason });
+      return;
+    }
+    cleanEntity = ev.value;
+  }
+  const cv = validateCr(cr);
+  if (!cv.ok) {
+    res.status(400).json({ error: "bad_request", detail: cv.reason });
     return;
   }
   if (await getAccount(account)) {
@@ -236,32 +362,52 @@ app.post("/admin/accounts", requireAdmin, async (req: Request, res: Response) =>
   }
   const doc = await createAccount({
     account,
-    label: label.trim(),
-    entity: typeof entity === "string" ? entity : undefined,
-    cr: typeof cr === "string" ? cr : undefined,
-    plan: typeof plan === "string" ? plan : undefined,
+    label: cleanLabel,
+    entity: cleanEntity,
+    cr: cv.value,
+    plan: clampString(plan, 40) ?? undefined,
+  });
+  void writeAudit({
+    action: "account.create",
+    actor: adminActor(req),
+    subject: doc.account,
+    meta: { label: doc.label, plan: doc.plan, entityProvided: !!cleanEntity },
+    ip: clientIp(req),
   });
   res.status(201).json({ account: doc.account, label: doc.label, entityVerified: doc.entityVerified, plan: doc.plan });
 });
 
 // KYC onboarding (Phase 3b): bind a verified legal entity to an account.
-app.post("/admin/accounts/:account/verify", requireAdmin, async (req: Request, res: Response) => {
+app.post("/admin/accounts/:account/verify", adminLimiter, requireAdmin, async (req: Request, res: Response) => {
   const { account } = req.params;
   const { entity, cr } = (req.body ?? {}) as Record<string, unknown>;
-  if (typeof entity !== "string" || entity.trim() === "") {
-    res.status(400).json({ error: "bad_request", detail: "`entity` (verified legal name) is required." });
+  const ev = validateEntity(entity);
+  if (!ev.ok) {
+    res.status(400).json({ error: "bad_request", detail: ev.reason });
     return;
   }
-  const updated = await verifyAccountEntity(account, entity.trim(), typeof cr === "string" ? cr : undefined);
+  const cv = validateCr(cr);
+  if (!cv.ok) {
+    res.status(400).json({ error: "bad_request", detail: cv.reason });
+    return;
+  }
+  const updated = await verifyAccountEntity(account, ev.value, cv.value);
   if (!updated) {
     res.status(404).json({ error: "not_found", detail: "Account not found." });
     return;
   }
+  void writeAudit({
+    action: "account.verify",
+    actor: adminActor(req),
+    subject: account,
+    meta: { entity: updated.entity, cr: updated.cr ?? null },
+    ip: clientIp(req),
+  });
   res.json({ account: updated.account, entity: updated.entity, entityVerified: updated.entityVerified, cr: updated.cr });
 });
 
 // Mint an API key for an account — returns the PLAINTEXT key once.
-app.post("/admin/keys", requireAdmin, async (req: Request, res: Response) => {
+app.post("/admin/keys", adminLimiter, requireAdmin, async (req: Request, res: Response) => {
   const { account, label } = (req.body ?? {}) as Record<string, unknown>;
   if (!isValidSlug(account)) {
     res.status(400).json({ error: "bad_request", detail: "`account` must be a lowercase slug." });
@@ -271,25 +417,75 @@ app.post("/admin/keys", requireAdmin, async (req: Request, res: Response) => {
     res.status(404).json({ error: "not_found", detail: "Account not found." });
     return;
   }
-  const { apiKey, doc } = await mintApiKey(account, typeof label === "string" ? label : "");
+  const { apiKey, doc } = await mintApiKey(account, clampString(label, 120) ?? "");
+  void writeAudit({
+    action: "key.mint",
+    actor: adminActor(req),
+    subject: doc.prefix,
+    meta: { account: doc.account, label: doc.label },
+    ip: clientIp(req),
+  });
   res.status(201).json({ apiKey, prefix: doc.prefix, account: doc.account, label: doc.label });
 });
 
 // Revoke an API key by its display prefix.
-app.post("/admin/keys/:prefix/revoke", requireAdmin, async (req: Request, res: Response) => {
+app.post("/admin/keys/:prefix/revoke", adminLimiter, requireAdmin, async (req: Request, res: Response) => {
   const ok = await revokeKeyByPrefix(req.params.prefix);
   if (!ok) {
     res.status(404).json({ error: "not_found", detail: "No active key with that prefix." });
     return;
   }
+  void writeAudit({
+    action: "key.revoke",
+    actor: adminActor(req),
+    subject: req.params.prefix,
+    ip: clientIp(req),
+  });
   res.json({ revoked: true, prefix: req.params.prefix });
+});
+
+// ── Revoke a certification (by content hash) or a compromised signing key ──────
+// body: { hash?: "sha256:…" } OR { key?: "<ed25519 pubkey>" } + optional reason.
+app.post("/admin/revoke", adminLimiter, requireAdmin, async (req: Request, res: Response) => {
+  const { hash, key, reason } = (req.body ?? {}) as Record<string, unknown>;
+  const cleanReason = clampString(reason, 200) ?? "revoked by administrator";
+
+  let kind: "hash" | "key";
+  let value: string;
+  if (typeof hash === "string" && /^sha256:[0-9a-f]{16,}$/.test(hash.trim())) {
+    kind = "hash";
+    value = hash.trim();
+  } else if (typeof key === "string" && /^[A-Za-z0-9_-]{20,}$/.test(key.trim())) {
+    kind = "key";
+    value = key.trim();
+  } else {
+    res.status(400).json({
+      error: "bad_request",
+      detail: "Provide a `hash` (sha256:…) or a `key` (ed25519 public key) to revoke.",
+    });
+    return;
+  }
+
+  try {
+    const doc = await revoke({ kind, value, issuer: ISSUER, reason: cleanReason, revokedBy: adminActor(req) });
+    void writeAudit({
+      action: "cert.revoke",
+      actor: adminActor(req),
+      subject: value,
+      meta: { kind, reason: cleanReason },
+      ip: clientIp(req),
+    });
+    res.status(201).json({ revoked: true, kind: doc.kind, value: doc.value, at: doc.revokedAt, reason: doc.reason });
+  } catch {
+    res.status(500).json({ error: "internal_error", detail: "Could not record revocation." });
+  }
 });
 
 // ── Root → intermediate provisioning (admin) ──────────────────────────────────
 
 // Read the current intermediate PUBLIC key — carry it to the offline root machine
 // (`root:issue --intermediate-pub <this>`) to mint an ICA token for it.
-app.get("/admin/intermediate-pubkey", requireAdmin, (_req: Request, res: Response) => {
+app.get("/admin/intermediate-pubkey", adminLimiter, requireAdmin, (_req: Request, res: Response) => {
   res.json({
     issuer: ISSUER,
     intermediate: keys.getPublicKey(),
@@ -303,7 +499,7 @@ app.get("/admin/intermediate-pubkey", requireAdmin, (_req: Request, res: Respons
 // parses, vouches for THIS signing key, and (when a root is configured) verifies
 // against it — then stores it on the active AuthorityKeyDoc. From then on every
 // certification chains to the root.
-app.post("/admin/intermediate-cert", requireAdmin, async (req: Request, res: Response) => {
+app.post("/admin/intermediate-cert", adminLimiter, requireAdmin, async (req: Request, res: Response) => {
   const { ica } = (req.body ?? {}) as { ica?: unknown };
   if (typeof ica !== "string" || ica.trim() === "") {
     res.status(400).json({ error: "bad_request", detail: "Body must include a non-empty `ica` token string." });
@@ -356,6 +552,13 @@ app.post("/admin/intermediate-cert", requireAdmin, async (req: Request, res: Res
     res.status(400).json({ error: "bad_request", detail: "ICA failed validation and was not stored." });
     return;
   }
+  void writeAudit({
+    action: "intermediate.provision",
+    actor: adminActor(req),
+    subject: intermediate,
+    meta: { rootPublicKey: cert.rootPublicKey, notBefore: cert.notBefore, notAfter: cert.notAfter },
+    ip: clientIp(req),
+  });
   res.json({
     ok: true,
     issuer: ISSUER,
@@ -387,9 +590,32 @@ export async function initKeys(): Promise<void> {
   );
 }
 
+/**
+ * Production safety checks: surface foot-guns loudly at boot (weak/missing admin
+ * token, raw private key in env instead of KMS/Mongo envelope, HTTPS not enforced).
+ * Warnings only — they never block startup — but they make misconfiguration obvious.
+ */
+function productionGuards(): void {
+  if (process.env.NODE_ENV !== "production") return;
+  const warn = (m: string) => console.warn(`  ⚠️  ${m}`);
+  if (!ADMIN_TOKEN) warn("UTS_ADMIN_TOKEN is not set — admin endpoints are disabled.");
+  else if (ADMIN_TOKEN.length < 24)
+    warn("UTS_ADMIN_TOKEN is short (<24 chars) — use a long random secret.");
+  if (process.env.UTS_KEY_PROVIDER === "env")
+    warn(
+      "UTS_KEY_PROVIDER=env keeps the signing key as a plaintext env var. " +
+        "In production use the Mongo envelope (UTS_KEK) or a KMS/HSM.",
+    );
+  if (process.env.REQUIRE_HTTPS === "false")
+    warn("REQUIRE_HTTPS=false — the service will accept plaintext HTTP.");
+  if (!ROOT_PUBLIC_KEY)
+    warn("UTS_ROOT_PUBLIC_KEY is unset — running in legacy single-key mode (no root chain).");
+}
+
 export async function start(): Promise<void> {
   await connectDb();
   await initKeys();
+  productionGuards();
   app.listen(PORT, () => {
     console.log(`\n  UTS certification service (reference impl for api.uts.qa)`);
     console.log(`  Listening on http://localhost:${PORT}`);
