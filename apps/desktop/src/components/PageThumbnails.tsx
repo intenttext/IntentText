@@ -51,10 +51,17 @@ function Thumb({ index, info }: { index: number; info: PageInfo }) {
     clone
       .querySelectorAll("[contenteditable]")
       .forEach((e) => e.removeAttribute("contenteditable"));
+    // Carry the page margins over explicitly — the content (.tiptap) insets by
+    // --page-mx-l/r; if those don't survive the clone the text recentres.
+    const cs = getComputedStyle(page);
+    for (const v of ["--page-mx-l", "--page-mx-r"]) {
+      const val = page.style.getPropertyValue(v) || cs.getPropertyValue(v);
+      if (val) clone.style.setProperty(v, val);
+    }
     clone.style.transform = `scale(${s})`;
     clone.style.transformOrigin = "top left";
     clone.style.width = `${info.pageW}px`;
-    clone.style.margin = "0";
+    clone.style.margin = "0"; // override .docs-sheet's `margin: 0 auto` (flush-left)
     clone.style.boxShadow = "none";
     const inner = document.createElement("div");
     inner.style.position = "absolute";
