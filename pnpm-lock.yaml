@@ -231,6 +231,9 @@ importers:
       vite:
         specifier: ^7.3.1
         version: 7.3.3(@types/node@20.19.41)(jiti@1.21.7)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3)
+      vitest:
+        specifier: ^1.6.1
+        version: 1.6.1(@types/node@20.19.41)(lightningcss@1.32.0)(terser@5.48.0)
 
   demo/erp-integration:
     dependencies:
@@ -364,7 +367,7 @@ importers:
   packages/mcp:
     dependencies:
       '@dotit/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       '@dotit/sign':
         specifier: workspace:^

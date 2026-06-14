@@ -74,6 +74,10 @@ jobs:
       - name: Editor visual round-trip fidelity
         run: pnpm --filter intenttext-editor roundtrip:check
 
+      # Public trust surface — the verification engine must stay correct + injection-safe.
+      - name: Test verify portal
+        run: pnpm --filter @dotit/verify-portal test
+
       - name: Upload core package size artifact
         uses: actions/upload-artifact@v4
         with:
