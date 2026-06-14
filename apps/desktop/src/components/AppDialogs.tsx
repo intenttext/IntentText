@@ -4,10 +4,15 @@
 
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { Info, Keyboard, Settings, X } from "lucide-react";
+import { Info, Keyboard, KeyRound, Settings, X } from "lucide-react";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { getVersion } from "@tauri-apps/api/app";
 import { isTauri } from "../lib/backend";
+import {
+  loadIdentity,
+  resetIdentity,
+  type SigningIdentity,
+} from "../lib/identity";
 import type {
   PageSizePref,
   SettingsApi,
@@ -62,6 +67,74 @@ const THEME_OPTIONS: { value: ThemePref; label: string }[] = [
 ];
 
 const PAGE_SIZES: PageSizePref[] = ["A4", "A3", "A2", "A1", "Letter"];
+
+/** Signing-identity management: view/copy the public key, or reset the identity. */
+function IdentitySection() {
+  const [id, setId] = useState<SigningIdentity | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    void loadIdentity().then((v) => {
+      if (alive) {
+        setId(v);
+        setLoaded(true);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const copyKey = async () => {
+    if (!id) return;
+    try {
+      await navigator.clipboard.writeText(`ed25519:${id.publicKey}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
+
+  const reset = async () => {
+    await resetIdentity();
+    setId(null);
+  };
+
+  if (!isTauri || !loaded) return null;
+
+  return (
+    <label className="field">
+      <span>Signing identity</span>
+      {id ? (
+        <>
+          <div className="folder-field">
+            <input readOnly value={`${id.name}${id.role ? ` · ${id.role}` : ""}`} />
+            <button className="btn small" type="button" onClick={() => void copyKey()}>
+              {copied ? "Copied" : "Copy public key"}
+            </button>
+            <button className="btn small" type="button" onClick={() => void reset()}>
+              Reset
+            </button>
+          </div>
+          <p className="dialog-note" style={{ marginTop: 6 }}>
+            <KeyRound size={12} /> ed25519:{id.publicKey.slice(0, 16)}… — share this public
+            key so others can verify your signatures. Your private key stays in your system
+            keychain. Resetting starts a new key; documents signed with the old one keep
+            verifying against it.
+          </p>
+        </>
+      ) : (
+        <p className="dialog-note" style={{ marginTop: -4 }}>
+          No signing identity yet. Sign a document (Trust → Sign) to create one — an
+          Ed25519 key kept securely in your system keychain.
+        </p>
+      )}
+    </label>
+  );
+}
 
 export function PreferencesDialog(props: {
   api: SettingsApi;
@@ -160,6 +233,8 @@ export function PreferencesDialog(props: {
           )}
         </div>
       </label>
+
+      <IdentitySection />
     </Sheet>
   );
 }
