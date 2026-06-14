@@ -8,6 +8,16 @@ The format is based on Keep a Changelog.
 
 ### Security
 
+- **Governance & supply-chain — Wave 5/6 of the hardening plan.**
+  - **SBOM** (CycloneDX, via Syft) is now generated and attached to every npm release.
+  - **`PRIVACY.md`** documents the privacy-by-design posture accurately (client-side
+    verification, hash-only to the UTS service, zero telemetry, self-hostable).
+  - **Web security headers** added to all deployed web apps (docs/editor/verify/hub) via
+    `vercel.json`: HSTS, `X-Content-Type-Options`, `X-Frame-Options`, Referrer-Policy,
+    Permissions-Policy. (A tuned CSP per app is a tracked follow-up.)
+  - Internal operations + incident-response runbooks added (private) covering key
+    rotation, backup/DR, and the key-compromise → revoke → rotate playbook.
+
 - **UTS certificate service hardening — Wave 3 (`uts-certify` 0.2.0).** Brought the
   certification authority closer to production-ready:
   - **Certificate revocation** — a new revocation list (by certified content hash, or
