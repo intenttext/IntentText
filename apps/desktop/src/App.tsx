@@ -49,6 +49,7 @@ import { useTrustBadges } from "./hooks/useTrustBadges";
 import { VaultSidebar } from "./components/VaultSidebar";
 import { OutlinePanel, buildOutline } from "./components/OutlinePanel";
 import { FindBar } from "./components/FindBar";
+import { QuickOpen } from "./components/QuickOpen";
 import { SearchPanel } from "./components/SearchPanel";
 import { StatusBar } from "./components/StatusBar";
 import { TrustDialogs } from "./components/TrustDialogs";
@@ -74,6 +75,7 @@ export default function App() {
   );
   const [outlineOpen, setOutlineOpen] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
   const hasOutline = useMemo(
     () => (doc ? buildOutline(doc.content).length > 1 : false),
     [doc],
@@ -314,6 +316,9 @@ export default function App() {
           e.preventDefault();
           setFindOpen(true);
         }
+      } else if (key === "k" && !e.shiftKey) {
+        e.preventDefault();
+        setQuickOpen((v) => !v);
       } else if (key === "e" && e.shiftKey) {
         e.preventDefault();
         setMode("edit");
@@ -676,6 +681,19 @@ export default function App() {
           content={doc.content}
           onApply={(next) => docApi.applyAndSave(next)}
           onClose={() => setTrustDialog(null)}
+        />
+      )}
+
+      {quickOpen && (
+        <QuickOpen
+          files={vaultsApi.allFiles}
+          recent={vaultsApi.recentFiles}
+          vaultLabelFor={vaultsApi.vaultLabelFor}
+          onOpen={(p) => {
+            void openFile(p);
+            setQuickOpen(false);
+          }}
+          onClose={() => setQuickOpen(false)}
         />
       )}
     </div>
