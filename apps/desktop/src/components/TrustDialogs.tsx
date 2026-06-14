@@ -6,6 +6,9 @@ import type { ReactNode } from "react";
 import { BadgeCheck, Lock, PenLine, ShieldCheck, X } from "lucide-react";
 import type { VerifyResult } from "@dotit/core";
 import * as trust from "../lib/trust";
+import * as identity from "../lib/identity";
+import type { SigningIdentity } from "../lib/identity";
+import { isTauri } from "../lib/backend";
 
 export type TrustDialogKind = "sign" | "approve" | "seal" | "verify" | null;
 
@@ -56,12 +59,33 @@ export function TrustDialogs(props: {
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sealedHash, setSealedHash] = useState<string | null>(null);
+  const [signingId, setSigningId] = useState<SigningIdentity | null>(null);
+  const [busy, setBusy] = useState(false);
 
   // Reset transient state whenever a dialog opens.
   useEffect(() => {
     setError(null);
     setSealedHash(null);
     setNote("");
+    setBusy(false);
+  }, [kind]);
+
+  // When the Sign dialog opens, load the signing identity (if any) and prefill
+  // the name/role from it so signing reuses the same key/identity each time.
+  useEffect(() => {
+    if (kind !== "sign") return;
+    let alive = true;
+    void identity.loadIdentity().then((id) => {
+      if (!alive) return;
+      setSigningId(id);
+      if (id) {
+        setName(id.name);
+        if (id.role) setRole(id.role);
+      }
+    });
+    return () => {
+      alive = false;
+    };
   }, [kind]);
 
   const verifyResult: VerifyResult | null = useMemo(() => {
@@ -110,25 +134,60 @@ export function TrustDialogs(props: {
     return (
       <Dialog title="Sign Document" icon={<PenLine size={16} />} onClose={onClose}>
         <p className="dialog-note">
-          Adds a <code>sign:</code> block with today&apos;s date. Signing
-          records intent — sealing makes the document tamper-evident.
+          {signingId ? (
+            <>
+              Signs with your identity{" "}
+              <strong>{signingId.name}</strong> — a verifiable Ed25519 signature
+              (your key is kept in your system keychain). Editing the document
+              afterwards will invalidate the signature.
+            </>
+          ) : (
+            <>
+              Creates your <strong>signing identity</strong> (an Ed25519 key kept
+              securely in your system keychain) and signs the document with a
+              verifiable signature. You only set this up once.
+            </>
+          )}
         </p>
         {identityFields}
         {error && <div className="dialog-error">{error}</div>}
         <div className="dialog-actions">
-          <button className="btn" onClick={onClose}>
+          <button className="btn" onClick={onClose} disabled={busy}>
             Cancel
           </button>
           <button
             className="btn primary"
-            disabled={!name.trim()}
+            disabled={!name.trim() || busy}
             onClick={async () => {
-              rememberIdentity();
-              await onApply(trust.addSignature(content, name.trim(), role));
-              onClose();
+              setError(null);
+              setBusy(true);
+              try {
+                rememberIdentity();
+                if (!isTauri) {
+                  // Plain vite dev (no keychain): fall back to an on-record line.
+                  await onApply(trust.addSignature(content, name.trim(), role));
+                  onClose();
+                  return;
+                }
+                let id = signingId;
+                if (!id) {
+                  id = await identity.createIdentity(name.trim(), role);
+                } else if (
+                  id.name !== name.trim() ||
+                  (id.role ?? "") !== role.trim()
+                ) {
+                  id = await identity.updateIdentityProfile(id, name.trim(), role);
+                }
+                await onApply(identity.signWithIdentity(content, id));
+                onClose();
+              } catch (e) {
+                setError(e instanceof Error ? e.message : String(e));
+              } finally {
+                setBusy(false);
+              }
             }}
           >
-            Sign
+            {busy ? "Signing…" : signingId ? "Sign" : "Create identity & sign"}
           </button>
         </div>
       </Dialog>

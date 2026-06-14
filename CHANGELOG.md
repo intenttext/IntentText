@@ -69,6 +69,19 @@ The format is based on Keep a Changelog.
 
 ### Fixed / Added
 
+- **Desktop 2.11.0 — real cryptographic signing with a keychain-backed identity.**
+  Signing now produces a *verifiable* Ed25519 signature instead of a plaintext record:
+  - First time you sign, the app creates your **signing identity** (an Ed25519 keypair).
+    The **private key is stored in the OS keychain** (macOS Keychain / Windows Credential
+    Manager) via the Rust `keyring` crate — never in a file or inside a document.
+  - "Sign" then emits a real `sign: … | key: ed25519:… | sig: …` line, so the trust
+    badge goes **Signed ✓** and the seal turns blue; editing afterwards invalidates it
+    (honest tamper-evidence). Subsequent signs reuse the same identity.
+  - New Rust commands `identity_get/set/clear` + `src/lib/identity.ts`. Outside the Tauri
+    shell (plain `vite dev`) it falls back to the legacy on-record line.
+  - Follow-ups: a "manage signing identity" screen (view/copy public key, reset) and a
+    keychain entitlement once the app is code-signed.
+
 - **Desktop 2.10.1 — fixes for print, sign, and page thumbnails.**
   - **Print** now prints the *document*, not the app. The native macOS print path
     (NSPrintOperation on the WKWebView) doesn't reliably switch to print media, so the

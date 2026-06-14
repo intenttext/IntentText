@@ -174,3 +174,20 @@ export function dirname(path: string): string {
   const i = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
   return i > 0 ? path.slice(0, i) : path;
 }
+
+// ── Signing-identity custody (OS keychain, via Rust) ───────────────────────────
+
+/** The stored signing-identity JSON, or null if none has been created. */
+export function identityGet(): Promise<string | null> {
+  return invoke<string | null>("identity_get");
+}
+
+/** Store the signing-identity JSON in the OS keychain. */
+export function identitySet(value: string): Promise<void> {
+  return invoke("identity_set", { value });
+}
+
+/** Remove the stored signing identity. */
+export function identityClear(): Promise<void> {
+  return invoke("identity_clear");
+}

@@ -182,6 +182,9 @@ pub fn run() {
             commands::workspace::unwatch_folder,
             commands::settings::load_settings,
             commands::settings::save_settings,
+            commands::identity::identity_get,
+            commands::identity::identity_set,
+            commands::identity::identity_clear,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

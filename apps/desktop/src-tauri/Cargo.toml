@@ -25,6 +25,9 @@ tauri-plugin-window-state = "2"
 notify = { version = "7", features = ["macos_fsevent"] }
 walkdir = "2"
 trash = "5"
+# Signing-identity key custody in the OS keychain (macOS Keychain / Windows
+# Credential Manager) — the private key never touches a plaintext file.
+keyring = { version = "3", features = ["apple-native", "windows-native"] }
 
 # macOS native print (NSPrintOperation) + app activation (NSApplication).
 [target.'cfg(target_os = "macos")'.dependencies]
