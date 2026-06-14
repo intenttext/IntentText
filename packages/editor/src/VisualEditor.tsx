@@ -174,6 +174,11 @@ export function VisualEditor({
       TemplateHighlight,
     ],
     content: sourceToDoc(value),
+    // Create the view non-editable up front for read-only/view mode. Toggling
+    // editable AFTER the first render (the old setEditable effect alone) could
+    // leave the pagination widget decorations un-rendered until a forced relayout
+    // (e.g. opening the print dialog) — the "no page separation in view mode" bug.
+    editable: !readOnly,
     onUpdate: ({ editor: ed }) => {
       // Avoid rewriting source while editor is still hydrating initial content.
       if (isHydrating.current) return;

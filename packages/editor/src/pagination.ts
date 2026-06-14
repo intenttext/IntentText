@@ -167,7 +167,14 @@ export const Pagination = Extension.create<PaginationOptions>({
             // margins overestimates and drifts off the print engine's breaks).
             // Spacer heights above each block are subtracted to recover each
             // block's "natural" position — stable across re-layouts.
-            const domTop = dom.getBoundingClientRect().top;
+            const domRect = dom.getBoundingClientRect();
+            const domTop = domRect.top;
+            // The page sits inside a CSS `transform: scale(zoom)` wrapper, so
+            // getBoundingClientRect returns SCALED coordinates while offsetHeight /
+            // g.contentHeight are unscaled layout px. Convert rect distances back to
+            // unscaled space so breaks land correctly at ANY zoom (the old mix made
+            // pagination wrong whenever zoom ≠ 100%).
+            const scale = dom.offsetWidth ? domRect.width / dom.offsetWidth : 1;
             const all = Array.from(dom.children) as HTMLElement[];
             const blocks: { natTop: number; natBottom: number }[] = [];
             let spacerAbove = 0;
@@ -178,8 +185,8 @@ export const Pagination = Extension.create<PaginationOptions>({
               }
               const r = c.getBoundingClientRect();
               blocks.push({
-                natTop: r.top - domTop - spacerAbove,
-                natBottom: r.bottom - domTop - spacerAbove,
+                natTop: (r.top - domTop) / scale - spacerAbove,
+                natBottom: (r.bottom - domTop) / scale - spacerAbove,
               });
             }
 
@@ -235,6 +242,20 @@ export const Pagination = Extension.create<PaginationOptions>({
             const set = DecorationSet.create(view.state.doc, decos);
             view.dispatch(view.state.tr.setMeta(paginationKey, set));
             opts.onPages?.(pages);
+
+            // macOS WKWebView can leave a decoration-only update UNPAINTED until a
+            // relayout — which is why the page-break spacers only appeared after
+            // opening/closing the print dialog (a forced relayout). Nudge a one-off
+            // repaint of the content layer so the breaks show immediately. The
+            // transform toggle forces a compositing repaint without touching layout
+            // or scroll position; it only runs when the page set actually changes
+            // (sig guard above), so it's not per-scroll jank.
+            const layer = view.dom as HTMLElement;
+            layer.style.transform = "translateZ(0)";
+            void layer.offsetHeight;
+            requestAnimationFrame(() => {
+              layer.style.transform = "";
+            });
           };
 
           const schedule = () => {
