@@ -67,6 +67,48 @@ describe("issueDocument (merge → seal → print HTML, no Chrome)", () => {
     expect(issued.html).toContain("counter(page)");
     expect(issued.html).toContain('it-metric-row__value" dir="auto">1,575');
   });
+
+  it("records the signer role on the seal", () => {
+    const issued = issueDocument(TEMPLATE, DATA, { signer: "Jadwal Billing", role: "Finance" });
+    const v = verifyDocument(issued.source);
+    expect(v.signers?.[0]?.role).toBe("Finance");
+    expect(issued.at).toMatch(/^\d{4}-\d{2}-\d{2}T/); // ISO timestamp
+  });
+
+  it("refuses to issue when unresolved tokens remain (missing:'keep' → still a template)", () => {
+    const partial = { ...DATA, invoice: { number: "INV-9" } }; // invoice.notes missing
+    // Keeping the {{token}} leaves the merged doc a TEMPLATE, which is outside the
+    // trust workflow and cannot be sealed — issuing must refuse rather than seal a
+    // blueprint. (The default 'blank' resolves it to a finished, sealable document.)
+    expect(() => issueDocument(TEMPLATE, partial, { signer: "X", missing: "keep" })).toThrow();
+    const blanked = issueDocument(TEMPLATE, partial, { signer: "X", missing: "blank" });
+    expect(blanked.source).not.toContain("{{invoice.notes}}");
+  });
+
+  it("applies the chosen theme to the issued HTML", () => {
+    const legal = issueDocument(TEMPLATE, DATA, { signer: "X", theme: "legal" });
+    const corporate = issueDocument(TEMPLATE, DATA, { signer: "X", theme: "corporate" });
+    // Different themes produce different stylesheets.
+    expect(legal.html).not.toBe(corporate.html);
+  });
+
+  it("escapes hostile merge data so the legal PDF/HTML can't be injected", () => {
+    const evil = {
+      ...DATA,
+      company: { name: "<script>alert(document.cookie)</script>" },
+      customer: { name: "<img src=x onerror=alert(1)>" },
+      invoice: { number: "INV-9", notes: "</td></tr><script>steal()</script>" },
+    };
+    const issued = issueDocument(TEMPLATE, evil, { signer: "X" });
+    // No executable markup survives into the rendered document…
+    expect(issued.html).not.toContain("<script>alert(document.cookie)</script>");
+    expect(issued.html).not.toContain("<img src=x onerror=");
+    expect(issued.html).not.toContain("<script>steal()</script>");
+    // …the values are present, but escaped as text.
+    expect(issued.html).toContain("&lt;script&gt;");
+    // And the sealed source still verifies (the escaped content is what was sealed).
+    expect(verifyDocument(issued.source).intact).toBe(true);
+  });
 });
 
 describe("htmlToPDF / issuePDF (Chrome required)", () => {
