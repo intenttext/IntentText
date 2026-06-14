@@ -1,7 +1,6 @@
 pub mod commands;
 
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use tauri::{Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
 
@@ -23,17 +22,6 @@ fn take_pending_open(state: tauri::State<PendingOpen>) -> Option<String> {
 /// same file always maps to the same window → focus-or-create dedup.
 #[derive(Default)]
 struct DocWindows(Mutex<HashMap<String, String>>);
-
-/// True once a frontend has mounted. Before that a macOS file-open is a COLD
-/// launch (the main window opens it in place); after, it's WARM (open the file
-/// in its own doc window).
-#[derive(Default)]
-struct AppReady(AtomicBool);
-
-#[tauri::command]
-fn mark_ready(state: tauri::State<AppReady>) {
-    state.0.store(true, Ordering::SeqCst);
-}
 
 /// Take (once) the `.it` path a freshly-created doc window should open.
 #[tauri::command]
@@ -63,12 +51,27 @@ fn doc_label(path: &str) -> String {
     format!("doc-{:x}", h)
 }
 
+/// Bring the app to the foreground (macOS won't auto-activate a background app
+/// when it opens a file / spawns a window). set_focus alone isn't enough.
+#[cfg(target_os = "macos")]
+fn activate_app() {
+    use objc2::MainThreadMarker;
+    use objc2_app_kit::NSApplication;
+    if let Some(mtm) = MainThreadMarker::new() {
+        #[allow(deprecated)]
+        NSApplication::sharedApplication(mtm).activateIgnoringOtherApps(true);
+    }
+}
+#[cfg(not(target_os = "macos"))]
+fn activate_app() {}
+
 fn open_or_focus_doc_window(app: &tauri::AppHandle, path: &str) {
     let label = doc_label(path);
     if let Some(w) = app.get_webview_window(&label) {
         let _ = w.show();
         let _ = w.unminimize();
         let _ = w.set_focus();
+        activate_app();
         return;
     }
     app.state::<DocWindows>()
@@ -81,11 +84,16 @@ fn open_or_focus_doc_window(app: &tauri::AppHandle, path: &str) {
         .and_then(|s| s.to_str())
         .unwrap_or("Document")
         .to_string();
-    let _ = WebviewWindowBuilder::new(app, &label, WebviewUrl::App("index.html".into()))
+    let built = WebviewWindowBuilder::new(app, &label, WebviewUrl::App("index.html".into()))
         .title(format!("{title} — Dotit"))
         .inner_size(1180.0, 820.0)
         .min_inner_size(720.0, 480.0)
+        .focused(true)
         .build();
+    if let Ok(w) = built {
+        let _ = w.set_focus();
+    }
+    activate_app();
 }
 
 /// Minimal `file://` URL → filesystem path (with %xx decoding) so we don't pull
@@ -127,7 +135,6 @@ pub fn run() {
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .manage(PendingOpen::default())
         .manage(DocWindows::default())
-        .manage(AppReady::default())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -152,7 +159,6 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             take_pending_open,
-            mark_ready,
             window_file,
             open_doc_window,
             commands::fs::read_file,
@@ -181,18 +187,11 @@ pub fn run() {
         // CLI args. Store the path so a cold-started frontend can drain it, and
         // emit open-file so an already-running (warm) instance opens it live.
         if let RunEvent::Opened { urls } = event {
-            let ready = app_handle.state::<AppReady>().0.load(Ordering::SeqCst);
+            // Each opened file → its own window (focus the existing one, or create
+            // it), and bring the app forward. Reliable: no cold/warm race.
             for u in &urls {
                 if let Some(path) = url_to_path(u.as_str()) {
-                    if ready {
-                        // Warm: app already running — each file in its own window
-                        // (focus the existing one, or create it).
-                        open_or_focus_doc_window(app_handle, &path);
-                    } else {
-                        // Cold launch: the main window drains this on mount.
-                        *app_handle.state::<PendingOpen>().0.lock().unwrap() =
-                            Some(path);
-                    }
+                    open_or_focus_doc_window(app_handle, &path);
                 }
             }
         }

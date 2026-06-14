@@ -26,7 +26,8 @@ notify = { version = "7", features = ["macos_fsevent"] }
 walkdir = "2"
 trash = "5"
 
-# macOS native print (NSPrintOperation via the WKWebView handle).
+# macOS native print (NSPrintOperation) + app activation (NSApplication).
 [target.'cfg(target_os = "macos")'.dependencies]
-objc2-app-kit = { version = "0.3.2", features = ["NSPrintInfo", "NSPrintOperation"] }
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3.2", features = ["NSPrintInfo", "NSPrintOperation", "NSApplication", "NSResponder"] }
 objc2-web-kit = { version = "0.3.2", features = ["WKWebView", "objc2-app-kit"] }

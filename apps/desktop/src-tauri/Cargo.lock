@@ -1634,6 +1634,7 @@ version = "2.0.0"
 dependencies = [
  "log",
  "notify",
+ "objc2",
  "objc2-app-kit",
  "objc2-web-kit",
  "serde",

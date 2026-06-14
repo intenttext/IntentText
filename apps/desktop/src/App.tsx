@@ -36,7 +36,7 @@ import {
   Unlock,
 } from "lucide-react";
 
-import { isTauri, windowFile, markReady } from "./lib/backend";
+import { isTauri, windowFile } from "./lib/backend";
 import { printDocument, exportHTML, exportDOCX, importDOCX } from "./lib/export";
 import { installAppMenu } from "./lib/menu";
 import type { MenuActions } from "./lib/menu";
@@ -285,8 +285,7 @@ export default function App() {
   useEffect(() => {
     if (!isTauri) return;
     // A doc window opens the file it was created for; the main window drains the
-    // cold-start pending-open (launch-by-double-click). Then mark ready so later
-    // OS file-opens spawn their own windows (warm path, handled in Rust).
+    // cold-start pending-open (launch-by-double-click on Windows/Linux CLI arg).
     (async () => {
       try {
         const assigned = await windowFile();
@@ -296,11 +295,6 @@ export default function App() {
           const pending = await invoke<string | null>("take_pending_open");
           if (pending) await openFile(pending);
         }
-      } catch {
-        /* ignore */
-      }
-      try {
-        await markReady();
       } catch {
         /* ignore */
       }
