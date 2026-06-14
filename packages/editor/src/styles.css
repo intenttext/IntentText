@@ -36,7 +36,12 @@
 /* Container fills the panel — a flat, full-bleed Docs-style workspace:
    light-gray canvas, white page sheet floating on it, no rounded corners. */
 .docs-container {
-  --docs-canvas-bg: #f9fbfd;
+  /* The desk behind the white pages. This is also the colour of the gap BETWEEN
+     pages (the pagination spacers paint it), so it MUST contrast with the white
+     #fff sheet — otherwise page breaks are invisible and the document reads as one
+     continuous sheet. A near-white value (the old #f9fbfd) made the separations
+     disappear; this soft grey makes each page read as its own sheet, like a PDF. */
+  --docs-canvas-bg: #e4e6eb;
   display: flex;
   flex-direction: column;
   height: 100%;
