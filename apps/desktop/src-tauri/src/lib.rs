@@ -14,7 +14,9 @@ struct PendingOpen(Mutex<Option<String>>);
 
 #[tauri::command]
 fn take_pending_open(state: tauri::State<PendingOpen>) -> Option<String> {
-    state.0.lock().unwrap().take()
+    // Recover from a poisoned lock rather than panicking: the stored Option is
+    // still valid, and a panic here would crash the whole app.
+    state.0.lock().unwrap_or_else(|e| e.into_inner()).take()
 }
 
 /// Maps a doc-window label → the `.it` path it should open. The window drains its
@@ -32,7 +34,7 @@ fn window_file(window: tauri::WebviewWindow) -> Option<String> {
         .state::<DocWindows>()
         .0
         .lock()
-        .unwrap()
+        .unwrap_or_else(|e| e.into_inner())
         .remove(&label)
 }
 
@@ -77,7 +79,7 @@ fn open_or_focus_doc_window(app: &tauri::AppHandle, path: &str) {
     app.state::<DocWindows>()
         .0
         .lock()
-        .unwrap()
+        .unwrap_or_else(|e| e.into_inner())
         .insert(label.clone(), path.to_string());
     let title = std::path::Path::new(path)
         .file_stem()
@@ -151,7 +153,10 @@ pub fn run() {
             let args: Vec<String> = std::env::args().collect();
             if let Some(p) = args.get(1) {
                 if p.ends_with(".it") {
-                    *app.state::<PendingOpen>().0.lock().unwrap() = Some(p.clone());
+                    *app.state::<PendingOpen>()
+                        .0
+                        .lock()
+                        .unwrap_or_else(|e| e.into_inner()) = Some(p.clone());
                 }
             }
 

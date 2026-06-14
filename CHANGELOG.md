@@ -52,6 +52,20 @@ The format is based on Keep a Changelog.
 
 ### Fixed / Added
 
+- **Desktop 2.10.0 — security hardening (Wave 1 of the hardening plan).**
+  - **Content-Security-Policy enabled** (was `null`): `script-src 'self'`, `object-src`/
+    `frame-src 'none'`, `base-uri 'self'`, with `connect-src` limited to self + the UTS
+    pubkey host — defense-in-depth against any injected markup executing in the webview.
+  - **File commands are path-guarded**: `read/write/list/rename/delete/metadata` reject
+    empty paths, NUL bytes, and `..` traversal components; reads are capped at 64 MB so a
+    hostile/huge file can't exhaust memory on open.
+  - **`open_external` locked down**: canonicalizes the path, requires a real regular file,
+    and only opens print/export artifact types (`.html`/`.htm`/`.pdf`) — never arbitrary
+    executables.
+  - **No more lock-poison panics**: the window/pending-open mutexes recover instead of
+    crashing the app.
+  - First Rust unit tests (path-guard + open-external allowlist).
+
 - **Desktop 2.9.0 — reader/editor depth + a 1:1 page rail.** A batch of shell and
   editor work that brings the app closer to "Acrobat Reader + word processor at once":
   - **Preferences** dialog (Cmd+,) with a light/dark theme toggle (`data-theme` on the
