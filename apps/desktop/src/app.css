@@ -135,6 +135,7 @@ body {
 
 .main {
   flex: 1;
+  position: relative;
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -1551,3 +1552,41 @@ body {
 .outline-row.lvl-1 { font-weight: 600; }
 .outline-row.lvl-2 { padding-left: 14px; }
 .outline-row.lvl-3 { padding-left: 28px; color: var(--text-muted); font-size: 12px; }
+
+/* ---------- Find in document (Cmd+F) ---------- */
+.find-bar {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 5px 6px 5px 10px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.14);
+}
+.find-input {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  width: 200px;
+  outline: none;
+}
+.find-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 42px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+::highlight(it-find) {
+  background-color: rgba(255, 213, 74, 0.45);
+}
+::highlight(it-find-current) {
+  background-color: #ff9f1a;
+  color: #111;
+}

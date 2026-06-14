@@ -48,6 +48,7 @@ import { useOpenDocument } from "./hooks/useOpenDocument";
 import { useTrustBadges } from "./hooks/useTrustBadges";
 import { VaultSidebar } from "./components/VaultSidebar";
 import { OutlinePanel, buildOutline } from "./components/OutlinePanel";
+import { FindBar } from "./components/FindBar";
 import { SearchPanel } from "./components/SearchPanel";
 import { StatusBar } from "./components/StatusBar";
 import { TrustDialogs } from "./components/TrustDialogs";
@@ -72,6 +73,7 @@ export default function App() {
     () => localStorage.getItem("dotit.ui.sidebar") !== "0",
   );
   const [outlineOpen, setOutlineOpen] = useState(false);
+  const [findOpen, setFindOpen] = useState(false);
   const hasOutline = useMemo(
     () => (doc ? buildOutline(doc.content).length > 1 : false),
     [doc],
@@ -307,6 +309,11 @@ export default function App() {
       } else if (key === "f" && e.shiftKey) {
         e.preventDefault();
         focusSearch();
+      } else if (key === "f" && !e.shiftKey) {
+        if (doc) {
+          e.preventDefault();
+          setFindOpen(true);
+        }
       } else if (key === "e" && e.shiftKey) {
         e.preventDefault();
         setMode("edit");
@@ -570,6 +577,7 @@ export default function App() {
         )}
 
         <main className={`main${doc && mode === "view" ? " main-viewer" : ""}`}>
+          {doc && findOpen && <FindBar onClose={() => setFindOpen(false)} />}
           <div className="main-row">
           {doc && outlineOpen && (
             <OutlinePanel
