@@ -20,6 +20,7 @@ import {
   BadgeCheck,
   Clock,
   Code2,
+  Files,
   ListTree,
   FileDown,
   FileText,
@@ -48,6 +49,7 @@ import { useOpenDocument } from "./hooks/useOpenDocument";
 import { useTrustBadges } from "./hooks/useTrustBadges";
 import { VaultSidebar } from "./components/VaultSidebar";
 import { OutlinePanel, buildOutline } from "./components/OutlinePanel";
+import { PageThumbnails } from "./components/PageThumbnails";
 import { FindBar } from "./components/FindBar";
 import { QuickOpen } from "./components/QuickOpen";
 import { SearchPanel } from "./components/SearchPanel";
@@ -73,7 +75,9 @@ export default function App() {
   const [sidebarVisible, setSidebarVisible] = useState(
     () => localStorage.getItem("dotit.ui.sidebar") !== "0",
   );
-  const [outlineOpen, setOutlineOpen] = useState(false);
+  const [leftPanel, setLeftPanel] = useState<"none" | "outline" | "pages">(
+    "none",
+  );
   const [findOpen, setFindOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const hasOutline = useMemo(
@@ -399,11 +403,24 @@ export default function App() {
           </button>
           {doc && hasOutline && (
             <button
-              className={`icon-btn${outlineOpen ? " active" : ""}`}
+              className={`icon-btn${leftPanel === "outline" ? " active" : ""}`}
               title="Contents / outline"
-              onClick={() => setOutlineOpen((v) => !v)}
+              onClick={() =>
+                setLeftPanel((p) => (p === "outline" ? "none" : "outline"))
+              }
             >
               <ListTree size={16} />
+            </button>
+          )}
+          {doc && (
+            <button
+              className={`icon-btn${leftPanel === "pages" ? " active" : ""}`}
+              title="Page thumbnails"
+              onClick={() =>
+                setLeftPanel((p) => (p === "pages" ? "none" : "pages"))
+              }
+            >
+              <Files size={16} />
             </button>
           )}
         </div>
@@ -584,10 +601,16 @@ export default function App() {
         <main className={`main${doc && mode === "view" ? " main-viewer" : ""}`}>
           {doc && findOpen && <FindBar onClose={() => setFindOpen(false)} />}
           <div className="main-row">
-          {doc && outlineOpen && (
+          {doc && leftPanel === "outline" && (
             <OutlinePanel
               source={doc.content}
-              onClose={() => setOutlineOpen(false)}
+              onClose={() => setLeftPanel("none")}
+            />
+          )}
+          {doc && leftPanel === "pages" && (
+            <PageThumbnails
+              source={doc.content}
+              onClose={() => setLeftPanel("none")}
             />
           )}
           {/* keyed on the file path so each switch remounts + plays the
