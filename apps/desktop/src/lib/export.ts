@@ -74,12 +74,20 @@ function injectPrintDom(content: string, theme: string): void {
 
   const style = document.createElement("style");
   style.id = PRINT_STYLE_ID;
+  // The app shell sets `html,body{height:100%;overflow:hidden}` so the UI fits one
+  // viewport — but that CLIPS the (tall, multi-page) print document to a single
+  // screen, which is why native print captured the app viewport instead of the
+  // whole paginated document. Reset height/overflow so the full document flows and
+  // NSPrintOperation paginates it; hide everything except the print root.
   style.textContent = `
-    html,body{background:#fff !important;}
+    html,body{background:#fff !important;height:auto !important;min-height:0 !important;overflow:visible !important;}
     body > *:not(#${PRINT_ROOT_ID}){display:none !important;}
-    #${PRINT_ROOT_ID}{position:static !important;left:auto !important;top:auto !important;display:block !important;}
+    #${PRINT_ROOT_ID}{position:static !important;left:auto !important;top:auto !important;display:block !important;height:auto !important;overflow:visible !important;}
   `;
   document.head.appendChild(style);
+  // Force a synchronous reflow so the isolation + new flow are applied before the
+  // (main-thread, blocking) native print snapshot is taken.
+  void document.body.offsetHeight;
 }
 
 function cleanupPrintDom(): void {

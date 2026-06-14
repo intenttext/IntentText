@@ -243,9 +243,31 @@ export const Pagination = Extension.create<PaginationOptions>({
           };
 
           schedule();
+
+          // Recompute whenever the content or its scroll container actually
+          // changes size. This catches the post-open layout settle (content
+          // render, web-font swap, zoom, panel toggles) that fixed-delay nudges
+          // miss — in read-only view there are no edit transactions to trigger it,
+          // which is why page breaks only appeared after a forced relayout (e.g.
+          // opening/closing the print dialog). The sig cache stops feedback loops.
+          let ro: ResizeObserver | undefined;
+          try {
+            ro = new ResizeObserver(() => schedule());
+            ro.observe(view.dom as HTMLElement);
+            const canvas =
+              (view.dom as HTMLElement).closest(".docs-canvas") ||
+              (view.dom as HTMLElement).parentElement;
+            if (canvas) ro.observe(canvas);
+          } catch {
+            /* ResizeObserver unavailable — the nudges above still apply */
+          }
+
           return {
             update: schedule,
-            destroy: () => cancelAnimationFrame(raf),
+            destroy: () => {
+              cancelAnimationFrame(raf);
+              ro?.disconnect();
+            },
           };
         },
       }),

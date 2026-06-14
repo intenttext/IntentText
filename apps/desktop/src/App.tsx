@@ -13,6 +13,7 @@ import { open as openDialog, ask } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { IntentTextEditor } from "@dotit/editor";
 import type { TrustAction } from "@dotit/editor";
 import { isTemplate } from "@dotit/core";
@@ -323,7 +324,8 @@ export default function App() {
   useEffect(() => {
     if (!isTauri) return;
     // A doc window opens the file it was created for; the main window drains the
-    // cold-start pending-open (launch-by-double-click on Windows/Linux CLI arg).
+    // cold-start pending-open (launch-by-double-click on Windows/Linux CLI arg,
+    // and the macOS open event routed into main).
     (async () => {
       try {
         const assigned = await windowFile();
@@ -337,6 +339,19 @@ export default function App() {
         /* ignore */
       }
     })();
+  }, [openFile]);
+
+  // macOS cold-start open delivered AFTER this window mounted: the run loop emits
+  // "open-file" into the main window so the launched file opens here instead of
+  // spawning a second, empty window beside it.
+  useEffect(() => {
+    if (!isTauri) return;
+    const un = listen<string>("open-file", (e) => {
+      if (e.payload) void openFile(e.payload);
+    });
+    return () => {
+      void un.then((f) => f());
+    };
   }, [openFile]);
 
   // ----- keyboard fallbacks (menu accelerators cover the Tauri shell) -----

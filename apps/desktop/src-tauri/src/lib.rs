@@ -2,7 +2,13 @@ pub mod commands;
 
 use std::collections::HashMap;
 use std::sync::Mutex;
-use tauri::{Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
+use std::time::Instant;
+use tauri::{Emitter, Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
+
+/// When the app process started — used to tell a COLD start (launched by opening
+/// a file) from a WARM one (already running). At cold start the file should reuse
+/// the empty main window instead of spawning a second window next to it.
+struct StartedAt(Instant);
 
 /// A `.it` path the app was asked to open but the frontend hasn't drained yet.
 /// Set at cold start (CLI arg on Windows/Linux, or the macOS open event) and
@@ -137,6 +143,7 @@ pub fn run() {
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .manage(PendingOpen::default())
         .manage(DocWindows::default())
+        .manage(StartedAt(Instant::now()))
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -195,10 +202,38 @@ pub fn run() {
         // CLI args. Store the path so a cold-started frontend can drain it, and
         // emit open-file so an already-running (warm) instance opens it live.
         if let RunEvent::Opened { urls } = event {
-            // Each opened file → its own window (focus the existing one, or create
-            // it), and bring the app forward. Reliable: no cold/warm race.
-            for u in &urls {
+            // COLD start (the OS launched us by opening this file): the auto-created
+            // "main" window is still empty, so route the FIRST file into it instead
+            // of spawning a doc window next to an empty main (the "two windows" bug).
+            // WARM (app already running) or extra files → their own doc window, which
+            // is the working multi-instance behavior.
+            let started = app_handle.state::<StartedAt>();
+            let no_doc_windows = app_handle
+                .state::<DocWindows>()
+                .0
+                .lock()
+                .map(|m| m.is_empty())
+                .unwrap_or(true);
+            let cold = started.0.elapsed().as_secs() < 5 && no_doc_windows;
+            for (i, u) in urls.iter().enumerate() {
                 if let Some(path) = url_to_path(u.as_str()) {
+                    if cold && i == 0 {
+                        if let Some(main) = app_handle.get_webview_window("main") {
+                            // Set pending (drained on mount if the webview isn't up
+                            // yet) AND emit (handled live if it already mounted).
+                            *app_handle
+                                .state::<PendingOpen>()
+                                .0
+                                .lock()
+                                .unwrap_or_else(|e| e.into_inner()) = Some(path.clone());
+                            let _ = main.emit("open-file", path.clone());
+                            let _ = main.show();
+                            let _ = main.unminimize();
+                            let _ = main.set_focus();
+                            activate_app();
+                            continue;
+                        }
+                    }
                     open_or_focus_doc_window(app_handle, &path);
                 }
             }

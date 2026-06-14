@@ -88,6 +88,20 @@ The format is based on Keep a Changelog.
 
 ### Fixed / Added
 
+- **Desktop 2.11.5 — page separation reliably renders, native print not clipped, no double window.**
+  - **Page separation** now appears on open (not only after opening/closing the print
+    dialog). In read-only view there are no edit transactions, so a premature first
+    pagination measurement never self-corrected; a `ResizeObserver` (`@dotit/editor` 1.4.4)
+    now recomputes whenever the content/canvas actually settles — the same relayout the
+    print dialog was forcing by hand.
+  - **Native print no longer clipped to the app viewport.** The shell sets
+    `html,body{height:100%;overflow:hidden}`, which clipped the tall print document to one
+    screen; print now resets height/overflow (and forces a reflow) so NSPrintOperation
+    paginates the whole document, not the app viewport.
+  - **No more double window on cold-start file-open.** Double-clicking a `.it` with the app
+    closed opened an empty main window *plus* a doc window. The cold-start file is now
+    routed into the main window (warm multi-window open is unchanged).
+
 - **Desktop 2.11.4 — the real fixes for page separation + native print (root-caused).**
   - **Stale-dist trap fixed (this was the actual bug).** The desktop bundles `@dotit/editor`
     from its built `dist/`, but the desktop build never rebuilt it — so pulling source fixes
