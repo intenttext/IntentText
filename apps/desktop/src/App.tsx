@@ -554,6 +554,10 @@ export default function App() {
         )}
 
         <main className={`main${doc && mode === "view" ? " main-viewer" : ""}`}>
+          {/* keyed on the file path so each switch remounts + plays the
+              document-open transition — a file should feel like it OPENS, not
+              blink in like a database row. */}
+          <div className="doc-surface" key={doc?.path ?? "home"}>
           {doc ? (
             mainPane
           ) : (
@@ -622,6 +626,7 @@ export default function App() {
               )}
             </div>
           )}
+          </div>
         </main>
       </div>
 
