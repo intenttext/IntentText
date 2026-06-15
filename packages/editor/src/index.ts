@@ -49,3 +49,8 @@ export type { DocumentViewProps } from "./DocumentView";
 // writes answers back to the `.it` source, reports completeness for signing.
 export { FormFill } from "./FormFill";
 export type { FormFillProps } from "./FormFill";
+
+// Review tracked changes + comments (redline) — accept/reject per change or in bulk,
+// rewriting the `.it` source. A document with no pending changes is final/sealable.
+export { Redline } from "./Redline";
+export type { RedlineProps } from "./Redline";

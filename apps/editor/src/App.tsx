@@ -2,11 +2,12 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import {
   IntentTextEditor,
   FormFill,
+  Redline,
   exportDocumentPDF,
   exportDocumentHTML,
   extractTemplateVariables,
 } from "@dotit/editor";
-import { isForm } from "@dotit/core";
+import { isForm, hasTrackedChanges } from "@dotit/core";
 import { Toolbar } from "./toolbar/Toolbar";
 import { StatusBar } from "./status/StatusBar";
 import { MonacoEditor } from "./editor/MonacoEditor";
@@ -254,6 +255,11 @@ export default function App() {
               // The visual view of a FORM is the fillable form itself — the
               // embeddable integration surface (same FormFill the desktop uses).
               <FormFill value={content} theme={theme} onChange={setContent} />
+            ) : hasTrackedChanges(content) ? (
+              // A document with pending redlines opens in REVIEW mode: the changes
+              // are visible and the panel offers accept/reject. Once all are
+              // resolved it reverts to the normal editor (and becomes sealable).
+              <Redline value={content} theme={theme} onChange={setContent} />
             ) : (
               <IntentTextEditor
                 value={content}

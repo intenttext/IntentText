@@ -1551,6 +1551,186 @@ textarea.form-fill-control {
   opacity: 0.5;
   cursor: not-allowed;
 }
+/* ── Redline (review tracked changes + comments) ─────────────────── */
+.redline {
+  display: flex;
+  height: 100%;
+  background: #e4e6eb;
+}
+.redline-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+}
+.redline-page {
+  background: #fff;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 48px 56px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.13);
+  border-radius: 2px;
+}
+.redline-panel {
+  width: 300px;
+  flex-shrink: 0;
+  background: #fff;
+  border-inline-start: 1px solid #d6d6d6;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+.redline-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: #fff;
+}
+.redline-panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+.redline-panel-actions {
+  display: flex;
+  gap: 6px;
+}
+.redline-btn {
+  appearance: none;
+  border: 1px solid #c3c6cd;
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.redline-btn:hover {
+  background: #f3f4f6;
+}
+.redline-btn.primary {
+  background: #1a7f37;
+  border-color: #1a7f37;
+  color: #fff;
+}
+.redline-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+}
+.redline-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.redline-item:hover {
+  background: #f6f7f9;
+}
+.redline-item-kind {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+.redline-item-ins .redline-item-kind {
+  color: #1a7f37;
+}
+.redline-item-del .redline-item-kind {
+  color: #cf222e;
+}
+.redline-item-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #222;
+}
+.redline-item-del .redline-item-text {
+  text-decoration: line-through;
+  color: #777;
+}
+.redline-item-by {
+  font-size: 11px;
+  color: #888;
+  flex-shrink: 0;
+}
+.redline-item-actions {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.redline-mini {
+  appearance: none;
+  border: 1px solid #d6d6d6;
+  background: #fff;
+  border-radius: 5px;
+  width: 22px;
+  height: 22px;
+  line-height: 1;
+  cursor: pointer;
+  font-size: 12px;
+}
+.redline-mini.accept:hover {
+  background: #e6f4ea;
+  border-color: #1a7f37;
+  color: #1a7f37;
+}
+.redline-mini.reject:hover {
+  background: #fbeaec;
+  border-color: #cf222e;
+  color: #cf222e;
+}
+.redline-comments {
+  border-top: 1px solid #eee;
+  margin-top: 4px;
+}
+.redline-comments-head {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #888;
+  padding: 10px 14px 4px;
+}
+.redline-comment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px 8px;
+}
+.redline-comment {
+  padding: 8px;
+  border-radius: 6px;
+  border-inline-start: 3px solid #ffd43b;
+  background: #fffbeb;
+  margin-bottom: 6px;
+}
+.redline-comment.resolved {
+  border-inline-start-color: #c3c6cd;
+  background: #f6f7f9;
+  opacity: 0.7;
+}
+.redline-comment-body {
+  font-size: 13px;
+  color: #222;
+}
+.redline-comment-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #999;
+}
+.redline-comment-meta .resolved-tag {
+  color: #1a7f37;
+  font-weight: 600;
+}
 .ribbon-theme-select {
   height: 26px;
   max-width: 110px;
