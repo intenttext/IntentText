@@ -8,6 +8,8 @@ import {
   commentAnchors,
   isTemplate,
   assertNotTemplate,
+  parseIntentText,
+  renderHTML,
 } from "../src/index";
 
 const doc = `text: The price is [1,200]{track: del; by: Sarah; id: c1} [1,500]{track: ins; by: Sarah; id: c2} per unit.
@@ -62,6 +64,23 @@ describe("tracked changes", () => {
     const clean = acceptChanges(doc);
     expect(isTemplate(clean)).toBe(false);
     expect(() => assertNotTemplate(clean, "sealed")).not.toThrow();
+  });
+});
+
+describe("rendering", () => {
+  it("renders insertions as <ins>, deletions as <del>, anchors highlighted", () => {
+    const src =
+      "text: Price [1,200]{track: del; by: Sarah; id: c1} [1,500]{track: ins; by: Sarah; id: c2}, clause [3.2]{comment: k1}.";
+    const html = renderHTML(parseIntentText(src));
+    expect(html).toContain(
+      '<del class="it-track it-track-del" data-change="c1" data-by="Sarah"',
+    );
+    expect(html).toContain("1,200</del>");
+    expect(html).toContain(
+      '<ins class="it-track it-track-ins" data-change="c2" data-by="Sarah"',
+    );
+    expect(html).toContain("1,500</ins>");
+    expect(html).toContain('<span class="it-comment-anchor" data-comment="k1">3.2</span>');
   });
 });
 

@@ -337,6 +337,27 @@ function applyInlineFormatting(
           case "code":
             return `<code>${escapeHtml(node.value)}</code>`;
           case "styled": {
+            // Inline TRACKED CHANGE (redline): [new]{track: ins} / [old]{track: del}.
+            // Insertions render as <ins>, deletions as <del>, both tagged with the
+            // author/id so the editor can offer accept/reject. See redline.ts.
+            if (node.props && node.props.track != null) {
+              const tk = String(node.props.track).toLowerCase();
+              if (tk === "ins" || tk === "del") {
+                const tag = tk === "ins" ? "ins" : "del";
+                const by = node.props.by != null ? String(node.props.by) : "";
+                const id = node.props.id != null ? String(node.props.id) : "";
+                const title = by
+                  ? ` title="${escapeHtml((tk === "ins" ? "Inserted by " : "Deleted by ") + by)}"`
+                  : "";
+                return `<${tag} class="it-track it-track-${tk}"${id ? ` data-change="${escapeHtml(id)}"` : ""}${by ? ` data-by="${escapeHtml(by)}"` : ""}${title}>${escapeHtml(node.value)}</${tag}>`;
+              }
+            }
+            // Inline COMMENT ANCHOR: [clause text]{comment: id} — highlights the
+            // anchored span and links it to the `comment:` thread block.
+            if (node.props && node.props.comment != null) {
+              const cid = escapeHtml(String(node.props.comment));
+              return `<span class="it-comment-anchor" data-comment="${cid}">${escapeHtml(node.value)}</span>`;
+            }
             // Inline FORM FIELD: [answer]{input: key; type: …} — a fill-in-the-blank
             // within prose (e.g. "I, [Jane]{input: signer}, agree"). Empty bracket
             // renders as an underline to fill; a value renders inline.

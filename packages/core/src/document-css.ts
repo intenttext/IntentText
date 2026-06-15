@@ -47,6 +47,10 @@ export const DOCUMENT_CSS = `
 .it-field-inline{display:inline-block;min-width:7ch;border-bottom:1px solid #555;padding:0 4px;text-align:center;line-height:1.4;}
 .it-field-inline.blank{min-width:10ch;}
 .it-field-inline.filled{border-bottom-color:#9aa0aa;}
+/* ── Redline (tracked changes + comments) ───────────────── */
+.it-track-ins{text-decoration:underline;text-decoration-color:#1a7f37;color:#1a7f37;background:rgba(26,127,55,0.08);}
+.it-track-del{text-decoration:line-through;text-decoration-color:#cf222e;color:#cf222e;background:rgba(207,34,46,0.08);}
+.it-comment-anchor{background:#fff3bf;border-bottom:1.5px dotted #b08800;cursor:help;}
 .intent-task-owner::before{content:'@ ';opacity:0.6;}
 .intent-task-due::before{content:'due ';}
 .intent-task-time::before{content:'at ';}
