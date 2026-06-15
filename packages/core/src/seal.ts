@@ -157,42 +157,51 @@ function itMark(cx: number, cy: number, h: number, fill: string): string {
   return `<g transform="translate(${r2(cx - 499 * k)},${r2(cy + 350 * k)}) scale(${k.toFixed(4)})"><path d="${IT_PATH}" fill="${fill}"/></g>`;
 }
 
-/** Deterministic [0,1) pseudo-random keyed on the hash bytes + an index. */
-function rngFor(bytes: number[]): (k: number) => number {
-  const n = bytes.length;
-  const at = (k: number) => bytes[((k % n) + n) % n];
-  return (k) =>
-    (((at(k) * 131 + at(k * 7 + 3) * 17 + at(k * 13 + 5) * 7 + k * 101) >>> 0) %
-      10007) /
-    10007;
+function gcd(a: number, b: number): number {
+  while (b) {
+    [a, b] = [b, a % b];
+  }
+  return a || 1;
 }
 
 /**
- * The hash-derived dot BLOOM — an organic, borderless ring of dots whose density
- * swirl, radii and sizes all come from the hash. This IS the mark (no enclosing
- * circle — a round bordered stamp reads as a generic rubber stamp). Same hash →
- * identical bloom; any change → a visibly different constellation.
+ * The hash-derived GUILLOCHÉ ROSETTE — the engraved, interwoven lacework you see on
+ * banknotes, passports and certificates. It is a hypotrochoid (spirograph) curve
+ * whose big/rolling radii and pen offset are read from the hash, traced for as many
+ * turns as it takes to close, and layered a few times for the woven moiré. The
+ * petal count and weave are therefore deterministic in the hash: same document →
+ * identical rosette; any change → a visibly different one. Reads as an official
+ * security seal, not a random splatter.
  */
-function bloom(bytes: number[], color: string): string {
-  const r = rngFor(bytes);
-  const cx = 50;
-  const cy = 50;
-  const rIn = 24;
-  const rOut = 40;
-  const N = 950;
+function guilloche(
+  bytes: number[],
+  color: string,
+  cx: number,
+  cy: number,
+  maxR: number,
+): string {
+  const b = (i: number) => bytes[((i % bytes.length) + bytes.length) % bytes.length];
+  const Rb = 24 + (b(0) % 18); // fixed (big) circle
+  let Rr = 7 + (b(1) % 9); // rolling circle
+  if (Rb % Rr === 0) Rr += 1; // avoid a trivially-early-closing (boring) curve
+  const g = gcd(Rb, Rr);
+  const turns = Rr / g; // 2π·turns closes the curve
+  const Pd = Rr * (0.55 + (b(2) % 45) / 100); // pen offset (petal depth)
+  const extent = Rb - Rr + Pd;
+  const k = maxR / extent; // scale to fit maxR
+  const N = Math.max(260, turns * 100);
   let s = "";
-  for (let i = 0; i < N; i++) {
-    const ang = r(i * 2) * Math.PI * 2;
-    const tri = (r(i * 2 + 1) + r(i * 5 + 9)) / 2; // triangular → denser middle
-    const rad = rIn + (rOut - rIn) * tri;
-    const dens =
-      0.3 + 0.7 * Math.pow(0.5 + 0.5 * Math.sin(ang * 3 + r(i) * 6.28), 1.7);
-    if (r(i * 3 + 7) > dens) continue; // thin out → dense/sparse arcs (swirl)
-    const x = cx + Math.cos(ang) * rad;
-    const y = cy + Math.sin(ang) * rad;
-    const sz = 0.5 + r(i * 11) * 1.05;
-    const op = 0.3 + r(i * 9) * 0.62;
-    s += `<circle cx="${r2(x)}" cy="${r2(y)}" r="${sz.toFixed(2)}" fill="${color}" opacity="${op.toFixed(2)}"/>`;
+  for (let L = 0; L < 3; L++) {
+    const phase = L * (0.5 + (b(3 + L) % 40) / 100);
+    const scale = k * (1 - L * 0.12);
+    const pts: string[] = [];
+    for (let i = 0; i <= N; i++) {
+      const t = (i / N) * Math.PI * 2 * turns + phase;
+      const x = (Rb - Rr) * Math.cos(t) + Pd * Math.cos(((Rb - Rr) / Rr) * t);
+      const y = (Rb - Rr) * Math.sin(t) - Pd * Math.sin(((Rb - Rr) / Rr) * t);
+      pts.push(`${r2(cx + x * scale)},${r2(cy + y * scale)}`);
+    }
+    s += `<polyline points="${pts.join(" ")}" fill="none" stroke="${color}" stroke-width="0.45" opacity="${(0.85 - L * 0.16).toFixed(2)}"/>`;
   }
   return s;
 }
@@ -240,39 +249,54 @@ export function renderSeal(opts: SealRenderOptions): string {
   if (tier === "template") {
     const tlabel = opts.label ?? "TEMPLATE";
     const tArc = showText
-      ? `<defs><path id="${uid}t" d="${arcPath(cx, cy, 44, 210, 330, 1)}"/></defs>` +
+      ? `<defs><path id="${uid}t" d="${arcPath(cx, cy, 37, 212, 328, 1)}"/></defs>` +
         `<text class="sl-arc" fill="${color}"><textPath href="#${uid}t" startOffset="50%" text-anchor="middle">${esc(tlabel)}</textPath></text>`
       : "";
     return (
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${esc(tlabel)} — not part of the trust workflow">` +
       style +
-      `<circle cx="50" cy="50" r="40" fill="none" stroke="${color}" stroke-width="0.6" stroke-dasharray="1.5 3" opacity="0.7"/>` +
-      itMark(cx, cy, 23, color) +
+      `<circle cx="50" cy="50" r="46" fill="none" stroke="${color}" stroke-width="0.7" stroke-dasharray="1.5 3" opacity="0.7"/>` +
+      itMark(cx, cy, 20, color) +
       tArc +
       `</svg>`
     );
   }
 
-  const star =
-    tier === "root-certified"
-      ? `<text x="50" y="20" text-anchor="middle" class="sl-star" fill="${color}">★</text>`
-      : "";
+  const root = tier === "root-certified";
+  // The notary border: a heavier outer ring (heaviest for root) + a hairline inner
+  // ring, and a hairline ring just inside the arc text band.
+  const rings =
+    `<circle cx="50" cy="50" r="46" fill="none" stroke="${color}" stroke-width="${root ? 1.4 : 1.1}"/>` +
+    `<circle cx="50" cy="50" r="43" fill="none" stroke="${color}" stroke-width="0.5"/>` +
+    `<circle cx="50" cy="50" r="30.5" fill="none" stroke="${color}" stroke-width="0.5" opacity="0.8"/>`;
+  // A white disc carries the .it monogram clear of the rosette lacework.
+  const disc =
+    `<circle cx="50" cy="50" r="13" fill="#ffffff"/>` +
+    `<circle cx="50" cy="50" r="13" fill="none" stroke="${color}" stroke-width="0.5"/>`;
+  // Root-certified: small stars flank the seal at 3 & 9 o'clock (the gap between the
+  // top label arc and the bottom hash arc), signalling the root-chain authority.
+  const stars = root
+    ? `<text x="8.5" y="52" text-anchor="middle" class="sl-star" fill="${color}">★</text>` +
+      `<text x="91.5" y="52" text-anchor="middle" class="sl-star" fill="${color}">★</text>`
+    : "";
 
   const arcText = showText
     ? `<defs>` +
-      `<path id="${uid}t" d="${arcPath(cx, cy, 44, 210, 330, 1)}"/>` +
-      `<path id="${uid}b" d="${arcPath(cx, cy, 44, 150, 30, 0)}"/>` +
+      `<path id="${uid}t" d="${arcPath(cx, cy, 37, 212, 328, 1)}"/>` +
+      `<path id="${uid}b" d="${arcPath(cx, cy, 37, 148, 32, 0)}"/>` +
       `</defs>` +
       `<text class="sl-arc" fill="${color}"><textPath href="#${uid}t" startOffset="50%" text-anchor="middle">${esc(label)}</textPath></text>` +
-      `<text class="sl-hash" fill="${color}" opacity="0.8"><textPath href="#${uid}b" startOffset="50%" text-anchor="middle">${shortHash}</textPath></text>`
+      `<text class="sl-hash" fill="${color}" opacity="0.85"><textPath href="#${uid}b" startOffset="50%" text-anchor="middle">${shortHash}</textPath></text>`
     : "";
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${esc(label)} trust seal ${shortHash}">` +
     style +
-    bloom(bytes, color) +
-    itMark(cx, cy, 23, color) +
-    star +
+    rings +
+    guilloche(bytes, color, cx, cy, 28) +
+    disc +
+    itMark(cx, cy, 15, color) +
+    stars +
     arcText +
     `</svg>`
   );
