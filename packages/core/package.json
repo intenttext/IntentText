@@ -1,6 +1,6 @@
 {
   "name": "@dotit/core",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "IntentText Parser, HTML Renderer, and Converters",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -45,6 +45,7 @@
     "access": "public"
   },
   "devDependencies": {
+    "@intenttext/core": "4.3.0",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0",
     "vitest": "^1.0.0"

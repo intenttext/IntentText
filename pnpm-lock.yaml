@@ -281,6 +281,9 @@ importers:
         specifier: ^7.0.2
         version: 7.1.0
     devDependencies:
+      '@intenttext/core':
+        specifier: 4.3.0
+        version: 4.3.0
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.41
@@ -2009,6 +2012,10 @@ packages:
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
+
+  '@intenttext/core@4.3.0':
+    resolution: {integrity: sha512-wXv0PXX4jug+CyrS8pjesIUI+0G/xo0pAlVky3obLb6iFJcOHeGeMf2YIL/1kddLxfOmXeMf5DASXcyvioGV0w==}
+    deprecated: Renamed to @dotit/core - https://www.npmjs.com/package/@dotit/core
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -12233,6 +12240,10 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/object-schema@2.0.3': {}
+
+  '@intenttext/core@4.3.0':
+    dependencies:
+      node-html-parser: 7.1.0
 
   '@isaacs/cliui@8.0.2':
     dependencies:
