@@ -37,6 +37,13 @@ import {
   RectangleHorizontal,
   Pin,
   PinOff,
+  Type,
+  Calendar,
+  Hash,
+  CheckSquare,
+  ChevronDownSquare,
+  PenLine,
+  Table,
 } from "lucide-react";
 import { LANGUAGE_REGISTRY } from "@dotit/core";
 import { CATEGORY_META } from "./types";
@@ -487,6 +494,22 @@ export function DocsToolbar({
       } else {
         chain.setNode("itGenericBlock", { keyword, properties: "" }).run();
       }
+      closeAll();
+    },
+    [editor],
+  );
+
+  // Insert a FORM FIELD — an `input:` line with sensible default props for the
+  // type. The author then types the field's label; core derives the field `key`
+  // from the label (slug) unless an explicit `key:` is set. (See forms.ts.)
+  const insertField = useCallback(
+    (properties: string) => {
+      if (!editor) return;
+      editor
+        .chain()
+        .focus()
+        .setNode("itGenericBlock", { keyword: "input", properties })
+        .run();
       closeAll();
     },
     [editor],
@@ -1174,6 +1197,68 @@ export function DocsToolbar({
             title="Two-sided row — set the text shown at the END of this line (end: property)"
           >
             <AlignHorizontalSpaceBetween size={16} />
+          </Btn>
+        </Group>
+
+        {/* ── Form fields ──────────────────────────────────── */}
+        <Group label="Fields" tab="insert">
+          <Btn
+            onClick={() => insertField("type: text | required: yes")}
+            disabled={locked}
+            title="Insert a text field (type the label after)"
+          >
+            <Type size={16} />
+          </Btn>
+          <Btn
+            onClick={() => insertField("type: textarea")}
+            disabled={locked}
+            title="Insert a long-text field"
+          >
+            <AlignLeft size={16} />
+          </Btn>
+          <Btn
+            onClick={() => insertField("type: date")}
+            disabled={locked}
+            title="Insert a date field"
+          >
+            <Calendar size={16} />
+          </Btn>
+          <Btn
+            onClick={() => insertField("type: number")}
+            disabled={locked}
+            title="Insert a number field"
+          >
+            <Hash size={16} />
+          </Btn>
+          <Btn
+            onClick={() =>
+              insertField("type: choice | options: Option 1, Option 2")
+            }
+            disabled={locked}
+            title="Insert a choice (dropdown) field — edit the options after"
+          >
+            <ChevronDownSquare size={16} />
+          </Btn>
+          <Btn
+            onClick={() => insertField("type: checkbox")}
+            disabled={locked}
+            title="Insert a checkbox field"
+          >
+            <CheckSquare size={16} />
+          </Btn>
+          <Btn
+            onClick={() => insertField("type: signature | required: yes")}
+            disabled={locked}
+            title="Insert a signature field"
+          >
+            <PenLine size={16} />
+          </Btn>
+          <Btn
+            onClick={() => insertField("type: table")}
+            disabled={locked}
+            title="Insert a table (repeating rows) field"
+          >
+            <Table size={16} />
           </Btn>
         </Group>
       </div>

@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import {
   IntentTextEditor,
+  FormFill,
   exportDocumentPDF,
   exportDocumentHTML,
   extractTemplateVariables,
 } from "@dotit/editor";
+import { isForm } from "@dotit/core";
 import { Toolbar } from "./toolbar/Toolbar";
 import { StatusBar } from "./status/StatusBar";
 import { MonacoEditor } from "./editor/MonacoEditor";
@@ -248,6 +250,10 @@ export default function App() {
                 onChange={setContent}
                 editorRef={editorRef}
               />
+            ) : isForm(content) ? (
+              // The visual view of a FORM is the fillable form itself — the
+              // embeddable integration surface (same FormFill the desktop uses).
+              <FormFill value={content} theme={theme} onChange={setContent} />
             ) : (
               <IntentTextEditor
                 value={content}
