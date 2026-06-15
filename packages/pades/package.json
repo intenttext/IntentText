@@ -12,7 +12,10 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md"],
+  "bin": {
+    "dotit-pades": "./cli.mjs"
+  },
+  "files": ["dist", "cli.mjs", "README.md"],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "test": "vitest run",

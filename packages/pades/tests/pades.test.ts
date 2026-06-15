@@ -1,4 +1,8 @@
 import { describe, it, expect } from "vitest";
+import { mkdtempSync, writeFileSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { main as cli } from "../src/cli.js";
 import {
   generateSelfSignedCert,
   createCertificateAuthority,
@@ -159,6 +163,26 @@ describe("PAdES PDF signing", () => {
       trustedRoots: [otherCa.certificate],
     });
     expect(untrusted.chainValid).toBe(false);
+  });
+
+  it("CLI: identity → sign → verify round-trips", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "pades-cli-"));
+    try {
+      const idFile = join(dir, "id.json");
+      const inPdf = join(dir, "in.pdf");
+      const outPdf = join(dir, "out.pdf");
+      writeFileSync(inPdf, Buffer.from(minimalPdf()));
+
+      expect(await cli(["identity", "--cn", "Acme Corp", "--out", idFile])).toBe(0);
+      expect(await cli(["sign", inPdf, outPdf, "--identity", idFile, "--name", "Acme Corp"])).toBe(0);
+      expect(await cli(["verify", outPdf])).toBe(0); // exit 0 = valid
+
+      const info = await verifyPdfSignature(new Uint8Array(readFileSync(outPdf)));
+      expect(info.valid).toBe(true);
+      expect(info.signerCommonName).toBe("Acme Corp");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("detects a tampered signed PDF", async () => {
