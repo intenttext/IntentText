@@ -7,6 +7,8 @@ export {
   generateSelfSignedCert,
   createCertificateAuthority,
   issueCertificate,
+  createCsr,
+  issueCertificateFromCsr,
   loadSigner,
   signerFromPem,
   signDetachedCms,

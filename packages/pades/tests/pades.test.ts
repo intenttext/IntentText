@@ -7,6 +7,9 @@ import {
   generateSelfSignedCert,
   createCertificateAuthority,
   issueCertificate,
+  createCsr,
+  issueCertificateFromCsr,
+  signerFromPem,
   signDetachedCms,
   verifyDetachedCms,
   signPdf,
@@ -163,6 +166,59 @@ describe("PAdES PDF signing", () => {
       trustedRoots: [otherCa.certificate],
     });
     expect(untrusted.chainValid).toBe(false);
+  });
+
+  it("UTS-as-CA via CSR: client keeps the key, CA certifies the CSR", async () => {
+    // The CA (UTS) — its private key signs leaf certs but never the client's.
+    const ca = await createCertificateAuthority({
+      commonName: "UTS Certificate Authority",
+      organization: "UTS",
+    });
+
+    // CLIENT side: generate a keypair + CSR. The private key NEVER leaves here.
+    const csr = await createCsr({
+      commonName: "self-asserted-ignored",
+      organization: "Dalil",
+    });
+
+    // CA side: validate the CSR's proof-of-possession and certify the public key
+    // under the CA-asserted identity (the KYC-verified legal entity).
+    const issued = await issueCertificateFromCsr({
+      issuer: { certificate: ca.certificate, privateKey: ca.privateKey },
+      csrPem: csr.csrPem,
+      commonName: "Dalil Technology LLC", // CA overrides the CSR's claimed CN
+      organization: "Dalil",
+    });
+    expect(issued.certPem).toContain("BEGIN CERTIFICATE");
+
+    // CLIENT signs the PDF with the CA-issued cert + its OWN private key.
+    const signer = await signerFromPem(issued.certPem, csr.privateKeyPem);
+    const signed = await signPdf(minimalPdf(), {
+      certificate: signer.certificate,
+      privateKey: signer.privateKey,
+      chain: issued.chain, // embed the UTS CA cert for path building
+    });
+
+    // Trusting the UTS CA → the signature chains, and the CA's asserted CN wins.
+    const trusted = await verifyPdfSignature(signed, { trustedRoots: [ca.certificate] });
+    expect(trusted.valid).toBe(true);
+    expect(trusted.chainValid).toBe(true);
+    expect(trusted.signerCommonName).toBe("Dalil Technology LLC");
+  });
+
+  it("issueCertificateFromCsr rejects a tampered CSR (proof-of-possession)", async () => {
+    const ca = await createCertificateAuthority({ commonName: "UTS CA" });
+    const csr = await createCsr({ commonName: "Acme" });
+    // Corrupt the CSR signature region.
+    const bad = Uint8Array.from(csr.csrDer);
+    bad[bad.length - 5] = bad[bad.length - 5] ^ 0xff;
+    const badPem = `-----BEGIN CERTIFICATE REQUEST-----\n${Buffer.from(bad).toString("base64").replace(/(.{64})/g, "$1\n")}\n-----END CERTIFICATE REQUEST-----\n`;
+    await expect(
+      issueCertificateFromCsr({
+        issuer: { certificate: ca.certificate, privateKey: ca.privateKey },
+        csrPem: badPem,
+      }),
+    ).rejects.toThrow(/proof-of-possession|valid DER/i);
   });
 
   it("CLI: identity → sign → verify round-trips", async () => {

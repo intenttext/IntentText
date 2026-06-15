@@ -252,6 +252,135 @@ export async function issueCertificate(opts: {
   };
 }
 
+/**
+ * Create a PKCS#10 Certification Request (CSR). The requester self-signs it to
+ * prove possession of the private key; a CA later certifies only the PUBLIC key,
+ * so the private key never leaves the requester — the correct custody model for a
+ * notary/CA like UTS. Generates a fresh ECDSA P-256 keypair unless one is supplied.
+ */
+export async function createCsr(opts: {
+  commonName: string;
+  organization?: string;
+  keyPair?: CryptoKeyPair;
+}): Promise<{
+  csrPem: string;
+  csrDer: Uint8Array;
+  publicKey: CryptoKey;
+  privateKey: CryptoKey;
+  /** PKCS#8 PEM of the requester's private key — kept by the requester, never sent. */
+  privateKeyPem: string;
+}> {
+  const keys =
+    opts.keyPair ??
+    ((await subtle.generateKey(ECDSA_ALG, true, [
+      "sign",
+      "verify",
+    ])) as CryptoKeyPair);
+
+  const pkcs10 = new pkijs.CertificationRequest();
+  pkcs10.version = 0;
+  pkcs10.subject = nameWith(opts.commonName, opts.organization);
+  await pkcs10.subjectPublicKeyInfo.importKey(keys.publicKey, cryptoEngine);
+  await pkcs10.sign(keys.privateKey, HASH, cryptoEngine);
+
+  const csrDer = new Uint8Array(pkcs10.toSchema().toBER(false));
+  const pkcs8 = new Uint8Array(await subtle.exportKey("pkcs8", keys.privateKey));
+  return {
+    csrPem: toPem(csrDer, "CERTIFICATE REQUEST"),
+    csrDer,
+    publicKey: keys.publicKey,
+    privateKey: keys.privateKey,
+    privateKeyPem: toPem(pkcs8, "PRIVATE KEY"),
+  };
+}
+
+/**
+ * Issue a leaf certificate by signing a CSR with a CA — the UTS-as-CA path. The CA
+ * validates the CSR's proof-of-possession signature, then certifies the requester's
+ * public key under a subject the CA controls (`commonName` override — e.g. the
+ * KYC-verified legal entity). The requester's private key is never seen, and NO
+ * private key is returned (it stays with the requester). Returns the issued cert
+ * plus the issuer chain, ready to embed in a CMS/PAdES signature.
+ */
+export async function issueCertificateFromCsr(opts: {
+  issuer: { certificate: pkijs.Certificate; privateKey: CryptoKey };
+  csrPem: string;
+  /** CA-asserted subject CN. Omit to keep the CSR's own CN. */
+  commonName?: string;
+  organization?: string;
+  days?: number;
+  isCa?: boolean;
+}): Promise<{
+  certificate: pkijs.Certificate;
+  certDer: Uint8Array;
+  certPem: string;
+  chain: pkijs.Certificate[];
+  chainPem: string;
+}> {
+  const csrDer = pemToDer(opts.csrPem, "CERTIFICATE REQUEST");
+  const asn1 = asn1js.fromBER(ab(csrDer));
+  if (asn1.offset === -1) throw new Error("CSR is not valid DER");
+  const pkcs10 = new pkijs.CertificationRequest({ schema: asn1.result });
+
+  // Proof of possession: the CSR must be self-signed by the requester's key.
+  const proofOk = await pkcs10.verify().catch(() => false);
+  if (!proofOk) throw new Error("CSR proof-of-possession signature is invalid");
+
+  // Subject CN: the CA's asserted identity overrides whatever the CSR claimed.
+  let cn = opts.commonName;
+  if (!cn) {
+    const t = pkcs10.subject.typesAndValues.find((x) => x.type === "2.5.4.3");
+    cn = (t?.value.valueBlock.value as string) || "Unknown";
+  }
+
+  const cert = new pkijs.Certificate();
+  cert.version = 2;
+  cert.serialNumber = new asn1js.Integer({
+    value: Date.now() + Math.floor(performance.now()),
+  });
+  cert.subject = nameWith(cn, opts.organization);
+  cert.issuer = opts.issuer.certificate.subject;
+
+  const now = new Date();
+  const end = new Date(now);
+  end.setDate(end.getDate() + (opts.days ?? 825));
+  cert.notBefore.value = now;
+  cert.notAfter.value = end;
+
+  cert.extensions = [
+    new pkijs.Extension({
+      extnID: "2.5.29.19",
+      critical: true,
+      extnValue: new pkijs.BasicConstraints({ cA: !!opts.isCa })
+        .toSchema()
+        .toBER(false),
+    }),
+    new pkijs.Extension({
+      extnID: "2.5.29.15",
+      critical: true,
+      extnValue: new asn1js.BitString({
+        valueHex: new Uint8Array([opts.isCa ? 0x06 : 0xc0]).buffer,
+      }).toBER(false),
+    }),
+  ];
+
+  // Certify the CSR's public key directly (no CryptoKey round-trip).
+  cert.subjectPublicKeyInfo = pkcs10.subjectPublicKeyInfo;
+  await cert.sign(opts.issuer.privateKey, HASH, cryptoEngine);
+
+  const certDer = new Uint8Array(cert.toSchema(true).toBER(false));
+  const issuerDer = new Uint8Array(
+    opts.issuer.certificate.toSchema(true).toBER(false),
+  );
+  return {
+    certificate: cert,
+    certDer,
+    certPem: toPem(certDer, "CERTIFICATE"),
+    chain: [opts.issuer.certificate],
+    chainPem: toPem(issuerDer, "CERTIFICATE"),
+  };
+}
+
 export async function signerFromPem(
   certPem: string,
   privateKeyPem: string,
