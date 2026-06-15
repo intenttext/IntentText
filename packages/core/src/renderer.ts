@@ -337,6 +337,20 @@ function applyInlineFormatting(
           case "code":
             return `<code>${escapeHtml(node.value)}</code>`;
           case "styled": {
+            // Inline FORM FIELD: [answer]{input: key; type: …} — a fill-in-the-blank
+            // within prose (e.g. "I, [Jane]{input: signer}, agree"). Empty bracket
+            // renders as an underline to fill; a value renders inline.
+            if (node.props && node.props.input != null) {
+              const key = escapeHtml(String(node.props.input));
+              const ftype = escapeHtml(
+                String(node.props.type ?? "text").toLowerCase(),
+              );
+              const required = /^(yes|true|on|1|required)$/i.test(
+                String(node.props.required ?? "").trim(),
+              );
+              const hasVal = node.value.trim().length > 0;
+              return `<span class="it-field-inline it-field-inline-${ftype} ${hasVal ? "filled" : "blank"}" data-key="${key}" data-type="${ftype}"${required ? ' data-required="true"' : ""}>${hasVal ? escapeHtml(node.value) : ""}</span>`;
+            }
             const css = extractInlineStyles(node.props);
             return css
               ? `<span style="${css}">${escapeHtml(node.value)}</span>`
@@ -1058,14 +1072,51 @@ function renderBlock(block: IntentBlock): string {
     }
 
     case "input": {
-      const inputType = props.type ? escapeHtml(String(props.type)) : "string";
-      const inputRequired =
-        props.required === "true" || String(props.required) === "true";
-      const inputDef =
-        props.default != null
-          ? `<span class="it-input-default">= ${escapeHtml(String(props.default))}</span>`
+      // A FORM FIELD (see forms.ts): a fillable box, NOT an author-side {{merge}}
+      // variable. It renders the captured `value:` when filled and an empty box
+      // when blank — so the same line is a printable blank form AND, once every
+      // required field is filled, a final signable record.
+      const fieldType = (
+        props.type != null ? String(props.type) : "text"
+      ).toLowerCase();
+      const safeType = escapeHtml(fieldType);
+      const required = /^(yes|true|on|1|required|checked|x)$/i.test(
+        String(props.required ?? "").trim(),
+      );
+      // Fall back to `default:` (legacy merge-template inputs) when no answer yet.
+      const rawValue =
+        props.value != null
+          ? String(props.value)
+          : props.default != null
+            ? String(props.default)
+            : "";
+      const isDefault = props.value == null && props.default != null;
+      const hasValue = rawValue.trim().length > 0;
+      const keyAttr =
+        props.key != null ? ` data-key="${escapeHtml(String(props.key))}"` : "";
+      const dataAttrs = `${keyAttr} data-type="${safeType}"${required ? ' data-required="true"' : ""}`;
+      const labelHtml = `<span class="it-input-name it-field-label">${content}${required ? '<span class="it-field-req">*</span>' : ""}</span>`;
+
+      if (fieldType === "checkbox") {
+        const checked = /^(yes|true|on|1|checked|x)$/i.test(rawValue.trim());
+        return `<div class="it-input it-field it-field-checkbox"${dataAttrs}><span class="it-field-check${checked ? " checked" : ""}" aria-hidden="true"></span>${labelHtml}</div>`;
+      }
+      if (fieldType === "signature") {
+        const inner = hasValue
+          ? `<span class="it-field-value">${escapeHtml(rawValue)}</span>`
           : "";
-      return `<div class="it-input"><span class="it-input-name">${content}</span><span class="it-input-type">${inputType}</span>${inputRequired ? '<span class="it-input-required">required</span>' : ""}${inputDef}</div>`;
+        return `<div class="it-input it-field it-field-signature"${dataAttrs}><span class="it-field-box it-field-sig">${inner}</span>${labelHtml}</div>`;
+      }
+      const options = String(props.options ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const boxInner = hasValue
+        ? `<span class="it-field-value${isDefault ? " it-field-default" : ""}">${escapeHtml(rawValue)}</span>`
+        : fieldType === "choice" && options.length
+          ? `<span class="it-field-hint">${escapeHtml(options.join("  /  "))}</span>`
+          : "";
+      return `<div class="it-input it-field it-field-${safeType}"${dataAttrs}>${labelHtml}<span class="it-field-box it-field-box-${safeType} ${hasValue ? "filled" : "blank"}">${boxInner}</span></div>`;
     }
 
     case "output": {

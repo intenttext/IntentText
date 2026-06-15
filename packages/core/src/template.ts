@@ -20,6 +20,8 @@
  * so they never make a document a template.
  */
 
+import { isForm, isFormComplete } from "./forms";
+
 const META_TEMPLATE = /^\s*meta:\s*(?:\|[^\n]*)?\btype:\s*template\b/im;
 const INPUT_BLOCK = /^\s*input:/im;
 const MERGE_VAR = /\{\{\s*([^}]+?)\s*\}\}/g;
@@ -40,14 +42,21 @@ export function hasUnresolvedMergeVars(source: string): boolean {
  * Is this source a TEMPLATE (outside the trust workflow)? Explicit
  * `meta: type: template`, `input:` fields, or unresolved `{{ }}` variables.
  * Empty property values do NOT count.
+ *
+ * FORMS are the deliberate exception: a `meta: type: form` document whose required
+ * fields are ALL filled is a COMPLETE form — a final, signable record, not a
+ * blueprint. A blank/incomplete form is still template-like (an unfilled form is a
+ * fill-in slot, same as any template). See forms.ts.
  */
 export function isTemplate(source: string): boolean {
   if (!source) return false;
-  return (
-    META_TEMPLATE.test(source) ||
-    INPUT_BLOCK.test(source) ||
-    hasUnresolvedMergeVars(source)
-  );
+  if (META_TEMPLATE.test(source)) return true;
+  if (hasUnresolvedMergeVars(source)) return true;
+  // A form's trust status is governed by completeness, not by the presence of
+  // `input:` fields (every form has them).
+  if (isForm(source)) return !isFormComplete(source);
+  if (INPUT_BLOCK.test(source)) return true;
+  return false;
 }
 
 /**

@@ -27,6 +27,26 @@ export const DOCUMENT_CSS = `
 .intent-task-checkbox{margin-top:3px;flex-shrink:0;}
 .intent-task-text{flex:1;}
 .intent-task-meta{display:flex;gap:6px;color:#888;font-size:0.78rem;white-space:nowrap;}
+/* ── Form fields (IntentText Forms) — fillable boxes; print like a real form ── */
+.it-field{display:flex;align-items:center;gap:10px;margin:9px 0;}
+.it-field-label{color:#333;font-size:0.92rem;flex-shrink:0;max-width:42%;}
+.it-field-req{color:#c0392b;margin-inline-start:2px;}
+.it-field-box{flex:1;min-height:1.7em;padding:5px 9px;border:1px solid #b9bcc4;border-radius:3px;background:#fcfcfd;display:flex;align-items:center;}
+.it-field-box.blank{background:#fbfbfc;}
+.it-field-value{color:#111;}
+.it-field-value.it-field-default{color:#8a8f98;font-style:italic;}
+.it-field-hint{color:#aab0ba;font-size:0.85rem;}
+.it-field-box-textarea{min-height:4.5em;align-items:flex-start;}
+.it-field-checkbox{gap:8px;}
+.it-field-check{width:15px;height:15px;border:1.5px solid #888;border-radius:3px;flex-shrink:0;display:inline-block;position:relative;}
+.it-field-check.checked{background:#1a73e8;border-color:#1a73e8;}
+.it-field-check.checked::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
+.it-field-signature{align-items:flex-end;}
+.it-field-sig{min-height:2.6em;border:none;border-bottom:1px solid #555;border-radius:0;background:none;align-items:flex-end;}
+.it-field-sig .it-field-value{font-family:'Segoe Script','Snell Roundhand','Brush Script MT',cursive;font-size:1.2rem;}
+.it-field-inline{display:inline-block;min-width:7ch;border-bottom:1px solid #555;padding:0 4px;text-align:center;line-height:1.4;}
+.it-field-inline.blank{min-width:10ch;}
+.it-field-inline.filled{border-bottom-color:#9aa0aa;}
 .intent-task-owner::before{content:'@ ';opacity:0.6;}
 .intent-task-due::before{content:'due ';}
 .intent-task-time::before{content:'at ';}

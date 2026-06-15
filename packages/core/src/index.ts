@@ -132,6 +132,15 @@ export {
   hasUnresolvedMergeVars,
   assertNotTemplate,
 } from "./template";
+export {
+  isForm,
+  isFormComplete,
+  extractFormFields,
+  formAnswers,
+  missingRequiredFields,
+  FORM_FIELD_TYPES,
+} from "./forms";
+export type { FormField, FormFieldType } from "./forms";
 export type {
   TrustTier,
   TierStyle,

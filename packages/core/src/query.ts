@@ -175,6 +175,17 @@ function getFieldValue(block: IntentBlock, field: string): unknown {
     return block.properties[field];
   }
 
+  // Form-field answers: a form field (`input: … | key: country | value: KW`) is
+  // queryable BY ITS KEY — so `--query "country=KW"` matches the answer. This
+  // turns a folder of returned forms into a queryable dataset.
+  if (
+    block.type === "input" &&
+    block.properties &&
+    block.properties.key === field
+  ) {
+    return block.properties.value ?? "";
+  }
+
   // Table data
   if (field === "hasHeaders" && block.table) {
     return !!block.table.headers;
