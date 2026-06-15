@@ -143,6 +143,15 @@ export {
   FORM_FIELD_TYPES,
 } from "./forms";
 export type { FormField, FormFieldType } from "./forms";
+export {
+  hasTrackedChanges,
+  extractChanges,
+  acceptChanges,
+  rejectChanges,
+  extractComments,
+  commentAnchors,
+} from "./redline";
+export type { TrackedChange, Comment, ChangeType } from "./redline";
 export type {
   TrustTier,
   TierStyle,

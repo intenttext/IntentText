@@ -11,7 +11,9 @@
  * A file is a template when ANY of these hold (mirrors validate.ts):
  *   1. it declares `meta: | type: template` (the explicit, canonical marker);
  *   2. it has `input:` fields (interactive fill-in slots);
- *   3. it carries unresolved merge variables `{{ … }}`.
+ *   3. it carries unresolved merge variables `{{ … }}`;
+ *   4. it has pending tracked changes (redlines) — the content is "in review",
+ *      not final, until those are accepted/rejected (see redline.ts).
  *
  * IMPORTANT: an EMPTY value (`client:` with nothing after it) is NOT a template
  * signal. A final document may legitimately leave a field blank, and it must stay
@@ -21,6 +23,7 @@
  */
 
 import { isForm, isFormComplete } from "./forms";
+import { hasTrackedChanges } from "./redline";
 
 const META_TEMPLATE = /^\s*meta:\s*(?:\|[^\n]*)?\btype:\s*template\b/im;
 const INPUT_BLOCK = /^\s*input:/im;
@@ -52,6 +55,10 @@ export function isTemplate(source: string): boolean {
   if (!source) return false;
   if (META_TEMPLATE.test(source)) return true;
   if (hasUnresolvedMergeVars(source)) return true;
+  // Pending tracked changes mean the document is still "in review": its content is
+  // ambiguous (does the reader see the insertion or the deletion?). Sealing it would
+  // fix an unresolved state. Accept/reject all changes first, then trust the result.
+  if (hasTrackedChanges(source)) return true;
   // A form's trust status is governed by completeness, not by the presence of
   // `input:` fields (every form has them).
   if (isForm(source)) return !isFormComplete(source);
