@@ -9,6 +9,7 @@ export {
   issueCertificate,
   createCsr,
   issueCertificateFromCsr,
+  parseCertificatePem,
   loadSigner,
   signerFromPem,
   signDetachedCms,

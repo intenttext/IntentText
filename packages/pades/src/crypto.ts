@@ -391,6 +391,18 @@ export async function signerFromPem(
   );
 }
 
+/**
+ * Parse a certificate from PEM into a pkijs.Certificate — the form a verifier uses
+ * to pin a trust anchor (e.g. the UTS CA cert from /.well-known/uts-ca.pem) for
+ * verifyPdfSignature / verifyDetachedCms `trustedRoots`.
+ */
+export function parseCertificatePem(certPem: string): pkijs.Certificate {
+  const der = pemToDer(certPem, "CERTIFICATE");
+  const asn1 = asn1js.fromBER(ab(der));
+  if (asn1.offset === -1) throw new Error("Certificate is not valid PEM/DER");
+  return new pkijs.Certificate({ schema: asn1.result });
+}
+
 /** Load a certificate + private key from DER/PKCS#8 bytes (e.g. from storage). */
 export async function loadSigner(
   certDer: Uint8Array,
