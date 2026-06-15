@@ -35,6 +35,8 @@ import {
   AlignHorizontalSpaceBetween,
   RectangleVertical,
   RectangleHorizontal,
+  Pin,
+  PinOff,
 } from "lucide-react";
 import { LANGUAGE_REGISTRY } from "@dotit/core";
 import { CATEGORY_META } from "./types";
@@ -226,23 +228,31 @@ function Btn({
   );
 }
 
-/** A ribbon group — one compact Docs-style row (the label is a11y-only). */
+/**
+ * A ribbon group — Word-style: a row of controls with the group name printed
+ * underneath. `tab` assigns the group to a ribbon tab (Home / Insert / Layout /
+ * Trust); CSS shows only the active tab's groups.
+ */
 function Group({
   label,
   children,
   className = "",
+  tab,
 }: {
   label: string;
   children: React.ReactNode;
   className?: string;
+  tab?: string;
 }) {
   return (
     <div
       className={`ribbon-group ${className}`.trim()}
       role="group"
       aria-label={label}
+      data-tab={tab}
     >
-      {children}
+      <div className="ribbon-group-controls">{children}</div>
+      <span className="ribbon-group-label">{label}</span>
     </div>
   );
 }
@@ -271,6 +281,40 @@ export function DocsToolbar({
   const [highlightColorOpen, setHighlightColorOpen] = useState(false);
   const [spacingOpen, setSpacingOpen] = useState(false);
   const [inkSaver, setInkSaver] = useState(false);
+
+  // ── Word-style ribbon: tabs + pin/auto-hide ──────────────────
+  // The ribbon groups its commands into tabs (Home / Insert / Layout / Trust)
+  // and can be pinned open (default) or unpinned to auto-hide — click a tab to
+  // peek, double-click a tab or hit the pin to keep it open. Pin state persists.
+  const [ribbonTab, setRibbonTab] = useState<string>("home");
+  const [ribbonPinned, setRibbonPinned] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("dotit.ribbon.pinned") !== "0";
+    } catch {
+      return true;
+    }
+  });
+  const [ribbonPeek, setRibbonPeek] = useState(false);
+  const ribbonOpen = ribbonPinned || ribbonPeek;
+  useEffect(() => {
+    try {
+      localStorage.setItem("dotit.ribbon.pinned", ribbonPinned ? "1" : "0");
+    } catch {
+      /* storage unavailable */
+    }
+  }, [ribbonPinned]);
+  const selectRibbonTab = useCallback(
+    (id: string) => {
+      setRibbonTab(id);
+      // When unpinned, clicking a tab drops the ribbon down to "peek" the commands.
+      if (!ribbonPinned) setRibbonPeek(true);
+    },
+    [ribbonPinned],
+  );
+  const toggleRibbonPin = useCallback(() => {
+    setRibbonPeek(false);
+    setRibbonPinned((p) => !p);
+  }, []);
 
   // ── Page setup (size + orientation) ──────────────────────────
   // Read the live geometry from the current .it source so the controls reflect
@@ -549,10 +593,64 @@ export function DocsToolbar({
   const currentLeading = getBlockProp(editor, "leading");
   const hasEnd = !!getBlockProp(editor, "end");
 
+  const showTrust = Boolean((trust && onChange) || onTrustAction);
+  const RIBBON_TABS: { id: string; label: string }[] = [
+    { id: "home", label: "Home" },
+    { id: "insert", label: "Insert" },
+    { id: "layout", label: "Layout" },
+    ...(showTrust ? [{ id: "trust", label: "Trust" }] : []),
+  ];
+
   return (
-    <div className="docs-toolbar docs-ribbon">
+    <div
+      className={`docs-ribbon-shell${ribbonOpen ? " open" : " collapsed"}${
+        ribbonPinned ? " pinned" : ""
+      }`}
+      onMouseLeave={() => {
+        if (!ribbonPinned) setRibbonPeek(false);
+      }}
+    >
+      {/* Word-style tab strip + pin */}
+      <div className="docs-ribbon-tabs">
+        {RIBBON_TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={`docs-ribbon-tab${ribbonTab === t.id ? " active" : ""}`}
+            onClick={() => selectRibbonTab(t.id)}
+            onDoubleClick={toggleRibbonPin}
+            title={
+              ribbonPinned
+                ? t.label
+                : `${t.label} — click to peek, double-click to pin`
+            }
+          >
+            {t.label}
+          </button>
+        ))}
+        <div className="docs-ribbon-tabs-spacer" />
+        <button
+          type="button"
+          className="docs-ribbon-pin"
+          onClick={toggleRibbonPin}
+          aria-pressed={ribbonPinned}
+          title={
+            ribbonPinned
+              ? "Unpin the ribbon (auto-hide)"
+              : "Pin the ribbon (keep open)"
+          }
+        >
+          {ribbonPinned ? <Pin size={14} /> : <PinOff size={14} />}
+        </button>
+      </div>
+
+      <div
+        className="docs-toolbar docs-ribbon"
+        data-tab={ribbonTab}
+        data-open={ribbonOpen ? "1" : "0"}
+      >
       {/* ── Edit ─────────────────────────────────────────── */}
-      <Group label="Edit">
+      <Group label="Edit" tab="home">
         <Btn
           onClick={() => editor.chain().focus().undo().run()}
           disabled={locked || !editor.can().undo()}
@@ -572,7 +670,7 @@ export function DocsToolbar({
       <GroupSep />
 
       {/* ── File / Export ────────────────────────────────── */}
-      <Group label="File">
+      <Group label="File" tab="home">
         <Btn onClick={doSave} title="Save / Download the .it file">
           <Download size={16} />
           <span className="ribbon-btn-text">Save</span>
@@ -605,7 +703,7 @@ export function DocsToolbar({
       <GroupSep />
 
       {/* ── Page setup (size + orientation) → page: | size: … | orientation: … ── */}
-      <Group label="Page">
+      <Group label="Page" tab="layout">
         <select
           className="ribbon-page-size"
           value={currentSize}
@@ -646,7 +744,7 @@ export function DocsToolbar({
 
       <div className={locked ? "ribbon-locked" : "ribbon-editing"}>
         {/* ── Style (paragraph type) ───────────────────────── */}
-        <Group label="Style">
+        <Group label="Style" tab="home">
           {/* Block style (Title / Section / …) */}
           <div className="docs-tb-dropdown" ref={styleRef}>
             <button
@@ -682,7 +780,7 @@ export function DocsToolbar({
         <GroupSep />
 
         {/* ── Font (family + size) ─────────────────────────── */}
-        <Group label="Font">
+        <Group label="Font" tab="home">
           {/* Font family */}
           <div className="docs-tb-dropdown" ref={fontRef}>
             <button
@@ -731,7 +829,7 @@ export function DocsToolbar({
         <GroupSep />
 
         {/* ── Text (B I U S + color) ───────────────────────── */}
-        <Group label="Text">
+        <Group label="Text" tab="home">
           <Btn
             onClick={() => editor.chain().focus().toggleBold().run()}
             active={editor.isActive("bold")}
@@ -884,7 +982,7 @@ export function DocsToolbar({
         <GroupSep />
 
         {/* ── Paragraph (align / direction / spacing / lists) ─ */}
-        <Group label="Paragraph">
+        <Group label="Paragraph" tab="home">
           {/* Alignment → core `align:` */}
           <Btn
             onClick={() => editor.chain().focus().setTextAlign("left").run()}
@@ -1015,7 +1113,7 @@ export function DocsToolbar({
         <GroupSep />
 
         {/* ── Insert ───────────────────────────────────────── */}
-        <Group label="Insert">
+        <Group label="Insert" tab="insert">
           <div className="docs-tb-dropdown" ref={insertRef}>
             <button
               className="docs-tb-select docs-tb-insert-select"
@@ -1084,7 +1182,7 @@ export function DocsToolbar({
       {trust && onChange ? (
         <>
           <GroupSep />
-          <Group label="Trust">
+          <Group label="Trust" tab="trust">
             <TrustControl
               content={content}
               onChange={onChange}
@@ -1097,7 +1195,7 @@ export function DocsToolbar({
         onTrustAction && (
           <>
             <GroupSep />
-            <Group label="Trust">
+            <Group label="Trust" tab="trust">
               <Btn
                 onClick={() => onTrustAction("seal")}
                 disabled={locked}
@@ -1115,6 +1213,7 @@ export function DocsToolbar({
           </>
         )
       )}
+      </div>
     </div>
   );
 }

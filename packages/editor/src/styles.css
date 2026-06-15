@@ -1305,6 +1305,162 @@
   font-size: 12px;
   font-weight: 500;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   Word-style tabbed, pinnable ribbon
+   The DocsToolbar groups its commands into tabs (Home / Insert / Layout
+   / Trust). The ribbon can be pinned open (default) or unpinned so it
+   auto-hides — click a tab to peek it down, double-click a tab (or the
+   pin) to keep it open. One implementation, shared by web + desktop.
+   ════════════════════════════════════════════════════════════════ */
+.docs-ribbon-shell {
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+  border-bottom: 1px solid #d6d6d6;
+  user-select: none;
+  flex-shrink: 0;
+}
+/* tab strip */
+.docs-ribbon-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  height: 36px;
+  padding: 0 8px;
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+}
+.docs-ribbon-tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5a5a5a;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.docs-ribbon-tab:hover {
+  background: #f0f0f0;
+  color: #222;
+}
+.docs-ribbon-tab.active {
+  color: #1a73e8;
+  font-weight: 600;
+}
+.docs-ribbon-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: #1a73e8;
+}
+.docs-ribbon-tabs-spacer {
+  flex: 1;
+}
+.docs-ribbon-pin {
+  appearance: none;
+  border: none;
+  background: transparent;
+  width: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #9a9a9a;
+  cursor: pointer;
+  border-radius: 5px;
+  align-self: center;
+  height: 26px;
+}
+.docs-ribbon-pin:hover {
+  background: #ececec;
+  color: #333;
+}
+.docs-ribbon-shell.pinned .docs-ribbon-pin {
+  color: #1a73e8;
+}
+
+/* ribbon body — the active tab's command groups */
+.docs-ribbon-shell .docs-ribbon {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 7px 12px;
+  min-height: 88px;
+  background: #f5f5f5;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.docs-ribbon-shell .docs-ribbon[data-open="0"] {
+  display: none;
+}
+/* When unpinned, the peeked ribbon DROPS OVER the document (no layout shift) —
+   just like Word's auto-hide ribbon. */
+.docs-ribbon-shell:not(.pinned) {
+  position: relative;
+  z-index: 40;
+}
+.docs-ribbon-shell:not(.pinned) .docs-ribbon[data-open="1"] {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  border-bottom: 1px solid #d6d6d6;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.14);
+}
+
+/* group: controls on top, name beneath (Word) + faint divider */
+.docs-ribbon-shell .ribbon-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 2px 12px;
+  border-right: 1px solid #e3e3e3;
+  flex-shrink: 0;
+}
+.docs-ribbon-shell .ribbon-group:last-child {
+  border-right: none;
+}
+.docs-ribbon-shell .ribbon-group-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+}
+.docs-ribbon-shell .ribbon-group-label {
+  font-size: 10.5px;
+  color: #8a8a8a;
+  line-height: 1;
+  white-space: nowrap;
+}
+/* groups now divide themselves — drop the inline separators */
+.docs-ribbon-shell .ribbon-sep {
+  display: none;
+}
+/* the editing/locked wrapper just flows its groups into the ribbon row */
+.docs-ribbon-shell .ribbon-editing,
+.docs-ribbon-shell .ribbon-locked {
+  display: flex;
+  align-items: stretch;
+}
+
+/* tab filtering — show only the active tab's groups */
+.docs-ribbon-shell .docs-ribbon[data-tab="home"] .ribbon-group:not([data-tab="home"]),
+.docs-ribbon-shell .docs-ribbon[data-tab="insert"] .ribbon-group:not([data-tab="insert"]),
+.docs-ribbon-shell .docs-ribbon[data-tab="layout"] .ribbon-group:not([data-tab="layout"]),
+.docs-ribbon-shell .docs-ribbon[data-tab="trust"] .ribbon-group:not([data-tab="trust"]) {
+  display: none !important;
+}
 .ribbon-theme-select {
   height: 26px;
   max-width: 110px;

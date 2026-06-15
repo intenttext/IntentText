@@ -69,7 +69,32 @@ export function DocumentView({ value, theme = "corporate", zoom = 1 }: DocumentV
       setPages([body]);
       return;
     }
-    const blocks = Array.from(el.children) as HTMLElement[];
+    // renderPrint wraps the whole document in a single container
+    // (<div class="intent-document">). Descend through such single-child wrappers
+    // to reach the REAL content blocks — otherwise there's only one giant block
+    // and nothing can be split onto a second page. Remember the wrappers so each
+    // page can be re-wrapped (preserving their styling/width).
+    let container: HTMLElement = el;
+    const wrappers: { tag: string; className: string }[] = [];
+    while (
+      container.children.length === 1 &&
+      container.firstElementChild &&
+      container.firstElementChild.children.length > 1
+    ) {
+      const c = container.firstElementChild as HTMLElement;
+      wrappers.push({ tag: c.tagName.toLowerCase(), className: c.className });
+      container = c;
+    }
+    const wrap = (inner: string): string => {
+      let h = inner;
+      for (let i = wrappers.length - 1; i >= 0; i--) {
+        const w = wrappers[i];
+        h = `<${w.tag}${w.className ? ` class="${w.className}"` : ""}>${h}</${w.tag}>`;
+      }
+      return h;
+    };
+
+    const blocks = Array.from(container.children) as HTMLElement[];
     if (!blocks.length) {
       setPages([body]);
       return;
@@ -85,7 +110,7 @@ export function DocumentView({ value, theme = "corporate", zoom = 1 }: DocumentV
       }
       groups[groups.length - 1].push(b);
     }
-    setPages(groups.map((grp) => grp.map((b) => b.outerHTML).join("")));
+    setPages(groups.map((grp) => wrap(grp.map((b) => b.outerHTML).join(""))));
   }, [body, g.autoHeight, g.contentHeight, contentWidth]);
 
   return (

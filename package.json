@@ -46,6 +46,10 @@
   "pnpm": {
     "overrides": {
       "esbuild": "0.28.0"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
   }
 }
