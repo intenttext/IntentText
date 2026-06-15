@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import {
   readFile,
   writeFile,
+  appendFile,
   readdir,
   stat,
   mkdir,
@@ -66,10 +67,35 @@ function createWindow(file?: string): BrowserWindow {
     },
   });
   if (file) windowFiles.set(win.webContents.id, file);
-  win.on("ready-to-show", () => {
-    win.show();
-    win.focus();
-  });
+  const reveal = () => {
+    if (!win.isDestroyed() && !win.isVisible()) {
+      win.show();
+      win.focus();
+    }
+  };
+  win.on("ready-to-show", reveal);
+  // Safety net: if ready-to-show is delayed (slow first paint), reveal anyway so
+  // the window never gets stuck hidden.
+  win.webContents.on("did-finish-load", reveal);
+  setTimeout(reveal, 2500);
+
+  // Dev diagnostics (DOTIT_RLOG=path): surface renderer console + fatal events.
+  const rlog = process.env["DOTIT_RLOG"];
+  if (rlog) {
+    const log = (s: string) => void appendFile(rlog, s + "\n").catch(() => {});
+    win.webContents.on("console-message", (_e, lvl, msg, line, src) =>
+      log(`[console ${lvl}] ${msg} (${src}:${line})`),
+    );
+    win.webContents.on("render-process-gone", (_e, d) =>
+      log(`[render-gone] ${JSON.stringify(d)}`),
+    );
+    win.webContents.on("did-fail-load", (_e, c, desc, url) =>
+      log(`[did-fail-load] ${c} ${desc} ${url}`),
+    );
+    win.webContents.on("did-finish-load", () => log("[did-finish-load]"));
+    win.on("ready-to-show", () => log("[ready-to-show]"));
+  }
+
   win.on("closed", () => {
     windowFiles.delete(win.webContents.id);
     for (const [p, w] of docWindows) if (w === win) docWindows.delete(p);
@@ -497,6 +523,23 @@ app.whenReady().then(() => {
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) mainWindow = createWindow();
   });
+
+  // Dev capture (DOTIT_CAPTURE=path): snapshot the window every few seconds via
+  // capturePage — reliable regardless of window focus/occlusion/display.
+  const capturePath = process.env["DOTIT_CAPTURE"];
+  if (capturePath) {
+    setInterval(() => {
+      const w = mainWindow ?? BrowserWindow.getAllWindows()[0];
+      if (!w || w.isDestroyed()) return;
+      void w.webContents
+        .capturePage()
+        .then((img) => {
+          const png = img.toPNG();
+          if (png.length) return writeFile(capturePath, png);
+        })
+        .catch(() => {});
+    }, 4000);
+  }
 });
 
 app.on("window-all-closed", () => {
