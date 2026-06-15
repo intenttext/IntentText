@@ -21,14 +21,15 @@ class EcdsaCmsSigner extends Signer {
       certificate: pkijs.Certificate;
       privateKey: CryptoKey;
     },
-    private readonly tsaUrl?: string,
+    private readonly opts?: { tsaUrl?: string; chain?: pkijs.Certificate[] },
   ) {
     super();
   }
   // @signpdf calls this with the ByteRange-covered PDF bytes; return the CMS DER.
   async sign(pdfBuffer: Buffer): Promise<Buffer> {
     const cms = await signDetachedCms(new Uint8Array(pdfBuffer), this.signer, {
-      tsaUrl: this.tsaUrl,
+      tsaUrl: this.opts?.tsaUrl,
+      chain: this.opts?.chain,
     });
     return Buffer.from(cms);
   }
@@ -45,6 +46,8 @@ export interface SignPdfOptions {
   contactInfo?: string;
   /** RFC-3161 TSA URL — when set, adds a PAdES-T trusted timestamp. */
   tsaUrl?: string;
+  /** Issuer/intermediate certs to embed (chain to a trusted CA, e.g. UTS). */
+  chain?: pkijs.Certificate[];
   /** Reserved bytes for the CMS in /Contents (ECDSA CMS is small; 8 KB is safe). */
   signatureLength?: number;
 }
@@ -76,7 +79,7 @@ export async function signPdf(
         certificate: options.certificate,
         privateKey: options.privateKey,
       },
-      options.tsaUrl,
+      { tsaUrl: options.tsaUrl, chain: options.chain },
     ),
   );
   return new Uint8Array(signed);
@@ -148,6 +151,7 @@ function extractSignature(
  */
 export async function verifyPdfSignature(
   pdf: Uint8Array,
+  opts?: { trustedRoots?: pkijs.Certificate[] },
 ): Promise<PdfSignatureInfo> {
   const sig = extractSignature(pdf);
   if (!sig) {
@@ -155,6 +159,6 @@ export async function verifyPdfSignature(
   }
   const [a, b, c, d] = sig.byteRange;
   const coversWholeFile = a === 0 && c + d === pdf.byteLength;
-  const cms = await verifyDetachedCms(sig.signedBytes, sig.cms);
+  const cms = await verifyDetachedCms(sig.signedBytes, sig.cms, opts);
   return { present: true, coversWholeFile, ...cms };
 }

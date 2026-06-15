@@ -148,6 +148,110 @@ function pemToDer(pem: string, label: string): Uint8Array {
  * Load a signer from PEM strings (the persisted form — e.g. a signing identity
  * kept in the OS keychain). Pairs with generateSelfSignedCert's certPem/privateKeyPem.
  */
+// Shared cert builder: subject signed by `signWith` (self-signed when omitted).
+// `ca` adds basicConstraints cA + keyCertSign/cRLSign usage.
+async function buildCert(opts: {
+  commonName: string;
+  organization?: string;
+  days?: number;
+  ca?: boolean;
+  issuerName?: pkijs.RelativeDistinguishedNames;
+  signWith?: CryptoKey;
+}): Promise<GeneratedCert> {
+  const keys = (await subtle.generateKey(ECDSA_ALG, true, [
+    "sign",
+    "verify",
+  ])) as CryptoKeyPair;
+
+  const cert = new pkijs.Certificate();
+  cert.version = 2;
+  cert.serialNumber = new asn1js.Integer({
+    value: Date.now() + Math.floor(performance.now()),
+  });
+  cert.subject = nameWith(opts.commonName, opts.organization);
+  cert.issuer = opts.issuerName ?? cert.subject;
+
+  const now = new Date();
+  const end = new Date(now);
+  end.setDate(end.getDate() + (opts.days ?? 825));
+  cert.notBefore.value = now;
+  cert.notAfter.value = end;
+
+  cert.extensions = [
+    new pkijs.Extension({
+      extnID: "2.5.29.19",
+      critical: true,
+      extnValue: new pkijs.BasicConstraints({ cA: !!opts.ca })
+        .toSchema()
+        .toBER(false),
+    }),
+    new pkijs.Extension({
+      extnID: "2.5.29.15",
+      critical: true,
+      // CA: keyCertSign+cRLSign=0x06; leaf: digitalSignature+nonRepudiation=0xc0
+      extnValue: new asn1js.BitString({
+        valueHex: new Uint8Array([opts.ca ? 0x06 : 0xc0]).buffer,
+      }).toBER(false),
+    }),
+  ];
+
+  await cert.subjectPublicKeyInfo.importKey(keys.publicKey, cryptoEngine);
+  await cert.sign(opts.signWith ?? keys.privateKey, HASH, cryptoEngine);
+
+  const certDer = new Uint8Array(cert.toSchema(true).toBER(false));
+  const pkcs8 = new Uint8Array(await subtle.exportKey("pkcs8", keys.privateKey));
+  return {
+    certificate: cert,
+    certDer,
+    pkcs8,
+    privateKey: keys.privateKey,
+    certPem: toPem(certDer, "CERTIFICATE"),
+    privateKeyPem: toPem(pkcs8, "PRIVATE KEY"),
+  };
+}
+
+/**
+ * Create an X.509 Certificate Authority (self-signed, cA:true) — the UTS root or
+ * an intermediate. Keep the root key OFFLINE; issue an intermediate for online use.
+ */
+export async function createCertificateAuthority(opts: {
+  commonName: string;
+  organization?: string;
+  days?: number;
+}): Promise<GeneratedCert> {
+  return buildCert({ ...opts, ca: true, days: opts.days ?? 3650 });
+}
+
+/**
+ * Issue a certificate signed by a CA. Generates the subject keypair and returns
+ * its cert+key plus the issuer cert as the chain. Set `isCa` for an intermediate
+ * (root -> intermediate -> signer).
+ */
+export async function issueCertificate(opts: {
+  issuer: { certificate: pkijs.Certificate; privateKey: CryptoKey };
+  commonName: string;
+  organization?: string;
+  isCa?: boolean;
+  days?: number;
+}): Promise<GeneratedCert & { chain: pkijs.Certificate[]; chainPem: string }> {
+  const leaf = await buildCert({
+    commonName: opts.commonName,
+    organization: opts.organization,
+    days: opts.days,
+    ca: opts.isCa,
+    issuerName: opts.issuer.certificate.subject,
+    signWith: opts.issuer.privateKey,
+  });
+  const issuerDer = new Uint8Array(
+    opts.issuer.certificate.toSchema(true).toBER(false),
+  );
+  return {
+    ...leaf,
+    chain: [opts.issuer.certificate],
+    chainPem: toPem(issuerDer, "CERTIFICATE"), // the issuer cert(s) above the leaf
+  };
+}
+
 export async function signerFromPem(
   certPem: string,
   privateKeyPem: string,
@@ -183,7 +287,7 @@ export async function loadSigner(
 export async function signDetachedCms(
   data: Uint8Array,
   signer: { certificate: pkijs.Certificate; privateKey: CryptoKey },
-  opts?: { tsaUrl?: string },
+  opts?: { tsaUrl?: string; chain?: pkijs.Certificate[] },
 ): Promise<Uint8Array> {
   const messageDigest = await subtle.digest(HASH, ab(data));
 
@@ -201,7 +305,7 @@ export async function signDetachedCms(
         }),
       }),
     ],
-    certificates: [signer.certificate],
+    certificates: [signer.certificate, ...(opts?.chain ?? [])],
   });
 
   // ESS signing-certificate-v2 (PAdES-B-B): binds the signature to THIS cert.
@@ -268,6 +372,8 @@ export interface CmsVerifyResult {
   timestamped?: boolean;
   /** The TSA's asserted time (genTime), when timestamped. */
   timestampTime?: string;
+  /** When trusted roots are supplied: did the cert chain validate to one? */
+  chainValid?: boolean;
   reason?: string;
 }
 
@@ -275,22 +381,40 @@ export interface CmsVerifyResult {
 export async function verifyDetachedCms(
   data: Uint8Array,
   cmsDer: Uint8Array,
+  opts?: { trustedRoots?: pkijs.Certificate[] },
 ): Promise<CmsVerifyResult> {
   try {
     const asn1 = asn1js.fromBER(ab(cmsDer));
     const contentInfo = new pkijs.ContentInfo({ schema: asn1.result });
     const signedData = new pkijs.SignedData({ schema: contentInfo.content });
 
-    const ok = await signedData.verify({
-      signer: 0,
-      data: ab(data),
-      checkChain: false,
-    });
+    const asBool = (r: unknown) =>
+      typeof r === "boolean"
+        ? r
+        : (r as { signatureVerified?: boolean }).signatureVerified === true;
 
-    const verified =
-      typeof ok === "boolean"
-        ? ok
-        : (ok as { signatureVerified?: boolean }).signatureVerified === true;
+    // Signature validity (no chain) — never throws for a well-formed CMS.
+    const verified = asBool(
+      await signedData.verify({ signer: 0, data: ab(data), checkChain: false }),
+    );
+
+    // Chain validity (only when trust anchors supplied). pkijs THROWS when the
+    // chain can't be built to a trusted root, so guard it → chainValid:false.
+    let chainValid: boolean | undefined;
+    if (opts?.trustedRoots?.length) {
+      try {
+        chainValid = asBool(
+          await signedData.verify({
+            signer: 0,
+            data: ab(data),
+            checkChain: true,
+            trustedCerts: opts.trustedRoots,
+          }),
+        );
+      } catch {
+        chainValid = false;
+      }
+    }
 
     let signerCommonName: string | undefined;
     const cert = signedData.certificates?.[0];
@@ -320,7 +444,14 @@ export async function verifyDetachedCms(
       );
     }
 
-    return { valid: !!verified, signerCommonName, signedAt, timestamped, timestampTime };
+    return {
+      valid: !!verified,
+      signerCommonName,
+      signedAt,
+      timestamped,
+      timestampTime,
+      chainValid,
+    };
   } catch (e) {
     return { valid: false, reason: e instanceof Error ? e.message : String(e) };
   }

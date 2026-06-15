@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   generateSelfSignedCert,
+  createCertificateAuthority,
+  issueCertificate,
   signDetachedCms,
   verifyDetachedCms,
   signPdf,
@@ -121,6 +123,43 @@ describe("PAdES PDF signing", () => {
     },
     30_000,
   );
+
+  it("UTS-as-CA: signer cert chains to a trusted CA root", async () => {
+    const ca = await createCertificateAuthority({
+      commonName: "UTS Root CA",
+      organization: "UTS",
+    });
+    const signer = await issueCertificate({
+      issuer: { certificate: ca.certificate, privateKey: ca.privateKey },
+      commonName: "Dalil Technology",
+      organization: "Dalil",
+    });
+    const signed = await signPdf(minimalPdf(), {
+      certificate: signer.certificate,
+      privateKey: signer.privateKey,
+      chain: signer.chain, // embed the CA cert so verifiers can build the path
+    });
+
+    // trusting the CA root → chain validates
+    const trusted = await verifyPdfSignature(signed, {
+      trustedRoots: [ca.certificate],
+    });
+    expect(trusted.valid).toBe(true);
+    expect(trusted.chainValid).toBe(true);
+    expect(trusted.signerCommonName).toBe("Dalil Technology");
+
+    // signature still verifies without a trust anchor (chainValid just undefined)
+    const noAnchor = await verifyPdfSignature(signed);
+    expect(noAnchor.valid).toBe(true);
+    expect(noAnchor.chainValid).toBeUndefined();
+
+    // a DIFFERENT CA is not trusted → chain fails
+    const otherCa = await createCertificateAuthority({ commonName: "Other CA" });
+    const untrusted = await verifyPdfSignature(signed, {
+      trustedRoots: [otherCa.certificate],
+    });
+    expect(untrusted.chainValid).toBe(false);
+  });
 
   it("detects a tampered signed PDF", async () => {
     const c = await generateSelfSignedCert({ commonName: "X" });
