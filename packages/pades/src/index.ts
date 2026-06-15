@@ -6,10 +6,11 @@
 export {
   generateSelfSignedCert,
   loadSigner,
+  signerFromPem,
   signDetachedCms,
   verifyDetachedCms,
 } from "./crypto.js";
 export type { GeneratedCert, CmsVerifyResult } from "./crypto.js";
 
-export { signPdf, verifyPdfSignature } from "./pdf.js";
+export { signPdf, signPdfWithPem, verifyPdfSignature } from "./pdf.js";
 export type { SignPdfOptions, PdfSignatureInfo } from "./pdf.js";

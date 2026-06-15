@@ -4,6 +4,7 @@ import {
   signDetachedCms,
   verifyDetachedCms,
   signPdf,
+  signPdfWithPem,
   verifyPdfSignature,
 } from "../src/index.js";
 
@@ -80,6 +81,21 @@ describe("PAdES PDF signing", () => {
     expect(info.valid).toBe(true);
     expect(info.coversWholeFile).toBe(true);
     expect(info.signerCommonName).toBe("Sarah Al-Ahmad");
+  });
+
+  it("signs via a persisted PEM identity (desktop/CLI path)", async () => {
+    const c = await generateSelfSignedCert({ commonName: "Notary One" });
+    // persist + reload as PEM (what the keychain stores)
+    const signed = await signPdfWithPem(minimalPdf(), {
+      certPem: c.certPem,
+      privateKeyPem: c.privateKeyPem,
+      reason: "Approved",
+      name: "Notary One",
+    });
+    const info = await verifyPdfSignature(signed);
+    expect(info.valid).toBe(true);
+    expect(info.coversWholeFile).toBe(true);
+    expect(info.signerCommonName).toBe("Notary One");
   });
 
   it("detects a tampered signed PDF", async () => {

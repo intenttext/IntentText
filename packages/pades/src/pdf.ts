@@ -11,6 +11,7 @@ import * as pkijs from "pkijs";
 import {
   signDetachedCms,
   verifyDetachedCms,
+  signerFromPem,
   type CmsVerifyResult,
 } from "./crypto.js";
 
@@ -69,6 +70,34 @@ export async function signPdf(
     }),
   );
   return new Uint8Array(signed);
+}
+
+/**
+ * Sign a PDF using a persisted PEM identity (cert + private key) — the convenient
+ * entry point for the desktop/CLI, which stores the identity in the OS keychain.
+ */
+export async function signPdfWithPem(
+  pdf: Uint8Array,
+  options: {
+    certPem: string;
+    privateKeyPem: string;
+    reason?: string;
+    name?: string;
+    location?: string;
+    contactInfo?: string;
+    signatureLength?: number;
+  },
+): Promise<Uint8Array> {
+  const signer = await signerFromPem(options.certPem, options.privateKeyPem);
+  return signPdf(pdf, {
+    certificate: signer.certificate,
+    privateKey: signer.privateKey,
+    reason: options.reason,
+    name: options.name,
+    location: options.location,
+    contactInfo: options.contactInfo,
+    signatureLength: options.signatureLength,
+  });
 }
 
 export interface PdfSignatureInfo extends CmsVerifyResult {

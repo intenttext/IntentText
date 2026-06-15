@@ -133,6 +133,28 @@ export async function generateSelfSignedCert(opts: {
   };
 }
 
+function pemToDer(pem: string, label: string): Uint8Array {
+  const body = pem
+    .replace(new RegExp(`-----BEGIN ${label}-----`), "")
+    .replace(new RegExp(`-----END ${label}-----`), "")
+    .replace(/\s+/g, "");
+  return new Uint8Array(Buffer.from(body, "base64"));
+}
+
+/**
+ * Load a signer from PEM strings (the persisted form — e.g. a signing identity
+ * kept in the OS keychain). Pairs with generateSelfSignedCert's certPem/privateKeyPem.
+ */
+export async function signerFromPem(
+  certPem: string,
+  privateKeyPem: string,
+): Promise<{ certificate: pkijs.Certificate; privateKey: CryptoKey }> {
+  return loadSigner(
+    pemToDer(certPem, "CERTIFICATE"),
+    pemToDer(privateKeyPem, "PRIVATE KEY"),
+  );
+}
+
 /** Load a certificate + private key from DER/PKCS#8 bytes (e.g. from storage). */
 export async function loadSigner(
   certDer: Uint8Array,
