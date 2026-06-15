@@ -310,9 +310,10 @@ function expandEachRows(
 
 /**
  * Merge data into a parsed IntentDocument template.
- * Resolves {{variable}} references in block content, block properties, and
- * metadata.title and metadata.summary. Other metadata fields are not resolved.
- * Pure function — returns a new document, never mutates the input.
+ * Resolves {{variable}} references in block content, block properties,
+ * metadata.title, metadata.summary, the `meta:` property-bag (metadata.meta),
+ * and verbatim lifted source lines. Pure function — returns a new document,
+ * never mutates the input.
  */
 export interface MergeOptions {
   /**
@@ -352,12 +353,43 @@ export function mergeData(
       const { resolved } = resolveString(newMetadata.summary, data, agentName);
       newMetadata.summary = resolved;
     }
+    // Resolve the `meta:` property-bag values. These are lifted into
+    // metadata.meta (not emitted as a block), so resolveBlock never sees them;
+    // without this a `meta: | date: {{invoice.date}}` keeps its literal token
+    // after merge and the document stays isTemplate()===true (cannot be sealed).
+    // The canonical serializer reconstructs `meta:` from this map.
+    if (newMetadata.meta) {
+      const resolvedMeta: Record<string, string> = {};
+      for (const [k, v] of Object.entries(newMetadata.meta)) {
+        if (typeof v === "string") {
+          resolvedMeta[k] = resolveString(v, data, agentName).resolved;
+        } else {
+          resolvedMeta[k] = v;
+        }
+      }
+      newMetadata.meta = resolvedMeta;
+    }
+  }
+
+  // Resolve {{…}} inside verbatim lifted lines (meta:/track: lines lifted for
+  // lossless round-trip). The lossless serializer re-emits `l.text` byte-for-byte,
+  // so the resolved metadata.meta above is NOT enough on its own: the merged
+  // SOURCE would still carry the token. resolveString only rewrites {{…}}
+  // occurrences, leaving the rest of the line intact.
+  let newLifted = template._liftedLines;
+  if (newLifted && newLifted.length > 0) {
+    newLifted = newLifted.map((l) => {
+      if (!l.text.includes("{{")) return l;
+      const resolved = resolveString(l.text, data, agentName).resolved;
+      return resolved === l.text ? l : { ...l, text: resolved };
+    });
   }
 
   return {
     ...template,
     blocks: newBlocks,
     metadata: newMetadata,
+    _liftedLines: newLifted,
   };
 }
 

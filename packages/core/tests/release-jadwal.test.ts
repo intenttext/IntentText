@@ -11,6 +11,9 @@ import {
   applyAnswers,
   formAnswers,
   missingRequiredFields,
+  parseAndMerge,
+  documentToSource,
+  extractFormFields,
 } from "../src/index";
 
 describe("Jadwal release — {{page}} render tokens are sealable", () => {
@@ -36,6 +39,56 @@ text: Consulting | end: 1,200.00
       sealed = sealDocument(invoice, { signer: "Jadwal" }).source;
     }).not.toThrow();
     expect(verifyDocument(sealed).intact).toBe(true);
+  });
+});
+
+describe("Jadwal 1.10.1 — parseAndMerge resolves {{…}} inside meta: values", () => {
+  // 1.10.0 skipped meta: property-bag values during merge, so a sealed legal
+  // invoice with `meta: | date: {{invoice.date}}` kept the literal token →
+  // isTemplate stayed true → sealDocument threw assertNotTemplate.
+  const tmpl = `title: Invoice INV-3003
+meta: | date: {{invoice.date}} | status: {{invoice.status}}
+section: Items
+text: Consulting | end: 1,200.00
+`;
+  const data = { invoice: { date: "2026-06-16", status: "paid" } };
+
+  it("merged source has no leftover tokens and is sealable + verifiable", () => {
+    const merged = documentToSource(parseAndMerge(tmpl, data));
+    expect(merged).not.toMatch(/\{\{[^}]*\}\}/); // NO leftover {{...}}
+    expect(merged).toContain("date: 2026-06-16");
+    expect(merged).toContain("status: paid");
+    expect(isTemplate(merged)).toBe(false);
+
+    let sealed = "";
+    expect(() => {
+      sealed = sealDocument(merged, { signer: "Jadwal" }).source;
+    }).not.toThrow();
+    expect(verifyDocument(sealed).intact).toBe(true);
+  });
+
+  it("unmatched meta value under missing:'blank' is dropped, not a template", () => {
+    const merged = documentToSource(parseAndMerge(tmpl, {}, { missing: "blank" }));
+    expect(merged).not.toMatch(/\{\{[^}]*\}\}/);
+    expect(isTemplate(merged)).toBe(false);
+    expect(() => sealDocument(merged, { signer: "Jadwal" })).not.toThrow();
+  });
+
+  it("keep mode (default) leaves the token visible for authoring", () => {
+    const merged = documentToSource(parseAndMerge(tmpl, {}));
+    expect(merged).toMatch(/\{\{invoice\.date\}\}/);
+    expect(isTemplate(merged)).toBe(true); // still a template until merged
+  });
+});
+
+describe("Jadwal 1.10.1 — FormField identifier is `key` (no `name`)", () => {
+  it("extractFormFields exposes key + label; there is no name property", () => {
+    const form = `meta: | type: form
+input: Legal name | key: legal_name | type: text`;
+    const [field] = extractFormFields(form);
+    expect(field.key).toBe("legal_name");
+    expect(field.label).toBe("Legal name");
+    expect((field as Record<string, unknown>).name).toBeUndefined();
   });
 });
 
