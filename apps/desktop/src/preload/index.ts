@@ -25,6 +25,20 @@ const api = {
   // Reliable Chromium print of a standalone document.
   printHtml: (html: string) => ipcRenderer.invoke("print:html", html),
 
+  // Export a PAdES-signed PDF (render + sign in main; returns the saved path).
+  exportSignedPdf: (arg: {
+    html: string;
+    defaultName?: string;
+    name?: string;
+    reason?: string;
+    tsaUrl?: string;
+  }) =>
+    ipcRenderer.invoke("export:signedPdf", arg) as Promise<{
+      ok: boolean;
+      path?: string;
+      error?: string;
+    }>,
+
   // Events pushed from main → renderer (open-file, menu-action, file-created/
   // modified/deleted). Returns an unsubscribe fn.
   on: (channel: string, cb: (payload: unknown) => void) => {

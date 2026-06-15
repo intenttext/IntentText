@@ -24,6 +24,8 @@ import chokidar, { type FSWatcher } from "chokidar";
 const isDev = !app.isPackaged;
 const SETTINGS_PATH = () => join(app.getPath("userData"), "settings.json");
 const IDENTITY_PATH = () => join(app.getPath("userData"), "identity.bin");
+const PADES_IDENTITY_PATH = () =>
+  join(app.getPath("userData"), "pades-identity.bin");
 
 // ── Window + file-open state ────────────────────────────────────────────────
 let mainWindow: BrowserWindow | null = null;
@@ -373,6 +375,103 @@ ipcMain.handle("print:html", async (_e, html: string) => {
   void unlink(tmp).catch(() => {});
 });
 
+// ── PAdES: export a signed PDF ───────────────────────────────────────────────
+// Signing runs HERE (main process) — the renderer is a browser context without
+// node:crypto. @dotit/pades is ESM; we load it at runtime by URL so electron-vite
+// doesn't try to bundle its crypto deps.
+type Pades = typeof import("@dotit/pades");
+const importByUrl = new Function("u", "return import(u)") as (u: string) => Promise<Pades>;
+async function loadPades(): Promise<Pades> {
+  const { pathToFileURL } = await import("node:url");
+  return importByUrl(pathToFileURL(require.resolve("@dotit/pades")).href);
+}
+
+/** Get the desktop's PAdES signing identity (ECDSA cert+key), creating it once. */
+async function getPadesIdentity(): Promise<{ certPem: string; privateKeyPem: string }> {
+  const path = PADES_IDENTITY_PATH();
+  try {
+    const buf = await readFile(path);
+    const json = safeStorage.isEncryptionAvailable()
+      ? safeStorage.decryptString(buf)
+      : buf.toString("utf8");
+    return JSON.parse(json);
+  } catch {
+    const pades = await loadPades();
+    const settings = await readFile(SETTINGS_PATH(), "utf8").then(JSON.parse).catch(() => ({}));
+    const cn = (settings.identityName as string) || "Dotit User";
+    const id = await pades.generateSelfSignedCert({ commonName: cn });
+    const identity = { certPem: id.certPem, privateKeyPem: id.privateKeyPem };
+    const data = JSON.stringify(identity);
+    await writeFile(
+      path,
+      safeStorage.isEncryptionAvailable()
+        ? safeStorage.encryptString(data)
+        : Buffer.from(data, "utf8"),
+    );
+    return identity;
+  }
+}
+
+/** Render print-ready HTML to PDF bytes via a hidden window (Chromium printToPDF). */
+async function renderPdfBuffer(html: string): Promise<Buffer> {
+  const tmp = join(tmpdir(), `dotit-pdf-${Date.now()}.html`);
+  await writeFile(tmp, html, "utf8");
+  const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
+  try {
+    await win.loadFile(tmp);
+    await new Promise((r) => setTimeout(r, 250)); // settle fonts/layout
+    return await win.webContents.printToPDF({ printBackground: true, preferCSSPageSize: true });
+  } finally {
+    win.close();
+    void unlink(tmp).catch(() => {});
+  }
+}
+
+/** Render HTML → PDF → PAdES-sign with the desktop identity. Returns signed bytes. */
+async function renderSignedPdf(
+  html: string,
+  opts: { name?: string; reason?: string; tsaUrl?: string },
+): Promise<Uint8Array> {
+  const [pdf, pades, identity] = await Promise.all([
+    renderPdfBuffer(html),
+    loadPades(),
+    getPadesIdentity(),
+  ]);
+  return pades.signPdfWithPem(new Uint8Array(pdf), {
+    certPem: identity.certPem,
+    privateKeyPem: identity.privateKeyPem,
+    name: opts.name,
+    reason: opts.reason,
+    tsaUrl: opts.tsaUrl,
+  });
+}
+
+// Renderer hands us print HTML + a save path/name; we render, sign, and write.
+ipcMain.handle(
+  "export:signedPdf",
+  async (
+    _e,
+    arg: { html: string; defaultName?: string; name?: string; reason?: string; tsaUrl?: string },
+  ): Promise<{ ok: boolean; path?: string; error?: string }> => {
+    try {
+      const r = await dialog.showSaveDialog({
+        defaultPath: `${arg.defaultName || "document"}-signed.pdf`,
+        filters: [{ name: "Signed PDF", extensions: ["pdf"] }],
+      });
+      if (r.canceled || !r.filePath) return { ok: false };
+      const signed = await renderSignedPdf(arg.html, {
+        name: arg.name,
+        reason: arg.reason,
+        tsaUrl: arg.tsaUrl,
+      });
+      await writeFile(r.filePath, Buffer.from(signed));
+      return { ok: true, path: r.filePath };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  },
+);
+
 // ── Workspace folder watching ────────────────────────────────────────────────
 const watchers = new Map<string, FSWatcher>();
 function watch(path: string, sender: Electron.WebContents): void {
@@ -449,6 +548,7 @@ function buildMenu(): void {
         M("Save As…", "saveAs", "CmdOrCtrl+Shift+S"),
         { type: "separator" },
         M("Print / Save as PDF…", "print", "CmdOrCtrl+P"),
+        M("Export as Signed PDF (PAdES)…", "exportSignedPdf"),
         M("Export as HTML…", "exportHTML"),
         M("Export as Word (.docx)…", "exportDOCX"),
         { type: "separator" },
@@ -523,6 +623,32 @@ app.whenReady().then(() => {
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) mainWindow = createWindow();
   });
+
+  // Dev/CI hook (DOTIT_SIGN_TEST=<.it> DOTIT_SIGN_OUT=<pdf> [DOTIT_SIGN_TSA=<url>]):
+  // render + PAdES-sign the doc to the output path, then quit — exercises the same
+  // printToPDF + sign path the export action uses, so it's verifiable headlessly.
+  const signTest = process.env["DOTIT_SIGN_TEST"];
+  const signOut = process.env["DOTIT_SIGN_OUT"];
+  if (signTest && signOut) {
+    void (async () => {
+      try {
+        const src = await readFile(signTest, "utf8");
+        const core = (await import("@dotit/core")) as typeof import("@dotit/core");
+        const html = core.renderPrint(core.parseIntentText(src), { theme: "corporate" });
+        const signed = await renderSignedPdf(html, {
+          name: "Dotit User",
+          reason: "Signed export",
+          tsaUrl: process.env["DOTIT_SIGN_TSA"],
+        });
+        await writeFile(signOut, Buffer.from(signed));
+        console.log(`SIGNED_OK ${signOut} ${signed.byteLength}`);
+      } catch (e) {
+        console.log(`SIGNED_ERR ${e instanceof Error ? e.message : String(e)}`);
+      } finally {
+        app.quit();
+      }
+    })();
+  }
 
   // Dev capture (DOTIT_CAPTURE=path): snapshot the window every few seconds via
   // capturePage — reliable regardless of window focus/occlusion/display.

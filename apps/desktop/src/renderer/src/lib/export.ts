@@ -86,6 +86,43 @@ async function browserPrint(content: string, theme: string): Promise<void> {
   }
 }
 
+/**
+ * Export a PAdES-signed PDF: the main process renders the document to PDF and
+ * embeds an X.509/CMS digital signature (Adobe-recognized) using the desktop's
+ * signing identity. Optionally timestamps it (PAdES-T) when a TSA URL is given.
+ */
+export async function exportSignedPDF(
+  content: string,
+  theme: string,
+  opts: { tsaUrl?: string } = {},
+): Promise<void> {
+  try {
+    if (!window.electronAPI?.exportSignedPdf) {
+      await message("Signed PDF export is only available in the desktop app.", {
+        title: "Unavailable",
+        kind: "warning",
+      });
+      return;
+    }
+    const html = buildPrintHTML(content, theme);
+    const res = await window.electronAPI.exportSignedPdf({
+      html,
+      defaultName: defaultName(content),
+      tsaUrl: opts.tsaUrl,
+    });
+    if (res.ok && res.path) {
+      await message(`Signed PDF saved:\n${res.path}`, {
+        title: "Signed",
+        kind: "info",
+      });
+    } else if (res.error) {
+      await reportError("Signed PDF export failed", new Error(res.error));
+    }
+  } catch (err) {
+    await reportError("Signed PDF export failed", err);
+  }
+}
+
 /** Save the document as a standalone .html file via the native save dialog. */
 export async function exportHTML(content: string, theme: string): Promise<void> {
   try {

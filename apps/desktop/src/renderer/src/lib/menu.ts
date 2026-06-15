@@ -13,6 +13,7 @@ export interface MenuActions {
   save: () => void;
   saveAs: () => void;
   printDocument: () => void;
+  exportSignedPdf: () => void;
   exportHTML: () => void;
   exportDOCX: () => void;
   importDOCX: () => void;
@@ -40,6 +41,7 @@ const MAP: Record<string, keyof MenuActions> = {
   save: "save",
   saveAs: "saveAs",
   print: "printDocument",
+  exportSignedPdf: "exportSignedPdf",
   exportHTML: "exportHTML",
   exportDOCX: "exportDOCX",
   find: "focusSearch",

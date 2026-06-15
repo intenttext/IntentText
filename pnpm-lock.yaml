@@ -19,6 +19,9 @@ importers:
       '@dotit/editor':
         specifier: workspace:*
         version: link:../../packages/editor
+      '@dotit/pades':
+        specifier: workspace:^
+        version: link:../../packages/pades
       '@dotit/sign':
         specifier: workspace:^
         version: link:../../packages/sign

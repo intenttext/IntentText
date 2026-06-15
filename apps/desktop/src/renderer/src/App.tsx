@@ -41,6 +41,7 @@ import {
 import { isTauri, windowFile } from "./lib/backend";
 import {
   printDocument,
+  exportSignedPDF,
   exportHTML,
   exportDOCX,
   importDOCX,
@@ -258,6 +259,9 @@ export default function App() {
     saveAs: () => void docApi.saveAs(),
     printDocument: () => {
       if (doc) printDocument(doc.content, theme);
+    },
+    exportSignedPdf: () => {
+      if (doc) void exportSignedPDF(doc.content, theme);
     },
     exportHTML: () => {
       if (doc) void exportHTML(doc.content, theme);
