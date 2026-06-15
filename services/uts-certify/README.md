@@ -79,6 +79,49 @@ pnpm --filter @dotit/uts-certify build && pnpm --filter @dotit/uts-certify start
 | `POST` | `/admin/accounts/:account/verify` | Bearer **admin token** | KYC: set `{ entity, cr? }`, flip `entityVerified=true` |
 | `POST` | `/admin/keys` | Bearer **admin token** | Mint an API key `{ account, label? }` → plaintext **once** |
 | `POST` | `/admin/keys/:prefix/revoke` | Bearer **admin token** | Revoke a key by its display prefix |
+| `GET` | `/.well-known/uts-ca.pem` | none | The **X.509 CA certificate** (PEM) — the PAdES trust anchor |
+| `GET` | `/ca` | none | CA cert as JSON `{ issuer, algorithm, caCertPem }` |
+| `POST` | `/certify/x509` | Bearer **API key** | Issue an X.509 signing cert from a CSR (KYC-gated) → `{ certPem, chainPem, … }` |
+
+## X.509 issuance — the PAdES / Adobe-recognized chain
+
+Native `.it` trust is Ed25519 + queryable (the `certify:` line above). But Adobe
+Reader, courts, and most government e-signature stacks validate **PAdES** PDF
+signatures against **X.509 / ECDSA** certificates — not Ed25519. So when a customer
+exports a sealed `.it` as a PAdES-signed PDF (`@dotit/pades`), the embedded
+signature must chain to an X.509 CA. UTS runs that CA here (a *second*, separate
+trust root from the Ed25519 authority), signing leaf signing-certs for KYC-verified
+accounts.
+
+**Custody — the right model for a CA issuing signing certs.** The customer
+generates their own keypair and sends a **CSR** (PKCS#10, proof of possession);
+UTS certifies only the **public** key, so the signing private key never reaches the
+service. The CA's own key signs the leaf; it is published only as the CA
+*certificate* at `/.well-known/uts-ca.pem`, which verifiers add to their trust store
+(and, eventually, Adobe AATL once UTS is enrolled).
+
+```bash
+# Provision the CA (prints the CA cert (public) + CA key (secret); --dev writes a
+# gitignored .keys/uts-x509-ca.json the local server loads automatically):
+pnpm --filter @dotit/uts-certify x509:init --dev
+# Production: set UTS_X509_CA_CERT / UTS_X509_CA_KEY from your secret manager.
+
+# Client: generate a CSR, ask UTS to certify it (account must be KYC-verified):
+#   const csr = await createCsr({ commonName: "ignored" })   // @dotit/pades
+curl -s -X POST https://api.uts.qa/certify/x509 \
+  -H "Authorization: Bearer <apiKey>" \
+  -H 'Content-Type: application/json' \
+  -d '{ "csr": "-----BEGIN CERTIFICATE REQUEST-----\n…" }'
+#   → { certPem, chainPem, serial, fingerprint, notBefore, notAfter }
+# The client signs PDFs with certPem + ITS OWN key; the signature chains to the
+# UTS CA (verifyPdfSignature with trustedRoots = the /ca cert).
+```
+
+The leaf's subject CN is the account's **KYC-verified legal entity** (the CA asserts
+identity, so issuance is refused with `403 kyc_required` until KYC is complete).
+Each issuance is logged to `uts_x509_certs` (public material only — never the key).
+Disable the whole X.509 surface with `UTS_X509=off` (the routes then `503`; the
+Ed25519 path is unaffected).
 
 `POST /certify` flow: `Authorization: Bearer <apiKey>` → sha256 → look up
 `uts_api_keys` (not revoked) → resolve the account → if the account is

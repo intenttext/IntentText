@@ -23,6 +23,7 @@ import {
   verifyIntermediateCert,
 } from "@dotit/sign";
 import { createKeyProvider, MongoKeyProvider, type KeyProvider } from "./keys.js";
+import { createX509CaProvider, type X509CaProvider } from "./x509ca.js";
 import { connectDb, isConnected, getCollections, type AccountDoc } from "./db.js";
 import {
   createAccount,
@@ -76,6 +77,11 @@ function trustAnchorKey(): string {
 // MongoDB. Handlers only run after app.listen() (post-init), so `keys` is always
 // set by the time a request arrives.
 let keys!: KeyProvider;
+
+// The X.509 CA provider for the PAdES chain (separate from the Ed25519 authority).
+// null when X.509 issuance is disabled (UTS_X509=off) — the /certify/x509 +
+// /.well-known/uts-ca.pem routes then report 503, the rest of the service runs on.
+let x509: X509CaProvider | null = null;
 
 const app = express();
 // Behind a TLS-terminating proxy in production, so x-forwarded-* is trustworthy
@@ -187,6 +193,28 @@ app.get("/pubkey", publicLimiter, (_req, res) => {
   res.json(pubkeyPayload());
 });
 
+// ── X.509 CA certificate publication (no auth) ───────────────────────────────
+// The PAdES trust anchor: verifiers (and Adobe trust stores) add this CA cert so
+// signatures on PDFs exported from UTS-issued certs validate. PEM at
+// /.well-known/uts-ca.pem; JSON metadata at /ca.
+app.get("/.well-known/uts-ca.pem", publicLimiter, (_req, res) => {
+  if (!x509) {
+    res.status(503).json({ error: "x509_disabled", detail: "X.509 issuance is not enabled on this instance." });
+    return;
+  }
+  res.setHeader("Content-Type", "application/x-pem-file");
+  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.send(x509.getCaCertPem());
+});
+app.get("/ca", publicLimiter, (_req, res) => {
+  if (!x509) {
+    res.status(503).json({ error: "x509_disabled", detail: "X.509 issuance is not enabled on this instance." });
+    return;
+  }
+  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.json({ issuer: ISSUER, algorithm: "ecdsa-p256", caCertPem: x509.getCaCertPem() });
+});
+
 // ── Health ──────────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => res.json({ ok: true, issuer: ISSUER, db: isConnected() }));
 
@@ -247,6 +275,89 @@ app.post("/certify", certifyLimiter, authenticate, async (req: Request, res: Res
     });
   } catch {
     res.status(500).json({ error: "certify_failed", detail: "Could not issue certification." });
+  }
+});
+
+// ── POST /certify/x509 (API-key auth, KYC-gated) ──────────────────────────────
+// body: { csr: <PEM CSR> }. Issues an X.509 leaf SIGNING certificate for the
+// account's verified legal entity, signed by the UTS X.509 CA. The customer holds
+// the private key (CSR custody) and uses cert+chain to PAdES-sign exported PDFs —
+// the signature then chains to UTS as a real CA. Only KYC-verified accounts may
+// obtain a cert: the cert ASSERTS the entity's identity, so it must be verified.
+const X509_LEAF_DAYS = Number(process.env.UTS_X509_LEAF_DAYS ?? 825);
+
+app.post("/certify/x509", certifyLimiter, authenticate, async (req: Request, res: Response) => {
+  if (!x509) {
+    res.status(503).json({ error: "x509_disabled", detail: "X.509 issuance is not enabled on this instance." });
+    return;
+  }
+  const account = (req as AuthedRequest).account;
+  const { csr } = (req.body ?? {}) as { csr?: unknown };
+
+  if (typeof csr !== "string" || !/-----BEGIN CERTIFICATE REQUEST-----/.test(csr)) {
+    res.status(400).json({ error: "bad_request", detail: "Body must include a PEM `csr` (PKCS#10 certificate request)." });
+    return;
+  }
+  if (csr.length > 8192) {
+    res.status(400).json({ error: "bad_request", detail: "CSR is too large." });
+    return;
+  }
+  // The leaf asserts the legal entity, so the account MUST be KYC-verified.
+  if (!account.entityVerified || !account.entity) {
+    res.status(403).json({
+      error: "kyc_required",
+      detail: "A verified legal entity is required before a signing certificate can be issued. Complete KYC first.",
+    });
+    return;
+  }
+
+  try {
+    const issued = await x509.issueLeaf({
+      csrPem: csr,
+      commonName: account.entity,
+      organization: account.entity,
+      days: X509_LEAF_DAYS,
+    });
+
+    if (isConnected()) {
+      const { x509Certs } = getCollections();
+      await x509Certs.insertOne({
+        account: account.account,
+        commonName: account.entity,
+        serial: issued.serial,
+        fingerprint: issued.fingerprint,
+        notBefore: issued.notBefore,
+        notAfter: issued.notAfter,
+        createdAt: new Date(),
+      });
+      void writeAudit({
+        action: "x509.issue",
+        actor: `key:${account.account}`,
+        subject: issued.fingerprint,
+        meta: { commonName: account.entity, serial: issued.serial, notAfter: issued.notAfter },
+        ip: clientIp(req),
+      });
+    }
+
+    res.status(201).json({
+      issuer: ISSUER,
+      account: account.account,
+      commonName: account.entity,
+      certPem: issued.certPem,
+      chainPem: issued.chainPem,
+      serial: issued.serial,
+      fingerprint: issued.fingerprint,
+      notBefore: issued.notBefore,
+      notAfter: issued.notAfter,
+    });
+  } catch (e) {
+    // A bad CSR (proof-of-possession failure / malformed) is a client error.
+    const msg = e instanceof Error ? e.message : "";
+    if (/proof-of-possession|valid DER|CSR/i.test(msg)) {
+      res.status(400).json({ error: "bad_csr", detail: "The CSR is invalid or failed proof-of-possession." });
+      return;
+    }
+    res.status(500).json({ error: "x509_failed", detail: "Could not issue the certificate." });
   }
 });
 
@@ -591,6 +702,26 @@ export async function initKeys(): Promise<void> {
 }
 
 /**
+ * Initialize the X.509 CA provider (the PAdES chain). Separate from initKeys so a
+ * misconfigured/disabled X.509 CA never blocks the Ed25519 certification path:
+ * on failure we log and leave x509 null (the /certify/x509 + /ca routes 503).
+ * Exposed so tests can init without starting the HTTP listener.
+ */
+export async function initX509(): Promise<void> {
+  try {
+    x509 = await createX509CaProvider();
+  } catch (e) {
+    x509 = null;
+    console.warn(`  ⚠️  X.509 CA disabled: ${(e as Error).message.split("\n")[0]}`);
+  }
+}
+
+/** Test seam: inject a specific X.509 CA provider (or null to disable). */
+export function setX509Provider(provider: X509CaProvider | null): void {
+  x509 = provider;
+}
+
+/**
  * Production safety checks: surface foot-guns loudly at boot (weak/missing admin
  * token, raw private key in env instead of KMS/Mongo envelope, HTTPS not enforced).
  * Warnings only — they never block startup — but they make misconfiguration obvious.
@@ -615,6 +746,7 @@ function productionGuards(): void {
 export async function start(): Promise<void> {
   await connectDb();
   await initKeys();
+  await initX509();
   productionGuards();
   app.listen(PORT, () => {
     console.log(`\n  UTS certification service (reference impl for api.uts.qa)`);
@@ -630,6 +762,9 @@ export async function start(): Promise<void> {
       console.log(`  Trust anchor: KEY (legacy single-key — set UTS_ROOT_PUBLIC_KEY to enable the hierarchy)`);
     }
     console.log(`  Pubkey URL:  http://localhost:${PORT}/.well-known/uts-pubkey`);
+    console.log(
+      `  X.509 CA:    ${x509 ? `ENABLED — PAdES certs at POST /certify/x509, CA at /.well-known/uts-ca.pem` : "disabled (set UTS_X509_CA_CERT/KEY or run x509:init)"}`,
+    );
     console.log(`  Admin:       ${ADMIN_TOKEN ? "enabled" : "DISABLED (set UTS_ADMIN_TOKEN)"}`);
     console.log(`\n  curl -s http://localhost:${PORT}/pubkey\n`);
   });

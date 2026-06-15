@@ -500,6 +500,9 @@ importers:
       '@dotit/core':
         specifier: ^1.2.4
         version: link:../../packages/core
+      '@dotit/pades':
+        specifier: workspace:^
+        version: link:../../packages/pades
       '@dotit/sign':
         specifier: ^1.3.0
         version: link:../../packages/sign

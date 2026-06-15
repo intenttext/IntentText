@@ -131,6 +131,27 @@ export interface AuthorityKeyDoc {
   intermediateCert?: string;
 }
 
+/**
+ * Append-only record of an X.509 leaf certificate issued by the UTS CA (the PAdES
+ * chain). The CA certifies a customer-held public key from a CSR — UTS never sees
+ * the signing private key — so this log records only public material: who it was
+ * issued to, the subject CN, the cert serial + sha256 fingerprint, and validity.
+ */
+export interface X509CertDoc {
+  /** Account the cert was issued for. */
+  account: string;
+  /** Subject common name on the leaf (the KYC-verified legal entity). */
+  commonName: string;
+  /** Decimal serial number of the issued cert. */
+  serial: string;
+  /** sha256 hex fingerprint of the leaf cert DER. */
+  fingerprint: string;
+  /** ISO notBefore / notAfter of the leaf. */
+  notBefore: string;
+  notAfter: string;
+  createdAt: Date;
+}
+
 export interface Collections {
   accounts: Collection<AccountDoc>;
   apiKeys: Collection<ApiKeyDoc>;
@@ -138,6 +159,7 @@ export interface Collections {
   authorityKeys: Collection<AuthorityKeyDoc>;
   revocations: Collection<RevocationDoc>;
   audit: Collection<AuditDoc>;
+  x509Certs: Collection<X509CertDoc>;
 }
 
 let client: MongoClient | null = null;
@@ -170,6 +192,7 @@ export async function connectDb(): Promise<Collections> {
   const authorityKeys = db.collection<AuthorityKeyDoc>("uts_authority_keys");
   const revocations = db.collection<RevocationDoc>("uts_revocations");
   const audit = db.collection<AuditDoc>("uts_audit");
+  const x509Certs = db.collection<X509CertDoc>("uts_x509_certs");
 
   await Promise.all([
     accounts.createIndex({ account: 1 }, { unique: true }),
@@ -179,9 +202,11 @@ export async function connectDb(): Promise<Collections> {
     authorityKeys.createIndex({ active: 1 }),
     revocations.createIndex({ kind: 1, value: 1 }, { unique: true }),
     audit.createIndex({ at: -1 }),
+    x509Certs.createIndex({ account: 1, createdAt: -1 }),
+    x509Certs.createIndex({ fingerprint: 1 }),
   ]);
 
-  collections = { accounts, apiKeys, certifications, authorityKeys, revocations, audit };
+  collections = { accounts, apiKeys, certifications, authorityKeys, revocations, audit, x509Certs };
   return collections;
 }
 
