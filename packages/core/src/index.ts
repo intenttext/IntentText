@@ -152,6 +152,8 @@ export {
   commentAnchors,
 } from "./redline";
 export type { TrackedChange, Comment, ChangeType } from "./redline";
+export { compareVersions } from "./compare";
+export type { CompareOptions } from "./compare";
 export type {
   TrustTier,
   TierStyle,
