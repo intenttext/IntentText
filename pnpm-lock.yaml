@@ -438,6 +438,9 @@ importers:
         specifier: '>=21'
         version: 25.1.0(proxy-agent@6.5.0)
     devDependencies:
+      '@dotit/pades':
+        specifier: workspace:^
+        version: link:../pades
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.41

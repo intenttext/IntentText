@@ -237,6 +237,57 @@ export async function issuePDF(
   return { ...issued, pdf };
 }
 
+/** A PAdES signing identity (cert + key PEM) — see @dotit/pades. */
+export interface PdfSigner {
+  certPem: string;
+  privateKeyPem: string;
+  /** Shown in the PDF signature properties. */
+  reason?: string;
+  name?: string;
+}
+
+// Dynamic-import the ESM @dotit/pades from this CommonJS package. tsc (module
+// CommonJS) would down-level a literal import() to require() — which can't load an
+// ESM-only package — so we resolve the path with the module-scoped require() and
+// import() it by file URL via Function (which tsc leaves untouched).
+const importByUrl = new Function("u", "return import(u)") as (
+  u: string,
+) => Promise<typeof import("@dotit/pades")>;
+async function importPades(): Promise<typeof import("@dotit/pades")> {
+  const { pathToFileURL } = require("node:url") as typeof import("node:url");
+  const resolved = require.resolve("@dotit/pades");
+  return importByUrl(pathToFileURL(resolved).href);
+}
+
+/**
+ * Render an `.it` to PDF AND embed a PAdES (ETSI.CAdES.detached) digital
+ * signature — a one-call "issue a legally-recognized signed PDF". The native .it
+ * seal/signatures (Ed25519) live in the source; this adds the X.509/PAdES
+ * signature the outside world (Adobe, courts, gov) recognizes.
+ *
+ * Requires the optional peer `@dotit/pades`.
+ */
+export async function renderSignedPDF(
+  source: string,
+  options: PdfRenderOptions & { signer: PdfSigner },
+): Promise<Uint8Array> {
+  const pdf = await renderPDF(source, options);
+  let pades: typeof import("@dotit/pades");
+  try {
+    pades = await importPades();
+  } catch {
+    throw new Error(
+      "@dotit/pdf: renderSignedPDF needs the optional peer @dotit/pades — `npm i @dotit/pades`.",
+    );
+  }
+  return pades.signPdfWithPem(new Uint8Array(pdf), {
+    certPem: options.signer.certPem,
+    privateKeyPem: options.signer.privateKeyPem,
+    reason: options.signer.reason,
+    name: options.signer.name,
+  });
+}
+
 /**
  * Batch renderer that reuses one Chrome instance — launching Chrome costs ~1s,
  * so for month-end runs (hundreds of statements) create one renderer, loop, close.
