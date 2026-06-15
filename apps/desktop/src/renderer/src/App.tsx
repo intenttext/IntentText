@@ -14,9 +14,9 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { IntentTextEditor, DocumentView, FormFill } from "@dotit/editor";
+import { IntentTextEditor, DocumentView, FormFill, Redline } from "@dotit/editor";
 import type { TrustAction } from "@dotit/editor";
-import { isTemplate, isForm } from "@dotit/core";
+import { isTemplate, isForm, hasTrackedChanges } from "@dotit/core";
 import {
   BadgeCheck,
   Clock,
@@ -483,6 +483,18 @@ export default function App() {
             theme={theme}
             onChange={docApi.setContent}
             onSubmit={() => setTrustDialog("sign")}
+          />
+        );
+      }
+      // A document with pending tracked changes opens in REVIEW mode: the changes
+      // are visible and the panel offers accept/reject. Resolving them all reverts
+      // to the plain read view (and makes the document sealable again).
+      if (hasTrackedChanges(doc.content)) {
+        return (
+          <Redline
+            value={doc.content}
+            theme={theme}
+            onChange={docApi.setContent}
           />
         );
       }
