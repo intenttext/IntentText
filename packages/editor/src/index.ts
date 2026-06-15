@@ -44,3 +44,8 @@ export type { PageGeometry } from "./page-geometry";
 // pagination + the surface print renders).
 export { DocumentView } from "./DocumentView";
 export type { DocumentViewProps } from "./DocumentView";
+
+// Fill an IntentText form (recipient experience) — renders fields as live controls,
+// writes answers back to the `.it` source, reports completeness for signing.
+export { FormFill } from "./FormFill";
+export type { FormFillProps } from "./FormFill";

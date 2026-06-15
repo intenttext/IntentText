@@ -138,6 +138,8 @@ export {
   extractFormFields,
   formAnswers,
   missingRequiredFields,
+  setFieldValue,
+  applyAnswers,
   FORM_FIELD_TYPES,
 } from "./forms";
 export type { FormField, FormFieldType } from "./forms";

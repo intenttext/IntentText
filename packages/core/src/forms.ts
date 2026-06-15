@@ -187,3 +187,85 @@ export function missingRequiredFields(source: string): string[] {
     .filter((f) => f.required && !f.filled)
     .map((f) => f.key);
 }
+
+// Values live in a `| value: …` pipe segment (block) or a `[…]` bracket (inline),
+// so a value can't contain a raw `|`, `[`, `]`, or newline — sanitize on write.
+function sanitizeBlockValue(v: string): string {
+  return v.replace(/[\r\n]+/g, " ").replace(/\|/g, "/").trim();
+}
+function sanitizeInlineValue(v: string): string {
+  return v.replace(/[\r\n]+/g, " ").replace(/[[\]]/g, "").trim();
+}
+
+function keyForBlockLine(label: string, props: Record<string, string>): string {
+  return props.key || slug(label) || "";
+}
+
+/**
+ * Write a captured answer for the field `key` back into the source, in place —
+ * block `input:` lines get/replace their `| value: …`, inline `[…]{input: key}`
+ * spans get their bracket content replaced. Returns the updated source (unchanged
+ * if the key isn't found). This is the one mutation the fill UI + programmatic
+ * fillers use; rendering/trust then react to the new value.
+ */
+export function setFieldValue(source: string, key: string, value: string): string {
+  if (!source || !key) return source;
+  let changed = false;
+
+  // Block fields: rewrite the matching `input:` line.
+  const lines = source.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const m = /^(\s*input:\s*)(.*)$/i.exec(lines[i]);
+    if (!m) continue;
+    const rest = m[2];
+    const firstPipe = rest.indexOf("|");
+    const label = (firstPipe >= 0 ? rest.slice(0, firstPipe) : rest).trim();
+    const props = firstPipe >= 0 ? parsePipeProps(rest.slice(firstPipe + 1)) : {};
+    if (keyForBlockLine(label, props) !== key) continue;
+
+    const v = sanitizeBlockValue(value);
+    // Re-split the original tail into segments so we can replace/append value:
+    // while preserving the other props verbatim (order + spacing of the rest).
+    const head = firstPipe >= 0 ? rest.slice(0, firstPipe).trimEnd() : rest.trimEnd();
+    const segs = firstPipe >= 0 ? rest.slice(firstPipe + 1).split("|") : [];
+    let replaced = false;
+    for (let s = 0; s < segs.length; s++) {
+      const c = segs[s].indexOf(":");
+      if (c > 0 && segs[s].slice(0, c).trim().toLowerCase() === "value") {
+        segs[s] = ` value: ${v} `;
+        replaced = true;
+        break;
+      }
+    }
+    if (!replaced && v) segs.push(` value: ${v} `);
+    const tail = segs.length
+      ? " | " + segs.map((x) => x.trim()).join(" | ")
+      : "";
+    lines[i] = `${m[1]}${head}${tail}`;
+    changed = true;
+    break;
+  }
+  if (changed) return lines.join("\n");
+
+  // Inline fields: replace the bracket content of [..]{… input: key …}.
+  const re = /\[([^\]]*)\]\{([^}]*)\}/g;
+  const out = source.replace(re, (whole, _content, propStr) => {
+    if (changed) return whole;
+    const props = parseSemiProps(propStr);
+    if (!("input" in props)) return whole;
+    if ((props.input || "") !== key) return whole;
+    changed = true;
+    return `[${sanitizeInlineValue(value)}]{${propStr}}`;
+  });
+  return changed ? out : source;
+}
+
+/** Apply a batch of key→value answers to the source (the fill UI's "save"). */
+export function applyAnswers(
+  source: string,
+  answers: Record<string, string>,
+): string {
+  let out = source;
+  for (const [k, v] of Object.entries(answers)) out = setFieldValue(out, k, v);
+  return out;
+}

@@ -9,6 +9,8 @@ import {
   assertNotTemplate,
   parseIntentText,
   queryBlocks,
+  setFieldValue,
+  applyAnswers,
 } from "../src/index";
 
 const BLANK_FORM = `title: Vendor Onboarding
@@ -102,6 +104,42 @@ describe("query answers by field key", () => {
     expect(queryBlocks(doc, "country=KW").matched).toBe(1);
     expect(queryBlocks(doc, "country=SA").matched).toBe(0);
     expect(queryBlocks(doc, "vat=yes").matched).toBe(1);
+  });
+});
+
+describe("setFieldValue / applyAnswers (fill write-back)", () => {
+  it("sets value on a block field (replacing any existing)", () => {
+    const out = setFieldValue(BLANK_FORM, "legal_name", "Dalil Technology");
+    expect(formAnswers(out).legal_name).toBe("Dalil Technology");
+    // idempotent replace, not duplicate
+    const out2 = setFieldValue(out, "legal_name", "Acme");
+    expect(formAnswers(out2).legal_name).toBe("Acme");
+    expect((out2.match(/value:/g) || []).length).toBe(1);
+  });
+  it("preserves other props on the line", () => {
+    const out = setFieldValue(BLANK_FORM, "country", "KW");
+    expect(out).toMatch(/key: country/);
+    expect(out).toMatch(/options: KW, SA, AE/);
+    expect(out).toMatch(/required: yes/);
+    expect(formAnswers(out).country).toBe("KW");
+  });
+  it("sanitizes pipe + newlines in block values", () => {
+    const out = setFieldValue(BLANK_FORM, "notes", "a | b\nc");
+    expect(formAnswers(out).notes).toBe("a / b c");
+  });
+  it("fills an inline field by replacing the bracket content", () => {
+    const src = "meta: | type: form\ntext: I, [ ]{input: signer; type: text}, agree.\n";
+    const out = setFieldValue(src, "signer", "Jane Doe");
+    expect(out).toContain("[Jane Doe]{input: signer; type: text}");
+    expect(formAnswers(out).signer).toBe("Jane Doe");
+  });
+  it("applyAnswers fills a blank form to complete + signable", () => {
+    const filled = applyAnswers(BLANK_FORM, {
+      legal_name: "Dalil Technology",
+      country: "KW",
+    });
+    expect(isFormComplete(filled)).toBe(true);
+    expect(isTemplate(filled)).toBe(false); // now signable
   });
 });
 

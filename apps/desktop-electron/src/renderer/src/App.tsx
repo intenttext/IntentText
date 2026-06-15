@@ -14,9 +14,9 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { IntentTextEditor, DocumentView } from "@dotit/editor";
+import { IntentTextEditor, DocumentView, FormFill } from "@dotit/editor";
 import type { TrustAction } from "@dotit/editor";
-import { isTemplate } from "@dotit/core";
+import { isTemplate, isForm } from "@dotit/core";
 import {
   BadgeCheck,
   Clock,
@@ -469,6 +469,19 @@ export default function App() {
     // which macOS WKWebView left unpainted in read-only). EDIT = the full live
     // editor. Both render through core's renderPrint engine so layout matches.
     if (mode === "view") {
+      // A FORM opens in fill mode: the fields are live controls. Saving writes the
+      // answers into the doc; submitting a COMPLETE form offers to sign it (a
+      // complete form is a final, signable record). Non-forms read like a PDF.
+      if (isForm(doc.content)) {
+        return (
+          <FormFill
+            value={doc.content}
+            theme={theme}
+            onChange={docApi.setContent}
+            onSubmit={() => setTrustDialog("sign")}
+          />
+        );
+      }
       return <DocumentView value={doc.content} theme={theme} />;
     }
     return (

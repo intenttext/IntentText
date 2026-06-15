@@ -1461,6 +1461,96 @@
 .docs-ribbon-shell .docs-ribbon[data-tab="trust"] .ribbon-group:not([data-tab="trust"]) {
   display: none !important;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   FormFill — the recipient's fill-the-form view (FormFill.tsx)
+   ════════════════════════════════════════════════════════════════ */
+.form-fill {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #e4e6eb;
+}
+.form-fill-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+}
+.form-fill-page {
+  background: #fff;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 48px 56px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.13);
+  border-radius: 2px;
+}
+/* the live controls sit inside the rendered .it-field-box (which keeps the border) */
+.form-fill-control {
+  font: inherit;
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #111;
+  padding: 0;
+}
+select.form-fill-control {
+  cursor: pointer;
+}
+textarea.form-fill-control {
+  resize: vertical;
+}
+.it-field-inline .form-fill-control {
+  min-width: 8ch;
+  width: auto;
+  text-align: center;
+}
+.form-fill-page .it-field-box:focus-within {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.18);
+}
+.form-fill-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  background: #fff;
+  border-top: 1px solid #d6d6d6;
+  flex-shrink: 0;
+}
+.form-fill-status {
+  font-size: 13px;
+  color: #555;
+}
+.form-fill-saved {
+  color: #1a7f37;
+}
+.form-fill-actions {
+  display: flex;
+  gap: 8px;
+}
+.form-fill-btn {
+  appearance: none;
+  border: 1px solid #c3c6cd;
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.form-fill-btn:hover {
+  background: #f3f4f6;
+}
+.form-fill-btn.primary {
+  background: #1a73e8;
+  border-color: #1a73e8;
+  color: #fff;
+}
+.form-fill-btn.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .ribbon-theme-select {
   height: 26px;
   max-width: 110px;
