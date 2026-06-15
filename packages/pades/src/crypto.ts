@@ -12,6 +12,9 @@
 import * as pkijs from "pkijs";
 import * as asn1js from "asn1js";
 import { webcrypto } from "node:crypto";
+import { requestTimestampToken, timestampTokenTime } from "./tsa.js";
+
+const ID_AA_TIMESTAMP_TOKEN = "1.2.840.113549.1.9.16.2.14";
 
 // pkijs needs a WebCrypto engine — Node's built-in one serves fine.
 const cryptoEngine = new pkijs.CryptoEngine({
@@ -180,6 +183,7 @@ export async function loadSigner(
 export async function signDetachedCms(
   data: Uint8Array,
   signer: { certificate: pkijs.Certificate; privateKey: CryptoKey },
+  opts?: { tsaUrl?: string },
 ): Promise<Uint8Array> {
   const messageDigest = await subtle.digest(HASH, ab(data));
 
@@ -233,6 +237,22 @@ export async function signDetachedCms(
 
   await signedData.sign(signer.privateKey, 0, HASH, undefined, cryptoEngine);
 
+  // PAdES-T: a trusted timestamp over the signature value (id-aa-timeStampToken
+  // unsigned attribute) — proves the signature existed at time T.
+  if (opts?.tsaUrl) {
+    const sigValue = signedData.signerInfos[0].signature.valueBlock.valueHexView;
+    const tst = await requestTimestampToken(new Uint8Array(sigValue), opts.tsaUrl);
+    signedData.signerInfos[0].unsignedAttrs = new pkijs.SignedAndUnsignedAttributes({
+      type: 1,
+      attributes: [
+        new pkijs.Attribute({
+          type: ID_AA_TIMESTAMP_TOKEN,
+          values: [asn1js.fromBER(ab(tst)).result],
+        }),
+      ],
+    });
+  }
+
   const cmsContent = new pkijs.ContentInfo({
     contentType: "1.2.840.113549.1.7.2", // id-signedData
     content: signedData.toSchema(true),
@@ -244,6 +264,10 @@ export interface CmsVerifyResult {
   valid: boolean;
   signerCommonName?: string;
   signedAt?: string;
+  /** True if a PAdES-T trusted timestamp (id-aa-timeStampToken) is present. */
+  timestamped?: boolean;
+  /** The TSA's asserted time (genTime), when timestamped. */
+  timestampTime?: string;
   reason?: string;
 }
 
@@ -283,7 +307,20 @@ export async function verifyDetachedCms(
       signedAt = v.toDate().toISOString();
     }
 
-    return { valid: !!verified, signerCommonName, signedAt };
+    // PAdES-T trusted timestamp (unsigned attribute), if present.
+    let timestamped = false;
+    let timestampTime: string | undefined;
+    const tsAttr = signedData.signerInfos[0].unsignedAttrs?.attributes.find(
+      (a) => a.type === ID_AA_TIMESTAMP_TOKEN,
+    );
+    if (tsAttr) {
+      timestamped = true;
+      timestampTime = timestampTokenTime(
+        new Uint8Array((tsAttr.values[0] as asn1js.Sequence).toBER(false)),
+      );
+    }
+
+    return { valid: !!verified, signerCommonName, signedAt, timestamped, timestampTime };
   } catch (e) {
     return { valid: false, reason: e instanceof Error ? e.message : String(e) };
   }

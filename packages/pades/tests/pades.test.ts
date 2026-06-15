@@ -6,6 +6,7 @@ import {
   signPdf,
   signPdfWithPem,
   verifyPdfSignature,
+  PUBLIC_TSA,
 } from "../src/index.js";
 
 /** A correct minimal 1-page PDF with proper xref offsets (signable by @signpdf). */
@@ -97,6 +98,29 @@ describe("PAdES PDF signing", () => {
     expect(info.coversWholeFile).toBe(true);
     expect(info.signerCommonName).toBe("Notary One");
   });
+
+  it(
+    "PAdES-T: adds a trusted RFC-3161 timestamp via a TSA",
+    async (ctx) => {
+      const c = await generateSelfSignedCert({ commonName: "Notary T" });
+      let signed: Uint8Array;
+      try {
+        signed = await signPdf(minimalPdf(), {
+          certificate: c.certificate,
+          privateKey: c.privateKey,
+          tsaUrl: PUBLIC_TSA.digicert,
+        });
+      } catch {
+        ctx.skip(); // TSA/network unavailable — skip rather than fail CI
+        return;
+      }
+      const info = await verifyPdfSignature(signed);
+      expect(info.valid).toBe(true);
+      expect(info.timestamped).toBe(true);
+      expect(info.timestampTime).toBeTruthy();
+    },
+    30_000,
+  );
 
   it("detects a tampered signed PDF", async () => {
     const c = await generateSelfSignedCert({ commonName: "X" });

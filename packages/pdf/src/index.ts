@@ -244,6 +244,8 @@ export interface PdfSigner {
   /** Shown in the PDF signature properties. */
   reason?: string;
   name?: string;
+  /** RFC-3161 TSA URL — when set, the PDF gets a PAdES-T trusted timestamp. */
+  tsaUrl?: string;
 }
 
 // Dynamic-import the ESM @dotit/pades from this CommonJS package. tsc (module
@@ -285,6 +287,7 @@ export async function renderSignedPDF(
     privateKeyPem: options.signer.privateKeyPem,
     reason: options.signer.reason,
     name: options.signer.name,
+    tsaUrl: options.signer.tsaUrl,
   });
 }
 

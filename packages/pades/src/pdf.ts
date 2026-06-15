@@ -21,12 +21,15 @@ class EcdsaCmsSigner extends Signer {
       certificate: pkijs.Certificate;
       privateKey: CryptoKey;
     },
+    private readonly tsaUrl?: string,
   ) {
     super();
   }
   // @signpdf calls this with the ByteRange-covered PDF bytes; return the CMS DER.
   async sign(pdfBuffer: Buffer): Promise<Buffer> {
-    const cms = await signDetachedCms(new Uint8Array(pdfBuffer), this.signer);
+    const cms = await signDetachedCms(new Uint8Array(pdfBuffer), this.signer, {
+      tsaUrl: this.tsaUrl,
+    });
     return Buffer.from(cms);
   }
 }
@@ -40,6 +43,8 @@ export interface SignPdfOptions {
   name?: string;
   location?: string;
   contactInfo?: string;
+  /** RFC-3161 TSA URL — when set, adds a PAdES-T trusted timestamp. */
+  tsaUrl?: string;
   /** Reserved bytes for the CMS in /Contents (ECDSA CMS is small; 8 KB is safe). */
   signatureLength?: number;
 }
@@ -53,21 +58,26 @@ export async function signPdf(
   options: SignPdfOptions,
 ): Promise<Uint8Array> {
   const pdfBuffer = Buffer.from(pdf);
+  // A timestamped CMS (sig + cert + ~6 KB TST) needs more room than a bare one.
+  const reserve = options.signatureLength ?? (options.tsaUrl ? 24576 : 8192);
   const withPlaceholder = plainAddPlaceholder({
     pdfBuffer,
     reason: options.reason ?? "I approve this document",
     contactInfo: options.contactInfo ?? "",
     name: options.name ?? "",
     location: options.location ?? "",
-    signatureLength: options.signatureLength ?? 8192,
+    signatureLength: reserve,
     subFilter: SUBFILTER_ETSI_CADES_DETACHED,
   });
   const signed = await new SignPdf().sign(
     withPlaceholder,
-    new EcdsaCmsSigner({
-      certificate: options.certificate,
-      privateKey: options.privateKey,
-    }),
+    new EcdsaCmsSigner(
+      {
+        certificate: options.certificate,
+        privateKey: options.privateKey,
+      },
+      options.tsaUrl,
+    ),
   );
   return new Uint8Array(signed);
 }
@@ -85,6 +95,7 @@ export async function signPdfWithPem(
     name?: string;
     location?: string;
     contactInfo?: string;
+    tsaUrl?: string;
     signatureLength?: number;
   },
 ): Promise<Uint8Array> {
@@ -96,6 +107,7 @@ export async function signPdfWithPem(
     name: options.name,
     location: options.location,
     contactInfo: options.contactInfo,
+    tsaUrl: options.tsaUrl,
     signatureLength: options.signatureLength,
   });
 }
