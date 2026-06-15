@@ -2,6 +2,7 @@ packages:
   # Publishable packages (npm)
   - 'packages/core'
   - 'packages/sign'
+  - 'packages/pades'
   - 'packages/editor'
   - 'packages/pdf'
   - 'packages/mcp'
