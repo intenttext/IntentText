@@ -11,7 +11,7 @@ packages:
   # Applications (deployed / distributed)
   - 'apps/docs'
   - 'apps/editor'
-  - 'apps/desktop-electron'
+  - 'apps/desktop'
   - 'apps/hub'
   - 'apps/verify'
   # Services (deployed backends)

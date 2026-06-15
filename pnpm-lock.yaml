@@ -11,7 +11,7 @@ importers:
 
   .: {}
 
-  apps/desktop-electron:
+  apps/desktop:
     dependencies:
       '@dotit/core':
         specifier: workspace:*

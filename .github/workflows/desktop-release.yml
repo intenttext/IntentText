@@ -1,10 +1,10 @@
 name: Desktop Release
 
-# Builds the Dotit desktop app (apps/desktop-electron, Electron) for macOS +
+# Builds the Dotit desktop app (apps/desktop, Electron) for macOS +
 # Windows and publishes the installers to a GitHub Release.
 #
 # Trigger by pushing a tag of the form `desktop-vX.Y.Z` that matches the version
-# in apps/desktop-electron/package.json — e.g.:
+# in apps/desktop/package.json — e.g.:
 #     git tag desktop-v3.0.0 && git push origin desktop-v3.0.0
 # (kept separate from the `v*.*.*` npm-release tags so the two never collide.)
 # Can also be run manually via the Actions tab (workflow_dispatch).
@@ -28,7 +28,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Verify the tag matches apps/desktop-electron/package.json before building.
+  # Verify the tag matches apps/desktop/package.json before building.
   guard:
     runs-on: ubuntu-latest
     outputs:
@@ -38,12 +38,12 @@ jobs:
       - id: v
         name: Resolve + verify version
         run: |
-          VERSION="$(node -p "require('./apps/desktop-electron/package.json').version")"
+          VERSION="$(node -p "require('./apps/desktop/package.json').version")"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             TAG="${GITHUB_REF_NAME}"
             if [ "${TAG}" != "desktop-v${VERSION}" ]; then
-              echo "::error::Tag ${TAG} does not match apps/desktop-electron version desktop-v${VERSION}"
+              echo "::error::Tag ${TAG} does not match apps/desktop version desktop-v${VERSION}"
               exit 1
             fi
           fi
@@ -78,7 +78,7 @@ jobs:
         run: pnpm --filter @dotit/core --filter @dotit/sign --filter @dotit/editor build
 
       - name: Build + publish desktop app
-        working-directory: apps/desktop-electron
+        working-directory: apps/desktop
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # ── Signing / notarization (add these GitHub secrets to enable) ──────

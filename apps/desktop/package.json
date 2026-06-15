@@ -1,5 +1,5 @@
 {
-  "name": "intenttext-desktop-electron",
+  "name": "intenttext-desktop",
   "private": true,
   "version": "3.0.0",
   "description": "Dotit Desktop (Electron) — document app for .it files",
