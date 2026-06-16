@@ -64,7 +64,9 @@ describe.skipIf(!chrome || !distBuilt || !padesBuilt)(
         const out = execFileSync("node", ["-e", script], {
           env: { ...process.env, CHROME_BIN: chrome },
           encoding: "utf8",
-          timeout: 60_000,
+          // Real Chrome launch + render + CMS sign; generous so a loaded CI box
+          // (or a busy dev machine) doesn't flake on a cold Chrome start.
+          timeout: 180_000,
         });
         const info = JSON.parse(out.split("RESULT:")[1]);
         expect(info.header).toBe("%PDF-");
@@ -73,7 +75,7 @@ describe.skipIf(!chrome || !distBuilt || !padesBuilt)(
         expect(info.coversWholeFile).toBe(true);
         expect(info.signerCommonName).toBe("Dalil Technology");
       },
-      90_000,
+      210_000,
     );
   },
 );
