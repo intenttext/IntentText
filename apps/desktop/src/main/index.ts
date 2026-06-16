@@ -547,6 +547,8 @@ function buildMenu(): void {
         M("Save", "save", "CmdOrCtrl+S"),
         M("Save As…", "saveAs", "CmdOrCtrl+Shift+S"),
         { type: "separator" },
+        M("Compare Versions…", "compare"),
+        { type: "separator" },
         M("Print / Save as PDF…", "print", "CmdOrCtrl+P"),
         M("Export as Signed PDF (PAdES)…", "exportSignedPdf"),
         M("Export as HTML…", "exportHTML"),

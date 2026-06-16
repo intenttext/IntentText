@@ -16,7 +16,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { IntentTextEditor, DocumentView, FormFill, Redline } from "@dotit/editor";
 import type { TrustAction } from "@dotit/editor";
-import { isTemplate, isForm, hasTrackedChanges } from "@dotit/core";
+import { isTemplate, isForm, hasTrackedChanges, compareVersions } from "@dotit/core";
 import {
   BadgeCheck,
   Clock,
@@ -38,7 +38,7 @@ import {
   Unlock,
 } from "lucide-react";
 
-import { isTauri, windowFile } from "./lib/backend";
+import { isTauri, windowFile, readFile } from "./lib/backend";
 import {
   printDocument,
   exportSignedPDF,
@@ -206,6 +206,28 @@ export default function App() {
     if (typeof selected === "string") await openFile(selected);
   }, [openFile]);
 
+  // Compare the current document against an OLDER .it version: pick the other
+  // file, then show what changed as a redline. compareVersions emits a
+  // tracked-changes .it, so setting it as the content drops straight into the
+  // existing <Redline> review surface (Accept all keeps this version; Reject all
+  // reverts to the older one).
+  const compareViaDialog = useCallback(async () => {
+    if (!doc) return;
+    const selected = await openDialog({
+      multiple: false,
+      filters: [{ name: "IntentText", extensions: ["it"] }],
+    });
+    if (typeof selected !== "string") return;
+    try {
+      const older = await readFile(selected);
+      docApi.setContent(compareVersions(older, doc.content));
+      setMode("view"); // review the redline read-side
+      setSourceView(false);
+    } catch (err) {
+      console.error("Compare failed:", err);
+    }
+  }, [doc, docApi]);
+
   const importDocxFlow = useCallback(async () => {
     const imported = await importDOCX();
     if (!imported) return;
@@ -257,6 +279,7 @@ export default function App() {
     addFolder: () => void vaultsApi.addFolder(),
     save: () => void guardedSave(),
     saveAs: () => void docApi.saveAs(),
+    compareVersions: () => void compareViaDialog(),
     printDocument: () => {
       if (doc) printDocument(doc.content, theme);
     },

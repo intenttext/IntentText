@@ -22,6 +22,8 @@ interface Props {
   onNew: () => void;
   onOpen: () => void;
   onSave: () => void;
+  /** Compare the current document against another .it version (→ redline review). */
+  onCompare?: () => void;
   onModal: (m: ModalType) => void;
   onExportPDF: () => void;
   onExportHTML: () => void;
@@ -42,6 +44,7 @@ export function Toolbar({
   onNew,
   onOpen,
   onSave,
+  onCompare,
   onModal,
   onExportPDF,
   onExportHTML,
@@ -120,6 +123,7 @@ export function Toolbar({
             {item("New", onNew, { kbd: "⌘N" })}
             {item("Open…", onOpen, { kbd: "⌘O" })}
             {item("Save", onSave, { kbd: "⌘S" })}
+            {onCompare && item("Compare versions…", onCompare)}
             <div className="dropdown-sep" />
             {item("Export PDF", onExportPDF)}
             {item("Export HTML", onExportHTML)}

@@ -12,6 +12,7 @@ export interface MenuActions {
   addFolder: () => void;
   save: () => void;
   saveAs: () => void;
+  compareVersions: () => void;
   printDocument: () => void;
   exportSignedPdf: () => void;
   exportHTML: () => void;
@@ -40,6 +41,7 @@ const MAP: Record<string, keyof MenuActions> = {
   addFolder: "addFolder",
   save: "save",
   saveAs: "saveAs",
+  compare: "compareVersions",
   print: "printDocument",
   exportSignedPdf: "exportSignedPdf",
   exportHTML: "exportHTML",

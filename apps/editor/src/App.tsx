@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, type ChangeEvent } from "react";
 import {
   IntentTextEditor,
   FormFill,
@@ -7,7 +7,7 @@ import {
   exportDocumentHTML,
   extractTemplateVariables,
 } from "@dotit/editor";
-import { isForm, hasTrackedChanges } from "@dotit/core";
+import { isForm, hasTrackedChanges, compareVersions } from "@dotit/core";
 import { Toolbar } from "./toolbar/Toolbar";
 import { StatusBar } from "./status/StatusBar";
 import { MonacoEditor } from "./editor/MonacoEditor";
@@ -186,6 +186,27 @@ export default function App() {
     return () => window.removeEventListener("keydown", handler);
   }, [saveFile, openFile, newFile]);
 
+  // Compare versions: pick an OLDER .it, then show what changed (this doc vs it) as
+  // a redline. compareVersions emits a tracked-changes .it, so setting it as the
+  // content drops straight into the existing <Redline> review surface — Accept all
+  // keeps this version, Reject all reverts to the older one.
+  const compareInputRef = useRef<HTMLInputElement>(null);
+  const onComparePick = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = ""; // allow re-picking the same file
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const older = reader.result as string;
+        setContent(compareVersions(older, content));
+        setFilename(`compare — ${file.name} ↔ ${filename}`);
+      };
+      reader.readAsText(file);
+    },
+    [content, filename, setContent, setFilename],
+  );
+
   // Drag and drop files
   useEffect(() => {
     const handler = (e: DragEvent) => {
@@ -219,6 +240,13 @@ export default function App() {
 
   return (
     <>
+      <input
+        ref={compareInputRef}
+        type="file"
+        accept=".it,text/plain"
+        style={{ display: "none" }}
+        onChange={onComparePick}
+      />
       <div className="app-shell">
         <Toolbar
           filename={filename}
@@ -230,6 +258,7 @@ export default function App() {
           onNew={() => newFile(WELCOME)}
           onOpen={openFile}
           onSave={saveFile}
+          onCompare={() => compareInputRef.current?.click()}
           onModal={setModal}
           onExportPDF={() => exportDocumentPDF(content, theme)}
           onExportHTML={() => exportDocumentHTML(content, theme)}
