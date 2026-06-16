@@ -24,14 +24,14 @@
     "@dotit/pades": "workspace:^"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^25.9.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.4",
     "electron": "^33.2.0",
     "electron-builder": "^25.1.8",
     "electron-vite": "^5.0.0",
-    "typescript": "~5.9.3"
+    "typescript": "~6.0.3"
   },
   "build": {
     "appId": "qa.uts.dotit",
