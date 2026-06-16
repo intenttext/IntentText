@@ -1,6 +1,6 @@
 {
   "name": "@dotit/pades",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "PAdES (PDF Advanced Electronic Signatures) for IntentText — export a sealed .it as a digitally-signed PDF (ECDSA P-256 + X.509 + CMS) that Adobe/readers recognize. The standards bridge on top of @dotit/sign's native Ed25519 trust.",
   "type": "module",
   "main": "dist/index.js",
