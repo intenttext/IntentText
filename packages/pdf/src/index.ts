@@ -201,6 +201,11 @@ async function pageToPdf(
     const bytes = await page.pdf({
       printBackground: true,
       preferCSSPageSize: true,
+      // Accessibility: emit a TAGGED PDF (Chrome's generateTaggedPDF) so the
+      // structure tree comes from our semantic HTML (headings, lists, tables with
+      // <th scope>, lang/dir, alt text) — the basis for PDF/UA / Section 508.
+      // Callers can override via opts.pdf.
+      tagged: true,
       ...(opts.pdf ?? {}),
     });
     return Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
