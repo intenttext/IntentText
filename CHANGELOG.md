@@ -8,8 +8,15 @@ The format is based on Keep a Changelog.
 
 ### Added — PDF/Word parity wave (2026-06-16)
 
-Published: `@dotit/core` **1.12.0**, `@dotit/editor` **1.8.0**, `@dotit/pdf` **1.1.0**,
-`@dotit/pades` **1.0.0**, `@dotit/math` **0.1.0**. Closes PDF/Word gaps 1–4, 6, 7.
+Published: `@dotit/core` **1.13.0**, `@dotit/editor` **1.8.0**, `@dotit/pdf` **1.1.0**,
+`@dotit/pades` **1.0.0**, `@dotit/math` **0.1.0**. Closes PDF/Word gaps 1–7.
+
+- **Async co-authoring (`@dotit/core` 1.13.0).** `mergeThreeWay(base, mine, theirs)`
+  merges two independent edits into one redline — non-overlapping edits apply,
+  matching edits apply once, divergent edits become a conflict offering both variants
+  (closes gap 5, Tier 1; realtime/Yjs is a later Tier 2). Plus enterprise-hardening
+  wave 2: the new feature surface is fuzzed (never throws), a perf budget, and a
+  serialization-fixpoint property.
 
 - **Forms V2 (`@dotit/core`).** `meta: type: form` documents gained: the **attachment**
   field + an `attach:` container block (embed base64 ≤1 MiB, or `href:` reference — the
