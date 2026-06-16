@@ -183,6 +183,17 @@ export {
 export type { TrackedChange, Comment, ChangeType } from "./redline";
 export { compareVersions } from "./compare";
 export type { CompareOptions } from "./compare";
+export {
+  hasRedactions,
+  extractRedactions,
+  applyRedactions,
+  verifyRedaction,
+} from "./redaction";
+export type {
+  PendingRedaction,
+  RedactionReceipt,
+  RedactionResult,
+} from "./redaction";
 export type {
   TrustTier,
   TierStyle,

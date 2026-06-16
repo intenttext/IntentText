@@ -358,6 +358,18 @@ function applyInlineFormatting(
               const cid = escapeHtml(String(node.props.comment));
               return `<span class="it-comment-anchor" data-comment="${cid}">${escapeHtml(node.value)}</span>`;
             }
+            // REDACTED span: [████]{redacted: reason; …} renders as a black bar (the
+            // text is already removed from source). A PENDING [text]{redact: reason}
+            // mark renders highlighted so the author sees what will be removed.
+            if (node.props && node.props.redacted != null) {
+              const reason = String(node.props.redacted);
+              const title = reason && reason !== "yes" ? ` title="${escapeHtml("Redacted: " + reason)}"` : ' title="Redacted"';
+              return `<span class="it-redacted"${title}>${escapeHtml(node.value)}</span>`;
+            }
+            if (node.props && node.props.redact != null) {
+              const reason = String(node.props.redact);
+              return `<span class="it-redact-pending" title="${escapeHtml("Marked to redact" + (reason ? ": " + reason : ""))}">${escapeHtml(node.value)}</span>`;
+            }
             // Inline FORM FIELD: [answer]{input: key; type: …} — a fill-in-the-blank
             // within prose (e.g. "I, [Jane]{input: signer}, agree"). Empty bracket
             // renders as an underline to fill; a value renders inline.

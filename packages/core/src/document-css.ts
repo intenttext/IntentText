@@ -51,6 +51,9 @@ export const DOCUMENT_CSS = `
 .it-track-ins{text-decoration:underline;text-decoration-color:#1a7f37;color:#1a7f37;background:rgba(26,127,55,0.08);}
 .it-track-del{text-decoration:line-through;text-decoration-color:#cf222e;color:#cf222e;background:rgba(207,34,46,0.08);}
 .it-comment-anchor{background:#fff3bf;border-bottom:1.5px dotted #b08800;cursor:help;}
+/* ── Redaction ──────────────────────────────────────────── */
+.it-redacted{background:#111;color:#111;border-radius:2px;padding:0 2px;user-select:none;}
+.it-redact-pending{background:#111;color:#fff;border-radius:2px;padding:0 2px;outline:1.5px dashed #cf222e;}
 .intent-task-owner::before{content:'@ ';opacity:0.6;}
 .intent-task-due::before{content:'due ';}
 .intent-task-time::before{content:'at ';}
