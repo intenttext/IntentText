@@ -13,6 +13,12 @@
  * covers its attachments — embedding a file makes it tamper-evident along with the
  * rest of the record. Base64 carries no `|`/newline, so it is safe in a pipe prop.
  *
+ * PREFER `href:` (a reference). `.it`'s DNA is lean, queryable, diffable text; a
+ * large base64 blob is opaque and bloats the file, so reference mode is the default
+ * story and embedding is the escape hatch for the rare "must be self-contained AND
+ * sealed" case. addAttachment caps embedded size (MAX_EMBED_BYTES) to keep that
+ * accidental bloat from creeping in — raise it deliberately per call if you must.
+ *
  * String-based (no parser dependency), so the trust gate, the fill UI and tooling
  * can all use it cheaply. Pairs with forms.ts: an attachment field is "filled" when
  * its `value:` (the filename) is set; the bytes live in the linked `attach:` block.
@@ -94,6 +100,20 @@ export function hasAttachment(source: string, key: string): boolean {
 
 const BASE64 = /^[A-Za-z0-9+/]*={0,2}$/;
 
+/**
+ * Default cap on an EMBEDDED attachment's decoded size (1 MiB). Above this, prefer
+ * `href:` (a reference) — `.it` should stay lean and diffable. Override per call via
+ * addAttachment's `maxEmbedBytes` when a larger self-contained embed is intended.
+ */
+export const MAX_EMBED_BYTES = 1024 * 1024;
+
+/** Decoded byte length of a base64 string (without allocating the bytes). */
+function base64Bytes(b64: string): number {
+  const s = b64.replace(/\s+/g, "");
+  const pad = s.endsWith("==") ? 2 : s.endsWith("=") ? 1 : 0;
+  return Math.max(0, Math.floor((s.length * 3) / 4) - pad);
+}
+
 /** Serialize an Attachment to its single-line `attach:` block. */
 function attachToLine(a: Attachment): string {
   const parts = [
@@ -118,12 +138,26 @@ function sanitize(v: string): string {
  * valid base64 in `data`. Returns the new source; the block is appended (or the
  * existing block with the same key is replaced in place).
  */
-export function addAttachment(source: string, att: Attachment): string {
+export function addAttachment(
+  source: string,
+  att: Attachment,
+  opts?: { maxEmbedBytes?: number },
+): string {
   if (att.data && !BASE64.test(att.data.replace(/\s+/g, ""))) {
     throw new Error(`Attachment "${att.key}" data is not valid base64.`);
   }
   if (!att.data && !att.href) {
     throw new Error(`Attachment "${att.key}" needs either data (embedded) or href (referenced).`);
+  }
+  if (att.data) {
+    const cap = opts?.maxEmbedBytes ?? MAX_EMBED_BYTES;
+    const bytes = base64Bytes(att.data);
+    if (bytes > cap) {
+      throw new Error(
+        `Attachment "${att.key}" is ${Math.round(bytes / 1024)} KiB embedded, over the ${Math.round(cap / 1024)} KiB cap. ` +
+          `Prefer href: (a reference) for large files, or pass a larger maxEmbedBytes deliberately.`,
+      );
+    }
   }
   const line = attachToLine(att);
   const lines = (source ?? "").split(/\r?\n/);

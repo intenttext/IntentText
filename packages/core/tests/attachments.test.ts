@@ -61,6 +61,18 @@ attach: id | name: passport.pdf | mime: application/pdf | size: 9 | sha256: abc1
     expect(() => addAttachment("", { key: "x", name: "x", mime: "text/plain", size: 0, data: "not base64!!" })).toThrow(/base64/i);
     expect(() => addAttachment("", { key: "x", name: "x", mime: "text/plain", size: 0 })).toThrow(/data|href/i);
   });
+
+  it("caps embedded size (prefer href) but allows a deliberate override", () => {
+    const big = "A".repeat(2 * 1024 * 1024); // ~1.5 MiB decoded, over the 1 MiB cap
+    expect(() => addAttachment("", { key: "b", name: "b", mime: "application/pdf", size: 0, data: big }))
+      .toThrow(/cap|href/i);
+    // an explicit larger budget is honoured
+    expect(() => addAttachment("", { key: "b", name: "b", mime: "application/pdf", size: 0, data: big }, { maxEmbedBytes: 4 * 1024 * 1024 }))
+      .not.toThrow();
+    // href of any size is always fine (no embed)
+    expect(() => addAttachment("", { key: "b", name: "b", mime: "application/pdf", size: 0, href: "https://x/big.pdf" }))
+      .not.toThrow();
+  });
 });
 
 describe("attachment form field — trust gate", () => {

@@ -150,6 +150,7 @@ export {
   addAttachment,
   removeAttachment,
   attachmentDataUri,
+  MAX_EMBED_BYTES,
 } from "./attachments";
 export type { Attachment } from "./attachments";
 export {
