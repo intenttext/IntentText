@@ -805,7 +805,7 @@ function renderBlock(block: IntentBlock): string {
 
       const thead = headers
         ? `<thead><tr>${headers
-            .map((h) => `<th class="intent-table-th" dir="auto">${escapeHtml(h)}</th>`)
+            .map((h) => `<th class="intent-table-th" scope="col" dir="auto">${escapeHtml(h)}</th>`)
             .join("")}</tr></thead>`
         : "";
 
