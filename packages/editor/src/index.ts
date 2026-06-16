@@ -7,6 +7,30 @@ export { IntentTextEditor } from "./IntentTextEditor";
 export type { IntentTextEditorProps } from "./IntentTextEditor";
 export type { TrustAction } from "./types";
 
+// One component, every mode — the simplest way for a host (ERP page, portal) to
+// embed: mount <IntentTextWorkbench mode="edit|fill|view|review|auto"> and switch
+// behaviour by intent. The individual components below stay exported for hosts that
+// want to import just one (smaller bundle).
+export {
+  IntentTextWorkbench,
+  detectMode,
+} from "./IntentTextWorkbench";
+export type {
+  IntentTextWorkbenchProps,
+  WorkbenchMode,
+} from "./IntentTextWorkbench";
+
+// Intent-named aliases, so a host's imports read by purpose. TemplateEditor and
+// FormDesigner are the SAME authoring surface (IntentTextEditor) — template
+// authoring is typing `{{vars}}`, form design is Insert ▸ Fields; there is no
+// separate component, just different content you author.
+export {
+  IntentTextEditor as TemplateEditor,
+  IntentTextEditor as FormDesigner,
+} from "./IntentTextEditor";
+export { FormFill as FormFiller } from "./FormFill";
+export { DocumentView as DocViewer } from "./DocumentView";
+
 // Print / export (the same WYSIWYG path the ribbon uses)
 export {
   exportDocumentPDF,
