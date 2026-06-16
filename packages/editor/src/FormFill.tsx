@@ -21,6 +21,8 @@ import {
   applyAnswers,
   isFormComplete,
   missingRequiredFields,
+  formVisibility,
+  computeFormValues,
   addAttachment,
   getAttachment,
   attachmentDataUri,
@@ -94,8 +96,32 @@ export function FormFill({
   const [remaining, setRemaining] = useState<string[]>([]);
   const [savedNote, setSavedNote] = useState(false);
 
+  // Re-evaluate conditional (show-if) + computed (compute) fields against the live
+  // answers and reflect them in the DOM: hide fields whose condition is false, and
+  // fill computed fields read-only. Runs after hydration and on every edit, so a
+  // field appears the moment its trigger is answered and totals update live.
   const recompute = useCallback(() => {
-    const merged = applyAnswers(value, answers.current);
+    // 1) fold in computed values so they participate in visibility + completeness
+    let merged = applyAnswers(value, answers.current);
+    const computed = computeFormValues(merged);
+    for (const [k, v] of Object.entries(computed)) answers.current[k] = v;
+    merged = applyAnswers(value, answers.current);
+
+    const vis = formVisibility(merged);
+    const root = pageRef.current;
+    if (root) {
+      for (const node of root.querySelectorAll<HTMLElement>("[data-key]")) {
+        const key = node.dataset.key || "";
+        if (key in vis) node.style.display = vis[key] ? "" : "none";
+        if (key in computed) {
+          const ctrl = node.querySelector<HTMLInputElement>("input, textarea, select");
+          if (ctrl) {
+            if (ctrl.value !== computed[key]) ctrl.value = computed[key];
+            ctrl.disabled = true; // derived, not hand-edited
+          }
+        }
+      }
+    }
     setRemaining(missingRequiredFields(merged));
   }, [value]);
 

@@ -63,7 +63,7 @@ export function StatusBar({
         )}
       </div>
       <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-        <span title="IntentText core version">@dotit/core 1.2</span>
+        <span title="Powered by @dotit/core">@dotit/core</span>
         <span>Theme: {theme}</span>
         <button
           onClick={onToggleUiTheme}
