@@ -11,7 +11,7 @@ IntentText is more than a file format. It's a complete toolchain for structured 
 > with conditional/computed fields + attachments + two-party trust), **redline & version
 > compare**, **redaction**, **PAdES** legal PDF signatures, **PDF/A** archival, and
 > **math**. Everything is in the packages below; the full developer guide is
-> **[/integration.md](/integration.md)**.
+> **[ERP integration](/docs/ecosystem/erp-integration)**.
 
 ## Core
 

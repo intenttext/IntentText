@@ -139,5 +139,5 @@ await renderPDF(src, { pdfA: { iccProfile, conformance: "3B" } });
 ## Embed it all
 
 Every mode is in one React component — `<IntentTextWorkbench mode="edit|fill|view|review|auto">`.
-See the full developer guide at **[/integration.md](/integration.md)** and
+See the full developer guide at **[ERP integration](/docs/ecosystem/erp-integration)** and
 [Ecosystem](../ecosystem/index.md).

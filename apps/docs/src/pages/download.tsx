@@ -223,7 +223,7 @@ export default function Download(): React.ReactElement {
               <p style={{ margin: ".5rem 0 0", opacity: 0.8 }}>
                 Signed &amp; notarized installers are coming. Prefer to build
                 from source? See the{" "}
-                <Link to="/docs">documentation</Link>.
+                <Link to="/docs/guide/quick-start">documentation</Link>.
               </p>
             </div>
           </div>
