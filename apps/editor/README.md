@@ -1,4 +1,4 @@
-# Dotit Web
+# Dotit Web Editor
 
 Dotit Web is the browser editor experience for `.it` documents, built on `@dotit/core`.
 
