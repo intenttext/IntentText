@@ -48,8 +48,19 @@ jobs:
       - name: Build + test + contract gates
         run: pnpm --filter @dotit/core check
 
+      # Diagnostic: which npm account does NPM_TOKEN authenticate as, and can it
+      # write @dotit? (The repeated E404-on-PUT is npm masking a permission error.)
+      - name: npm auth diagnostic
+        run: |
+          echo "whoami:"; npm whoami || echo "  (token did not authenticate)"
+          echo "access to @dotit/core:"; npm access list collaborators @dotit/core 2>&1 | head -20 || true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Publish @dotit/core
-        run: pnpm publish --filter @dotit/core --access public --no-git-checks --provenance
+        # NOTE: --provenance temporarily removed to rule it out as the cause of the
+        # E404. Re-add once publishing succeeds (enterprise SBOM/provenance story).
+        run: pnpm publish --filter @dotit/core --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
