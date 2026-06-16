@@ -129,6 +129,10 @@ export function FormFill({
   useLayoutEffect(() => {
     const root = pageRef.current;
     if (!root) return;
+    // Own the markup imperatively (not via dangerouslySetInnerHTML) so a later React
+    // re-render can't re-apply it and wipe the live controls we add below. The effect
+    // re-runs when `body` changes, re-rendering + re-hydrating atomically.
+    root.innerHTML = body;
     answers.current = Object.fromEntries(fields.map((f) => [f.key, f.value]));
     pendingAttachments.current = {};
 
@@ -343,7 +347,9 @@ export function FormFill({
       <style dangerouslySetInnerHTML={{ __html: styles }} />
       <div className="form-fill-scroll">
         <div className={`form-fill-page ${bodyClass}`}>
-          <div ref={pageRef} dangerouslySetInnerHTML={{ __html: body }} />
+          {/* The effect sets innerHTML AND hydrates controls together, so React never
+              re-applies the markup and wipes the imperatively-added controls. */}
+          <div ref={pageRef} />
         </div>
       </div>
       {!readOnly && (
