@@ -21,7 +21,12 @@ import {
   applyAnswers,
   isFormComplete,
   missingRequiredFields,
+  addAttachment,
+  getAttachment,
+  attachmentDataUri,
+  MAX_EMBED_BYTES,
   type FormField,
+  type Attachment,
 } from "@dotit/core";
 
 export interface FormFillProps {
@@ -83,6 +88,9 @@ export function FormFill({
   // re-render the document (which would blur the field); React state only tracks
   // the completeness summary.
   const answers = useRef<Record<string, string>>({});
+  // Files the recipient attached this session (key → Attachment), embedded into the
+  // source on save. The field's `value:` holds the filename; the bytes live here.
+  const pendingAttachments = useRef<Record<string, Attachment>>({});
   const [remaining, setRemaining] = useState<string[]>([]);
   const [savedNote, setSavedNote] = useState(false);
 
@@ -96,6 +104,7 @@ export function FormFill({
     const root = pageRef.current;
     if (!root) return;
     answers.current = Object.fromEntries(fields.map((f) => [f.key, f.value]));
+    pendingAttachments.current = {};
 
     const byKey = new Map<string, FormField>(fields.map((f) => [f.key, f]));
     const cleanups: Array<() => void> = [];
@@ -132,6 +141,98 @@ export function FormFill({
 
       // The control replaces the box (block) or the inline span.
       const isInline = node.classList.contains("it-field-inline");
+
+      // Attachment: a file picker → embeds the chosen file (capped) and shows a
+      // download chip. Reference (href) uploads are the host's job; this captures
+      // small files inline so a form can travel self-contained.
+      if (type === "attachment") {
+        const box = isInline ? node : node.querySelector<HTMLElement>(".it-field-box");
+        if (!box) continue;
+        const file = document.createElement("input");
+        file.type = "file";
+        file.style.display = "none";
+        box.appendChild(file);
+
+        const draw = () => {
+          // wipe everything except the hidden input
+          Array.from(box.childNodes).forEach((n) => {
+            if (n !== file) box.removeChild(n);
+          });
+          const name = answers.current[key] || "";
+          if (name) {
+            const att = pendingAttachments.current[key] ?? getAttachment(value, key);
+            const uri = att ? attachmentDataUri(att) : null;
+            const link = document.createElement(uri ? "a" : "span");
+            link.className = "form-fill-attach-name";
+            link.textContent = name;
+            if (uri) {
+              (link as HTMLAnchorElement).href = uri;
+              (link as HTMLAnchorElement).download = name;
+            }
+            box.appendChild(link);
+            if (!readOnly) {
+              const clear = document.createElement("button");
+              clear.type = "button";
+              clear.className = "form-fill-attach-clear";
+              clear.textContent = "✕";
+              clear.title = "Remove";
+              clear.onclick = () => {
+                delete pendingAttachments.current[key];
+                answers.current[key] = "";
+                setSavedNote(false);
+                draw();
+                recompute();
+              };
+              box.appendChild(clear);
+            }
+          } else if (!readOnly) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "form-fill-attach-btn";
+            btn.textContent = "Attach file…";
+            btn.onclick = () => file.click();
+            box.appendChild(btn);
+          } else {
+            box.appendChild(document.createTextNode("—"));
+          }
+        };
+
+        if (!readOnly) {
+          const onPick = () => {
+            const f = file.files?.[0];
+            if (!f) return;
+            if (f.size > MAX_EMBED_BYTES) {
+              alert(
+                `"${f.name}" is ${Math.round(f.size / 1024)} KiB — over the ${Math.round(MAX_EMBED_BYTES / 1024)} KiB embed limit. Use a smaller file (large files should be linked, not embedded).`,
+              );
+              file.value = "";
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+              const b64 = String(reader.result).split(",")[1] ?? "";
+              pendingAttachments.current[key] = {
+                key,
+                name: f.name,
+                mime: f.type || "application/octet-stream",
+                size: f.size,
+                data: b64,
+              };
+              answers.current[key] = f.name;
+              file.value = "";
+              setSavedNote(false);
+              draw();
+              recompute();
+            };
+            reader.readAsDataURL(f);
+          };
+          file.addEventListener("change", onPick);
+          cleanups.push(() => file.removeEventListener("change", onPick));
+        }
+        draw();
+        continue;
+      }
+
       const box = isInline
         ? node
         : node.querySelector<HTMLElement>(".it-field-box");
@@ -183,17 +284,29 @@ export function FormFill({
     return () => cleanups.forEach((fn) => fn());
   }, [body, fields, readOnly, recompute]);
 
+  // Apply text answers, then embed every file attached this session.
+  const mergedSource = useCallback(() => {
+    let merged = applyAnswers(value, answers.current);
+    for (const att of Object.values(pendingAttachments.current)) {
+      try {
+        merged = addAttachment(merged, att);
+      } catch {
+        /* over the embed cap — already blocked at pick time; skip defensively */
+      }
+    }
+    return merged;
+  }, [value]);
+
   const save = useCallback(() => {
-    const merged = applyAnswers(value, answers.current);
-    onChange?.(merged);
+    onChange?.(mergedSource());
     setSavedNote(true);
-  }, [value, onChange]);
+  }, [onChange, mergedSource]);
 
   const submit = useCallback(() => {
-    const merged = applyAnswers(value, answers.current);
+    const merged = mergedSource();
     onChange?.(merged);
     if (isFormComplete(merged)) onSubmit?.(merged);
-  }, [value, onChange, onSubmit]);
+  }, [onChange, onSubmit, mergedSource]);
 
   const total = fields.filter((f) => f.required).length;
   const done = total - remaining.length;

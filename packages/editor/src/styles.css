@@ -1509,6 +1509,38 @@ textarea.form-fill-control {
   border-color: #1a73e8;
   box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.18);
 }
+/* Attachment field — file picker + download chip */
+.form-fill-attach-btn {
+  appearance: none;
+  border: 1px dashed #b6c0cf;
+  background: #f7f9fc;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: #1a56b8;
+  cursor: pointer;
+}
+.form-fill-attach-btn:hover {
+  background: #eef3fb;
+  border-color: #1a73e8;
+}
+.form-fill-attach-name {
+  font-size: 13px;
+  color: #1a56b8;
+  text-decoration: underline;
+  word-break: break-all;
+}
+.form-fill-attach-clear {
+  appearance: none;
+  border: none;
+  background: none;
+  color: #b91c1c;
+  cursor: pointer;
+  font-size: 12px;
+  margin-inline-start: 6px;
+  padding: 0 2px;
+}
 .form-fill-bar {
   display: flex;
   align-items: center;
