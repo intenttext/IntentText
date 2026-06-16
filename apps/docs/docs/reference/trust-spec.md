@@ -141,7 +141,56 @@ Issued by a UTS authority over the certification payload
 
   This makes the whole chain verifiable **offline** from the document plus the pinned root.
 
-## 6. Revocation
+## 6. Approval routing & hash-chained audit
+
+A document MAY declare an **approval route** and carry a **tamper-evident approval
+trail**, so the workflow travels inside the file and its state is *derived*, never
+stored externally (`@dotit/core` ≥ 1.14.0).
+
+### 6.1 Route policy (`route:` / `require:`)
+
+- `route: sequential` (default) or `route: parallel` declares the ordering.
+- Each `require:` line declares one required approver: the content is the matched
+  **role** (or name), with optional `when:` (a single comparison evaluated against
+  the document's own `metric:`/`meta:` values, per the form-field evaluator) and
+  optional `optional: yes`.
+- `route:`/`require:` are **not reserved keywords**; they parse as preserved
+  `custom` blocks (the unknown-keyword guarantee), so a routed document round-trips
+  byte-for-byte and keeps its content hash.
+
+### 6.2 Derived state (`workflowState`)
+
+A conforming implementation derives `{ active, fulfilled, pending, next, complete }`
+purely from the policy and the document's `approve:` lines:
+
+1. A requirement is **active** when it has no `when:`, or its `when:` holds (an
+   unresolvable `when:` is treated as active — never silently dropped).
+2. A required role/name is **fulfilled** when an `approve:` line carries a matching
+   `role:` or `by:`.
+3. **pending** = active, non-`optional`, unfulfilled requirements, in declared order.
+4. **next** = (sequential) the first pending requirement; (parallel) none.
+5. **complete** = no pending requirements.
+
+Because state is derived, re-deriving from the file always matches — there is no
+separate record to drift.
+
+### 6.3 Hash-chained approval trail
+
+To make the approval **sequence** tamper-evident, each chained approval carries
+`prev: sha256:<hash>`:
+
+- The first link's `prev` is the **audit-genesis** hash: SHA-256 of the body with
+  ALL audit lines (`approve:`/`sign:`/`freeze:`/`certify:`/`amendment:`) removed,
+  trimmed, NFC-normalized — stable as approvals accumulate.
+- Each subsequent link's `prev` is the SHA-256 of the previous audit event's
+  canonical line (the line minus its own `prev:` segment, trimmed, NFC).
+
+A verifier recomputes the chain; any inserted, deleted, reordered, or edited
+approval breaks a `prev` link. A plain `approve:` line without `prev:` is an
+**un-chained** link — reported as such, never as tampered. The reference
+implementation is `verifyAuditChain()` / `appendApproval()`.
+
+## 7. Revocation
 
 A certification verifies forever against the trust anchor, so revocation is an
 out-of-band signal. A UTS operator publishes a **revocation list** (e.g.
@@ -150,7 +199,7 @@ out-of-band signal. A UTS operator publishes a **revocation list** (e.g.
 hash or signing key is revoked as **not trusted** (tier `draft`), regardless of the
 signature being otherwise valid.
 
-## 7. Verification algorithm (summary)
+## 8. Verification algorithm (summary)
 
 Given a document `source` and a set of trusted issuer (root/key) public keys:
 
@@ -159,10 +208,10 @@ Given a document `source` and a set of trusted issuer (root/key) public keys:
 3. **Seal:** if a `freeze:` exists, `intact = (contentHash == freeze.hash)`.
 4. **Signatures:** for each cryptographic `sign:` line, verify per §4.1.
 5. **Certifications:** for each `certify:` line, verify per §5.2; if revocation data is
-   available, apply Section 6.
+   available, apply Section 7.
 6. Derive the tier (Section 3): any broken layer ⇒ `draft`.
 
-## 8. Backward compatibility
+## 9. Backward compatibility
 
 `@dotit/core` < 1.9.0 hashed **without** NFC normalization. For documents sealed/signed
 before 1.9.0, a verifier MUST also accept the **legacy** hash (the same computation as
@@ -170,7 +219,7 @@ Section 2 but skipping step 4). The reference implementation exposes this as
 `computeDocumentHashLegacy()` / `hashMatches()`, and verification succeeds if **either**
 the NFC or the legacy hash matches. New documents always carry the NFC hash.
 
-## 9. Implementation notes
+## 10. Implementation notes
 
 - Trust-line detection is by the line's keyword prefix; a body line that merely *contains*
   the word "sign" is not a trust line.
