@@ -442,6 +442,36 @@ function splitEnd(
   };
 }
 
+/**
+ * Render table body rows with MERGED CELLS. A cell whose value is exactly `<`
+ * merges into the cell on its left (colspan); a cell whose value is exactly `^`
+ * merges into the cell above in the same source column (rowspan). Continuation
+ * cells (`<` / `^`) are consumed — only real cells emit a <td>. An empty string is
+ * a genuine empty cell, NOT a merge.
+ */
+function renderTableRows(rows: string[][]): string {
+  const out: string[] = [];
+  for (let r = 0; r < rows.length; r++) {
+    const cells: string[] = [];
+    for (let c = 0; c < rows[r].length; c++) {
+      const v = rows[r][c];
+      if (v === "<" || v === "^") continue; // continuation — consumed by a real cell
+      let colspan = 1;
+      while (c + colspan < rows[r].length && rows[r][c + colspan] === "<") colspan++;
+      let rowspan = 1;
+      while (r + rowspan < rows.length && rows[r + rowspan]?.[c] === "^") rowspan++;
+      const attrs =
+        (colspan > 1 ? ` colspan="${colspan}"` : "") +
+        (rowspan > 1 ? ` rowspan="${rowspan}"` : "");
+      cells.push(
+        `<td class="intent-table-td"${attrs} dir="auto">${escapeHtml(v)}</td>`,
+      );
+    }
+    out.push(`<tr class="intent-row">${cells.join("")}</tr>`);
+  }
+  return out.join("");
+}
+
 // v2.8.1: Known style properties that map to CSS
 const STYLE_PROPERTIES: Record<string, string> = {
   color: "color",
@@ -772,14 +802,7 @@ function renderBlock(block: IntentBlock): string {
             .join("")}</tr></thead>`
         : "";
 
-      const tbody = `<tbody>${rows
-        .map(
-          (row) =>
-            `<tr class="intent-row">${row
-              .map((c) => `<td class="intent-table-td" dir="auto">${escapeHtml(c)}</td>`)
-              .join("")}</tr>`,
-        )
-        .join("")}</tbody>`;
+      const tbody = `<tbody>${renderTableRows(rows)}</tbody>`;
 
       return `<table class="intent-table">${thead}${tbody}</table>`;
     }
