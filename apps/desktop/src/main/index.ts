@@ -63,12 +63,33 @@ function createWindow(file?: string): BrowserWindow {
     show: false,
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
+      // Enterprise hardening: renderer is fully isolated from Node (contextBridge
+      // is the only channel; nodeIntegration off; webSecurity on). The preload uses
+      // only contextBridge + ipcRenderer, so `sandbox: true` is the target once a
+      // launch test confirms the bridge — left false here to avoid shipping an
+      // unverified change to the packaged app.
+      contextIsolation: true,
+      nodeIntegration: false,
       sandbox: false,
+      webSecurity: true,
       backgroundThrottling: false,
       paintWhenInitiallyHidden: true,
     },
   });
   if (file) windowFiles.set(win.webContents.id, file);
+  // Security: the renderer is a local app shell — never let it navigate away or
+  // spawn arbitrary child windows. External links go to the OS browser instead.
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//.test(url)) void shell.openExternal(url);
+    return { action: "deny" };
+  });
+  win.webContents.on("will-navigate", (e, url) => {
+    // Allow only same-origin loads (file:// in prod, localhost dev server).
+    if (!/^file:\/\//.test(url) && !/^https?:\/\/localhost(:|\/)/.test(url)) {
+      e.preventDefault();
+      if (/^https?:\/\//.test(url)) void shell.openExternal(url);
+    }
+  });
   const reveal = () => {
     if (!win.isDestroyed() && !win.isVisible()) {
       win.show();
