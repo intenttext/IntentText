@@ -6,7 +6,19 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
-### Added — in-file approval routing, DERIVED (`@dotit/core`)
+### Added — source-preserving edits + accessibility (`@dotit/core` 1.15.0)
+
+- **`reconcileEdit(original, edited)`** — the foundation of byte-faithful editing.
+  It keeps each unchanged block's EXACT original bytes (matched by a deep
+  type+content+properties+children signature, re-emitted verbatim via the lossless
+  serializer) and only re-serializes genuinely changed/new blocks. So a no-op edit
+  round-trips byte-for-byte (a sealed body keeps its hash) and a real edit touches
+  only the edited block — comments, blank lines, spacing, and bare prose survive.
+  The visual editor (`@dotit/editor` ≥ 1.10.0) calls it on every keystroke.
+- **Accessibility:** rendered table column headers now emit `<th scope="col">`
+  (WCAG 2.1 H63 / Section 508 / EN 301 549).
+
+### Added — in-file approval routing, DERIVED (`@dotit/core` 1.14.0)
 
 - **The document carries its own approval workflow; its state is derived, never
   stored.** A document declares its route with `route: sequential` (or `parallel`)
