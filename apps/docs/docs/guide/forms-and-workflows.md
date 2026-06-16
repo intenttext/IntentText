@@ -115,7 +115,7 @@ text: mass-energy [E = mc^2]{math: tex} is famous.   # inline
 ```
 
 Core marks math (a dependency-free `data-tex` placeholder); render it with
-[`@dotit/math`](../ecosystem/index):
+[`@dotit/math`](../ecosystem/index.md):
 
 ```ts
 import { renderMathInHtml } from "@dotit/math"; // lite MathML, or full KaTeX if installed
@@ -140,4 +140,4 @@ await renderPDF(src, { pdfA: { iccProfile, conformance: "3B" } });
 
 Every mode is in one React component — `<IntentTextWorkbench mode="edit|fill|view|review|auto">`.
 See the full developer guide at **[/integration.md](/integration.md)** and
-[Ecosystem](../ecosystem/index).
+[Ecosystem](../ecosystem/index.md).
