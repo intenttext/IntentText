@@ -20,6 +20,8 @@ import {
   verifyDocument,
   verifyFormStructure,
 } from "@dotit/core";
+import { storeResponse, getResponses } from "@/lib/responses";
+import { getSession } from "@/lib/auth";
 
 interface Body {
   source?: string;
@@ -58,7 +60,7 @@ export async function POST(request: NextRequest) {
     );
   }
   // If the filler sealed it, that seal must verify.
-  if (completion.sealed && !completion.intact) {
+  if (completion.frozen && !completion.intact) {
     return NextResponse.json(
       { error: "answers_tampered", detail: "The completion seal does not verify." },
       { status: 422 },
@@ -75,13 +77,41 @@ export async function POST(request: NextRequest) {
     trust: {
       structureSealed: structure.sealed,
       structureBy: structure.sealer ?? null,
-      completionSealed: completion.sealed,
-      intact: (!structure.sealed || structure.intact) && (!completion.sealed || completion.intact),
+      completionSealed: completion.frozen,
+      intact: (!structure.sealed || structure.intact) && (!completion.frozen || completion.intact),
     },
   };
 
-  // TODO(operator): persist `record` + `source` to your store, e.g.
-  //   await storeResponse(record, source)
+  try {
+    await storeResponse({ ...record, source });
+  } catch {
+    return NextResponse.json({ error: "store_failed" }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true, ...record }, { status: 201 });
+}
+
+/** GET — list collected responses (auth-gated; for the dashboard). */
+export async function GET(request: NextRequest) {
+  if (!getSession()) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  const formId = request.nextUrl.searchParams.get("formId") ?? undefined;
+  const limit = Number(request.nextUrl.searchParams.get("limit") ?? "100");
+  try {
+    const responses = await getResponses({ formId, limit: Math.min(limit, 500) });
+    // never ship the full source in the list payload — answers + metadata only
+    return NextResponse.json({
+      responses: responses.map((r) => ({
+        id: r.id,
+        formId: r.formId,
+        answers: r.answers,
+        hash: r.hash,
+        submittedAt: r.submittedAt,
+        trust: r.trust,
+      })),
+    });
+  } catch {
+    return NextResponse.json({ error: "list_failed" }, { status: 500 });
+  }
 }

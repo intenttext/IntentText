@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isForm } from "@dotit/core";
 import { submitTemplate } from "@/lib/templates";
 import { validateSubmission } from "@/lib/validate-submission";
 
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
       name,
       description,
       category,
+      isForm: isForm(source),
       tags: parsedTags,
       author: author || "community",
       source,

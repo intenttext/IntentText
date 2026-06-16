@@ -32,6 +32,8 @@ export async function getTemplates(options: {
   if (options.category && options.category !== "all") {
     if (options.category === "sealed") {
       filter["trust.frozen"] = true;
+    } else if (options.category === "forms") {
+      filter.isForm = true; // the form library
     } else if (DOMAIN_FILTERS.includes(options.category)) {
       filter.domain = options.category;
     } else {
@@ -88,6 +90,8 @@ export async function getTemplateCount(options: {
   if (options.category && options.category !== "all") {
     if (options.category === "sealed") {
       filter["trust.frozen"] = true;
+    } else if (options.category === "forms") {
+      filter.isForm = true; // the form library
     } else if (DOMAIN_FILTERS.includes(options.category)) {
       filter.domain = options.category;
     } else {

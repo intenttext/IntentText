@@ -47,6 +47,8 @@ export interface HubTemplate {
   description: string;
   category: "agent" | "workflow" | "document";
   domain?: TemplateDomain;
+  /** True when the template is a fillable form (`meta: type: form`) — the form library. */
+  isForm?: boolean;
   tags: string[];
   author: string;
   owner_id?: string;
