@@ -121,6 +121,35 @@ console.log(result.intact); // true — false if a single character changed
 The hashing rules are open and documented in [SPEC.md](./SPEC.md), so anyone with the
 library can verify independently.
 
+### In-file approval workflow (derived, never stored)
+
+A document carries its own approval route; its live state is **derived from the file**,
+so there's no separate database to drift from. Declare the route with `route:`/`require:`
+lines, fulfill it with `approve:` lines, and read the state:
+
+```typescript
+import { workflowState, appendApproval, verifyAuditChain } from "@dotit/core";
+
+let doc = appendApproval(source, { by: "Sarah", role: "manager" }); // hash-chained
+const s = workflowState(doc); // { pending:["finance","legal"], next:"finance", complete:false }
+verifyAuditChain(doc).valid;  // false if any approval was inserted/deleted/reordered/edited
+```
+
+### Source-preserving edits (the bytes are sacred)
+
+The seal hashes raw source bytes, so an edit must change **only** what changed. Store `.it`
+as text via the storage contract, and apply edits with `reconcileEdit`, which keeps every
+unchanged block's exact original bytes (comments, blank lines, spacing) and re-serializes
+only the edited block:
+
+```typescript
+import { toStorageRecord, fromStorageRecord, reconcileEdit } from "@dotit/core";
+
+const rec = toStorageRecord(source);        // { source, bytesSha256 } — store as-is
+const back = fromStorageRecord(rec);        // throws if the store mutated a byte
+const saved = reconcileEdit(original, editedSource); // a no-op edit is byte-identical
+```
+
 ### Converters
 
 Convert between IntentText and common document formats. Markdown/HTML are

@@ -64,6 +64,7 @@ Types: `IntentTextEditorProps`, `TrustAction`, `PrintMode`, `TrustState`, `PageG
 ## Embedding in an ERP
 
 - **Controlled `.it` in/out.** Store the source string wherever you store documents (a DB column is fine — it's plain text). Load it into `value`, persist what `onChange` gives you. No editor-specific format ever touches your data.
+- **Byte-faithful editing (seals never break).** Edits change only what actually changed — every untouched block keeps its exact original bytes (comments, blank lines, spacing, bare prose). Opening and saving a document with no change is byte-identical, so a **sealed body keeps its content hash through the editor** (and sealed documents are read-only on the body anyway). Powered by `@dotit/core`'s `reconcileEdit`.
 - **Templates + merge.** Author templates with `{{variables}}` in the editor (they render as chips); merge real data server-side with `@dotit/core`'s `parseAndMerge` and print with `renderPrint` — or `@dotit/pdf` for real PDF bytes.
 - **PDF from the UI.** Call `exportDocumentPDF(source, theme)` from your own button — it uses the user's browser print dialog and matches the on-screen pages exactly.
 - **Trust flows.** Sealed documents lock automatically. Hook `onTrustAction` to your approval/signature flows; the editor renders `sign:`/`seal:`/`approve:` blocks as proper signature lines and chips.
