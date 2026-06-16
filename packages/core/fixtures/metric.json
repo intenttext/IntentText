@@ -1,0 +1,68 @@
+{
+  "version": "2.11",
+  "blocks": [
+    {
+      "id": "id",
+      "type": "section",
+      "content": "Totals",
+      "originalContent": "Totals",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Totals"
+        }
+      ],
+      "children": [
+        {
+          "id": "id",
+          "type": "metric",
+          "content": "Subtotal",
+          "originalContent": "Subtotal",
+          "properties": {
+            "value": "1000"
+          },
+          "inline": [
+            {
+              "type": "text",
+              "value": "Subtotal"
+            }
+          ]
+        },
+        {
+          "id": "id",
+          "type": "metric",
+          "content": "VAT",
+          "originalContent": "VAT",
+          "properties": {
+            "value": "50"
+          },
+          "inline": [
+            {
+              "type": "text",
+              "value": "VAT"
+            }
+          ]
+        },
+        {
+          "id": "id",
+          "type": "metric",
+          "content": "Total Due",
+          "originalContent": "Total Due",
+          "properties": {
+            "value": "1050"
+          },
+          "inline": [
+            {
+              "type": "text",
+              "value": "Total Due"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "language": "ltr"
+  },
+  "_trailing": ""
+}

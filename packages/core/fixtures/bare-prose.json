@@ -1,0 +1,63 @@
+{
+  "version": "1.4",
+  "blocks": [
+    {
+      "id": "id",
+      "type": "section",
+      "content": "Notes",
+      "originalContent": "Notes",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Notes"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "id",
+      "type": "text",
+      "content": "Either party may terminate with 30 days notice. This paragraph has no text: keyword.",
+      "originalContent": "Either party may terminate with 30 days notice. This paragraph has no text: keyword.",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Either party may terminate with 30 days notice. This paragraph has no text: keyword."
+        }
+      ],
+      "_bare": true,
+      "_merged": [
+        {
+          "id": "id",
+          "type": "text",
+          "content": "Either party may terminate with 30 days notice.",
+          "originalContent": "Either party may terminate with 30 days notice.",
+          "_bare": true,
+          "inline": [
+            {
+              "type": "text",
+              "value": "Either party may terminate with 30 days notice."
+            }
+          ]
+        },
+        {
+          "id": "id",
+          "type": "text",
+          "content": "This paragraph has no text: keyword.",
+          "originalContent": "This paragraph has no text: keyword.",
+          "_bare": true,
+          "inline": [
+            {
+              "type": "text",
+              "value": "This paragraph has no text: keyword."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "language": "ltr"
+  },
+  "_trailing": ""
+}

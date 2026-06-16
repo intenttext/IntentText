@@ -1,0 +1,98 @@
+{
+  "version": "2.8",
+  "blocks": [
+    {
+      "id": "id",
+      "type": "title",
+      "content": "Service Agreement",
+      "originalContent": "Service Agreement",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Service Agreement"
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "text",
+      "content": "Net 30 from invoice date.",
+      "originalContent": "Net 30 from invoice date.",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Net 30 from invoice date."
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "approve",
+      "content": "Reviewed",
+      "originalContent": "Reviewed",
+      "properties": {
+        "by": "Sarah",
+        "role": "legal",
+        "at": "2026-03-20"
+      },
+      "inline": [
+        {
+          "type": "text",
+          "value": "Reviewed"
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "sign",
+      "content": "Sarah",
+      "originalContent": "Sarah",
+      "properties": {
+        "role": "legal",
+        "at": "2026-03-20T10:00:00Z",
+        "hash": "sha256:abc"
+      },
+      "inline": [
+        {
+          "type": "text",
+          "value": "Sarah"
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "freeze",
+      "content": "",
+      "originalContent": "",
+      "properties": {
+        "at": "2026-03-20T11:00:00Z",
+        "hash": "sha256:abc",
+        "status": "locked"
+      },
+      "inline": [
+        {
+          "type": "text",
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "title": "Service Agreement",
+    "language": "ltr",
+    "signatures": [
+      {
+        "signer": "Sarah",
+        "role": "legal",
+        "at": "2026-03-20T10:00:00Z",
+        "hash": "sha256:abc"
+      }
+    ],
+    "freeze": {
+      "at": "2026-03-20T11:00:00Z",
+      "hash": "sha256:abc",
+      "status": "locked"
+    }
+  },
+  "_trailing": ""
+}

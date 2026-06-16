@@ -1,0 +1,84 @@
+{
+  "version": "1.4",
+  "blocks": [
+    {
+      "id": "id",
+      "type": "title",
+      "content": "Quarterly Report",
+      "originalContent": "Quarterly Report",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Quarterly Report"
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "summary",
+      "content": "A short overview of the quarter.",
+      "originalContent": "A short overview of the quarter.",
+      "inline": [
+        {
+          "type": "text",
+          "value": "A short overview of the quarter."
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "section",
+      "content": "Highlights",
+      "originalContent": "Highlights",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Highlights"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "id",
+      "type": "text",
+      "content": "Revenue grew steadily.",
+      "originalContent": "Revenue grew steadily.",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Revenue grew steadily."
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "sub",
+      "content": "Notes",
+      "originalContent": "Notes",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Notes"
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "text",
+      "content": "More detail here.",
+      "originalContent": "More detail here.",
+      "inline": [
+        {
+          "type": "text",
+          "value": "More detail here."
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "title": "Quarterly Report",
+    "summary": "A short overview of the quarter.",
+    "language": "ltr"
+  },
+  "_trailing": ""
+}

@@ -1,0 +1,4 @@
+meta: | type: form | title: Intake
+input: Legal name | key: legal_name | type: text | required: yes
+input: Country | key: country | type: choice | options: KW, SA, AE
+input: Total | key: total | type: number | compute: qty * price

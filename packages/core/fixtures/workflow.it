@@ -1,0 +1,6 @@
+title: Purchase Order
+route: sequential
+require: manager
+require: finance | when: amount > 100000
+require: legal
+metric: Amount | value: 250000

@@ -1,0 +1,57 @@
+{
+  "version": "1.4",
+  "blocks": [
+    {
+      "id": "id",
+      "type": "section",
+      "content": "Plan",
+      "originalContent": "Plan",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Plan"
+        }
+      ],
+      "children": [
+        {
+          "id": "id",
+          "type": "task",
+          "content": "Draft the proposal",
+          "originalContent": "Draft the proposal",
+          "properties": {
+            "owner": "Sarah",
+            "due": "2026-03-01",
+            "priority": "high"
+          },
+          "inline": [
+            {
+              "type": "text",
+              "value": "Draft the proposal"
+            }
+          ]
+        },
+        {
+          "id": "id",
+          "type": "done",
+          "content": "Kickoff meeting",
+          "originalContent": "Kickoff meeting",
+          "properties": {
+            "owner": "Ahmed",
+            "time": "10:00",
+            "status": "done"
+          },
+          "inline": [
+            {
+              "type": "text",
+              "value": "Kickoff meeting"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "language": "ltr"
+  },
+  "_trailing": ""
+}

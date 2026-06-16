@@ -72,5 +72,8 @@ dotit <file.it> --validate <schema>   # CLI: exit 0 = valid, 1 = invalid
 3. **Trust (L3):** run `verifyDocument` / `verifyAuditChain` and assert the tier and
    intactness per the [Trust Specification](./trust-spec).
 
-The shipped examples and the package test suites exercise all three; a published,
-versioned conformance-vector corpus is the planned next step.
+A **conformance-vector corpus** lives in `packages/core/fixtures/` — canonical `.it`
+inputs paired with golden normalized-JSON outputs, covering structure, tasks, trust
+(sign/approve/freeze), metric, form, lists, bare prose, workflow routing, and RTL
+Arabic. The package test suite (`tests/fixtures.test.ts`) asserts every parse matches
+its golden, so the corpus is the executable definition of L1 conformance.

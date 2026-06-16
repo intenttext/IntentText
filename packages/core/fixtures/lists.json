@@ -1,0 +1,101 @@
+{
+  "version": "1.4",
+  "blocks": [
+    {
+      "id": "id",
+      "type": "section",
+      "content": "Items",
+      "originalContent": "Items",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Items"
+        }
+      ],
+      "children": [
+        {
+          "id": "id",
+          "type": "list-item",
+          "content": "First bullet",
+          "originalContent": "First bullet",
+          "inline": [
+            {
+              "type": "text",
+              "value": "First bullet"
+            }
+          ],
+          "children": [
+            {
+              "id": "id",
+              "type": "text",
+              "content": "First bullet",
+              "originalContent": "First bullet",
+              "inline": [
+                {
+                  "type": "text",
+                  "value": "First bullet"
+                }
+              ],
+              "_bare": true
+            }
+          ]
+        },
+        {
+          "id": "id",
+          "type": "list-item",
+          "content": "Second bullet",
+          "originalContent": "Second bullet",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Second bullet"
+            }
+          ],
+          "children": [
+            {
+              "id": "id",
+              "type": "text",
+              "content": "Second bullet",
+              "originalContent": "Second bullet",
+              "inline": [
+                {
+                  "type": "text",
+                  "value": "Second bullet"
+                }
+              ],
+              "_bare": true
+            }
+          ]
+        },
+        {
+          "id": "id",
+          "type": "step-item",
+          "content": "First step",
+          "originalContent": "First step",
+          "inline": [
+            {
+              "type": "text",
+              "value": "First step"
+            }
+          ]
+        },
+        {
+          "id": "id",
+          "type": "step-item",
+          "content": "Second step",
+          "originalContent": "Second step",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Second step"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "language": "ltr"
+  },
+  "_trailing": ""
+}

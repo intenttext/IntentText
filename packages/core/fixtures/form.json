@@ -1,0 +1,70 @@
+{
+  "version": "1.4",
+  "blocks": [
+    {
+      "id": "id",
+      "type": "input",
+      "content": "Legal name",
+      "originalContent": "Legal name",
+      "properties": {
+        "key": "legal_name",
+        "type": "text",
+        "required": "yes"
+      },
+      "inline": [
+        {
+          "type": "text",
+          "value": "Legal name"
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "input",
+      "content": "Country",
+      "originalContent": "Country",
+      "properties": {
+        "key": "country",
+        "type": "choice",
+        "options": "KW, SA, AE"
+      },
+      "inline": [
+        {
+          "type": "text",
+          "value": "Country"
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "input",
+      "content": "Total",
+      "originalContent": "Total",
+      "properties": {
+        "key": "total",
+        "type": "number",
+        "compute": "qty * price"
+      },
+      "inline": [
+        {
+          "type": "text",
+          "value": "Total"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "language": "ltr",
+    "meta": {
+      "type": "form",
+      "title": "Intake"
+    }
+  },
+  "_liftedLines": [
+    {
+      "text": "meta: | type: form | title: Intake",
+      "afterBlockIndex": -1
+    }
+  ],
+  "_trailing": ""
+}

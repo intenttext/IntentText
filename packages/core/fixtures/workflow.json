@@ -1,0 +1,98 @@
+{
+  "version": "2.11",
+  "blocks": [
+    {
+      "id": "id",
+      "type": "title",
+      "content": "Purchase Order",
+      "originalContent": "Purchase Order",
+      "inline": [
+        {
+          "type": "text",
+          "value": "Purchase Order"
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "custom",
+      "content": "sequential",
+      "originalContent": "route: sequential",
+      "inline": [
+        {
+          "type": "text",
+          "value": "sequential"
+        }
+      ],
+      "properties": {
+        "keyword": "route"
+      }
+    },
+    {
+      "id": "id",
+      "type": "custom",
+      "content": "manager",
+      "originalContent": "require: manager",
+      "inline": [
+        {
+          "type": "text",
+          "value": "manager"
+        }
+      ],
+      "properties": {
+        "keyword": "require"
+      }
+    },
+    {
+      "id": "id",
+      "type": "custom",
+      "content": "finance",
+      "originalContent": "require: finance | when: amount > 100000",
+      "inline": [
+        {
+          "type": "text",
+          "value": "finance"
+        }
+      ],
+      "properties": {
+        "keyword": "require",
+        "when": "amount > 100000"
+      }
+    },
+    {
+      "id": "id",
+      "type": "custom",
+      "content": "legal",
+      "originalContent": "require: legal",
+      "inline": [
+        {
+          "type": "text",
+          "value": "legal"
+        }
+      ],
+      "properties": {
+        "keyword": "require"
+      }
+    },
+    {
+      "id": "id",
+      "type": "metric",
+      "content": "Amount",
+      "originalContent": "Amount",
+      "properties": {
+        "value": "250000"
+      },
+      "inline": [
+        {
+          "type": "text",
+          "value": "Amount"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "title": "Purchase Order",
+    "language": "ltr"
+  },
+  "_trailing": ""
+}

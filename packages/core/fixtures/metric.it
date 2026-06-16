@@ -1,0 +1,4 @@
+section: Totals
+metric: Subtotal | value: 1000
+metric: VAT | value: 50
+metric: Total Due | value: 1050

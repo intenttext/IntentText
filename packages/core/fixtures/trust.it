@@ -1,0 +1,5 @@
+title: Service Agreement
+text: Net 30 from invoice date.
+approve: Reviewed | by: Sarah | role: legal | at: 2026-03-20
+sign: Sarah | role: legal | at: 2026-03-20T10:00:00Z | hash: sha256:abc
+freeze: | at: 2026-03-20T11:00:00Z | hash: sha256:abc | status: locked

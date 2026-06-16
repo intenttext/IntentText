@@ -1,0 +1,50 @@
+{
+  "version": "1.4",
+  "blocks": [
+    {
+      "id": "id",
+      "type": "title",
+      "keywordAlias": "عنوان",
+      "content": "عرض سعر",
+      "originalContent": "عرض سعر",
+      "inline": [
+        {
+          "type": "text",
+          "value": "عرض سعر"
+        }
+      ]
+    },
+    {
+      "id": "id",
+      "type": "section",
+      "keywordAlias": "قسم",
+      "content": "التفاصيل",
+      "originalContent": "التفاصيل",
+      "inline": [
+        {
+          "type": "text",
+          "value": "التفاصيل"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "id",
+      "type": "text",
+      "keywordAlias": "نص",
+      "content": "هذا مثال على نص عربي.",
+      "originalContent": "هذا مثال على نص عربي.",
+      "inline": [
+        {
+          "type": "text",
+          "value": "هذا مثال على نص عربي."
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "title": "عرض سعر",
+    "language": "rtl"
+  },
+  "_trailing": ""
+}
