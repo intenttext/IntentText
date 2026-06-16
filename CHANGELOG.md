@@ -6,6 +6,48 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — PDF/Word parity wave (2026-06-16)
+
+Published: `@dotit/core` **1.12.0**, `@dotit/editor` **1.8.0**, `@dotit/pdf` **1.1.0**,
+`@dotit/pades` **1.0.0**, `@dotit/math` **0.1.0**. Closes PDF/Word gaps 1–4, 6, 7.
+
+- **Forms V2 (`@dotit/core`).** `meta: type: form` documents gained: the **attachment**
+  field + an `attach:` container block (embed base64 ≤1 MiB, or `href:` reference — the
+  seal covers attachments); **two-party trust** (`sealFormStructure`/`verifyFormStructure`
+  — the author seals the blank form's STRUCTURE, a hash that ignores answers so it
+  survives filling; the filler seals the completed record); **conditional** (`show-if:`)
+  and **computed** (`compute:`) fields on a safe no-`eval` evaluator. `isFormComplete`
+  skips hidden/computed fields and requires real bytes for attachment fields.
+- **Redline & version compare (`@dotit/core` + `@dotit/editor`).** Word-style tracked
+  changes + comments (`acceptChanges`/`rejectChanges`/`<Redline>`); `compareVersions(a,b)`
+  diffs two versions into a tracked-changes `.it` (line + inline word LCS). A "Compare
+  versions" action in the web + desktop editors.
+- **Redaction (`@dotit/core`).** `[text]{redact: reason}` → `applyRedactions()` removes the
+  bytes and leaves a black-bar marker with a salted commitment; `verifyRedaction()` proves
+  coverage from a private receipt. Seal as usual → tamper-evident.
+- **PDF/A archival (`@dotit/pdf` 1.1.0).** `toPdfA()` / `pdfA` render option adds the PDF/A
+  identification XMP + sRGB OutputIntent + document ID; compliance validated in CI with
+  **veraPDF** (`.github/workflows/pdfa-verify.yml`).
+- **PAdES signatures (`@dotit/pades` 1.0.0, first release).** Export a sealed `.it` as an
+  Adobe/court-recognized PDF signature (ECDSA P-256 + X.509 + CMS); CSR/CA issuance,
+  RFC-3161 timestamps (PAdES-T), CLI. Wired into `@dotit/pdf renderSignedPDF` + the desktop
+  "Export Signed PDF". The **UTS X.509 CA** (`services/uts-certify`) issues leaf signing
+  certs from a CSR (`POST /certify/x509`, KYC-gated, customer keeps the key).
+- **Math (`@dotit/math` 0.1.0, first release).** Dependency-free lite LaTeX→MathML +
+  optional KaTeX; core marks `math:` / `[tex]{math}` placeholders. **Complex tables**:
+  merged cells (`<` colspan, `^` rowspan).
+- **Editor embedding (`@dotit/editor` 1.8.0).** `<IntentTextWorkbench mode="edit|fill|view|review|auto">`
+  — one component, every mode — plus intent-named exports (`TemplateEditor`, `FormDesigner`,
+  `FormFiller`, `DocViewer`), the attachment fill UI, and `EMBEDDING.md` + a runnable
+  Jadwal example.
+- **Hub submit (`@dotit/core` + `apps/hub`).** `submitForm(source, {endpoint})` client +
+  the `/api/responses` receiver that verifies both seals before accepting.
+- **Ambient Seal redesigned to a guilloché rosette (`@dotit/core`).** The notary stamp is
+  now banknote-style security engraving (hash-derived hypotrochoid), replacing the dot
+  bloom — still deterministic and tamper-evident.
+- **Jadwal merge fix (`@dotit/core` 1.10.1).** `parseAndMerge` now resolves `{{…}}` inside
+  `meta:` property-bag values, so a merged invoice with `meta: | date: {{…}}` is sealable.
+
 ### Security
 
 - **Content-Security-Policy on the web trust surfaces (verify + editor).** Added a strict

@@ -15,11 +15,13 @@ browser are marked.
 
 | Package | Version | What it is | Install |
 | --- | --- | --- | --- |
-| `@dotit/core` | 1.3.0 | Parser, HTML/print renderers, query engine, template merge, trust (seal/verify), themes, converters, and the `dotit` CLI. Zero runtime dependencies; runs in Node and the browser. | `npm i @dotit/core` |
-| `@dotit/pdf` | 1.0.1 | Server-side PDF bytes: merge → seal → PDF in one call. Puppeteer is an *optional* peer. | `npm i @dotit/pdf puppeteer` |
-| `@dotit/sign` | 1.2.0 | Ed25519 signatures (provable *who signed*) + UTS certifications (verified org identity). Offline, self-verifying. | `npm i @dotit/sign` |
-| `@dotit/mcp` | 1.1.0 | MCP server exposing the IntentText toolset (parse/render/merge/query/validate/seal/verify/sign) to any AI agent (stdio + HTTP). | `npx @dotit/mcp` |
-| `@dotit/editor` | 1.2.2 | Embeddable React WYSIWYG editor — Word-like pages, ribbon, trust banner, WYSIWYG PDF export. Browser-only. | `npm i @dotit/editor` |
+| `@dotit/core` | **1.12.0** | Parser, HTML/print renderers, query engine, template merge, trust (seal/sign/verify), **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers**, themes, converters, CLI. Zero runtime deps; Node + browser. | `npm i @dotit/core` |
+| `@dotit/editor` | **1.8.0** | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`** (edit/fill/review/view), ribbon, trust banner, attachment fill UI, version-compare, WYSIWYG PDF. Browser-only. | `npm i @dotit/editor` |
+| `@dotit/pdf` | **1.1.0** | Server-side PDF bytes: merge → seal → PDF; **PDF/A archival** (`toPdfA`); PAdES-signed PDF (`renderSignedPDF`). Puppeteer is an *optional* peer. | `npm i @dotit/pdf puppeteer` |
+| `@dotit/pades` | **1.0.0** | **PAdES** (Adobe/court-recognized) PDF signatures — ECDSA P-256 + X.509 + CMS; CSR/CA issuance; RFC-3161 timestamps; CLI. | `npm i @dotit/pades` |
+| `@dotit/sign` | **1.4.1** | Ed25519 signatures (provable *who signed*) + UTS certifications + root→intermediate chain. Offline, self-verifying. | `npm i @dotit/sign` |
+| `@dotit/math` | **0.1.0** | Render core's math placeholders → MathML (dependency-free lite) or full **KaTeX** (optional peer). | `npm i @dotit/math` |
+| `@dotit/mcp` | **1.1.1** | MCP server exposing the IntentText toolset to any AI agent (stdio + HTTP). | `npx @dotit/mcp` |
 | VS Code extension | `intenttext.intenttext` | Highlighting, live preview, diagnostics, completion, hover docs. | VS Code Marketplace |
 | GitHub Action | `intenttext/intenttext-action@v1` | Validate (and optionally verify seals of) every `.it` file in CI. | workflow yaml |
 | `intenttext` (PyPI) | experimental | Thin Python wrapper that shells out to the core CLI — never re-implements the grammar. | `pip install intenttext` |
@@ -340,6 +342,123 @@ step: Provision | tool: infra | id: s2
 step: Notify rejection | tool: email | id: s3
 result: Done | status: success
 ```
+
+---
+
+## 2.11 The latest capabilities (core 1.12 / editor 1.8)
+
+Everything below is in the published versions in the table above. APIs are from
+`@dotit/core` unless noted.
+
+### Forms — design → fill → complete → sign
+
+`meta: type: form` + `input:` fields make a fillable, signable document. A **complete**
+form (all required filled) stops being a template and becomes signable.
+
+```ts
+import {
+  isForm, isFormComplete, missingRequiredFields, applyAnswers, formAnswers,
+  formVisibility, computeFormValues, sealDocument,
+} from "@dotit/core";
+
+const form = `meta: | type: form
+input: Legal name | key: legal_name | type: text | required: yes
+input: Country | key: country | type: choice | options: KW, SA | required: yes
+input: VAT no | key: vat | type: text | show-if: country = SA      # conditional
+input: Qty | key: qty | type: number | value: 4
+input: Total | key: total | type: number | compute: qty * 250`;     // computed
+
+missingRequiredFields(form);                  // ["legal_name","country"] (hidden/computed skipped)
+const filled = applyAnswers(form, { legal_name: "Dalil", country: "KW" });
+isFormComplete(filled);                        // true → signable
+formAnswers(filled);                           // { legal_name, country, qty, total: "1000" }
+const record = sealDocument(filled, { signer: "Dalil" }).source; // tamper-evident
+```
+
+Field types: text, textarea, date, number, choice, checkbox, signature, table,
+**attachment**. `show-if:` conditional, `compute:` derived (safe, no `eval`).
+
+### Two-party form trust
+
+```ts
+import { sealFormStructure, verifyFormStructure } from "@dotit/core";
+const { source: blank } = sealFormStructure(form, { sealer: "Acme HR" }); // author vouches for the STRUCTURE
+// recipient fills + seals; both layers verify, independently:
+verifyFormStructure(record).intact;            // structure unchanged (author)
+verifyDocument(record).intact;                 // answers untampered (filler)
+```
+
+### Attachments (`.it` as a container)
+
+```ts
+import { addAttachment, getAttachment, attachmentDataUri } from "@dotit/core";
+let s = addAttachment(form, { key:"cr", name:"cr.pdf", mime:"application/pdf", size:0, href:"https://store/cr.pdf" }); // PREFER href
+s = addAttachment(s, { key:"id", name:"id.png", mime:"image/png", size:1234, data: base64 });        // embed (≤1 MiB, sealed-with-doc)
+```
+
+### Redline & version compare (Word track-changes)
+
+```ts
+import { compareVersions, acceptChanges, rejectChanges } from "@dotit/core";
+const redline = compareVersions(oldIt, newIt);  // a tracked-changes .it
+acceptChanges(redline);                          // === newIt   (rejectChanges → old)
+```
+
+In the editor, `<IntentTextWorkbench mode="review">` (or a doc with tracked changes in
+`mode="auto"`) renders the accept/reject UI; the editor's File ▸ "Compare versions"
+runs `compareVersions` for you.
+
+### Redaction (legally remove content)
+
+```ts
+import { applyRedactions, verifyRedaction } from "@dotit/core";
+// author marks:  text: The agent [John Carter]{redact: PII} met the source.
+const { source, receipts } = applyRedactions(marked); // text GONE; black-bar markers; seal as usual
+verifyRedaction(receipts[0].commit, "John Carter", receipts[0].salt); // prove coverage later
+```
+
+### Math
+
+```
+math: E = mc^2                       # block      |   text: [E = mc^2]{math: tex}   # inline
+```
+
+Core marks math (a `data-tex` placeholder, dependency-free). `@dotit/math` renders it:
+
+```ts
+import { renderMathInHtml } from "@dotit/math";  // server/print
+const out = await renderMathInHtml(renderHTML(parseIntentText(src)), { engine: "lite" });
+// browser editor: import { hydrateMath } from "@dotit/math"; await hydrateMath(root);
+```
+
+### PDF/A + PAdES (archival + legal signatures)
+
+```ts
+import { renderPDF, toPdfA, renderSignedPDF } from "@dotit/pdf";  // Node
+await renderPDF(src, { pdfA: { iccProfile, conformance: "3B" } });       // archival (needs sRGB ICC)
+await renderSignedPDF(src, { signer: { certPem, privateKeyPem, tsaUrl } }); // Adobe-recognized signature
+```
+
+PDF/A compliance is validated in CI with veraPDF. Signing certs can be self-issued
+(`@dotit/pades`) or issued by the UTS X.509 CA (`POST /certify/x509` with a CSR).
+
+### Submit a completed form back
+
+```ts
+import { submitForm } from "@dotit/core";
+await submitForm(completedForm, { endpoint: "https://hub/api/responses", formId: "vendor" });
+```
+
+### Editor — one component, every mode
+
+```tsx
+import { IntentTextWorkbench } from "@dotit/editor"; // + import "@dotit/editor/style.css"
+<IntentTextWorkbench value={src} onChange={setSrc} mode="auto" /* edit|fill|review|view|auto */ />
+```
+
+Or import a single component per page: `TemplateEditor` / `FormDesigner` (author),
+`FormFiller` (fill, with built-in attach/download), `Redline` (review), `DocViewer`.
+Full guide: [`packages/editor/EMBEDDING.md`](packages/editor/EMBEDDING.md).
 
 ---
 

@@ -26,24 +26,34 @@ hand-maintain their own keyword lists. The consistency gate
 (`pnpm --filter @dotit/core keywords:check`) enforces that they match the
 registry; CI fails on drift.
 
-## Packages — supported (v4.1)
+## Packages (@dotit/* — published to npm)
 
-| Package | Role |
-| --- | --- |
-| `packages/core` | The language: parser, merge, query, render, trust. The only grammar implementation. |
-| `packages/mcp` | MCP server exposing `.it` parsing/querying to AI agents. |
-| `packages/vscode` | VSCode extension: syntax highlighting, snippets, hover. |
-| `apps/editor` | Web editor (the primary human-facing app). Imports `@dotit/core` directly; pure TS, no WASM. |
+| Package | Ver | Role | Deps |
+| --- | --- | --- | --- |
+| `packages/core` | 1.12 | The language: parser, merge, query, render, trust, **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers, hub-submit client**. The only grammar implementation. | **zero** |
+| `packages/editor` | 1.8 | Embeddable React editor: `IntentTextWorkbench` (edit/fill/review/view), ribbon, trust banner. Imports `@dotit/core` (external). Browser-only. | react |
+| `packages/sign` | 1.4 | Ed25519 signatures + UTS certification (root→intermediate chain). | — |
+| `packages/pades` | 1.0 | PAdES PDF signatures: ECDSA P-256 + X.509 + CMS; CSR/CA issuance; RFC-3161 timestamps. | pkijs, @signpdf |
+| `packages/pdf` | 1.1 | Server-side PDF + PDF/A (`toPdfA`) + PAdES-signed PDF. | core, pdf-lib; puppeteer/pades peers |
+| `packages/math` | 0.1 | Renders core's math placeholders → MathML (lite) / KaTeX (optional peer). | — |
+| `packages/mcp` | 1.1 | MCP server exposing `.it` tools to AI agents. | core |
+| `packages/vscode` | — | VSCode extension: highlighting, snippets, hover. | core |
 
-## Apps
+**Principle:** `@dotit/core` stays **dependency-free** and runs in Node + browser +
+print path. Heavy runtime deps live in optional sibling packages/peers (puppeteer in
+`@dotit/pdf`, pkijs in `@dotit/pades`, KaTeX as a `@dotit/math` peer). Validators
+(veraPDF for PDF/A) are CI-only, never shipped.
 
-`apps/desktop` (Tauri enterprise document manager), `apps/editor` (web editor),
-`apps/docs` (Docusaurus site + landing), `apps/hub` (Next.js template gallery).
-They build against the same `@dotit/*` packages.
+## Apps & services
 
-> `apps/builder` was retired (2026-06). Its ERP integration patterns — Express /
-> Fastify handlers, server-PDF issuance, the template-artifact flow — live in
-> `demo/erp-integration/`.
+`apps/desktop` (**Electron** enterprise document manager — migrated from Tauri),
+`apps/editor` (web editor), `apps/docs` (Docusaurus site), `apps/hub` (Next.js template
+gallery + `/api/responses` form-submission receiver). `services/uts-certify` is the
+certification authority (Ed25519 + an **X.509 CA** for PAdES, `POST /certify/x509`).
+All build against the same `@dotit/*` packages.
+
+> `apps/builder` was retired (2026-06). Its ERP integration patterns live in
+> `demo/erp-integration/`; the full embedding guide is `INTEGRATION.md`.
 
 ## Data flow
 

@@ -19,10 +19,26 @@ operator-specific privacy policy on top.
 
 ## Component by component
 
-### `@dotit/core`, `@dotit/sign`, `@dotit/pdf`, the CLI, and the desktop app
-Fully local. Parsing, rendering, hashing, sealing, signing, and verification all happen on
-your device. No network calls, no telemetry. The desktop app's signing identity (an Ed25519
-private key) is stored in your **operating system keychain**, never transmitted.
+### `@dotit/core`, `@dotit/sign`, `@dotit/pdf`, `@dotit/pades`, `@dotit/math`, `@dotit/editor`, the CLI, and the desktop app
+Fully local. Parsing, rendering, hashing, sealing, signing, verification, **forms,
+redline/compare, redaction, attachments, and math rendering** all happen on your device.
+No network calls, no telemetry. The desktop app's signing identity (an Ed25519 private
+key, and the ECDSA PAdES identity) is stored in your **operating system keychain**, never
+transmitted. (Two network features are opt-in and explicit — `submitForm` and UTS
+certification, below.)
+
+### Forms, attachments & redaction (local; mind the document's own contents)
+These operate entirely on the `.it` string in memory, but they change *what the document
+contains*, so handle the resulting document accordingly:
+
+- **Attachments** — `addAttachment(..., { data })` **embeds** a file's bytes (possibly
+  personal data, e.g. a scanned ID) directly into the `.it` source, and a seal then covers
+  them. Prefer `href:` (a reference) to keep personal data out of the document; embed only
+  when self-containment is required. The 1 MiB embed cap discourages accidental bloat.
+- **Redaction** — `applyRedactions()` **deletes** the marked text from the source (it is
+  not recoverable from the output) and returns per-redaction **receipts** (a secret salt +
+  commitment). Keep receipts **private** — they let you later prove what was redacted; they
+  are deliberately *not* stored in the document.
 
 ### Verification portal (e.g. `verify.uts.qa`)
 100% client-side. The page loads the verification code and the UTS public key (fetched once,
@@ -45,6 +61,18 @@ Used only if you certify documents through a UTS authority. When you certify:
   removed on account closure subject to the operator's contractual/legal retention terms.
 - **Revocation:** an operator can revoke a certification; the revocation list is published so
   verifiers can honor it.
+- **X.509 signing certificates (`POST /certify/x509`) — optional.** To issue a PAdES signing
+  certificate, the customer sends a **CSR** (a certificate request containing only their
+  **public** key); the private signing key is generated locally and **never sent**. UTS
+  certifies the public key under the KYC-verified entity and logs only public material
+  (subject, serial, fingerprint, validity) — never the key.
+
+### Form submission — `submitForm` / Hub `POST /api/responses` (optional)
+`submitForm(source, { endpoint })` **POSTs the form** — the full `.it` `source` (which
+includes the answers and any *embedded* attachments), plus the derived answers and content
+hash — to the **endpoint you configure**. This is an explicit network send under your
+control; nothing is sent anywhere else. The Hub receiver verifies the document's seals and
+stores what the operator's handler chooses to store.
 
 ### `@dotit/mcp` (AI-agent server)
 Runs locally and operates on the documents you give it. It does not send your documents to

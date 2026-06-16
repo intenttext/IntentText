@@ -278,15 +278,39 @@ semantics, automatic RTL rendering, and byte-stable round-trips (the serializer
 re-emits the keyword the author wrote). Custom Arabic keywords and property keys
 work too: `مصروف: كراسي | فئة: أثاث` is a typed, queryable block.
 
+### Forms, review & compliance (closes the PDF/Word gap)
+
+`.it` now does what businesses still keep Word/PDF for — all on the same queryable,
+sealable format:
+
+- **Forms** — `meta: type: form` + `input:` fields: design, send, fill, and a
+  **complete** form becomes a signable record. Conditional (`show-if:`), computed
+  (`compute:`), tables, and **attachments** (a file travels inside the doc, covered by
+  the seal). **Two-party trust**: the author seals the blank form's structure; the
+  filler signs the answers.
+- **Redline & compare** — Word track-changes + comments; `compareVersions(a, b)` diffs
+  two versions into an accept/reject redline.
+- **Redaction** — legally *remove* content with a tamper-evident, provable marker.
+- **Legal signatures & archival** — export a sealed `.it` as a **PAdES** PDF Adobe and
+  courts recognize (`@dotit/pades`), or **PDF/A** for archives (`@dotit/pdf`, veraPDF-gated).
+- **Math** — `math: E = mc^2` → MathML/KaTeX via `@dotit/math`.
+
+Embed it all in your app with one component — see **[INTEGRATION.md](INTEGRATION.md)**.
+
 ## Monorepo map
 
 | Path | Package | What it is |
 | --- | --- | --- |
-| `packages/core` | [`@dotit/core`](https://npmjs.com/package/@dotit/core) | The format: parser, renderers, query engine, trust, themes, and the `dotit` CLI. Zero dependencies. |
-| `packages/pdf` | `@dotit/pdf` | Server-side PDFs — issue (merge → seal) → real PDF bytes. Opt-in. |
-| `packages/mcp` | `@dotit/mcp` | MCP server — AI agents read, write, query, and seal `.it` documents. |
+| `packages/core` | [`@dotit/core`](https://npmjs.com/package/@dotit/core) `1.12` | The format: parser, renderers, query, trust, **forms, redline/compare, redaction, attachments, math markers**, themes, CLI. Zero dependencies. |
+| `packages/editor` | [`@dotit/editor`](https://npmjs.com/package/@dotit/editor) `1.8` | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`**, ribbon, trust banner, attachment fill, version-compare. |
+| `packages/pdf` | [`@dotit/pdf`](https://npmjs.com/package/@dotit/pdf) `1.1` | Server-side PDFs — merge → seal → PDF; **PDF/A archival**; PAdES-signed PDF. Opt-in. |
+| `packages/pades` | [`@dotit/pades`](https://npmjs.com/package/@dotit/pades) `1.0` | **PAdES** (Adobe/court-recognized) PDF signatures — X.509/ECDSA + CMS; CSR/CA issuance; timestamps. |
+| `packages/sign` | [`@dotit/sign`](https://npmjs.com/package/@dotit/sign) `1.4` | Ed25519 signatures + UTS certification chain. Offline, self-verifying. |
+| `packages/math` | [`@dotit/math`](https://npmjs.com/package/@dotit/math) `0.1` | Math rendering — dependency-free lite MathML + optional KaTeX. |
+| `packages/mcp` | [`@dotit/mcp`](https://npmjs.com/package/@dotit/mcp) `1.1` | MCP server — AI agents read, write, query, and seal `.it` documents. |
 | `packages/vscode` | — | VS Code extension: highlighting, snippets, diagnostics. |
 | `apps/editor` | — | Web editor: WYSIWYG pages, live preview, themes, trust chips. |
+| `apps/desktop` | — | Electron desktop app (Word-grade reader/editor; PAdES export). |
 | `apps/docs` | — | The docs site ([dotit.uts.qa](https://dotit.uts.qa)). |
 
 Experimental (no stability promise): Hub, Desktop, Builder, and the Python client

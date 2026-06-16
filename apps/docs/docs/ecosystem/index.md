@@ -7,12 +7,21 @@ title: Ecosystem
 
 IntentText is more than a file format. It's a complete toolchain for structured documents.
 
+> **New (2026-06):** `.it` now closes the PDF/Word gap — **forms** (fillable, signable,
+> with conditional/computed fields + attachments + two-party trust), **redline & version
+> compare**, **redaction**, **PAdES** legal PDF signatures, **PDF/A** archival, and
+> **math**. Everything is in the packages below; the full developer guide is
+> **[/integration.md](/integration.md)**.
+
 ## Core
 
 | Tool                       | Description                                          |
 | -------------------------- | ---------------------------------------------------- |
-| [Core Library](./core-api) | `@dotit/core` 1.5 — parse, render, query, merge, trust, convert |
-| `@dotit/pdf`          | Server-side PDFs — issue (merge → seal) → real PDF bytes; opt-in companion |
+| [Core Library](./core-api) | `@dotit/core` **1.12** — parse, render, query, merge, trust, forms, redline/compare, redaction, attachments, math markers, convert |
+| `@dotit/pdf` **1.1**       | Server-side PDFs — merge → seal → PDF; **PDF/A** archival; PAdES-signed PDF; opt-in |
+| `@dotit/pades` **1.0**     | **PAdES** (Adobe/court-recognized) PDF signatures — X.509/ECDSA + CMS; CSR/CA issuance |
+| `@dotit/sign` **1.4**      | Ed25519 signatures + UTS certification chain |
+| `@dotit/math` **0.1**      | Math rendering — dependency-free lite MathML + optional KaTeX |
 | [CLI](./cli)               | Command-line tool for every operation                |
 
 ## Authoring
@@ -20,7 +29,7 @@ IntentText is more than a file format. It's a complete toolchain for structured 
 | Tool                                    | Description                                               |
 | --------------------------------------- | --------------------------------------------------------- |
 | [VS Code Extension](./vscode-extension) | Syntax highlighting, snippets, hover docs, trust commands |
-| [Editor](./editor)                      | Word-like WYSIWYG pages, template mode, trust UI, print/PDF — web app **and** embeddable React component (`@dotit/editor`) |
+| [Editor](./editor)                      | `@dotit/editor` **1.8** — Word-like WYSIWYG **and** an embeddable React component: one `<IntentTextWorkbench>` with every mode (edit / fill / review / view), attachment fill, version-compare, trust UI, print/PDF |
 
 ## Distribution
 
