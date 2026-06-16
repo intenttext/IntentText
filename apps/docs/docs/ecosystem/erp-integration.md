@@ -230,6 +230,103 @@ accepts `A4`, `A5`, `Letter`, `Legal`, or any CSS size (`size: 210mm 297mm`).
   (e.g. a per-tenant `color:`) can't break out of the `style` attribute — so invoice data
   from your database can't inject markup.
 
+## The enterprise layer — trust, approvals & compliance
+
+For an ERP (Jadwal) or accounting platform (tadween), the document is not just a
+printout — it's a **record of truth that carries its own approvals, signatures,
+and audit trail**, verifiable offline with no database lookup. Everything below is
+in `@dotit/core`.
+
+### Store `.it` so a seal can never break
+
+The seal hashes the **raw source bytes**. So persist the `.it` as **text, exactly
+as authored** — never re-serialize it through a model on save, and never let the
+DB normalize whitespace/encoding. The storage contract makes that a hard guarantee:
+
+```ts
+import { toStorageRecord, fromStorageRecord } from "@dotit/core";
+
+// write: store the source + an integrity tag
+const rec = toStorageRecord(itSource);          // { source, bytesSha256 }
+await db.documents.insert({ _id, ...rec });
+
+// read: throws loudly if the storage layer mutated even one byte
+const itSource = fromStorageRecord(await db.documents.findById(_id));
+```
+
+A sealed document round-trips byte-for-byte through this, so `verifyDocument` keeps
+returning `intact: true`. (A `.it` opened in the **visual editor is read-only when
+sealed**, so the editor never rewrites a sealed body.)
+
+### Forms — fillable, computed, signable
+
+`meta: type: form` turns `input:` lines into fields a recipient completes — with
+conditional (`show-if:`), computed (`compute: qty * price`), attachment, and
+signature fields. Fill programmatically and check completeness before signing:
+
+```ts
+import { applyAnswers, isFormComplete, sealFormStructure } from "@dotit/core";
+const filled = applyAnswers(blankForm, { legal_name: "Acme", qty: "10", unit_price: "250" });
+if (isFormComplete(filled)) { /* now signable */ }
+```
+
+### In-file approval routing — derived, never stored
+
+The document declares **who must approve, in what order**, and its live state is
+**derived from the file** — so the ERP never keeps a separate, drift-prone workflow
+table:
+
+```text
+route: sequential
+require: manager
+require: finance | when: amount > 100000
+require: legal
+```
+```ts
+import { workflowState, appendApproval, verifyAuditChain } from "@dotit/core";
+
+let doc = appendApproval(itSource, { by: "Sarah", role: "manager" });  // hash-chained
+const s = workflowState(doc);   // { pending:["finance","legal"], next:"finance", complete:false }
+
+// the approval SEQUENCE itself is tamper-evident:
+verifyAuditChain(doc).valid;    // false if any approval was inserted/deleted/reordered/edited
+```
+
+Render a "who's next / what's pending" widget straight from `workflowState(doc)`;
+gate the ERP's "Sign" button on `complete`.
+
+### Sign, seal, verify — offline, no backend
+
+```ts
+import { signDocument, sealDocument, verifyDocument } from "@dotit/core";
+const signed = signDocument(doc, { signer: "Ahmed", role: "CEO" }).source;
+const sealed = sealDocument(signed, { signer: "Ahmed" }).source;
+const v = verifyDocument(sealed);  // { intact, frozen, signers:[{valid, signedCurrentVersion}], … }
+```
+
+Everything needed to verify — the content hash, each signature, the public key — is
+**inside the file**. Hand it to a counterparty, a court, or an auditor; they verify
+without trusting your system.
+
+### Review, archival & legal PDF
+
+- **Redline** — `compareVersions(a, b)` and `acceptChanges`/`rejectChanges` for
+  contract negotiation; a document with no pending changes is final/sealable.
+- **PDF/A** archival and **PAdES** (`@dotit/pdf` `renderSignedPDF`, `toPdfA`) for
+  court-recognized, long-term-archivable PDF output.
+
+### Embed the editor in your app
+
+```tsx
+import { IntentTextWorkbench } from "@dotit/editor";
+// one component, switch behaviour by intent:
+<IntentTextWorkbench value={itSource} onChange={setItSource}
+  mode="edit | fill | view | review | auto" />
+```
+
+`auto` detects the document (a form → fill UI, a sealed doc → read-only viewer, a
+draft → editor), so a single embed serves every stage of the document's life.
+
 ## Why this is portable
 
 - **One package** (`@dotit/core`) plus one small file you own.
