@@ -222,7 +222,10 @@ describe("diff_documents", () => {
 
 describe("document_to_source", () => {
   it("returns string containing keywords", () => {
-    const doc = parseIntentText("# My Doc\n- task: Do stuff\n- note: A note");
+    // Use explicit keywords: bare prose now round-trips bare (text: is optional as
+    // of @dotit/core 1.14.0), so an explicit `text:` line is what serializes with
+    // the keyword.
+    const doc = parseIntentText("title: My Doc\ntask: Do stuff\ntext: A note");
     const source = documentToSource(doc);
     expect(source).toContain("task:");
     expect(source).toContain("text:");
