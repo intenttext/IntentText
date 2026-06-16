@@ -172,6 +172,8 @@ export {
   verifyFormStructure,
 } from "./form-trust";
 export type { FormSeal, FormStructureVerification } from "./form-trust";
+export { submitForm, buildSubmission } from "./hub-client";
+export type { SubmitOptions, SubmitResult, SubmissionPayload } from "./hub-client";
 export {
   hasTrackedChanges,
   extractChanges,
