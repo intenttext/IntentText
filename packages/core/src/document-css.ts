@@ -54,6 +54,10 @@ export const DOCUMENT_CSS = `
 /* ── Redaction ──────────────────────────────────────────── */
 .it-redacted{background:#111;color:#111;border-radius:2px;padding:0 2px;user-select:none;}
 .it-redact-pending{background:#111;color:#fff;border-radius:2px;padding:0 2px;outline:1.5px dashed #cf222e;}
+/* ── Math (rendered by @dotit/math; raw TeX is the fallback) ─ */
+.it-math{font-style:italic;}
+.it-math-block{display:block;text-align:center;margin:14px 0;}
+.it-math math{font-size:1.05em;}
 .intent-task-owner::before{content:'@ ';opacity:0.6;}
 .intent-task-due::before{content:'due ';}
 .intent-task-time::before{content:'at ';}

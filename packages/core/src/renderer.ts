@@ -370,6 +370,13 @@ function applyInlineFormatting(
               const reason = String(node.props.redact);
               return `<span class="it-redact-pending" title="${escapeHtml("Marked to redact" + (reason ? ": " + reason : ""))}">${escapeHtml(node.value)}</span>`;
             }
+            // Inline MATH: [E = mc^2]{math: tex}. Core only MARKS it (stays
+            // dependency-free); @dotit/math renders the data-tex placeholder to
+            // MathML/KaTeX (renderMathInHtml / hydrateMath). Fallback text = the TeX.
+            if (node.props && node.props.math != null) {
+              const tex = escapeHtml(node.value);
+              return `<span class="it-math" data-tex="${tex}">${tex}</span>`;
+            }
             // Inline FORM FIELD: [answer]{input: key; type: …} — a fill-in-the-blank
             // within prose (e.g. "I, [Jane]{input: signer}, agree"). Empty bracket
             // renders as an underline to fill; a value renders inline.
@@ -1518,6 +1525,18 @@ function renderBlock(block: IntentBlock): string {
         : "unknown";
       const xNs = props["x-ns"] ? escapeHtml(String(props["x-ns"])) : "ext";
       return `<div class="it-extension it-ext-${xNs} it-ext-${xType}" data-x-type="${xType}" data-x-ns="${xNs}"${styleAttr}>${content}</div>`;
+    }
+
+    // `math: E = mc^2` — a display equation. Core MARKS it (stays dependency-free);
+    // @dotit/math renders the data-tex placeholder. Other custom blocks fall through.
+    case "custom": {
+      if (props.keyword === "math") {
+        const tex = escapeHtml(String(block.content ?? ""));
+        return `<div class="it-math-block" data-tex="${tex}">${tex}</div>`;
+      }
+      return `<div class="intent-unknown">
+        <small class="intent-unknown-type">[${block.type}]</small> ${content}
+      </div>`;
     }
 
     default:

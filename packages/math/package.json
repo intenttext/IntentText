@@ -1,0 +1,36 @@
+{
+  "name": "@dotit/math",
+  "version": "0.1.0",
+  "description": "Math/equation rendering for IntentText (.it) — a dependency-free lightweight LaTeX→MathML renderer for common business/science math, with optional KaTeX for full LaTeX. Renders the math placeholders @dotit/core emits.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["intenttext", "math", "latex", "mathml", "katex", "equations"],
+  "author": "UTS",
+  "license": "MIT",
+  "publishConfig": { "access": "public" },
+  "peerDependencies": {
+    "katex": "^0.16.0"
+  },
+  "peerDependenciesMeta": {
+    "katex": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
