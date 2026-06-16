@@ -6,6 +6,20 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — in-file approval routing, DERIVED (`@dotit/core`)
+
+- **The document carries its own approval workflow; its state is derived, never
+  stored.** A document declares its route with `route: sequential` (or `parallel`)
+  + `require:` lines (e.g. `require: finance | when: amount > 100000`), and fulfills
+  it with ordinary `approve:` lines. `workflowState(source)` then **derives**
+  `{ pending, next, complete, active, fulfilled }` purely from the file — so the
+  `.it` document is the single source of truth and can never drift from a separate
+  database. Conditional (`when:`) requirements evaluate against the document's own
+  metric:/meta values on the safe no-`eval` evaluator; `optional:` requirements
+  never block completion. `route:`/`require:` are preserved verbatim (custom
+  blocks), so a routed document round-trips byte-for-byte and keeps its seal.
+  Example: `examples/routed-approval.it`.
+
 ### Changed — bare prose, `text:` now optional (`@dotit/core` 1.14.0)
 
 - **`text:` is optional — write natural prose.** A line with no keyword is an

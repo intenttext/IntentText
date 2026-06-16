@@ -1,0 +1,28 @@
+// A document that carries its OWN approval workflow — the route travels INSIDE
+// the file, and its live state is DERIVED (never stored in a database):
+//
+//   workflowState(source) -> { pending, next, complete }
+//
+// route: declares the order; require: lines declare who must approve (with an
+// optional condition); approve: lines fulfill them. Try it:
+//   node cli.js examples/routed-approval.it            (renders)
+// and in code: import { workflowState } from "@dotit/core".
+
+title: Purchase Order PO-9001
+meta: | type: purchase-order
+summary: Capital equipment purchase — routed for sequential approval.
+
+route: sequential
+require: manager
+require: finance | when: amount > 100000
+require: legal
+
+section: Order
+text: Supplier | end: Medad Industrial Co.
+text: Item | end: CNC machining centre
+metric: Amount | value: 250000 | unit: USD
+
+section: Approvals
+approve: Within budget; vendor vetted | by: Sarah Chen | role: manager | at: 2026-03-20
+approve: Funds confirmed for Q2 | by: James Miller | role: finance | at: 2026-03-21
+// legal approval still pending → workflowState.next === "legal", complete === false

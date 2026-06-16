@@ -86,6 +86,15 @@ export { diffDocuments } from "./diff";
 export type { DocumentDiff, BlockModification } from "./diff";
 export { extractWorkflow } from "./workflow";
 export type { WorkflowStep, WorkflowGraph } from "./workflow";
+// In-file approval routing (derived, never stored) — the document carries its
+// own workflow; workflowState() derives pending/next/complete from route:/require:
+// + approve: lines, so the file is the single source of truth.
+export { workflowState, extractRoute } from "./workflow-state";
+export type {
+  WorkflowState,
+  ApprovalRoute,
+  RequiredApprover,
+} from "./workflow-state";
 export { executeWorkflow } from "./executor";
 export type {
   WorkflowRuntime,
