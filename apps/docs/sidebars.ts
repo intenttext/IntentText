@@ -23,6 +23,7 @@ const sidebars: SidebarsConfig = {
       label: "A Folder Is a Database",
     },
     { type: "doc", id: "guide/trust-and-signing", label: "Trust & Signing" },
+    { type: "doc", id: "guide/forms-and-workflows", label: "Forms, Review & Compliance" },
   ],
 
   referenceSidebar: [
