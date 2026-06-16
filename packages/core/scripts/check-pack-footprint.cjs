@@ -2,10 +2,17 @@
 
 const { execSync } = require("node:child_process");
 
+// Re-baselined at 1.14.0. The previous limits were set at core 1.5.0 (XLSX/DOCX
+// converters); core has since legitimately grown through the PDF/Word-parity
+// features — forms, trust workflow, redline, version compare, redaction, math,
+// mergeThreeWay, attachments (1.6.0→1.14.0). These limits sit just above the
+// current real size (packed ~123 KB, unpacked ~571 KB, 93 entries) so the guard
+// still catches FUTURE accidental bloat. Bump deliberately when real features grow
+// the surface; never to wave through an accidental dependency or stray src file.
 const LIMITS = {
-  packedBytes: 120000,
-  unpackedBytes: 520000,
-  entryCount: 80,
+  packedBytes: 135000,
+  unpackedBytes: 630000,
+  entryCount: 100,
 };
 
 const raw = execSync("npm pack --json --dry-run", {

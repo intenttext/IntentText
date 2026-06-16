@@ -6,6 +6,21 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed — bare prose, `text:` now optional (`@dotit/core` 1.14.0)
+
+- **`text:` is optional — write natural prose.** A line with no keyword is an
+  implicit text paragraph (it already parsed that way; now it also **round-trips
+  bare**). `documentToSource` re-emits bare prose without re-adding `text:`, so a
+  hand-written document stays byte-for-byte identical and **keeps its seal** (a
+  re-save can no longer silently break trust). Explicit `text:` is preserved when
+  written; content that could be misread as another construct (a keyword, list,
+  fence, divider, comment, or pipe row) keeps the `text:` prefix automatically.
+  Blank line = new paragraph; consecutive lines = one paragraph (the universal
+  plain-text convention).
+- **Byte-fidelity gate.** Locks the trust moat on the exchange path: sealed
+  documents round-trip byte-for-byte through the storage record and stay verified;
+  a storage layer that mutates even one byte is caught loudly (never silent).
+
 ### Added — PDF/Word parity wave (2026-06-16)
 
 Published: `@dotit/core` **1.13.0**, `@dotit/editor` **1.8.0**, `@dotit/pdf` **1.1.0**,
