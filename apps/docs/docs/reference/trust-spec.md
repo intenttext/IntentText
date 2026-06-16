@@ -12,7 +12,7 @@ implementations (and enterprise/legal reviewers) can rely on. It complements the
 
 > **Status:** v1 (matches `@dotit/core` ≥ 1.9.0 and `@dotit/sign` ≥ 1.4.1). The hash rule
 > changed in 1.9.0 (Unicode normalization); verifiers MUST accept the legacy hash for
-> documents sealed before that — see [Backward compatibility](#backward-compatibility).
+> documents sealed before that — see [Backward compatibility](#9-backward-compatibility).
 
 The key words MUST, SHOULD, and MAY are used as in RFC 2119.
 
