@@ -24,6 +24,7 @@ const sidebars: SidebarsConfig = {
     },
     { type: "doc", id: "guide/trust-and-signing", label: "Trust & Signing" },
     { type: "doc", id: "guide/forms-and-workflows", label: "Forms, Review & Compliance" },
+    { type: "doc", id: "guide/config-and-options", label: "Config & Options (vs YAML/JSON)" },
   ],
 
   referenceSidebar: [

@@ -58,9 +58,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @dotit/core
-        # NOTE: --provenance temporarily removed to rule it out as the cause of the
-        # E404. Re-add once publishing succeeds (enterprise SBOM/provenance story).
-        run: pnpm publish --filter @dotit/core --access public --no-git-checks
+        run: pnpm publish --filter @dotit/core --access public --no-git-checks --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
