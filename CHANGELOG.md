@@ -19,6 +19,14 @@ The format is based on Keep a Changelog.
   never block completion. `route:`/`require:` are preserved verbatim (custom
   blocks), so a routed document round-trips byte-for-byte and keeps its seal.
   Example: `examples/routed-approval.it`.
+- **Hash-chained audit trail.** `appendApproval(source, …)` chains each approval to
+  the previous audit event via `prev: sha256:…` (anchored to the content), so the
+  approval SEQUENCE is tamper-evident — `verifyAuditChain(source)` detects any
+  inserted, deleted, reordered, or edited approval (closing the gap that the
+  history/approval log itself was not chained). Additive and safe: it does not
+  touch signDocument/sealDocument; a plain `approve:` line is just an un-chained
+  link, never reported as tampered. A chained, then sealed document both verifies
+  and keeps a valid chain.
 
 ### Changed — bare prose, `text:` now optional (`@dotit/core` 1.14.0)
 

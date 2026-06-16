@@ -95,6 +95,11 @@ export type {
   ApprovalRoute,
   RequiredApprover,
 } from "./workflow-state";
+// Hash-chained audit trail — the approval SEQUENCE is tamper-evident (no insert/
+// delete/reorder without detection). appendApproval chains each approval to the
+// prior audit event via prev:; verifyAuditChain recomputes the chain.
+export { appendApproval, verifyAuditChain, auditTrail, eventHash } from "./audit-chain";
+export type { AuditEvent, AuditChainResult, AuditKind } from "./audit-chain";
 export { executeWorkflow } from "./executor";
 export type {
   WorkflowRuntime,
