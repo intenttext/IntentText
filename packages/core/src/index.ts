@@ -100,6 +100,9 @@ export type {
 // prior audit event via prev:; verifyAuditChain recomputes the chain.
 export { appendApproval, verifyAuditChain, auditTrail, eventHash } from "./audit-chain";
 export type { AuditEvent, AuditChainResult, AuditKind } from "./audit-chain";
+// Source-preserving edit reconciliation — keep unchanged blocks' exact original
+// bytes so an edit touches only what changed (a sealed doc keeps its hash).
+export { reconcileEdit } from "./reconcile";
 export { executeWorkflow } from "./executor";
 export type {
   WorkflowRuntime,
