@@ -140,9 +140,20 @@ export {
   missingRequiredFields,
   setFieldValue,
   applyAnswers,
+  formVisibility,
+  computeFormValues,
+  applyComputedValues,
   FORM_FIELD_TYPES,
 } from "./forms";
 export type { FormField, FormFieldType } from "./forms";
+export {
+  parseCondition,
+  evalCondition,
+  conditionHolds,
+  computeValue,
+  formatComputed,
+} from "./field-logic";
+export type { Condition, CompareOp } from "./field-logic";
 export {
   extractAttachments,
   getAttachment,

@@ -16,6 +16,7 @@
  */
 
 import { hasAttachment } from "./attachments";
+import { conditionHolds, computeValue, formatComputed } from "./field-logic";
 
 /** Field types. (attachment added in v2 — see attachments.ts for the container.) */
 export const FORM_FIELD_TYPES = [
@@ -48,6 +49,10 @@ export interface FormField {
   filled: boolean;
   /** Inline `[ ]{input: key}` field vs a block `input:` line. */
   inline: boolean;
+  /** `show-if: key op value` — the field shows/counts only when this holds. */
+  showIf?: string;
+  /** `compute: expr` — the value is derived (arithmetic over other field keys). */
+  compute?: string;
 }
 
 const META_FORM = /^\s*meta:\s*(?:\|[^\n]*)?\btype:\s*form\b/im;
@@ -130,6 +135,8 @@ export function extractFormFields(source: string): FormField[] {
           .filter(Boolean),
         value: props.value ?? "",
         inline: false,
+        showIf: props["show-if"] || undefined,
+        compute: props.compute || undefined,
       }),
     );
   }
@@ -155,6 +162,8 @@ export function extractFormFields(source: string): FormField[] {
           .filter(Boolean),
         value,
         inline: true,
+        showIf: props["show-if"] || undefined,
+        compute: props.compute || undefined,
       }),
     );
   }
@@ -178,7 +187,10 @@ function isFieldSatisfied(f: FormField): boolean {
  */
 export function isFormComplete(source: string): boolean {
   if (!isForm(source)) return false;
+  const answers = formAnswers(source);
   return extractFormFields(source).every((f) => {
+    if (f.compute) return true; // derived — never hand-filled
+    if (!conditionHolds(f.showIf, answers)) return true; // hidden → not required
     if (!isFieldSatisfied(f)) return false;
     if (f.type === "attachment" && f.filled && !hasAttachment(source, f.key)) {
       return false;
@@ -194,10 +206,58 @@ export function formAnswers(source: string): Record<string, string> {
   return out;
 }
 
+/**
+ * Which fields are currently VISIBLE given the answers (`show-if:`). A hidden field
+ * doesn't count toward completeness and shouldn't render. Map of field key → shown.
+ */
+export function formVisibility(source: string): Record<string, boolean> {
+  const answers = formAnswers(source);
+  const out: Record<string, boolean> = {};
+  for (const f of extractFormFields(source)) {
+    out[f.key] = conditionHolds(f.showIf, answers);
+  }
+  return out;
+}
+
+/**
+ * Evaluate every `compute:` field over the current answers → key → value. Two passes
+ * resolve a computed field that depends on another computed field.
+ */
+export function computeFormValues(source: string): Record<string, string> {
+  const fields = extractFormFields(source);
+  const vars = formAnswers(source);
+  const computed: Record<string, string> = {};
+  for (let pass = 0; pass < 2; pass++) {
+    for (const f of fields) {
+      if (!f.compute) continue;
+      const val = formatComputed(computeValue(f.compute, vars));
+      computed[f.key] = val;
+      vars[f.key] = val; // feed dependents in the next pass
+    }
+  }
+  return computed;
+}
+
+/** Write computed values back into the source, so a saved form carries its totals. */
+export function applyComputedValues(source: string): string {
+  let out = source;
+  for (const [key, val] of Object.entries(computeFormValues(source))) {
+    out = setFieldValue(out, key, val);
+  }
+  return out;
+}
+
 /** Keys of required fields still missing an answer (for "X fields left" UI). */
 export function missingRequiredFields(source: string): string[] {
+  const answers = formAnswers(source);
   return extractFormFields(source)
-    .filter((f) => f.required && !f.filled)
+    .filter(
+      (f) =>
+        f.required &&
+        !f.compute &&
+        conditionHolds(f.showIf, answers) &&
+        !f.filled,
+    )
     .map((f) => f.key);
 }
 
