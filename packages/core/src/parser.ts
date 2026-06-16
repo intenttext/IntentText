@@ -1133,7 +1133,9 @@ function parseLine(
     };
   }
 
-  // Default to text (implicit text block — bare prose without a keyword prefix)
+  // Default to text (implicit text block — bare prose without a keyword prefix).
+  // _bare records that it was authored without `text:` so documentToSource can
+  // re-emit it bare (natural source round-trips byte-for-byte, hash unchanged).
   const unescaped = unescapeIntentText(trimmed);
   const { content: cleanContent, inline } = ctx.parseInline(unescaped);
 
@@ -1143,6 +1145,7 @@ function parseLine(
     content: cleanContent,
     originalContent: unescaped,
     inline,
+    _bare: true,
   };
 }
 
@@ -1357,6 +1360,7 @@ export function parseIntentText(
       content: b.content,
       ...(b.originalContent != null && { originalContent: b.originalContent }),
       ...(b.keywordAlias != null && { keywordAlias: b.keywordAlias }),
+      ...(b._bare && { _bare: b._bare }),
       ...(b.properties && { properties: b.properties }),
       ...(b.inline && { inline: b.inline }),
     };

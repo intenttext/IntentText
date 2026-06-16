@@ -101,12 +101,24 @@ describe("documentToSource — round-trip guarantee", () => {
     );
   });
 
-  it("serializes text blocks with text: prefix", () => {
+  it("round-trips bare prose without adding a text: prefix", () => {
+    // Bare prose (a line with no keyword) is an implicit text block and must
+    // re-emit bare — so a natural hand-written document round-trips byte-for-byte
+    // and keeps its content hash (a re-save can't break a seal).
     const src = "Hello world";
     const doc = parseIntentText(src);
     expect(doc.blocks[0].type).toBe("text");
     expect(doc.blocks[0].content).toBe("Hello world");
-    const result = documentToSource(doc);
-    expect(result).toBe("text: Hello world");
+    expect(documentToSource(doc)).toBe("Hello world");
+  });
+
+  it("preserves an explicit text: prefix when one was written", () => {
+    const src = "text: Hello world";
+    expect(documentToSource(parseIntentText(src))).toBe("text: Hello world");
+  });
+
+  it("keeps text: when bare content would be misread (e.g. starts like a keyword)", () => {
+    const src = "text: note: this colon-prose must stay a paragraph";
+    expect(documentToSource(parseIntentText(src))).toBe(src);
   });
 });

@@ -254,6 +254,27 @@ export function blockToSource(block: IntentBlock): string {
   return serializeBlock(block);
 }
 
+/**
+ * True if a prose line can be emitted WITHOUT the `text:` keyword and still
+ * re-parse as the same bare text block. Refuses content that the parser would
+ * otherwise read as a different construct: a keyword/custom block (`word:`), a
+ * list/step bullet (`- ` / `1. `), a code fence, divider, comment, or table /
+ * pipe-property row. Empty content also stays explicit (a bare blank line is a
+ * paragraph break, not an empty paragraph).
+ */
+function canEmitBare(content: string): boolean {
+  const t = content.trimStart();
+  if (t === "") return false;
+  if (/^[\p{L}_][\p{L}\p{N}_-]*:(\s|$)/u.test(t)) return false; // word: … (keyword/custom)
+  if (/^-\s/.test(t)) return false; // - bullet
+  if (/^\d+\.\s/.test(t)) return false; // 1. ordered
+  if (/^```/.test(t)) return false; // code fence
+  if (/^---\s*$/.test(t)) return false; // divider
+  if (/^\/\//.test(t)) return false; // comment line
+  if (/^\|/.test(t)) return false; // table / pipe-property row
+  return true;
+}
+
 function serializeBlock(block: IntentBlock): string {
   const type = block.type;
 
@@ -336,6 +357,20 @@ function serializeBlock(block: IntentBlock): string {
   // `kw: | props` form (e.g. `font: | family: Inter`) — not `kw:  | props`.
   const escContent = escapeIntentText(content);
   const propStr = serializeProperties(block, exclude);
+
+  // Bare prose: a text block authored without the `text:` keyword re-emits bare
+  // (just the content) so natural hand-written documents round-trip exactly —
+  // but ONLY when the line can't be mistaken for another construct on re-parse,
+  // and only when it carries no properties (bare prose has no pipe-metadata).
+  if (
+    (type === "text" || type === "body-text") &&
+    block._bare &&
+    !propStr &&
+    canEmitBare(escContent)
+  ) {
+    return escContent;
+  }
+
   if (propStr) {
     return escContent
       ? `${kw}: ${escContent} | ${propStr}`

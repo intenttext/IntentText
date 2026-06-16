@@ -27,6 +27,12 @@ export interface IntentBlock {
    *  re-emit them on separate lines (the form the hash was computed over).
    *  Re-parsing the re-split lines reproduces the same merged block + parts. */
   _merged?: IntentBlock[];
+  /** Lossless round-trip: this prose block was authored as bare text — a line
+   *  with NO `text:` keyword prefix. documentToSource re-emits it bare (when the
+   *  content can't be mistaken for another construct), so a hand-written natural
+   *  document round-trips byte-for-byte and keeps its hash. Explicit `text:`
+   *  blocks leave this unset and re-emit with the keyword. */
+  _bare?: boolean;
   children?: IntentBlock[]; // nested blocks (e.g. list-items inside a section)
   table?: {
     headers?: string[];
