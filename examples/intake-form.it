@@ -1,0 +1,31 @@
+// A fillable IntentText FORM — `meta: type: form` turns input: lines into boxes a
+// recipient completes. Open in the editor (it shows the fill UI), or fill
+// programmatically with applyAnswers(). A COMPLETE form (all required answered)
+// stops being a template and becomes a signable, queryable record.
+//
+//   View/fill:  open in the @dotit/editor (auto-detects the form)
+//   Conditional: VAT no shows only when Country = SA
+//   Computed:    Total = Quantity * Unit price (auto-filled, read-only)
+
+meta: | type: form | title: Vendor Onboarding
+title: Vendor Onboarding
+summary: Complete every required field, attach your CR, and sign to submit.
+
+section: Company
+input: Legal name | key: legal_name | type: text | required: yes
+input: Country | key: country | type: choice | options: KW, SA, AE, QA | required: yes
+input: VAT number | key: vat | type: text | show-if: country = SA
+input: Commercial registration (PDF) | key: cr | type: attachment | required: yes
+
+section: Order
+input: Quantity | key: qty | type: number | required: yes | value: 1
+input: Unit price (USD) | key: unit_price | type: number | required: yes | value: 250
+input: Total (USD) | key: total | type: number | compute: qty * unit_price
+
+section: Notes
+input: Anything we should know? | key: notes | type: textarea
+
+section: Authorization
+input: Authorized signatory | key: signer | type: text | required: yes
+input: Signature | key: signature | type: signature | required: yes
+input: Date | key: signed_at | type: date | required: yes

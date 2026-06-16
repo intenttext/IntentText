@@ -8,6 +8,8 @@ Render any file with `node cli.js examples/<file>` (add `--print` for paged, PDF
 - `project-tasks.it` — launch plan: `task:`/`done:`/`deadline:`/`metric:` with owners and ISO due dates; try `--query "type=task priority=high"`.
 - `expense-report-template.it` + `expense-report-data.json` — template and data pair: `each:` row loop, merged with `--data`.
 - `styling-demo.it` — `style:` rules, `leading:`/`space-before:`/`space-after:`, inline `[text]{ … }` spans, print watermark.
+- `intake-form.it` — a fillable **form** (`meta: type: form`): text/choice/number/textarea/attachment/signature fields, a **conditional** field (`show-if: country = SA`), and a **computed** field (`compute: qty * unit_price`). Open in the editor for the fill UI; a complete form becomes signable.
+- `intake-form-filled.it` — the same form **completed + sealed** (CR attached, Total auto-computed): `node cli.js verify examples/intake-form-filled.it` passes; answers are queryable by field key.
 - `templates/` — ready-to-merge document templates (invoice, contract, report, and more).
 - tender-boq.it — tender submission: Bill of Quantities (multi-table), commercial summary, submittals, approval + signature
 - feasibility-medad.it — full feasibility study (Medad Ink Factory for QDB): `toc:`, 7 sections, KPI `metric:` cards, 16 financial tables (5-yr P&L, cash flow, balance sheet, DCF, sensitivity, risk matrix), `info:` callouts, `def:` glossary, A4 print chrome with `break:` pagination.
