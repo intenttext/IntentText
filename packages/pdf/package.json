@@ -36,7 +36,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@dotit/core": "workspace:^"
+    "@dotit/core": "workspace:^",
+    "pdf-lib": "^1.17.1"
   },
   "peerDependencies": {
     "@dotit/pades": ">=0.1.0",

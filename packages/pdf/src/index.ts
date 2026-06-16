@@ -22,6 +22,10 @@ import {
   renderPrint,
   sealDocument,
 } from "@dotit/core";
+import { toPdfA, type PdfAOptions, type PdfAConformance } from "./pdfa";
+
+export { toPdfA };
+export type { PdfAOptions, PdfAConformance };
 
 /* ── Types ────────────────────────────────────────────────────────────────── */
 
@@ -48,6 +52,12 @@ export interface PdfRenderOptions {
    * preferCSSPageSize: true — so the document's `page:` size/margins are honored.
    */
   pdf?: Record<string, unknown>;
+  /**
+   * When set, post-process the PDF into PDF/A (archival). Requires an sRGB ICC
+   * profile (pdfA.iccProfile). Compliance is verified in CI with veraPDF — see
+   * src/pdfa.ts and the README.
+   */
+  pdfA?: PdfAOptions;
 }
 
 export interface IssueOptions extends PdfRenderOptions {
@@ -205,11 +215,16 @@ export async function htmlToPDF(
   options: PdfRenderOptions = {},
 ): Promise<Buffer> {
   const browser = await launchBrowser(options);
+  let bytes: Buffer;
   try {
-    return await pageToPdf(browser, html, options);
+    bytes = await pageToPdf(browser, html, options);
   } finally {
     await browser.close();
   }
+  if (options.pdfA) {
+    bytes = Buffer.from(await toPdfA(bytes, options.pdfA));
+  }
+  return bytes;
 }
 
 /** Render an `.it` source (already merged/finished) to PDF bytes. */

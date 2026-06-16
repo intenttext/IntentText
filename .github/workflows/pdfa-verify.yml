@@ -1,0 +1,78 @@
+# PDF/A compliance gate — renders a sample .it to PDF/A and validates it with
+# veraPDF (the ISO reference validator). This is the source of truth for the
+# "we emit PDF/A" claim: the @dotit/pdf toPdfA pass is correct only insofar as
+# this job is green. Runs on demand and on changes to the PDF package.
+name: PDF/A (veraPDF)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "packages/pdf/**"
+      - ".github/workflows/pdfa-verify.yml"
+
+jobs:
+  verapdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install + build
+        run: |
+          pnpm install --frozen-lockfile=false
+          pnpm --filter @dotit/core build
+          pnpm --filter @dotit/pdf build
+
+      - name: Install Chrome for Puppeteer
+        run: npx puppeteer browsers install chrome
+
+      - name: Fetch a standard sRGB ICC profile
+        run: curl -fsSL https://www.color.org/sRGB2014.icc -o sRGB.icc
+
+      - name: Render the sample to PDF/A
+        working-directory: packages/pdf
+        env:
+          # point @dotit/pdf at the Chrome puppeteer just installed
+          PUPPETEER_EXECUTABLE_PATH: ""
+        run: node scripts/gen-pdfa-sample.mjs "$GITHUB_WORKSPACE/sRGB.icc" "$GITHUB_WORKSPACE/sample-pdfa.pdf"
+
+      - name: Install veraPDF (headless auto-install)
+        run: |
+          curl -fsSL https://software.verapdf.org/releases/verapdf-installer.zip -o verapdf.zip
+          unzip -q verapdf.zip -d verapdf
+          DIR=$(find verapdf -maxdepth 1 -type d -name 'verapdf*' | head -1)
+          cat > auto-install.xml <<XML
+          <AutomatedInstallation langpack="eng">
+            <com.izforge.izpack.panels.htmlhello.HTMLHelloPanel id="welcome"/>
+            <com.izforge.izpack.panels.target.TargetPanel id="install_dir">
+              <installpath>${GITHUB_WORKSPACE}/verapdf-app</installpath>
+            </com.izforge.izpack.panels.target.TargetPanel>
+            <com.izforge.izpack.panels.packs.PacksPanel id="sdk_pack_select">
+              <pack index="0" name="veraPDF Mac and *nix Scripts" selected="true"/>
+            </com.izforge.izpack.panels.packs.PacksPanel>
+            <com.izforge.izpack.panels.install.InstallPanel id="install"/>
+            <com.izforge.izpack.panels.finish.FinishPanel id="finish"/>
+          </AutomatedInstallation>
+          XML
+          "$DIR/verapdf-install" auto-install.xml
+
+      - name: Validate PDF/A-3B
+        run: |
+          "$GITHUB_WORKSPACE/verapdf-app/verapdf" --flavour 3b "$GITHUB_WORKSPACE/sample-pdfa.pdf"
+        # veraPDF exits non-zero when the file is non-compliant → fails the job.
+
+      - name: Upload the sample (for inspection)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdfa-sample
+          path: sample-pdfa.pdf

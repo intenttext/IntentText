@@ -77,6 +77,35 @@ await r.close();
 
 In containers, pass `launchArgs: ["--no-sandbox"]` if your image requires it.
 
+## PDF/A (archival)
+
+PDF/A (ISO 19005) is the archival standard regulated industries' auditors check
+for. Pass `pdfA` to any render call (or use `toPdfA` directly) to add the
+PDF/A identification XMP, an sRGB OutputIntent, and a stable document ID:
+
+```ts
+import { renderPDF, toPdfA } from "@dotit/pdf";
+import { readFileSync } from "node:fs";
+
+const iccProfile = new Uint8Array(readFileSync("sRGB.icc")); // a standard sRGB profile
+const pdf = await renderPDF(source, {
+  pdfA: { iccProfile, conformance: "3B", title: "Invoice INV-1", author: "Jadwal" },
+});
+// or post-process existing PDF bytes:  await toPdfA(bytes, { iccProfile })
+```
+
+**An sRGB ICC profile is required** (PDF/A needs an OutputIntent) — ship a standard
+`sRGB IEC61966-2.1` profile (e.g. from <https://www.color.org>) and pass its bytes.
+Without it `toPdfA` throws (or set `allowNoIcc` for XMP+ID only — **not** valid
+PDF/A).
+
+**Compliance is verified in CI with veraPDF** (the ISO reference validator) —
+`.github/workflows/pdfa-verify.yml` renders a sample and validates PDF/A-3B. The
+`toPdfA` pass handles the post-processing concerns (XMP / OutputIntent / ID); full
+compliance also depends on the render (fonts embedded, no JS/transparency), which is
+exactly what the veraPDF gate confirms. Treat output as "PDF/A-oriented" until that
+job is green.
+
 ## Docs
 
 Full integration guide (storage model, Mongo shapes, receipts, Arabic/RTL):
