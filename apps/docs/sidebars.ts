@@ -51,6 +51,7 @@ const sidebars: SidebarsConfig = {
     "reference/query",
     "reference/index-file",
     "reference/trust-spec",
+    "reference/conformance",
     "reference/threat-model",
     "reference/cli",
   ],
