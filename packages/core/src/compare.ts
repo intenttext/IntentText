@@ -191,3 +191,141 @@ export function compareVersions(
 
   return out.join("\n");
 }
+
+// ── Three-way merge (async co-authoring) ─────────────────────────────────────
+
+/** Matched (baseIdx, otherIdx) index pairs from the LCS of base vs other. */
+function matchPairs(base: string[], other: string[]): Array<[number, number]> {
+  const ops = lcsDiff(base, other, (x, y) => x === y);
+  const pairs: Array<[number, number]> = [];
+  let bi = 0;
+  let oi = 0;
+  for (const op of ops) {
+    if (op.tag === "eq") {
+      pairs.push([bi, oi]);
+      bi++;
+      oi++;
+    } else if (op.tag === "del") {
+      bi++; // in base, not other
+    } else {
+      oi++; // in other, not base
+    }
+  }
+  return pairs;
+}
+
+const sameLines = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((x, i) => x === b[i]);
+
+export interface ThreeWayMergeOptions {
+  /** Attribution for the `mine` side (default "mine"). */
+  mineLabel?: string;
+  /** Attribution for the `theirs` side (default "theirs"). */
+  theirsLabel?: string;
+}
+
+export interface ThreeWayMergeResult {
+  /** A tracked-changes `.it` expressing the merge — feed to <Redline> / acceptChanges. */
+  source: string;
+  /** How many regions both sides changed differently (need human resolution). */
+  conflicts: number;
+}
+
+/** One changed region's redline, base→side, attributed. */
+function chunkRedline(baseLines: string[], sideLines: string[], by: string): string {
+  return compareVersions(baseLines.join("\n"), sideLines.join("\n"), { by });
+}
+
+/** A conflict region: base struck out, then BOTH variants as attributed insertions. */
+function conflictRedline(
+  baseLines: string[],
+  mineLines: string[],
+  theirsLines: string[],
+  mineLabel: string,
+  theirsLabel: string,
+): string {
+  const parts: string[] = [];
+  for (const l of baseLines) {
+    const w = wrapLine(l, "del", `${mineLabel}/${theirsLabel}`);
+    if (w) parts.push(w);
+  }
+  for (const l of mineLines) {
+    const w = wrapLine(l, "ins", mineLabel);
+    if (w) parts.push(w);
+  }
+  for (const l of theirsLines) {
+    const w = wrapLine(l, "ins", theirsLabel);
+    if (w) parts.push(w);
+  }
+  return parts.join("\n");
+}
+
+/**
+ * Three-way merge of two independent edits (`mine`, `theirs`) of a common `base`,
+ * as REDLINE. The result is a single tracked-changes `.it`:
+ *   • a region changed by only ONE side is applied (shown as that side's tracked
+ *     change, attributed);
+ *   • a region both sides changed IDENTICALLY is applied once;
+ *   • a region both sides changed DIFFERENTLY is a CONFLICT — base struck out with
+ *     both variants offered as attributed insertions, for a human to resolve.
+ *
+ * `acceptChanges(result)` yields the merged document when there are no conflicts;
+ * with conflicts, a reviewer accepts the winning variant and rejects the other in
+ * the <Redline> UI. This is the "git-merge for documents, but readable" path
+ * (async co-authoring) — line-structured, dependency-free.
+ */
+export function mergeThreeWay(
+  base: string,
+  mine: string,
+  theirs: string,
+  options?: ThreeWayMergeOptions,
+): ThreeWayMergeResult {
+  const mineLabel = options?.mineLabel ?? "mine";
+  const theirsLabel = options?.theirsLabel ?? "theirs";
+  const b = (base ?? "").split(/\r?\n/);
+  const m = (mine ?? "").split(/\r?\n/);
+  const t = (theirs ?? "").split(/\r?\n/);
+
+  const toMine = new Map(matchPairs(b, m));
+  const toTheirs = new Map(matchPairs(b, t));
+  // Stable anchors: base lines unchanged in BOTH sides.
+  const stable: number[] = [];
+  for (let i = 0; i < b.length; i++) {
+    if (toMine.has(i) && toTheirs.has(i)) stable.push(i);
+  }
+
+  const out: string[] = [];
+  let conflicts = 0;
+  let bPrev = -1;
+  let mPrev = -1;
+  let tPrev = -1;
+
+  const flush = (bEnd: number, mEnd: number, tEnd: number) => {
+    const bs = b.slice(bPrev + 1, bEnd);
+    const ms = m.slice(mPrev + 1, mEnd);
+    const ts = t.slice(tPrev + 1, tEnd);
+    if (sameLines(ms, bs) && sameLines(ts, bs)) {
+      out.push(...bs); // untouched
+    } else if (sameLines(ms, bs)) {
+      out.push(chunkRedline(bs, ts, theirsLabel)); // only theirs changed
+    } else if (sameLines(ts, bs)) {
+      out.push(chunkRedline(bs, ms, mineLabel)); // only mine changed
+    } else if (sameLines(ms, ts)) {
+      out.push(chunkRedline(bs, ms, `${mineLabel}+${theirsLabel}`)); // same change
+    } else {
+      conflicts++;
+      out.push(conflictRedline(bs, ms, ts, mineLabel, theirsLabel)); // conflict
+    }
+  };
+
+  for (const s of stable) {
+    flush(s, toMine.get(s)!, toTheirs.get(s)!);
+    out.push(b[s]); // the stable line itself
+    bPrev = s;
+    mPrev = toMine.get(s)!;
+    tPrev = toTheirs.get(s)!;
+  }
+  flush(b.length, m.length, t.length); // tail
+
+  return { source: out.join("\n"), conflicts };
+}

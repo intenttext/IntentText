@@ -183,8 +183,12 @@ export {
   commentAnchors,
 } from "./redline";
 export type { TrackedChange, Comment, ChangeType } from "./redline";
-export { compareVersions } from "./compare";
-export type { CompareOptions } from "./compare";
+export { compareVersions, mergeThreeWay } from "./compare";
+export type {
+  CompareOptions,
+  ThreeWayMergeOptions,
+  ThreeWayMergeResult,
+} from "./compare";
 export {
   hasRedactions,
   extractRedactions,
