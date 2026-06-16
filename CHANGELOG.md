@@ -6,6 +6,18 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — accessible PDF + change-aware editor
+
+- **Tagged (accessible) PDF (`@dotit/pdf` 1.2.0).** `renderPDF` now emits a TAGGED
+  PDF (`/MarkInfo Marked true` + a `/StructTreeRoot`), with the structure tree
+  derived from the semantic HTML (headings, lists, tables with `<th scope>`,
+  lang/dir, alt text) — the basis for PDF/UA / Section 508. Override via `opts.pdf`.
+- **Change-aware editor (`@dotit/editor` 1.11.0).** A clean, ambient indicator:
+  invisible with no changes; a subtle dot + edit count + undo/redo when there are;
+  and a **Review changes** panel (a real redline of exactly what changed, via core's
+  `compareVersions` + `<Redline>`) on demand — so a signer knows precisely what
+  they're about to save or seal. Builds on the byte-faithful save.
+
 ### Added — source-preserving edits + accessibility (`@dotit/core` 1.15.0)
 
 - **`reconcileEdit(original, edited)`** — the foundation of byte-faithful editing.

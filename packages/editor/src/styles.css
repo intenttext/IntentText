@@ -2383,3 +2383,79 @@ textarea.form-fill-control {
   box-sizing: border-box;
   height: 100%;
 }
+
+/* ── Change indicator (Phase 3): ambient "unsaved changes" + Review panel ── */
+.it-change-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8rem;
+  color: #475569;
+  background: #fffdf5;
+  border-bottom: 1px solid #f1e9c8;
+  position: relative;
+}
+.it-change-dot {
+  color: #d97706;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+.it-change-count {
+  font-weight: 600;
+  color: #334155;
+}
+.it-change-actions {
+  display: flex;
+  gap: 0.35rem;
+  margin-inline-start: auto;
+}
+.it-change-btn {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.it-change-btn:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+.it-change-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.it-change-review-btn {
+  border-color: #c7d2fe;
+  color: #4338ca;
+}
+.it-change-review-panel {
+  position: absolute;
+  inset-inline-end: 0.9rem;
+  top: calc(100% + 4px);
+  width: min(560px, 92vw);
+  max-height: 60vh;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+  z-index: 40;
+}
+.it-change-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid #f1f5f9;
+  position: sticky;
+  top: 0;
+  background: #fff;
+}
+.it-change-review-body {
+  padding: 0.6rem 0.9rem 1rem;
+}

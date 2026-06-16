@@ -41,6 +41,7 @@ import { ITParagraph, BlockProps } from "./block-props";
 import { DocsToolbar } from "./DocsToolbar";
 import { DocsRuler, DocsVerticalRuler } from "./Ruler";
 import { TrustBanner, DocPropsBar } from "./TrustBanner";
+import { ChangeIndicator } from "./ChangeIndicator";
 import { extractTrustState } from "./trust-state";
 import {
   getBuiltinTheme,
@@ -120,6 +121,9 @@ export function VisualEditor({
   const lastSourceRef = useRef<string>("");
   const isInternalUpdate = useRef(false);
   const isHydrating = useRef(true);
+  // The source as opened / last externally synced (file open or host save) — the
+  // baseline the change indicator diffs against. Updated only on external syncs.
+  const [openedSource, setOpenedSource] = useState(value);
   // Styling that can't be saved to .it / won't print through core (regression guard).
   const [unsupported, setUnsupported] = useState<string[]>([]);
   // Live page geometry from the document's own page:/header:/footer: blocks —
@@ -224,6 +228,9 @@ export function VisualEditor({
       const json = sourceToDoc(value);
       editor.commands.setContent(json);
       lastSourceRef.current = value;
+      // External change (file open or a host save that re-set value) → this is the
+      // new baseline the change indicator diffs against.
+      setOpenedSource(value);
     }
   }, [value, editor]);
 
@@ -635,6 +642,14 @@ export function VisualEditor({
         <TrustBanner trust={trust} intact={sealIntact} source={value} />
       )}
       {showTrustBanner && <DocPropsBar source={value} />}
+      {!locked && (
+        <ChangeIndicator
+          original={openedSource}
+          current={value}
+          editor={editor}
+          theme={theme}
+        />
+      )}
       {unsupported.length > 0 && (
         <div className="docs-fidelity-warning" role="status">
           ⚠ Some formatting ({unsupported.join(", ")}) can’t be saved to{" "}
