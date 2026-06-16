@@ -154,6 +154,14 @@ export {
 } from "./attachments";
 export type { Attachment } from "./attachments";
 export {
+  canonicalFormStructure,
+  formStructureHash,
+  extractFormSeal,
+  sealFormStructure,
+  verifyFormStructure,
+} from "./form-trust";
+export type { FormSeal, FormStructureVerification } from "./form-trust";
+export {
   hasTrackedChanges,
   extractChanges,
   acceptChanges,
