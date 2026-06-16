@@ -15,7 +15,9 @@
  * from raw source anywhere (editor, desktop, CLI).
  */
 
-/** Field types supported in v1. (attachment → v2) */
+import { hasAttachment } from "./attachments";
+
+/** Field types. (attachment added in v2 — see attachments.ts for the container.) */
 export const FORM_FIELD_TYPES = [
   "text",
   "textarea",
@@ -25,6 +27,7 @@ export const FORM_FIELD_TYPES = [
   "checkbox",
   "signature",
   "table",
+  "attachment",
 ] as const;
 export type FormFieldType = (typeof FORM_FIELD_TYPES)[number];
 
@@ -168,10 +171,20 @@ function isFieldSatisfied(f: FormField): boolean {
 /**
  * Is every required field answered? (A form with no required fields is complete.)
  * This is the gate template.ts uses to decide a form is a final, signable record.
+ *
+ * An `attachment` field that claims a value must also have its bytes present in a
+ * linked `attach:` block — so you cannot mark a form complete by naming a file you
+ * never attached (the sealed hash would then cover a phantom attachment).
  */
 export function isFormComplete(source: string): boolean {
   if (!isForm(source)) return false;
-  return extractFormFields(source).every(isFieldSatisfied);
+  return extractFormFields(source).every((f) => {
+    if (!isFieldSatisfied(f)) return false;
+    if (f.type === "attachment" && f.filled && !hasAttachment(source, f.key)) {
+      return false;
+    }
+    return true;
+  });
 }
 
 /** Map of field key → captured answer — the structured, queryable result of a form. */

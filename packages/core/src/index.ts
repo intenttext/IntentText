@@ -144,6 +144,15 @@ export {
 } from "./forms";
 export type { FormField, FormFieldType } from "./forms";
 export {
+  extractAttachments,
+  getAttachment,
+  hasAttachment,
+  addAttachment,
+  removeAttachment,
+  attachmentDataUri,
+} from "./attachments";
+export type { Attachment } from "./attachments";
+export {
   hasTrackedChanges,
   extractChanges,
   acceptChanges,
