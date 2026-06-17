@@ -912,11 +912,11 @@ function parseLine(
       properties.type = CALLOUT_ALIAS_MAP[keyword];
     }
 
-    // done: always carries status: "done" on the normalized task block
-    // Also applies to aliases that resolve to "done" (e.g. completed:, finished:)
-    if (keyword === "done" || resolvedType === "done") {
-      properties.status = "done";
-    }
+    // NOTE: Block-type DEFAULTS (a `done:` line's status, a `step:`'s pending, a
+    // bare `toc:`'s depth/title, …) are deliberately NOT injected into the model.
+    // The parser is a faithful recorder so the source round-trips byte-for-byte;
+    // defaults are applied at READ time in defaults.ts (effectiveProperties),
+    // used by the renderer, query, and index. Do not re-introduce injection here.
 
     // v2: context blocks parse key=value pairs into properties
     if (resolvedType === "context") {
@@ -926,11 +926,6 @@ function parseLine(
       }
     }
 
-    // v2: step blocks auto-default status to "pending" if not set
-    if (resolvedType === "step" && !properties.status) {
-      properties.status = "pending";
-    }
-
     // v2.1: retry blocks coerce numeric properties
     if (resolvedType === "retry") {
       if (properties.max) properties.max = Number(properties.max);
@@ -938,42 +933,8 @@ function parseLine(
       if (properties.retries) properties.retries = Number(properties.retries);
     }
 
-    // v2.1: wait blocks coerce timeout to string (preserve unit suffix)
-    // and default status to "waiting"
-    if (resolvedType === "wait" && !properties.status) {
-      properties.status = "waiting";
-    }
-
-    // v2.1: result blocks default status to "success" if not set
-    // result: is terminal-only — ends the workflow
-    if (resolvedType === "result" && !properties.status) {
-      properties.status = "success";
-    }
-
-    // v2.2: gate blocks default status to "blocked"
-    if (resolvedType === "gate" && !properties.status) {
-      properties.status = "blocked";
-    }
-
-    // v2.2: parallel blocks default join to "all"
-    if (resolvedType === "parallel" && !properties.join) {
-      properties.join = "all";
-    }
-
-    // v2.2: call blocks default status to "pending"
-    if (resolvedType === "call" && !properties.status) {
-      properties.status = "pending";
-    }
-
-    // v2.2: signal blocks (formerly emit/status) keep content as event name
-    if (resolvedType === "signal") {
-      // Ensure signal blocks have a level default
-      if (!properties.level) {
-        properties.level = "info";
-      }
-    }
-
-    // v2.14: image at: is deprecated — normalize to src: with a diagnostic
+    // v2.14: image at: is deprecated in favour of src: — warn, but DO NOT rewrite
+    // the bytes (faithful recorder). Read-time treats `at:` as `src:` (defaults.ts).
     if (resolvedType === "image" && properties.at && !properties.src) {
       ctx.diagnostics.push({
         severity: "warning",
@@ -982,8 +943,6 @@ function parseLine(
         line: ctx.lineNumber,
         column: 1,
       });
-      properties.src = properties.at;
-      delete properties.at;
     }
 
     // v2.1: coerce numeric properties for any block that uses them
@@ -1014,15 +973,10 @@ function parseLine(
     }
 
     // v2.5: toc blocks default depth to 2
-    if (resolvedType === "toc") {
-      if (properties.depth) {
-        properties.depth = Number(properties.depth);
-      } else {
-        properties.depth = 2;
-      }
-      if (!properties.title) {
-        properties.title = "Contents";
-      }
+    // toc: coerce an AUTHORED depth to a number (byte-neutral); the depth/title
+    // defaults are applied at read time, not injected (faithful recorder).
+    if (resolvedType === "toc" && properties.depth) {
+      properties.depth = Number(properties.depth);
     }
 
     // v2.5: break blocks have no content

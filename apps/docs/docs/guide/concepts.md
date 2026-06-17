@@ -40,6 +40,11 @@ WHERE active = true
 
 The `code:` keyword isn't special. Every block is `keyword: value | properties`. The backticks are just value delimiters — like quotes around a string.
 
+**And the keyword is optional for prose.** `text:` is the default, so a bare line with no
+keyword is read as a text block — write a document as ordinary prose and reach for keywords
+only when a line needs a specific meaning. Bare prose re-emits without the `text:` prefix,
+so natural source round-trips byte-for-byte. See [Bare prose](../reference/keywords/content#bare-prose--text-is-optional).
+
 ## 2. Keywords
 
 IntentText has a stable **38-keyword canonical contract**, plus aliases and extension keywords for specialized domains.

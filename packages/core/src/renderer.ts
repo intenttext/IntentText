@@ -1,4 +1,5 @@
 import { IntentBlock, IntentDocument, InlineNode, PrintLayout } from "./types";
+import { effectiveProperties } from "./defaults";
 import { DOCUMENT_CSS } from "./document-css";import { IntentTheme, getBuiltinTheme, generateThemeCSS } from "./theme";
 import { sealForDocument, type TrustTier } from "./seal";
 import { documentToSource } from "./source";
@@ -628,7 +629,8 @@ function renderBlock(block: IntentBlock): string {
     block.inline,
     block.originalContent,
   );
-  const props = block.properties || {};
+  // Read-time defaults applied here (the parser records only authored bytes).
+  const props = effectiveProperties(block);
   const alignClass = getAlignmentClass(props);
   const inlineStyle = extractInlineStyles(props);
   const styleAttr = inlineStyle ? ` style="${inlineStyle}"` : "";

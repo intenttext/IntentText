@@ -2,17 +2,18 @@
 
 const { execSync } = require("node:child_process");
 
-// Re-baselined at 1.14.0. The previous limits were set at core 1.5.0 (XLSX/DOCX
-// converters); core has since legitimately grown through the PDF/Word-parity
-// features — forms, trust workflow, redline, version compare, redaction, math,
-// mergeThreeWay, attachments (1.6.0→1.14.0). These limits sit just above the
-// current real size (packed ~123 KB, unpacked ~571 KB, 93 entries) so the guard
-// still catches FUTURE accidental bloat. Bump deliberately when real features grow
-// the surface; never to wave through an accidental dependency or stray src file.
+// Re-baselined at 1.14.0, nudged at 1.16.0. The previous limits were set at core
+// 1.5.0 (XLSX/DOCX converters); core has since legitimately grown through the
+// PDF/Word-parity features — forms, trust workflow, redline, version compare,
+// redaction, math, mergeThreeWay, attachments — and at 1.16.0 the faithful-recorder
+// `defaults.ts` module (read-time defaults). Current real size: packed ~126 KB,
+// unpacked ~583 KB, 101 entries. Limits sit just above so the guard still catches
+// FUTURE accidental bloat. Bump deliberately when real features grow the surface;
+// never to wave through an accidental dependency or stray src file.
 const LIMITS = {
   packedBytes: 135000,
   unpackedBytes: 630000,
-  entryCount: 100,
+  entryCount: 105,
 };
 
 const raw = execSync("npm pack --json --dry-run", {

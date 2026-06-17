@@ -108,6 +108,41 @@ const { source, hash, at, pdf } = await issuePDF(templateSource, data, {
 
 `issueDocument()` does the same flow minus Chrome (returns print-ready HTML), and `renderPDF()` / `createPdfRenderer()` are the lower-level primitives (the latter reuses one Chrome instance for batch runs).
 
+## Accessible (tagged) PDFs
+
+`@dotit/pdf` emits **tagged PDFs** by default — Chrome renders the semantic HTML
+(`renderPrint` produces real headings, lists, tables, and `alt` text) into a PDF
+**structure tree**, so the output carries `/MarkInfo /Marked true` and a `/StructTreeRoot`.
+That's what a screen reader, a "reflow" view, or an accessibility checker needs to read a
+PDF as a document rather than a flat image of text.
+
+Tagging is automatic — there's no flag to set:
+
+```javascript
+import { renderPDF } from "@dotit/pdf";
+
+const pdf = await renderPDF(source, { theme: "corporate" });
+// the PDF is tagged: /Marked true + /StructTreeRoot are present
+```
+
+Because the tags come from the rendered HTML, **good `.it` authoring is good
+accessibility**:
+
+- Use `section:` / `sub:` for real headings (they become the document's heading
+  structure), not bold text.
+- Give every `image:` and `x-writer: figure` meaningful **alt text** — the content before
+  the first `|` is the alt text:
+  ```intenttext
+  image: Q3 revenue by region, bar chart — EU leads at 41% | src: ./charts/q3.png
+  ```
+- Use `columns:` / `row:` for tabular data so it tags as a real table with header cells,
+  not as positioned text.
+
+For archival on top of accessibility, pair tagged output with **PDF/A** (`toPdfA` /
+`renderPDF(..., { pdfA })`), which adds the XMP metadata, sRGB OutputIntent, and document
+ID auditors expect — validated in CI with veraPDF. See
+[Forms, Review & Compliance](../../guide/forms-and-workflows#legal-signatures--archival-pdf).
+
 ## Batch export
 
 Export multiple documents:

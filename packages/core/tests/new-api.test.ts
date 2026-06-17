@@ -242,11 +242,16 @@ describe("documentToSource", () => {
     expect(task.properties?.owner).toBe("Ahmed");
   });
 
-  it("skips default-valued status property (pending)", () => {
-    const source = "step: Check API | tool: http | status: pending";
-    const doc = parseIntentText(source);
-    const output = documentToSource(doc);
-    expect(output).not.toContain("status: pending");
+  it("omits the INJECTED status default but preserves an explicit one (byte preservation)", () => {
+    // A bare step gets status:pending injected by the parser — it must NOT be
+    // emitted, so the line round-trips as written.
+    const bare = "step: Check API | tool: http";
+    expect(documentToSource(parseIntentText(bare)).trim()).toBe(bare);
+    expect(documentToSource(parseIntentText(bare))).not.toContain("status:");
+
+    // But if the author WROTE status: pending, the bytes are sacred — keep it.
+    const explicit = "step: Check API | tool: http | status: pending";
+    expect(documentToSource(parseIntentText(explicit)).trim()).toBe(explicit);
   });
 
   it("includes non-default status property", () => {

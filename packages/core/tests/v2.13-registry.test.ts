@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { parseIntentText } from "../src/parser";
 import { renderHTML } from "../src/renderer";
+import { effectiveField } from "../src/defaults";
 
 describe("v2.13 Language registry — new block types", () => {
   it("parses cite: as its own block type with properties", () => {
@@ -115,7 +116,7 @@ describe("v2.13 Language registry — canonical renames", () => {
   it("done: parses to its own done block type, not task", () => {
     const doc = parseIntentText("done: Fix the bug");
     expect(doc.blocks[0].type).toBe("done");
-    expect(doc.blocks[0].properties?.status).toBe("done");
+    expect(effectiveField(doc.blocks[0], "status")).toBe("done");
   });
 });
 

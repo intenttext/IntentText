@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { parseIntentText } from "../src/parser";
 import { renderHTML } from "../src/renderer";
+import { effectiveField } from "../src/defaults";
 
 // ─── Helper ────────────────────────────────────────────────────────────────
 
@@ -64,7 +65,9 @@ step: Third`;
 
   it("defaults status to 'pending' when not set", () => {
     const { block } = findBlock("step: Something", "step");
-    expect(block.properties?.status).toBe("pending");
+    // Faithful recorder: the parser does NOT store the default; it's read-time.
+    expect(block.properties?.status).toBeUndefined();
+    expect(effectiveField(block, "status")).toBe("pending");
   });
 
   it("preserves explicit status", () => {
@@ -279,7 +282,7 @@ describe("gate: blocks", () => {
       "gate: Review copy | approver: content-team",
       "gate",
     );
-    expect(block.properties?.status).toBe("blocked");
+    expect(effectiveField(block, "status")).toBe("blocked");
   });
 
   it("parses fallback property", () => {
@@ -488,7 +491,7 @@ ask: Who has the key?`;
     expect(tasks[0].content).toBe("Database migration");
     expect(tasks[0].properties?.owner).toBe("Ahmed");
     expect(tasks[1].type).toBe("done");
-    expect(tasks[1].properties?.status).toBe("done");
+    expect(effectiveField(tasks[1], "status")).toBe("done");
   });
 
   it("mixed v1 and v2 blocks parse correctly", () => {
@@ -833,7 +836,7 @@ describe("result: blocks", () => {
     const { block } = findBlock("result: User created", "result");
     expect(block.type).toBe("result");
     expect(block.content).toBe("User created");
-    expect(block.properties?.status).toBe("success");
+    expect(effectiveField(block, "status")).toBe("success");
   });
 
   it("result with explicit status and code", () => {
@@ -901,7 +904,7 @@ describe("wait: blocks", () => {
     const { block } = findBlock("wait: User confirmation", "wait");
     expect(block.type).toBe("wait");
     expect(block.content).toBe("User confirmation");
-    expect(block.properties?.status).toBe("waiting");
+    expect(effectiveField(block, "status")).toBe("waiting");
   });
 
   it("wait with timeout and fallback", () => {
@@ -1119,7 +1122,7 @@ describe("call: blocks", () => {
 
   it("defaults status to pending", () => {
     const { block } = findBlock("call: ./sub-workflow.it", "call");
-    expect(block.properties?.status).toBe("pending");
+    expect(effectiveField(block, "status")).toBe("pending");
   });
 
   it("call without input/output", () => {
@@ -1206,7 +1209,7 @@ describe("parallel: join property", () => {
       "parallel: Run checks | steps: lint,test,build",
       "parallel",
     );
-    expect(block.properties?.join).toBe("all");
+    expect(effectiveField(block, "join")).toBe("all");
   });
 
   it("parses explicit join value", () => {

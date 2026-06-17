@@ -5,6 +5,7 @@ import {
   renderPrint,
   mergeData,
   parseAndMerge,
+  effectiveField,
 } from "../src";
 
 // ── Merge Engine ──────────────────────────────────────────────────────────
@@ -272,12 +273,14 @@ describe("Writer Blocks", () => {
     expect(html).toContain(">1</a>");
   });
 
-  it("toc: parses with depth and title properties, defaults depth:2", () => {
+  it("toc: parses bare; depth/title defaults are applied at read time", () => {
     const doc = parseIntentText("toc:");
     const block = doc.blocks[0];
     expect(block.type).toBe("toc");
-    expect(Number(block.properties?.depth)).toBe(2);
-    expect(block.properties?.title).toBe("Contents");
+    // Faithful recorder: a bare toc: stores nothing; defaults are read-time.
+    expect(block.properties?.depth).toBeUndefined();
+    expect(Number(effectiveField(block, "depth"))).toBe(2);
+    expect(effectiveField(block, "title")).toBe("Contents");
   });
 
   it("toc: renderer scans document sections and builds anchor list", () => {

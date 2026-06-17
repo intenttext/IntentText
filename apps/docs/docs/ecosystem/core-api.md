@@ -709,6 +709,92 @@ and a sealed document keeps its hash through a parse → serialize cycle. Table
 keywords (`أعمدة`/`صف`, `headers`) are preserved the same way. Reserved characters
 are re-escaped on output (`\|`, `\\`), so escape round-trips are stable too.
 
+### `reconcileEdit(originalSource, editedSource)`
+
+Source-preserving edit reconciliation: returns the edited document with every **unchanged**
+block restored to its **exact original bytes**. For each edited block, if a semantically
+identical block (same type, content, properties, children) existed in the original, the
+original's bytes are kept; only genuinely new or changed blocks take the edited
+serialization. A no-op edit round-trips byte-for-byte, so a sealed document keeps its hash.
+
+```typescript
+import { reconcileEdit } from "@dotit/core";
+
+const saved = reconcileEdit(originalSource, editorOutput);
+reconcileEdit(sealedSource, sealedSource) === sealedSource; // true (no-op preserves bytes)
+```
+
+Use this whenever you accept edited `.it` text from a model-based editor. See
+[Byte Preservation](../guide/byte-preservation).
+
+### `effectiveProperties(block)` / `effectiveField(block, field)` / `defaultFor(type, field)`
+
+The parser is a **faithful recorder**: it stores only what the author wrote, so the model
+round-trips byte-for-byte. Block-type defaults (a `step:`'s `status: pending`, a `done:`'s
+`status: done`, a bare `toc:`'s `depth`/`title`, an image `at:` read as `src:`) are applied
+at **read time**, not baked into `block.properties`. Use these when you need a block's
+*interpreted* values:
+
+```typescript
+import { effectiveProperties, effectiveField } from "@dotit/core";
+
+const step = parseIntentText("step: Verify").blocks[0];
+step.properties?.status;              // undefined — not stored (bytes stay exact)
+effectiveField(step, "status");       // "pending" — the read-time default
+effectiveProperties(step).status;     // "pending"
+```
+
+The renderer, query engine, and index already use these, so rendering and `status=done`
+queries behave exactly as before — only the stored model changed. See
+[Byte Preservation](../guide/byte-preservation#why-this-stays-true-the-parser-is-a-faithful-recorder).
+
+## Approval routing & audit chain
+
+In-file approval workflow — the policy, live state, and a tamper-evident trail all live in
+the document. See [Approval Workflows](../guide/approval-workflows) for the full guide.
+
+### `workflowState(source)` / `extractRoute(document)`
+
+Derive the live approval state from a document's `route:`/`require:` policy and its
+`approve:` lines. Nothing is stored — re-deriving always matches the file.
+
+```typescript
+import { workflowState, extractRoute } from "@dotit/core";
+
+const state = workflowState(source);
+// { hasRoute, order: "sequential"|"parallel", required, active,
+//   fulfilled: string[], pending: string[], next: string|null, complete: boolean }
+
+if (!state.complete) throw new Error(`Awaiting: ${state.pending.join(", ")}`);
+
+extractRoute(parseIntentText(source)); // { order, required } | null — the raw policy
+```
+
+`require:` supports `| when: <condition>` (conditional on the document's own `metric:`/`meta:`
+values) and `| optional: yes`. A document with no policy returns `complete: true`.
+
+### `appendApproval(source, options)` / `verifyAuditChain(source)` / `auditTrail(source)`
+
+Append a **hash-chained** approval (carries `prev:` = hash of the preceding event, so the
+approval *order* is tamper-evident) and verify the chain. Use `appendApproval` before
+sealing — `approve:` is part of the hashed body.
+
+```typescript
+import { appendApproval, verifyAuditChain, auditTrail } from "@dotit/core";
+
+let src = appendApproval(doc, { by: "Sarah Chen", role: "manager", note: "Reviewed" });
+src = appendApproval(src, { by: "James Miller", role: "finance" });
+
+verifyAuditChain(src);
+// { valid: true, length: 2, chained: 2 }
+// on tamper → { valid: false, brokenAt: 1, reason: "audit link 1 …", … }
+
+auditTrail(src); // ordered AuditEvent[] — kind: approve|sign|freeze|amendment|revision
+```
+
+A plain hand-written `approve:` (no `prev:`) is a valid un-chained link, never reported as
+tampered.
+
 ## Conversion
 
 ### `convertMarkdownToIntentText(markdown)`

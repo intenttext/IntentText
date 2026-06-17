@@ -33,6 +33,13 @@ jobs:
       - name: Test core
         run: pnpm --filter @dotit/core test
 
+      # THE MOAT: the byte-preservation invariant — documentToSource(parse(x)) === x
+      # for thousands of generated docs, reconcileEdit no-op identity, and a sealed
+      # doc surviving a no-op save. A failure here means a sealed .it could silently
+      # lose its hash. This is a HARD release blocker; never make it non-blocking.
+      - name: Byte-preservation gate (round-trip invariant — release blocker)
+        run: pnpm --filter @dotit/core test:byte
+
       - name: Keyword consistency gate (registry <-> BlockType)
         run: pnpm --filter @dotit/core keywords:check
 

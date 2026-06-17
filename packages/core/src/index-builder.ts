@@ -8,6 +8,7 @@
 
 import { IntentDocument, IntentBlock } from "./types";
 import { flattenBlocks } from "./utils";
+import { effectiveField } from "./defaults";
 
 // ── Types ───────────────────────────────────────────────
 
@@ -295,7 +296,7 @@ export function queryComposed(
       return false;
     if (
       filters.status &&
-      String(r.block.properties.status || "").toLowerCase() !==
+      String(effectiveField(r.block, "status") || "").toLowerCase() !==
         filters.status.toLowerCase()
     )
       return false;

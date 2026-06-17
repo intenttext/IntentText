@@ -30,6 +30,7 @@ IntentText is a plain-text document format that uses **keywords** to give every 
 | You want to...              | Start here                               |
 | --------------------------- | ---------------------------------------- |
 | Get running in 5 minutes    | [Quick Start](./quick-start)             |
+| See everything `.it` can do | [Capabilities](./capabilities)           |
 | Understand the mental model | [Core Concepts](./concepts)              |
 | Build a real document       | [Your First Document](./first-document)  |
 | Build a reusable template   | [Your First Template](./first-template)  |
@@ -37,3 +38,5 @@ IntentText is a plain-text document format that uses **keywords** to give every 
 | Build agent workflows       | [For Agents](./for-agents)               |
 | Write and publish           | [For Writers](./for-writers)             |
 | Seal and verify documents   | [Trust & Signing](./trust-and-signing)   |
+| Put the workflow in the doc | [Approval Workflows](./approval-workflows) |
+| Keep seals intact, always   | [Byte Preservation](./byte-preservation) |

@@ -37,8 +37,7 @@
           "originalContent": "Kickoff meeting",
           "properties": {
             "owner": "Ahmed",
-            "time": "10:00",
-            "status": "done"
+            "time": "10:00"
           },
           "inline": [
             {

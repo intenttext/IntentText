@@ -38,6 +38,11 @@ export {
 export { renderHTML } from "./renderer";
 export { validateDocumentSemantic } from "./validate";
 export { documentToSource, blockToSource } from "./source";
+export {
+  effectiveProperties,
+  effectiveField,
+  defaultFor,
+} from "./defaults";
 export type {
   SafeParseOptions,
   SafeParseResult,

@@ -34,6 +34,38 @@ text: Please review by end of week | color: #dc2626 | italic: true
 - Supports [inline formatting](../style-properties#inline-formatting): `*bold*`, `_italic_`, `~strike~`, `` ```code``` ``, `^highlight^`, `` `label` ``, `{Label}`
 - `note:` is the most common alias — both `text:` and `note:` work identically
 
+### Bare prose — `text:` is optional
+
+`text:` is the **default** block, so a line with no keyword at all is read as a text
+block. You can write a document as ordinary prose and only reach for keywords when a line
+needs a specific meaning:
+
+```intenttext
+title: Project Brief
+
+The team shipped the beta on schedule. Adoption is ahead of plan, and
+support volume is down 12% quarter over quarter.
+
+task: Draft the Q3 roadmap | owner: Sarah | due: 2026-07-01
+```
+
+Both prose lines above parse to `text:` blocks. This keeps the source natural for readers
+who don't think in keywords (reviewers, executives, government clerks) while staying fully
+structured for code.
+
+A bare line is re-emitted **without** the `text:` prefix — so natural source round-trips
+byte-for-byte and a sealed document keeps its hash. A line is treated as prose *unless* it
+would otherwise parse as another construct, in which case it stays explicit. A bare line
+is **not** used when the content:
+
+- looks like a keyword or custom block — `word:` followed by a space or end of line
+- starts a list (`- ` or `1. `), a code fence (` ``` `), a divider (`---`), or a comment (`//`)
+- begins with a pipe `|` (a table row or pipe-property line)
+- is empty (a blank line is a paragraph break, not an empty paragraph)
+
+To force a literal `text:` block even when bare would do, just write the keyword:
+`text: …`.
+
 ---
 
 ## `info:`

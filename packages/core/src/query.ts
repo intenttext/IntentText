@@ -1,5 +1,6 @@
 import { IntentDocument, IntentBlock } from "./types";
 import { flattenBlocks } from "./utils";
+import { effectiveField } from "./defaults";
 
 export interface QueryClause {
   field: string;
@@ -174,6 +175,12 @@ function getFieldValue(block: IntentBlock, field: string): unknown {
   if (block.properties && field in block.properties) {
     return block.properties[field];
   }
+
+  // Read-time defaults: a `done:` block answers `status=done`, a bare `step:`
+  // answers `status=pending`, etc. — even though the parser does not store the
+  // default (the model stays byte-exact). Keeps queries semantic.
+  const def = effectiveField(block, field);
+  if (def != null) return def;
 
   // Form-field answers: a form field (`input: … | key: country | value: KW`) is
   // queryable BY ITS KEY — so `--query "country=KW"` matches the answer. This
@@ -425,7 +432,7 @@ export function queryDocument(
     if (query.properties !== undefined) {
       let allMatch = true;
       for (const [key, expected] of Object.entries(query.properties)) {
-        const actual = block.properties?.[key];
+        const actual = effectiveField(block, key);
         if (actual === undefined || !matchValue(String(actual), expected)) {
           allMatch = false;
           break;

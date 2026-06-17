@@ -6,6 +6,41 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed — byte preservation hardened + faithful-recorder parser (`@dotit/core` 1.16.0)
+
+The trust moat made real: a parsed document now round-trips **byte-for-byte** for the
+whole authored surface, proven by a property-based gate over thousands of random docs.
+
+- **Property order is preserved.** The serializer no longer reorders a line's properties
+  to a canonical/alphabetical schema — `metric: x | value: 1 | unit: kg` round-trips as
+  written. Author order is sacred, so a sealed `.it` with any typed block keeps its hash
+  through a parse → serialize cycle (and through `reconcileEdit`).
+- **`toc:` serializes pipe-first** (`toc: | depth: 2 | title: Contents`) so its first
+  property is not swallowed as content on re-parse (was non-idempotent).
+- **Faithful-recorder parser.** The parser now records ONLY what the author wrote — it no
+  longer injects block-type defaults (`step:`/`call:` `status: pending`, `done:`
+  `status: done`, `wait:`/`result:`/`gate:` statuses, `parallel:` `join`, `signal:`
+  `level`, bare `toc:` `depth`/`title`) into the model, and no longer rewrites a
+  deprecated image `at:` to `src:`. Defaults are applied at **read time**.
+- **New exports:** `effectiveProperties(block)`, `effectiveField(block, field)`,
+  `defaultFor(type, field)` — a block's interpreted values (authored + type defaults),
+  used internally by the renderer, query, and index so their behavior is unchanged.
+- **Property-based byte-preservation gate** (`tests/byte-preservation.test.ts`) — generates
+  thousands of documents (arbitrary property order, bare and explicit injected-default
+  keywords, sealed docs, surgical edits) and asserts `documentToSource(parse(x)) === x`,
+  `reconcileEdit` no-op identity, and seal-survives-save for every one. The release gate
+  for the moat.
+
+> **BREAKING (read-path):** `block.properties` no longer contains parser-injected defaults.
+> Code that read e.g. `step.properties.status` expecting `"pending"` should call
+> `effectiveField(step, "status")` (or `effectiveProperties(step)`). Rendering, query
+> (`status=done` still matches `done:` blocks), and CLI behavior are unchanged.
+
+### Added — VS Code extension 1.6.0
+
+- Completion, hover docs, and snippets for the in-file approval workflow (`route:` /
+  `require:`), plus `math:` and inline `redact:` spans.
+
 ### Added — accessible PDF + change-aware editor
 
 - **Tagged (accessible) PDF (`@dotit/pdf` 1.2.0).** `renderPDF` now emits a TAGGED

@@ -4,6 +4,7 @@ const sidebars: SidebarsConfig = {
   guideSidebar: [
     { type: "doc", id: "guide/index", label: "Overview" },
     { type: "doc", id: "guide/quick-start", label: "Quick Start" },
+    { type: "doc", id: "guide/capabilities", label: "Capabilities" },
     { type: "doc", id: "guide/concepts", label: "Core Concepts" },
     { type: "doc", id: "guide/first-document", label: "Your First Document" },
     { type: "doc", id: "guide/first-template", label: "Your First Template" },
@@ -23,6 +24,8 @@ const sidebars: SidebarsConfig = {
       label: "A Folder Is a Database",
     },
     { type: "doc", id: "guide/trust-and-signing", label: "Trust & Signing" },
+    { type: "doc", id: "guide/approval-workflows", label: "Approval Workflows" },
+    { type: "doc", id: "guide/byte-preservation", label: "Byte Preservation" },
     { type: "doc", id: "guide/forms-and-workflows", label: "Forms, Review & Compliance" },
     { type: "doc", id: "guide/config-and-options", label: "Config & Options (vs YAML/JSON)" },
   ],

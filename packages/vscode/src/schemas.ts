@@ -45,6 +45,13 @@ export const ALL_KEYWORDS = [
   "watermark",
   "style",
   "break",
+  // In-file approval workflow + content extensions (parse as custom/extension
+  // blocks, but offered here so authors get completion for them)
+  "route",
+  "require",
+  "math",
+  "redact",
+  "input",
 ] as const;
 
 /** Extension keyword namespaces — use as `x-writer: byline`, `x-agent: loop`, etc. */

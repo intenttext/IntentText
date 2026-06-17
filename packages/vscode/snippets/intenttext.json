@@ -323,5 +323,35 @@
       "style: ${1|title,summary,section,sub,text,quote,callout,table,table-header,metric,contact,divider|} | ${2:color}: ${3:#0a7}"
     ],
     "description": "Scoped document style — house styling for a block type, declared once (v4.3)"
+  },
+  "Approval Route": {
+    "prefix": "route",
+    "body": [
+      "route: ${1|sequential,parallel|}",
+      "require: ${2:manager}",
+      "require: ${3:finance} | when: ${4:amount > 100000}"
+    ],
+    "description": "In-file approval workflow — who must approve, in what order. State is derived by workflowState()."
+  },
+  "Required Approver": {
+    "prefix": "require",
+    "body": [
+      "require: ${1:role} | when: ${2:condition} | optional: ${3|no,yes|}"
+    ],
+    "description": "A required approver in an approval route (conditional via when:, optional via optional:)"
+  },
+  "Math": {
+    "prefix": "math",
+    "body": [
+      "math: ${1:E = mc^2}"
+    ],
+    "description": "Display equation (TeX). Render with @dotit/math; inline form is [E=mc^2]{math: tex}."
+  },
+  "Redaction span": {
+    "prefix": "redact",
+    "body": [
+      "text: ${1:The agent} [${2:secret text}]{redact: ${3|PII,classified,privileged|}} ${4:met the source}."
+    ],
+    "description": "Inline redaction span — applyRedactions() removes the bytes and leaves a verifiable receipt."
   }
 }

@@ -1,0 +1,49 @@
+title: IntentText — Claims Verification Checklist
+summary: Every trust claim .it makes, and how to prove each is TRUE. Run verify-claims.mjs for the automated pass.
+
+meta: | type: checklist | owner: QA | scope: trust
+
+info: This file is itself a .it document — it dogfoods the format. The runnable companion is verify-claims.mjs (27 assertions); the property-based gate is packages/core/tests/byte-preservation.test.ts (thousands of random docs). | type: tip
+
+section: 1. Integrity — the seal is tamper-evident, offline
+task: Sealing a document returns a sha256: hash | owner: core | check: sealDocument().hash
+task: A sealed document verifies intact | owner: core | check: verifyDocument(sealed).intact === true
+task: A one-byte edit to the body makes verify FAIL | owner: core | check: verifyDocument(tampered).intact === false
+done: The seal is computed over raw source bytes, so it is safe at rest
+
+section: 2. Byte preservation — the bytes are sacred
+task: Round-trip is byte-for-byte | owner: core | check: documentToSource(parseIntentText(src)) === src
+task: A no-op edit keeps the seal | owner: editor | check: reconcileEdit(sealed, sealed) === sealed
+task: An editor round-trip preserves the seal | owner: editor | check: reconcileEdit restores bytes, verify intact
+task: Property order is preserved (no canonical reorder) | owner: core | check: byte-preservation.test.ts I1
+task: Editing one block leaves every other block's bytes intact | owner: core | check: byte-preservation.test.ts I5
+
+section: 3. Storage — re-encoding is detected, not absorbed
+task: A clean storage round-trip verifies | owner: core | check: verifyStorageRecord(record) === true
+task: A storage layer that rewrites LF to CRLF is caught | owner: core | check: verifyStorageRecord(mutated) === false
+
+section: 4. Authenticity — identity needs an anchor (be honest)
+task: An Ed25519 signature verifies valid | owner: sign | check: verifyCryptoSignatures(signed) all valid
+task: Tampering invalidates the signature | owner: sign | check: verifyCryptoSignatures(tampered) not valid
+task: A plain sign: with no key is a named approval, not crypto | owner: sign | check: cryptographic !== true
+info: Binding a key to a real legal identity needs the certify: chain (Layer 3) or your app's identity registry. | type: warning
+
+section: 5. Workflow — state is derived, never stored
+task: With approvals outstanding the workflow is not complete | owner: core | check: workflowState().complete === false
+task: Sequential next points at the first required approver | owner: core | check: workflowState().next
+task: Conditional require: (when:) activates on the document's own values | owner: core | check: active includes finance
+task: After all required approve, the workflow is complete | owner: core | check: workflowState().complete === true
+
+section: 6. Audit — the approval ORDER is tamper-evident
+task: A chained approval trail verifies valid | owner: core | check: verifyAuditChain(src).valid === true
+task: Reordering approvals breaks the chain | owner: core | check: verifyAuditChain(reordered).brokenAt is set
+
+section: 7. Time — native at: is self-asserted (do not overclaim)
+task: The native seal carries no RFC-3161 timestamp token | owner: core | check: no tsa token in sealed source
+info: Provable time lives on the PAdES PDF export (@dotit/pades requestTimestampToken), not the native .it. | type: warning
+
+section: How to run
+text: From the repo root, after building the packages with `pnpm -r build`.
+text: Run the automated claim checks (27 assertions): `node verify/verify-claims.mjs`
+text: Run the property-based byte-preservation gate (thousands of random docs): `cd packages/core && npx vitest run tests/byte-preservation.test.ts`
+done: This file is a .it document — it round-trips byte-for-byte through the core

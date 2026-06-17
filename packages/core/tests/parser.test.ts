@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { parseIntentText } from "../src/parser";
+import { effectiveField } from "../src/defaults";
 import type { IntentExtension } from "../src/types";
 
 describe("IntentText Parser", () => {
@@ -225,12 +226,10 @@ image: *Launch Banner* | src: assets/banner.png | caption: Project Dalil launch 
     expect(taskBlock?.properties?.owner).toBe("Ahmed");
 
     const doneBlock =
-      result.blocks.find(
-        (b) => b.type === "done" && b.properties?.status === "done",
-      ) ||
+      result.blocks.find((b) => b.type === "done") ||
       result.blocks
         .flatMap((b) => b.children || [])
-        .find((b) => b.type === "done" && b.properties?.status === "done");
+        .find((b) => b.type === "done");
     expect(doneBlock?.properties?.time).toBe("09:00 AM");
 
     const codeBlock =
@@ -485,14 +484,17 @@ describe("image: src: / at: property handling", () => {
     ).toBeFalsy();
   });
 
-  it("normalizes deprecated at: to src: and emits DEPRECATED_PROPERTY warning", () => {
+  it("preserves deprecated at: bytes, resolves src at read time, emits DEPRECATED_PROPERTY warning", () => {
     const result = parseIntentText(
       "image: Old logo | at: ./images/old-logo.png",
     );
     const img = result.blocks[0];
     expect(img.type).toBe("image");
-    expect(img.properties?.src).toBe("./images/old-logo.png");
-    expect(img.properties?.at).toBeUndefined();
+    // Faithful recorder: the bytes are NOT rewritten — `at:` is preserved and the
+    // deprecation is surfaced as a diagnostic; `src` is resolved at read time.
+    expect(img.properties?.at).toBe("./images/old-logo.png");
+    expect(img.properties?.src).toBeUndefined();
+    expect(effectiveField(img, "src")).toBe("./images/old-logo.png");
     expect(
       result.diagnostics?.some((d) => d.code === "DEPRECATED_PROPERTY"),
     ).toBe(true);

@@ -186,12 +186,13 @@ describe("policy: documentToSource", () => {
     expect(output.trim()).toBe(source);
   });
 
-  it("serialises properties in canonical order", () => {
+  it("preserves the author's property order (byte preservation, not canonical reorder)", () => {
     const source =
       "policy: Mixed order | action: deny | if: fraud > 0.8 | notify: team";
     const doc = parseIntentText(source);
     const output = documentToSource(doc);
-    // Canonical order: if, then action, then notify
-    expect(output).toContain("if: fraud > 0.8 | action: deny | notify: team");
+    // The bytes are sacred: properties round-trip in the order the author wrote
+    // them — we do NOT reorder to a canonical schema (which would break seals).
+    expect(output.trim()).toBe(source);
   });
 });

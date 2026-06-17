@@ -356,6 +356,21 @@ const KEYWORD_DOCS: Record<
     description: "Document change history section boundary.",
     properties: [],
   },
+  route: {
+    description:
+      "In-file approval policy — declares the order approvers act in. `sequential` (default) or `parallel`. Pair with `require:` lines; live state is derived by workflowState() from the document's own approve: lines (never stored).",
+    properties: [],
+  },
+  require: {
+    description:
+      "A required approver in an approval route. The token matches an approve: line's role:/by:. Add `| when: <condition>` to make it conditional on the document's metric:/meta: values, or `| optional: yes` so it never blocks completion.",
+    properties: ["when", "optional"],
+  },
+  math: {
+    description:
+      "Display equation in TeX. Rendered to MathML/KaTeX by @dotit/math. Inline form: [E=mc^2]{math: tex}.",
+    properties: [],
+  },
 };
 
 export function createHoverProvider(): vscode.HoverProvider {

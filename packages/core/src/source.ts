@@ -11,56 +11,7 @@ function escapeIntentText(text: string): string {
 }
 
 /**
- * Canonical property order for specific block types.
- * Properties not in the list are appended alphabetically.
- */
-const PROPERTY_ORDER: Record<string, string[]> = {
-  step: ["tool", "input", "output", "depends", "id", "status", "timeout"],
-  task: ["owner", "due", "priority", "status"],
-  done: ["owner", "time"],
-  decision: ["if", "then", "else"],
-  trigger: ["event", "condition"],
-  loop: ["over", "do", "max"],
-  wait: ["timeout", "fallback"],
-  parallel: ["steps", "join"],
-  retry: ["max", "delay", "backoff"],
-  gate: ["approver", "timeout"],
-  call: ["to", "input", "output"],
-  handoff: ["from", "to"],
-  signal: ["event", "data"],
-  policy: [
-    "if",
-    "always",
-    "never",
-    "action",
-    "requires",
-    "notify",
-    "priority",
-    "scope",
-    "after",
-    "id",
-  ],
-  image: ["src", "at", "caption", "width", "height"],
-  link: ["to"],
-  ref: ["to"],
-  embed: ["to"],
-  quote: ["by"],
-  font: ["size", "family", "weight", "color"],
-  page: ["size", "margin", "orientation"],
-  // v2.8 trust keywords
-  sign: ["role", "at", "hash"],
-  approve: ["by", "role", "at", "ref"],
-  freeze: ["at", "hash", "status"],
-  track: ["version", "by"],
-  // v2.8.1 metadata keyword — empty = preserve insertion order
-  meta: [],
-  // v2.9 print layout keywords
-  header: ["left", "center", "right", "skip-first"],
-  footer: ["left", "center", "right", "skip-first"],
-  watermark: ["color", "angle", "size"],
-};
-
-/** Properties that are internal / default-valued and should be skipped. */
+ * Properties that are internal / default-valued and should be skipped. */
 const SKIP_INTERNAL = new Set(["id", "x-type", "x-ns"]);
 
 /** Header block types that should be emitted first. */
@@ -290,10 +241,13 @@ function serializeBlock(block: IntentBlock): string {
     return props ? `break: | ${props}` : "break:";
   }
 
-  // Special case: toc — keyword + properties only
+  // Special case: toc — keyword + properties only. Pipe-first (`toc: | depth: 2`)
+  // so the first property is NOT swallowed as content on re-parse — otherwise the
+  // round-trip is non-idempotent (the leading `depth:` would re-parse as the toc's
+  // text value). toc has no content, so the canonical form always leads with `|`.
   if (type === "toc") {
     const props = serializeProperties(block);
-    return props ? `toc: ${props}` : "toc:";
+    return props ? `toc: | ${props}` : "toc:";
   }
 
   // Special case: code block
@@ -400,26 +354,18 @@ function serializeProperties(block: IntentBlock, exclude: string[] = []): string
   const keys = Object.keys(props).filter((k) => {
     if (SKIP_INTERNAL.has(k)) return false;
     if (excludeSet.has(k)) return false;
-    // Skip status if it's the default "pending"
-    if (k === "status" && props[k] === "pending") return false;
     return true;
   });
 
   if (keys.length === 0) return "";
 
-  // Sort by canonical order for this block type, then alphabetically
-  const order = PROPERTY_ORDER[block.type];
-  if (order) {
-    const orderMap = new Map(order.map((k, i) => [k, i]));
-    keys.sort((a, b) => {
-      const ia = orderMap.get(a) ?? 999;
-      const ib = orderMap.get(b) ?? 999;
-      if (ia !== ib) return ia - ib;
-      return a.localeCompare(b);
-    });
-  } else {
-    keys.sort();
-  }
+  // BYTE PRESERVATION: emit properties in their AUTHORED order. The parser stores
+  // `properties` in source order, so honoring insertion order makes a parsed
+  // document round-trip byte-for-byte — a sealed `.it` keeps its hash through a
+  // parse → serialize cycle, and reconcileEdit can reuse an unchanged block
+  // verbatim. We deliberately do NOT reorder to a canonical schema (the old
+  // PROPERTY_ORDER / alphabetical sort): an author's line is sacred, and a
+  // programmatically-built block is emitted in the order it was constructed.
 
   return keys
     .map((k) => {

@@ -34,6 +34,20 @@ Edit visually (rich text, tables, totals, trust chips) or switch to **Source** f
 raw `.it` text with full syntax highlighting and diagnostics — both stay in sync, and a
 visual-editor round-trip never changes your bytes (signed documents stay verifiable).
 
+### Change awareness — you always know what you're saving
+
+The editor never silently mutates a file. When (and only when) you've actually changed
+something, a subtle **change bar** appears — an ambient dot, a live count ("3 unsaved
+changes"), and **Undo / Redo** — and a **Review changes** button opens a real redline of
+exactly what changed (the same `compareVersions` diff core uses, rendered with the
+`<Redline>` viewer). With nothing changed, the bar is invisible and the canvas stays
+pristine. So before you save or seal, you can see precisely what's different from the
+version you opened — no surprises, no hidden reformatting.
+
+Under the hood, saves run through core's [`reconcileEdit`](../guide/byte-preservation#editing-without-breaking-the-seal-reconcileedit),
+so unchanged blocks keep their **original bytes** and a sealed document keeps its hash.
+Sealed documents are read-only by default — a second guard on top of source preservation.
+
 ### Template mode
 
 Author merge templates for your app or team without leaving the editor:

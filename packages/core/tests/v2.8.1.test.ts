@@ -9,6 +9,7 @@ import {
   documentToSource,
   _resetIdCounter,
   ALIASES,
+  effectiveField,
 } from "../src";
 
 beforeEach(() => {
@@ -399,17 +400,17 @@ describe("alias system", () => {
   it("completed: and finished: resolve to done (task with status: done)", () => {
     const doc1 = parseIntentText("completed: Task A");
     expect(doc1.blocks[0].type).toBe("done");
-    expect(doc1.blocks[0].properties?.status).toBe("done");
+    expect(effectiveField(doc1.blocks[0], "status")).toBe("done");
 
     const doc2 = parseIntentText("finished: Task B");
     expect(doc2.blocks[0].type).toBe("done");
-    expect(doc2.blocks[0].properties?.status).toBe("done");
+    expect(effectiveField(doc2.blocks[0], "status")).toBe("done");
   });
 
   it("run: resolves to step: with pending status", () => {
     const doc = parseIntentText("run: Execute query");
     expect(doc.blocks[0].type).toBe("step");
-    expect(doc.blocks[0].properties?.status).toBe("pending");
+    expect(effectiveField(doc.blocks[0], "status")).toBe("pending");
   });
 
   it("if: resolves to decision:", () => {
