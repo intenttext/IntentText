@@ -65,9 +65,9 @@ jobs:
           node-version: 22
 
       - name: Setup pnpm
+        # Version comes from package.json "packageManager" (pnpm@9.0.0). Do NOT
+        # also pass `version:` here — action-setup@v4 errors on a double spec.
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
