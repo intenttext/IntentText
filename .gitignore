@@ -92,8 +92,11 @@ jspm_packages/
 *.html
 sample-output.html
 # …but Vite apps' entry HTML is SOURCE, not output — must be committed or the
-# production build can't resolve its entry module (e.g. on Vercel).
+# production build can't resolve its entry module (e.g. on Vercel / CI release).
 !apps/*/index.html
+# The Electron renderer's entry HTML lives deeper (src/renderer/index.html); the
+# single-level rule above doesn't reach it, so un-ignore it explicitly.
+!apps/desktop/src/renderer/index.html
 
 # Temporary files
 *.tmp

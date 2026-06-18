@@ -39,6 +39,8 @@
     "publish": [
       {
         "provider": "github",
+        "owner": "intenttext",
+        "repo": "IntentText",
         "releaseType": "draft"
       }
     ],
