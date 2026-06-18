@@ -41,7 +41,7 @@
         "provider": "github",
         "owner": "intenttext",
         "repo": "IntentText",
-        "releaseType": "draft"
+        "releaseType": "release"
       }
     ],
     "directories": {
@@ -60,7 +60,10 @@
       "category": "public.app-category.productivity",
       "icon": "resources/icon.icns",
       "target": [
-        "dmg"
+        {
+          "target": "dmg",
+          "arch": "universal"
+        }
       ]
     },
     "win": {
