@@ -16,7 +16,10 @@ const svg = (d: string) => (
   </svg>
 );
 
-const THEME_META: Record<string, { icon: ReactNode; desc: string }> = {
+const THEME_META: Record<
+  string,
+  { icon: ReactNode; desc: string; label?: string }
+> = {
   corporate: {
     icon: svg(
       "M3 21h18M3 7v14M21 7v14M6 11h2M6 15h2M10 11h2M10 15h2M14 11h2M14 15h2M18 11h0M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3",
@@ -63,6 +66,40 @@ const THEME_META: Record<string, { icon: ReactNode; desc: string }> = {
     ),
     desc: "Engineering focus",
   },
+  legal: {
+    icon: svg(
+      "M12 3v18M3 7h18M6 7l-3 7a3 3 0 0 0 6 0L6 7zM18 7l-3 7a3 3 0 0 0 6 0l-3-7z",
+    ),
+    desc: "Formal contract style",
+  },
+  compact: {
+    icon: svg("M3 6h18M3 10h18M3 14h18M3 18h18"),
+    desc: "Dense — quotes & invoices",
+  },
+  print: {
+    icon: svg(
+      "M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z",
+    ),
+    desc: "Ink-saving black & white",
+  },
+  editorial: {
+    icon: svg(
+      "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z",
+    ),
+    desc: "Long-form & reports",
+  },
+  "corporate-dense": {
+    icon: svg("M3 6h18M3 10h18M3 14h18M3 18h18"),
+    desc: "Business · packed tighter",
+    label: "Corporate Dense",
+  },
+  "legal-dense": {
+    icon: svg(
+      "M12 3v18M3 7h18M6 7l-3 7a3 3 0 0 0 6 0L6 7zM18 7l-3 7a3 3 0 0 0 6 0l-3-7z",
+    ),
+    desc: "Contract · packed tighter",
+    label: "Legal Dense",
+  },
 };
 
 interface Props {
@@ -89,7 +126,7 @@ export function ThemePicker({ active, onSelect }: Props) {
           >
             <span className="theme-picker-icon">{meta.icon}</span>
             <span className="theme-picker-label">
-              <span className="theme-picker-name">{t}</span>
+              <span className="theme-picker-name">{meta.label || t}</span>
               {meta.desc && (
                 <span className="theme-picker-desc">{meta.desc}</span>
               )}

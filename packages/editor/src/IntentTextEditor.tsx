@@ -23,6 +23,12 @@ export interface IntentTextEditorProps {
   theme?: string;
   /** Called when the user picks a theme in the ribbon. */
   onThemeChange?: (theme: string) => void;
+  /**
+   * Show the ribbon's theme picker. Default true (embedded/desktop have no other
+   * theme control). Pass false when the host provides its own always-visible theme
+   * control (e.g. the web app's title bar) to avoid a duplicate.
+   */
+  showThemePicker?: boolean;
   /** Force read-only. Sealed documents are read-only automatically. */
   readOnly?: boolean;
   /** Show the formatting ribbon. Default true. */
@@ -35,6 +41,15 @@ export interface IntentTextEditorProps {
    * sealDocument / verifyDocument). The group is hidden when omitted.
    */
   onTrustAction?: (action: TrustAction) => void;
+  /** Ribbon density. Pass with onRibbonModeChange to control it from the host
+   *  (e.g. a toggle in your own title bar); the editor's built-in toggle hides. */
+  ribbonMode?: "ribbon" | "simple";
+  onRibbonModeChange?: (mode: "ribbon" | "simple") => void;
+  /** Show the built-in change chip (default true). Set false to host your own. */
+  showChangeIndicator?: boolean;
+  /** Reports whether the document differs from the opened/saved version (doc-level;
+   *  reaches false on full undo). Use to drive your own change indicator. */
+  onChangeState?: (dirty: boolean) => void;
 }
 
 const DEFAULT_THEME = "corporate";
@@ -44,10 +59,15 @@ export function IntentTextEditor({
   onChange,
   theme,
   onThemeChange,
+  showThemePicker = true,
   readOnly = false,
   showRibbon = true,
   showTrustBanner = true,
   onTrustAction,
+  ribbonMode,
+  onRibbonModeChange,
+  showChangeIndicator = true,
+  onChangeState,
 }: IntentTextEditorProps) {
   // Theme is controlled when the host passes `theme`; self-managed otherwise.
   const [internalTheme, setInternalTheme] = useState(theme ?? DEFAULT_THEME);
@@ -66,10 +86,15 @@ export function IntentTextEditor({
       onChange={onChange}
       theme={activeTheme}
       onThemeChange={handleThemeChange}
+      showThemePicker={showThemePicker}
       readOnly={readOnly}
       showRibbon={showRibbon}
       showTrustBanner={showTrustBanner}
       onTrustAction={onTrustAction}
+      ribbonMode={ribbonMode}
+      onRibbonModeChange={onRibbonModeChange}
+      showChangeIndicator={showChangeIndicator}
+      onChangeState={onChangeState}
     />
   );
 }

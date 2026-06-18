@@ -162,18 +162,23 @@ dotit seal acme-cloud-services.it --signer "Fahad Al-Thani" --role "Managing Dir
 
 What `seal` actually does, in order:
 
-1. **Computes the document hash.** It takes the raw source text, cuts it at the
-   `history:` boundary line if one exists (the audit log below it is never
-   hashed), removes every line that starts with `sign:`, `freeze:`, or
-   `amendment:` (the seal metadata can't hash itself — circular), joins the
-   surviving lines with `\n`, trims the result, and computes **SHA-256 over the
-   UTF-8 bytes**. The result is the `sha256:<hex>` string you see. `approve:`
-   lines are *included* — an approval is part of what gets sealed.
-2. **Appends two lines to the file** (just above `history:`, or at the end):
+1. **Computes the document hash** under the current ruleset (`spec: 3`). It takes
+   the raw source text, cuts it at the `history:` boundary line if one exists (the
+   audit log below it is never hashed), **drops comments** (`//` lines) and
+   **styling** (presentation lines `page:`/`font:`/`style:` and presentation
+   properties like `color`/`size`/`align`), then applies the **seal scope** — it
+   keeps each `sign:` line whole and the `freeze:` line with only its own `hash:`
+   blanked (so the seal covers the signatures and its own `at:`/`status:`), and
+   removes `certify:`/`amendment:`. It NFC-normalizes, joins with `\n`, trims, and
+   computes **SHA-256 over the UTF-8 bytes**. The result is the `sha256:<hex>`
+   string you see. `approve:` lines are *included* — an approval is part of what
+   gets sealed; **restyling and comments never break a seal**.
+2. **Appends two lines to the file** (just above `history:`, or at the end), each
+   stamped with the `spec:` ruleset that produced its hash:
 
    ```intenttext
-   sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-12T16:42:23.608Z | hash: sha256:53cdd027…
-   freeze: | at: 2026-06-12T16:42:23.608Z | hash: sha256:53cdd027… | status: locked
+   sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-12T16:42:23.608Z | hash: sha256:53cdd027… | spec: 3
+   freeze: | at: 2026-06-12T16:42:23.608Z | hash: sha256:53cdd027… | spec: 3 | status: locked
    ```
 
 3. **Writes the file in place.** Nothing else changes — sealing never reformats
@@ -184,9 +189,9 @@ Flags: `--signer` is required (it's the recorded identity on the `sign:` line);
 system, not a person, is freezing a generated document.
 
 A counterparty can seal the same file again — `dotit seal … --signer "Mariam
-Al-Sulaiti" --role "Client COO"` adds their `sign:` line. Because seal lines are
-excluded from the hash, the second signature doesn't invalidate the first; both
-signers' hashes match the same frozen body.
+Al-Sulaiti" --role "Client COO"` adds their `sign:` line. Each `sign:` hash is the
+**content** scope (which excludes the signatures), so the second signature doesn't
+invalidate the first; both signers' hashes match the same frozen content.
 
 ### 2. Verify
 
@@ -204,7 +209,7 @@ body — `2% late fee` to `5% late fee` — and:
 
 ```bash
 dotit verify acme-cloud-services.it
-# ❌  Document has been modified since sealing
+# ❌  SEAL BROKEN — document modified since sealing
 #     Sealed:   2026-06-12T16:42:23.608Z
 #     Expected: sha256:53cdd027b9a246d66570914c4d0e6c0e602526f711cc7c86eafa1b4b97b7ec05
 #     Current:  sha256:739948dfb5ad620792be5939c769f1f43b29450cb571d812ea4c6d3afe69751f

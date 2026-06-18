@@ -296,6 +296,128 @@ export const ITDivider = Node.create({
 // Document-level metadata/layout lines (page:, meta:, font:, header:, …) shown as
 // a subtle preserved chip instead of raw body text. `raw` holds the exact source
 // line for round-trip.
+// ── Editable raw-chip node-view ───────────────────────────────
+// meta:/metric:/style: lines are kept verbatim in `raw` (byte fidelity) and shown
+// as chips. This makes them EDITABLE: double-click swaps the chip for a one-line
+// input of the exact source; Enter/blur commits the new `raw` (which docToSource
+// re-emits verbatim → round-trips), Esc cancels. Trust lines stay read-only (they
+// carry hashes — edit them through the Trust panel, never by hand).
+function chipEl(tag: string, cls: string, text: string): HTMLElement {
+  const e = document.createElement(tag);
+  e.className = cls;
+  e.textContent = text;
+  return e;
+}
+
+type ChipDisplay = (raw: string, host: HTMLElement) => void;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rawChipNodeView(display: ChipDisplay): any {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return ({ node, editor, getPos }: any) => {
+    let current = node;
+    const dom = document.createElement("div");
+    let editing = false;
+
+    const showChip = () => {
+      editing = false;
+      dom.innerHTML = "";
+      dom.removeAttribute("data-editing");
+      display(String(current.attrs.raw || ""), dom);
+      if (editor.isEditable) dom.title = "Double-click to edit";
+    };
+
+    const startEdit = () => {
+      if (editing || !editor.isEditable) return;
+      editing = true;
+      dom.innerHTML = "";
+      dom.setAttribute("data-editing", "");
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "it-doc-chip-edit";
+      input.value = String(current.attrs.raw || "");
+      dom.appendChild(input);
+      input.focus();
+      input.select();
+      const commit = () => {
+        if (!editing) return;
+        editing = false;
+        const val = input.value.trim();
+        if (val && val !== current.attrs.raw && typeof getPos === "function") {
+          const pos = getPos();
+          if (pos != null) {
+            editor.view.dispatch(
+              editor.view.state.tr.setNodeAttribute(pos, "raw", val),
+            );
+            return; // update() re-renders from the new node
+          }
+        }
+        showChip();
+      };
+      input.addEventListener("blur", commit);
+      input.addEventListener("keydown", (e: KeyboardEvent) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          input.blur();
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          showChip();
+        }
+      });
+    };
+
+    dom.addEventListener("dblclick", startEdit);
+    showChip();
+
+    return {
+      dom,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      update(updated: any) {
+        if (updated.type.name !== current.type.name) return false;
+        current = updated;
+        if (!editing) showChip();
+        return true;
+      },
+      ignoreMutation: () => true,
+      stopEvent: () => editing,
+    };
+  };
+}
+
+const metaChipDisplay: ChipDisplay = (raw, host) => {
+  host.className = "it-doc-meta";
+  host.textContent = `⚙ ${raw.replace(/\s*\|\s*/g, " · ")}`;
+};
+
+const metricChipDisplay: ChipDisplay = (raw, host) => {
+  const { content, props } = parseTrustLine(raw);
+  const value = [props.value, props.unit].filter(Boolean).join(" ");
+  const isTotal = /\b(total|balance due|amount due|grand)\b/i.test(content);
+  const valueIsVar = /\{\{[^}]+\}\}/.test(value);
+  host.className = `it-doc-metric${isTotal ? " it-doc-metric--total" : ""}`;
+  host.append(
+    chipEl("span", "it-doc-metric__label", content),
+    chipEl(
+      "span",
+      `it-doc-metric__value${valueIsVar ? " it-doc-var" : ""}`,
+      value,
+    ),
+  );
+};
+
+const styleChipDisplay: ChipDisplay = (raw, host) => {
+  const { content, props } = parseTrustLine(raw);
+  const decl = Object.entries(props)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join(" · ");
+  host.className = "it-doc-stylerule";
+  host.append(
+    chipEl("span", "it-doc-stylerule__icon", "🎨"),
+    chipEl("span", "it-doc-stylerule__target", content || "?"),
+    chipEl("span", "it-doc-stylerule__decl", decl),
+  );
+};
+
 export const ITMeta = Node.create({
   name: "itMeta",
   group: "block",
@@ -320,6 +442,9 @@ export const ITMeta = Node.create({
       mergeAttributes(HTMLAttributes, { "data-it-meta": "", class: "it-doc-meta" }),
       `⚙ ${raw}`,
     ];
+  },
+  addNodeView() {
+    return rawChipNodeView(metaChipDisplay);
   },
 });
 
@@ -461,6 +586,10 @@ export const ITTable = Node.create({
         // The cells own the selection while editing; let ProseMirror ignore
         // mutations inside the contenteditable cells.
         ignoreMutation: () => true,
+        // CRITICAL for an editable atom node-view: keep ProseMirror from
+        // intercepting events aimed at the contenteditable cells. Without this,
+        // keystrokes never reach the cell and the table can't be edited.
+        stopEvent: () => true,
       };
     };
   },
@@ -634,6 +763,9 @@ export const ITMetric = Node.create({
       ],
     ];
   },
+  addNodeView() {
+    return rawChipNodeView(metricChipDisplay);
+  },
 });
 
 // ── Scoped document style rule ────────────────────────────────
@@ -673,6 +805,9 @@ export const ITStyleRule = Node.create({
       ["span", { class: "it-doc-stylerule__target" }, content || "?"],
       ["span", { class: "it-doc-stylerule__decl" }, decl],
     ];
+  },
+  addNodeView() {
+    return rawChipNodeView(styleChipDisplay);
   },
 });
 

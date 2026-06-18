@@ -294,12 +294,17 @@ export interface IntentDocumentMetadata {
     role?: string;
     at: string;
     hash: string;
+    /** Canonicalization spec version that produced `hash` (1.16.0+). Absent on
+     *  pre-versioning seals → verify falls back to trying all known versions. */
+    spec?: number;
     valid?: boolean;
   }>;
   /** v2.8: Freeze (seal) state from freeze: block. */
   freeze?: {
     at: string;
     hash: string;
+    /** Canonicalization spec version that produced `hash` (1.16.0+). */
+    spec?: number;
     status: "locked";
   };
   /** v2.8.1: Free-form document metadata from meta: blocks. */

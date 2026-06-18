@@ -42,6 +42,7 @@ import { DocsToolbar } from "./DocsToolbar";
 import { DocsRuler, DocsVerticalRuler } from "./Ruler";
 import { TrustBanner, DocPropsBar } from "./TrustBanner";
 import { ChangeIndicator } from "./ChangeIndicator";
+import { ChangeMarks, setChangeBaseline, changeCount } from "./change-marks";
 import { extractTrustState } from "./trust-state";
 import {
   getBuiltinTheme,
@@ -70,7 +71,18 @@ const PAGE_GAP = 28;
 /** View-only zoom bounds — never affects the .it source or the printed PDF. */
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 3;
-const ZOOM_STEP = 0.1;
+/** Chrome-like discrete zoom stops so −/+ always land on a clean, recognisable
+ *  percentage (50, 60, 70, 80, 90, 100, 110, 120 …) instead of an odd fit value. */
+const ZOOM_STOPS = [
+  0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.75, 2, 2.5, 3,
+] as const;
+/** Snap to the next stop above (dir +1) or below (dir −1) the current zoom. */
+function stepZoom(z: number, dir: 1 | -1): number {
+  const eps = 0.005;
+  if (dir > 0) return ZOOM_STOPS.find((s) => s > z + eps) ?? MAX_ZOOM;
+  const below = [...ZOOM_STOPS].reverse().find((s) => s < z - eps);
+  return below ?? MIN_ZOOM;
+}
 /** Numeric zoom presets offered in the status-bar zoom menu. */
 const ZOOM_PRESETS = [0.5, 0.75, 1, 1.25, 1.5] as const;
 
@@ -98,6 +110,8 @@ interface Props {
   onChange: (source: string) => void;
   theme: string;
   onThemeChange: (theme: string) => void;
+  /** Show the ribbon's theme picker (default true). Host owns theme → false. */
+  showThemePicker?: boolean;
   /** Force read-only (sealed documents are read-only regardless). */
   readOnly?: boolean;
   /** Show the formatting ribbon. Default true. */
@@ -106,6 +120,17 @@ interface Props {
   showTrustBanner?: boolean;
   /** Ribbon Trust group (Seal / Sign / Verify). Group is hidden when omitted. */
   onTrustAction?: (action: TrustAction) => void;
+  /** Ribbon density, CONTROLLED by the host when onRibbonModeChange is given. */
+  ribbonMode?: "ribbon" | "simple";
+  onRibbonModeChange?: (mode: "ribbon" | "simple") => void;
+  /** Show the built-in change chip. Default true. Set false when the host renders
+   *  its own (e.g. in a title bar) and drives undo/redo via the window events
+   *  "it-editor-undo" / "it-editor-redo". */
+  showChangeIndicator?: boolean;
+  /** Reports whether the document currently differs from the opened/saved version
+   *  (doc-level: reaches false when you undo back to the original). Drives a host
+   *  change indicator. */
+  onChangeState?: (dirty: boolean) => void;
 }
 
 export function VisualEditor({
@@ -113,12 +138,22 @@ export function VisualEditor({
   onChange,
   theme,
   onThemeChange,
+  showThemePicker = true,
   readOnly = false,
   showRibbon = true,
   showTrustBanner = true,
   onTrustAction,
+  ribbonMode,
+  onRibbonModeChange,
+  showChangeIndicator = true,
+  onChangeState,
 }: Props) {
-  const lastSourceRef = useRef<string>("");
+  const onChangeStateRef = useRef(onChangeState);
+  onChangeStateRef.current = onChangeState;
+  // Seed with the initial value so the first sync effect is a no-op — otherwise the
+  // editor would re-`setContent` its own initial doc, and that transaction would
+  // sit in the undo history (the "old undo right after open" bug).
+  const lastSourceRef = useRef<string>(value);
   const isInternalUpdate = useRef(false);
   const isHydrating = useRef(true);
   // The source as opened / last externally synced (file open or host save) — the
@@ -177,6 +212,7 @@ export function VisualEditor({
       ITGenericBlock,
       ITComment,
       TemplateHighlight,
+      ChangeMarks,
     ],
     content: sourceToDoc(value),
     // Create the view non-editable up front for read-only/view mode. Toggling
@@ -199,6 +235,9 @@ export function VisualEditor({
       // Fidelity guard: flag any styling that won't survive to .it / core print.
       setUnsupported(detectUnsupportedStyling(json));
       onChange(source);
+      // Doc-level dirty: 0 changed blocks (e.g. fully undone) → clean. This reaches
+      // zero on undo, unlike a source byte-diff which the bridge round-trip drifts.
+      onChangeStateRef.current?.(changeCount(ed) > 0);
     },
     editorProps: {
       attributes: {
@@ -226,13 +265,30 @@ export function VisualEditor({
     }
     if (value !== lastSourceRef.current) {
       const json = sourceToDoc(value);
-      editor.commands.setContent(json);
+      // emitUpdate:false — an external change (file open, source-mode edit, a host
+      // save/seal) must NOT fire onUpdate; otherwise the round-trip pushes a fresh
+      // source back and the doc looks "dirty" the instant it opens, and the open
+      // becomes an undo step. With this off, opening a file is clean.
+      editor.commands.setContent(json, { emitUpdate: false });
       lastSourceRef.current = value;
       // External change (file open or a host save that re-set value) → this is the
       // new baseline the change indicator diffs against.
       setOpenedSource(value);
+      // Capture this opened/saved doc as the clean baseline for the per-row change
+      // markers (the dots clear and re-anchor here).
+      setChangeBaseline(editor);
+      onChangeStateRef.current?.(false);
     }
   }, [value, editor]);
+
+  // Set the change baseline once the editor is ready (covers initial mount and the
+  // host's remount-on-open, where the sync effect above is a no-op). The doc at
+  // this point is the opened content → zero changes.
+  useEffect(() => {
+    if (!editor) return;
+    setChangeBaseline(editor);
+    onChangeStateRef.current?.(false);
+  }, [editor]);
 
   // Host "insert text/variable" → insert at the current caret. Dispatch a
   // window CustomEvent("it-insert-text", { detail: "{{customer.name}}" }).
@@ -244,6 +300,20 @@ export function VisualEditor({
     };
     window.addEventListener("it-insert-text", handler);
     return () => window.removeEventListener("it-insert-text", handler);
+  }, [editor]);
+
+  // Host-driven undo/redo (e.g. a change chip in the host's title bar) → run them
+  // on this editor. Dispatch window CustomEvent("it-editor-undo" / "it-editor-redo").
+  useEffect(() => {
+    if (!editor) return;
+    const undo = () => editor.chain().focus().undo().run();
+    const redo = () => editor.chain().focus().redo().run();
+    window.addEventListener("it-editor-undo", undo);
+    window.addEventListener("it-editor-redo", redo);
+    return () => {
+      window.removeEventListener("it-editor-undo", undo);
+      window.removeEventListener("it-editor-redo", redo);
+    };
   }, [editor]);
 
   // Geometry derived from the document itself (page:/header:/footer: blocks).
@@ -588,12 +658,12 @@ export function VisualEditor({
         e.preventDefault();
         setFitMode("none");
         captureFocalAtCenter();
-        setZoom((z) => clampZoom(z + ZOOM_STEP));
+        setZoom((z) => clampZoom(stepZoom(z, 1)));
       } else if (e.key === "-") {
         e.preventDefault();
         setFitMode("none");
         captureFocalAtCenter();
-        setZoom((z) => clampZoom(z - ZOOM_STEP));
+        setZoom((z) => clampZoom(stepZoom(z, -1)));
       } else if (e.key === "0") {
         e.preventDefault();
         setFitMode("none");
@@ -611,10 +681,10 @@ export function VisualEditor({
     const handler = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+        const dir = e.deltaY > 0 ? -1 : 1;
         setFitMode("none");
         captureFocalAtMouse(e);
-        setZoom((z) => clampZoom(z + delta));
+        setZoom((z) => clampZoom(stepZoom(z, dir)));
       }
     };
     el.addEventListener("wheel", handler, { passive: false });
@@ -632,23 +702,33 @@ export function VisualEditor({
           onChange={onChange}
           theme={theme}
           onThemeChange={onThemeChange}
+          showThemePicker={showThemePicker}
           onTrustAction={onTrustAction}
           trust={trust}
           sealIntact={sealIntact}
           locked={locked}
+          ribbonMode={ribbonMode}
+          onRibbonModeChange={onRibbonModeChange}
         />
       )}
       {showTrustBanner && (
-        <TrustBanner trust={trust} intact={sealIntact} source={value} />
+        <TrustBanner
+          trust={trust}
+          intact={sealIntact}
+          source={value}
+          onChange={locked ? undefined : onChange}
+        />
       )}
       {showTrustBanner && <DocPropsBar source={value} />}
-      {!locked && (
-        <ChangeIndicator
-          original={openedSource}
-          current={value}
-          editor={editor}
-          theme={theme}
-        />
+      {!locked && showChangeIndicator && (
+        <div className="it-change-row">
+          <ChangeIndicator
+            original={openedSource}
+            current={value}
+            editor={editor}
+            onReset={() => onChange(openedSource)}
+          />
+        </div>
       )}
       {unsupported.length > 0 && (
         <div className="docs-fidelity-warning" role="status">
@@ -657,13 +737,20 @@ export function VisualEditor({
           remove it or use the toolbar’s color/size/style controls instead.
         </div>
       )}
-      <DocsRuler
-        geometry={geometry}
-        zoom={zoom}
-        scrollEl={canvasRef}
-        onMargins={setMargins}
-        locked={locked}
-      />
+      {/* Corner spacer (matches the vertical ruler's width) so the horizontal
+          ruler shares the canvas's EXACT left origin + width — otherwise it
+          centers in the full editor width and drifts off the page (badly in
+          landscape, where the wide page overflows/left-aligns). */}
+      <div className="docs-ruler-row">
+        <div className="docs-ruler-corner" aria-hidden="true" />
+        <DocsRuler
+          geometry={geometry}
+          zoom={zoom}
+          scrollEl={canvasRef}
+          onMargins={setMargins}
+          locked={locked}
+        />
+      </div>
       <div className="docs-canvas-row">
         <DocsVerticalRuler
           geometry={geometry}
@@ -680,6 +767,12 @@ export function VisualEditor({
           <div
             className="docs-page-flow"
             dir={docLayoutMeta.dir}
+            // Change dots warn that an edit breaks trust — only meaningful once the
+            // document is signed/sealed. On a fresh/unsigned doc they'd just clutter
+            // every line, so they're gated to trusted documents.
+            data-trusted={
+              trust.signatures.length > 0 || trust.isSealed ? "1" : undefined
+            }
             style={{
               transform: zoom !== 1 ? `scale(${zoom})` : undefined,
               transformOrigin: "top left",
@@ -698,6 +791,12 @@ export function VisualEditor({
                   minHeight: geometry.autoHeight ? geometry.width : undefined,
                   "--page-mx-l": `${geometry.marginLeft}px`,
                   "--page-mx-r": `${geometry.marginRight}px`,
+                  ...(geometry.headerSize
+                    ? { "--page-header-size": geometry.headerSize }
+                    : {}),
+                  ...(geometry.footerSize
+                    ? { "--page-footer-size": geometry.footerSize }
+                    : {}),
                 } as React.CSSProperties
               }
             >
@@ -785,7 +884,7 @@ function ZoomControl({
         className="docs-zoom-btn"
         title="Zoom out (Ctrl/Cmd −)"
         aria-label="Zoom out"
-        onClick={() => onZoom(zoom - ZOOM_STEP)}
+        onClick={() => onZoom(stepZoom(zoom, -1))}
         disabled={zoom <= MIN_ZOOM && fitMode === "none"}
       >
         −
@@ -805,7 +904,7 @@ function ZoomControl({
         className="docs-zoom-btn"
         title="Zoom in (Ctrl/Cmd +)"
         aria-label="Zoom in"
-        onClick={() => onZoom(zoom + ZOOM_STEP)}
+        onClick={() => onZoom(stepZoom(zoom, 1))}
         disabled={zoom >= MAX_ZOOM && fitMode === "none"}
       >
         +

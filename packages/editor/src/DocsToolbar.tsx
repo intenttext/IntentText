@@ -59,9 +59,9 @@ import {
   downloadItFile,
   builtinThemes,
 } from "./print";
-import { TrustControl } from "./TrustControl";
 import type { TrustState } from "./trust-state";
 import type { TrustAction } from "./types";
+import { announcePopover, usePopoverExclusive } from "./popover-bus";
 
 interface Props {
   editor: Editor | null;
@@ -74,6 +74,12 @@ interface Props {
   theme: string;
   onThemeChange: (theme: string) => void;
   /**
+   * Show the ribbon's theme picker. Default true (embedded/desktop have no other
+   * theme control). A host that owns theme elsewhere (e.g. the web app's title bar,
+   * which is always visible across views) passes false to avoid a duplicate.
+   */
+  showThemePicker?: boolean;
+  /**
    * Optional host override for the Trust control. When omitted the editor's own
    * self-contained TrustControl handles sign/seal/verify/unseal via core.
    */
@@ -84,6 +90,10 @@ interface Props {
   sealIntact?: boolean | null;
   /** Sealed documents are read-only — formatting groups are disabled. */
   locked?: boolean;
+  /** Ribbon density. When `onRibbonModeChange` is also given the mode is CONTROLLED
+   *  by the host (the built-in toggle is hidden — the host renders its own). */
+  ribbonMode?: "ribbon" | "simple";
+  onRibbonModeChange?: (mode: "ribbon" | "simple") => void;
 }
 
 /* ── Style options that map to IT keywords ──────────────────── */
@@ -276,10 +286,13 @@ export function DocsToolbar({
   onChange,
   theme,
   onThemeChange,
+  showThemePicker = true,
   onTrustAction,
   trust,
   sealIntact = null,
   locked = false,
+  ribbonMode: ribbonModeProp,
+  onRibbonModeChange,
 }: Props) {
   const [styleOpen, setStyleOpen] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
@@ -287,7 +300,31 @@ export function DocsToolbar({
   const [textColorOpen, setTextColorOpen] = useState(false);
   const [highlightColorOpen, setHighlightColorOpen] = useState(false);
   const [spacingOpen, setSpacingOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
   const [inkSaver, setInkSaver] = useState(false);
+
+  // Coordinate the ribbon's dropdowns with every other popover (title-bar menus,
+  // seal chip, Properties): opening any one closes the rest.
+  const anyRibbonDropdown =
+    styleOpen ||
+    insertOpen ||
+    fontOpen ||
+    textColorOpen ||
+    highlightColorOpen ||
+    spacingOpen ||
+    themeOpen;
+  useEffect(() => {
+    if (anyRibbonDropdown) announcePopover("ribbon");
+  }, [anyRibbonDropdown]);
+  usePopoverExclusive("ribbon", anyRibbonDropdown, () => {
+    setStyleOpen(false);
+    setInsertOpen(false);
+    setFontOpen(false);
+    setTextColorOpen(false);
+    setHighlightColorOpen(false);
+    setSpacingOpen(false);
+    setThemeOpen(false);
+  });
 
   // ── Word-style ribbon: tabs + pin/auto-hide ──────────────────
   // The ribbon groups its commands into tabs (Home / Insert / Layout / Trust)
@@ -323,6 +360,35 @@ export function DocsToolbar({
     setRibbonPinned((p) => !p);
   }, []);
 
+  // Ribbon vs Simple: "ribbon" = the full Word-style tabbed ribbon; "simple" = one
+  // compact row of the formatting essentials with a smaller header (no tab strip).
+  // CONTROLLED when the host passes onRibbonModeChange (then the host renders the
+  // toggle, e.g. in its own title bar) — otherwise the ribbon owns it + a toggle.
+  const hostControlsMode = !!onRibbonModeChange;
+  const [internalMode, setInternalMode] = useState<"ribbon" | "simple">(() => {
+    try {
+      return localStorage.getItem("dotit.ribbon.mode") === "simple"
+        ? "simple"
+        : "ribbon";
+    } catch {
+      return "ribbon";
+    }
+  });
+  const ribbonMode = ribbonModeProp ?? internalMode;
+  const isSimple = ribbonMode === "simple";
+  const toggleRibbonMode = useCallback(() => {
+    const next = ribbonMode === "simple" ? "ribbon" : "simple";
+    if (onRibbonModeChange) onRibbonModeChange(next);
+    else {
+      setInternalMode(next);
+      try {
+        localStorage.setItem("dotit.ribbon.mode", next);
+      } catch {
+        /* storage unavailable */
+      }
+    }
+  }, [ribbonMode, onRibbonModeChange]);
+
   // ── Page setup (size + orientation) ──────────────────────────
   // Read the live geometry from the current .it source so the controls reflect
   // (and round-trip) the document's own `page:` block. Writing goes through the
@@ -351,6 +417,7 @@ export function DocsToolbar({
   const textColorRef = useRef<HTMLDivElement>(null);
   const highlightColorRef = useRef<HTMLDivElement>(null);
   const spacingRef = useRef<HTMLDivElement>(null);
+  const themeRef = useRef<HTMLDivElement>(null);
 
   // Close all dropdowns on outside click
   useEffect(() => {
@@ -367,6 +434,8 @@ export function DocsToolbar({
         setHighlightColorOpen(false);
       if (spacingRef.current && !spacingRef.current.contains(t))
         setSpacingOpen(false);
+      if (themeRef.current && !themeRef.current.contains(t))
+        setThemeOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -379,6 +448,7 @@ export function DocsToolbar({
     setTextColorOpen(false);
     setHighlightColorOpen(false);
     setSpacingOpen(false);
+    setThemeOpen(false);
   };
 
   /* ── Queries ─────────────────────────────────────────────── */
@@ -616,61 +686,67 @@ export function DocsToolbar({
   const currentLeading = getBlockProp(editor, "leading");
   const hasEnd = !!getBlockProp(editor, "end");
 
-  const showTrust = Boolean((trust && onChange) || onTrustAction);
+  // Trust no longer has its own ribbon tab — it lives permanently in the right
+  // cluster (one consistent place, both Ribbon and Simple modes).
   const RIBBON_TABS: { id: string; label: string }[] = [
     { id: "home", label: "Home" },
     { id: "insert", label: "Insert" },
     { id: "layout", label: "Layout" },
-    ...(showTrust ? [{ id: "trust", label: "Trust" }] : []),
   ];
+
+  const shellOpen = isSimple || ribbonOpen;
 
   return (
     <div
-      className={`docs-ribbon-shell${ribbonOpen ? " open" : " collapsed"}${
+      className={`docs-ribbon-shell${shellOpen ? " open" : " collapsed"}${
         ribbonPinned ? " pinned" : ""
-      }`}
+      }${isSimple ? " docs-ribbon-shell--simple" : ""}`}
       onMouseLeave={() => {
-        if (!ribbonPinned) setRibbonPeek(false);
+        if (!ribbonPinned && !isSimple) setRibbonPeek(false);
       }}
     >
-      {/* Word-style tab strip + pin */}
-      <div className="docs-ribbon-tabs">
-        {RIBBON_TABS.map((t) => (
+      {/* Tab strip — ribbon mode only. Simple mode has no tabs; the Ribbon⇄Simple
+          toggle now lives on the right of the formatting row below (always visible),
+          so Simple is one compact row with no strip at all. */}
+      {!isSimple && (
+        <div className="docs-ribbon-tabs">
+          {RIBBON_TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`docs-ribbon-tab${ribbonTab === t.id ? " active" : ""}`}
+              onClick={() => selectRibbonTab(t.id)}
+              onDoubleClick={toggleRibbonPin}
+              title={
+                ribbonPinned
+                  ? t.label
+                  : `${t.label} — click to peek, double-click to pin`
+              }
+            >
+              {t.label}
+            </button>
+          ))}
+          <div className="docs-ribbon-tabs-spacer" />
           <button
-            key={t.id}
             type="button"
-            className={`docs-ribbon-tab${ribbonTab === t.id ? " active" : ""}`}
-            onClick={() => selectRibbonTab(t.id)}
-            onDoubleClick={toggleRibbonPin}
+            className="docs-ribbon-pin"
+            onClick={toggleRibbonPin}
+            aria-pressed={ribbonPinned}
             title={
               ribbonPinned
-                ? t.label
-                : `${t.label} — click to peek, double-click to pin`
+                ? "Unpin the ribbon (auto-hide)"
+                : "Pin the ribbon (keep open)"
             }
           >
-            {t.label}
+            {ribbonPinned ? <Pin size={14} /> : <PinOff size={14} />}
           </button>
-        ))}
-        <div className="docs-ribbon-tabs-spacer" />
-        <button
-          type="button"
-          className="docs-ribbon-pin"
-          onClick={toggleRibbonPin}
-          aria-pressed={ribbonPinned}
-          title={
-            ribbonPinned
-              ? "Unpin the ribbon (auto-hide)"
-              : "Pin the ribbon (keep open)"
-          }
-        >
-          {ribbonPinned ? <Pin size={14} /> : <PinOff size={14} />}
-        </button>
-      </div>
+        </div>
+      )}
 
       <div
         className="docs-toolbar docs-ribbon"
-        data-tab={ribbonTab}
-        data-open={ribbonOpen ? "1" : "0"}
+        data-tab={isSimple ? "home" : ribbonTab}
+        data-open={shellOpen ? "1" : "0"}
       >
       {/* ── Edit ─────────────────────────────────────────── */}
       <Group label="Edit" tab="home">
@@ -709,18 +785,42 @@ export function DocsToolbar({
         >
           <Droplets size={16} />
         </Btn>
-        <select
-          className="ribbon-theme-select"
-          value={theme}
-          onChange={(e) => onThemeChange(e.target.value)}
-          title="Document theme (used everywhere — canvas, print, export)"
-        >
-          {themes.map((t) => (
-            <option key={t} value={t}>
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </option>
-          ))}
-        </select>
+        {/* Document theme — custom dropdown (matches the Title / Default pickers).
+            Hidden when the host owns theme (showThemePicker=false), e.g. the web
+            app's always-visible title-bar theme control. */}
+        {showThemePicker && (
+          <div className="docs-tb-dropdown" ref={themeRef}>
+            <button
+              className="docs-tb-select docs-tb-theme-select"
+              onClick={() => {
+                closeAll();
+                setThemeOpen(!themeOpen);
+              }}
+              title="Document theme (used everywhere — canvas, print, export)"
+            >
+              <span className="docs-tb-select-label">
+                {theme.charAt(0).toUpperCase() + theme.slice(1)}
+              </span>
+              <ChevronDown size={14} />
+            </button>
+            {themeOpen && (
+              <div className="docs-tb-dropdown-menu docs-theme-menu">
+                {themes.map((t) => (
+                  <button
+                    key={t}
+                    className={`docs-tb-dropdown-item${theme === t ? " active" : ""}`}
+                    onClick={() => {
+                      onThemeChange(t);
+                      setThemeOpen(false);
+                    }}
+                  >
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </Group>
 
       <GroupSep />
@@ -1263,41 +1363,24 @@ export function DocsToolbar({
         </Group>
       </div>
 
-      {/* ── Trust ────────────────────────────────────────── */}
-      {trust && onChange ? (
-        <>
-          <GroupSep />
-          <Group label="Trust" tab="trust">
-            <TrustControl
-              content={content}
-              onChange={onChange}
-              trust={trust}
-              intact={sealIntact}
-            />
-          </Group>
-        </>
-      ) : (
-        onTrustAction && (
-          <>
-            <GroupSep />
-            <Group label="Trust" tab="trust">
-              <Btn
-                onClick={() => onTrustAction("seal")}
-                disabled={locked}
-                title="Seal — freeze the document with a tamper-evident hash"
-              >
-                <span className="ribbon-btn-text">Seal</span>
-              </Btn>
-              <Btn onClick={() => onTrustAction("sign")} title="Sign">
-                <span className="ribbon-btn-text">Sign</span>
-              </Btn>
-              <Btn onClick={() => onTrustAction("verify")} title="Verify">
-                <span className="ribbon-btn-text">Verify</span>
-              </Btn>
-            </Group>
-          </>
-        )
-      )}
+      {/* Right cluster — NOT tab-gated, always visible in both modes. Trust is NOT
+          here: it lives in ONE place, the TrustBanner chip (the single complete
+          trust control). This cluster just holds the Ribbon⇄Simple toggle. */}
+      <div className="docs-ribbon-right">
+        <button
+          type="button"
+          className="docs-ribbon-mode"
+          onClick={toggleRibbonMode}
+          aria-pressed={isSimple}
+          title={
+            isSimple
+              ? "Switch to the full ribbon"
+              : "Switch to a simple, compact toolbar"
+          }
+        >
+          {isSimple ? "⊞ Ribbon" : "▭ Simple"}
+        </button>
+      </div>
       </div>
     </div>
   );

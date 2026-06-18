@@ -15,9 +15,9 @@ browser are marked.
 
 | Package | Version | What it is | Install |
 | --- | --- | --- | --- |
-| `@dotit/core` | **1.12.0** | Parser, HTML/print renderers, query engine, template merge, trust (seal/sign/verify), **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers**, themes, converters, CLI. Zero runtime deps; Node + browser. | `npm i @dotit/core` |
-| `@dotit/editor` | **1.8.0** | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`** (edit/fill/review/view), ribbon, trust banner, attachment fill UI, version-compare, WYSIWYG PDF. Browser-only. | `npm i @dotit/editor` |
-| `@dotit/pdf` | **1.1.0** | Server-side PDF bytes: merge → seal → PDF; **PDF/A archival** (`toPdfA`); PAdES-signed PDF (`renderSignedPDF`). Puppeteer is an *optional* peer. | `npm i @dotit/pdf puppeteer` |
+| `@dotit/core` | **1.21.0** | Parser, HTML/print renderers, query engine, template merge, trust (versioned **SEAL_SPEC 3** seal/sign/verify), **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers**, themes, converters, CLI. Zero runtime deps; Node + browser. | `npm i @dotit/core` |
+| `@dotit/editor` | **1.15.0** | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`** (edit/fill/review/view), ribbon, trust banner, form builder, document/form/template flow, version history, attachment fill UI, version-compare, WYSIWYG PDF. Browser-only. | `npm i @dotit/editor` |
+| `@dotit/pdf` | **1.2.0** | Server-side PDF bytes: merge → seal → PDF; **PDF/A archival** (`toPdfA`); tagged (accessible) PDF by default; PAdES-signed PDF (`renderSignedPDF`). Puppeteer is an *optional* peer. | `npm i @dotit/pdf puppeteer` |
 | `@dotit/pades` | **1.0.0** | **PAdES** (Adobe/court-recognized) PDF signatures — ECDSA P-256 + X.509 + CMS; CSR/CA issuance; RFC-3161 timestamps; CLI. | `npm i @dotit/pades` |
 | `@dotit/sign` | **1.4.1** | Ed25519 signatures (provable *who signed*) + UTS certifications + root→intermediate chain. Offline, self-verifying. | `npm i @dotit/sign` |
 | `@dotit/math` | **0.1.0** | Render core's math placeholders → MathML (dependency-free lite) or full **KaTeX** (optional peer). | `npm i @dotit/math` |
@@ -42,8 +42,9 @@ browser are marked.
    typed `custom` block. Invent domain keywords freely.
 6. Templates are `.it` files with `{{placeholders}}`; `parseAndMerge` resolves them
    from a JSON object, including repeating table rows.
-7. `sealDocument` freezes the content under a SHA-256 hash anyone can recompute;
-   `verifyDocument` detects any later edit.
+7. `sealDocument` freezes the **content** under a versioned SHA-256 hash anyone can
+   recompute (presentation is excluded — restyling never breaks a seal);
+   `verifyDocument` detects any later content, signature, or seal-metadata edit.
 8. Arabic is native: 33 Arabic keyword aliases, automatic RTL, bidi-isolated values,
    byte-stable round-trips.
 9. A folder of `.it` files is a database: `dotit query ./contracts --type deadline`.
@@ -268,25 +269,57 @@ Lifecycle: `track:` → `approve:` → `sign:` → `freeze:` (seal) → verify �
 ```intenttext
 track: | id: CON-2026-014 | by: Ahmed
 approve: Legal review complete | by: Sara Haddad | role: Counsel | at: 2026-06-01
-sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-12T09:00:00Z | hash: sha256:…
-freeze: | at: 2026-06-12T09:00:00Z | hash: sha256:… | status: locked
+sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-12T09:00:00Z | hash: sha256:… | spec: 3
+freeze: | at: 2026-06-12T09:00:00Z | hash: sha256:… | spec: 3 | status: locked
 amendment: Late fee reduced | was: 2% | now: 1.5% | ref: Amendment #1 | by: Fahad | at: 2026-06-20
 history:
 revision: | version: 1.1 | at: 2026-06-13T08:00:00Z | by: Ops | change: archived
 ```
 
-The document hash is **SHA-256 over the raw source above the `history:` boundary,
-excluding lines that start with `sign:`/`freeze:`/`amendment:`** (`approve:` IS
-included — an approval is part of what gets approved), joined with LF, trimmed,
-UTF-8. `sealDocument()` computes it and inserts the `sign:` + `freeze:` lines;
-`verifyDocument()` recomputes and compares.
+**The hash is versioned.** Every `sign:`/`freeze:` line stamps a `spec:` version
+recording *which* byte-rules produced its hash; verification applies exactly that
+version **forever**, so a future rule change can never silently break a historical
+seal. The current version is **`SEAL_SPEC = 3`**.
+
+The document hash is **SHA-256 over the raw source above the `history:` boundary**,
+with these exclusions:
+
+- **Comments** (`//` lines) are dropped.
+- **Styling is excluded** — whole presentation lines (`page:`, `font:`, `style:`) and
+  presentation *properties* on content lines (`color`, `size`, `family`, `align`, `bg`,
+  `indent`, `leading`, `space-before/after`, `opacity`, `border`, `margin(s)`,
+  `orientation`, `width`, `height`, `theme`, …). **Restyling never breaks a seal** —
+  only real content does ("sign content, not presentation").
+- For the **content** scope (each `sign:` line's hash): `sign:`/`freeze:`/`certify:`/
+  `amendment:` lines are dropped, and each signature *binds the signer identity* —
+  `sig:<signer>|<role>|<at>` is appended before hashing, so editing the signer's
+  name/role/date breaks **that** signature even before the doc is sealed.
+- For the **seal** scope (the `freeze:` line's hash): `sign:` lines are kept whole and
+  the `freeze:` line is kept with only its self-referential `hash:` blanked — its
+  `at:`/`status:`/`spec:` stay, so tampering the seal metadata, a signature, or the body
+  all break the seal.
+
+`approve:` lines are **always** hashed (an approval is part of what gets approved).
+The body is NFC-normalized, joined with LF, trimmed, UTF-8 → `sha256:` + hex.
+`sealDocument()` computes it and inserts the `sign:` + `freeze:` lines;
+`verifyDocument()` recomputes and compares. The trust band (`renderTrustBand`)
+**verifies before it draws** — a tampered document renders a red **SEAL BROKEN** stamp
+on every surface (screen, print, PDF), never a clean seal.
+
+`verifyDocument(source)` returns `{ intact, frozen, hash, expectedHash, signers }`, where
+each signer reports `valid` / `signedCurrentVersion` (whether their signature still
+matches the *current* content — **multi-sign aware:** a signer who signed an earlier
+version is reported as such, not as a blanket failure) plus `spec` / `specOutdated` (the
+recorded ruleset and whether it predates the current one — re-seal to upgrade).
 
 The base seal is **tamper-evidence (integrity)**:
 
-- It proves the content is byte-identical to what was sealed. Anyone with any
-  SHA-256 implementation can recompute it — no vendor, no key registry.
-- The bare `sign:` *name* is a claim, not a cryptographic identity. For provable
-  identity, add **`@dotit/sign` (Ed25519)** — see below.
+- It proves the content is byte-identical to what was sealed, and binds the *claimed*
+  signer identity. Anyone with any SHA-256 implementation can recompute it — no vendor,
+  no key registry.
+- But the `sign:` *name* is a typed claim — anyone can type a name. V3 makes that name
+  tamper-evident; it does **not** prove **who** typed it. Proving identity is a ladder
+  **above** the hash — see §2.9b.
 
 ### 2.9a Cryptographic signatures — `@dotit/sign` (provable "who")
 
@@ -321,10 +354,53 @@ What it still does **not** prove on its own: that a public key belongs to a
 specific real person (that binding is UTS certification — provable *time* and
 *identity attestation* are the next layers). This is exactly the PGP/SSH/code-
 signing model: a key proves the holder signed; a CA later vouches for the key.
+
+Operational notes:
 - Append-only evolution: `amendment:` lines and everything below `history:` are
   excluded from the hash, so a frozen contract can record changes without breaking
   its seal. Never edit above `history:` after sealing.
 - Don't invent hashes — only `sealDocument()` computes them.
+
+### 2.9b The identity ladder — V3 is the floor, proving *who* is a layer above it
+
+This is the single most important thing for an ERP integrator to get right.
+SEAL_SPEC 3 gives you **integrity**: the content and the *claimed* signer name are
+tamper-evident. It does **not** give you **authenticity** — proving *who* really
+signed. Anyone can type "Fahad Al-Thani, Managing Director" into a `sign:` line; V3
+makes that string tamper-proof, but the string is only a claim. Proving identity
+always needs two things V3 doesn't have on its own: **a secret only that person
+controls** (a key) and **a trust anchor** that vouches the key belongs to the identity.
+
+So treat V3 as the **integrity floor** and climb the rung that matches your trust
+boundary:
+
+| Boundary | Mechanism | In the system |
+| --- | --- | --- |
+| Tamper-evidence + bound *claimed* identity | versioned SHA-256 hash | **SEAL_SPEC 3** (done) |
+| Intra-company identity (inside the ERP) | **V3 + the ERP authenticates the user** and signs from the session | **Level 0** — see below |
+| Cross-organization identity | ed25519 key + a shared CA certifying key↔identity | `@dotit/sign` + `certify:` (certified tiers) |
+| Legal / court | qualified PKI (X.509, eIDAS), trusted timestamp | `@dotit/pades` |
+
+**Level 0 — inside the ERP (the rung Jadwal should implement).** V3 alone is *not*
+enough inside the ERP either, because the signer still comes from a text box. The fix
+is to make the ERP — not the user — supply the identity:
+
+1. The ERP **authenticates** the user (login + ideally MFA). The session knows it is
+   Emad (`user_id`), not a typed name.
+2. At sign time the ERP **fills the `sign:` signer/role from the authenticated session**,
+   never from a free-text field the user can edit.
+3. The ERP **binds a key to that user**: sign with `@dotit/sign` (ed25519) using a key
+   the ERP controls on the user's behalf, **or** record the signing in the ERP's own
+   authenticated, append-only audit log (`user_id=emad, authenticated, signed hash H at
+   T`). Either way the `sign:` line carries a cryptographic signature or an attested
+   record, not just a typed name.
+
+**Trust anchor = the ERP.** Anyone who trusts the ERP can now verify, and the "type
+someone else's name and click sign" attack is gone. **V3 (integrity) + ERP
+authentication + a key/attestation = intra-company identity proof.** Beyond the company
+you climb to certified public keys (`certify:`); for court you bridge to qualified PAdES
+signatures (`@dotit/pades`). The pieces already exist — it is about using the right rung
+per boundary. (Deeper write-up: `docs-internal/identity.md`.)
 
 ### 2.10 Minimal valid documents
 
@@ -345,7 +421,7 @@ result: Done | status: success
 
 ---
 
-## 2.11 The latest capabilities (core 1.12 / editor 1.8)
+## 2.11 The latest capabilities (core 1.21 / editor 1.15)
 
 Everything below is in the published versions in the table above. APIs are from
 `@dotit/core` unless noted.
@@ -459,6 +535,13 @@ import { IntentTextWorkbench } from "@dotit/editor"; // + import "@dotit/editor/
 Or import a single component per page: `TemplateEditor` / `FormDesigner` (author),
 `FormFiller` (fill, with built-in attach/download), `Redline` (review), `DocViewer`.
 Full guide: [`packages/editor/EMBEDDING.md`](packages/editor/EMBEDDING.md).
+
+**New in 1.15:** prose now serializes **bare** (no spurious `text:` prefix on plain
+paragraphs). **File ▸ New** branches into Document / Form / Template: forms get a
+**Design | Fill** split with a form-builder Design panel (add field types, edit
+label/type/required/options, reorder, delete); templates get **Edit | Preview**.
+**Version history** is active — **File ▸ Save version** and **History…** to browse and
+restore prior versions.
 
 ---
 
@@ -709,12 +792,18 @@ const v = verifyDocument(db.contracts.get(id).it_source);
 if (!v.intact) alertCompliance(id, v.expectedHash, v.hash);
 ```
 
-**What the hash covers** (recap of §2.9): everything above `history:`, minus
-`sign:`/`freeze:`/`amendment:` lines, LF-joined, trimmed, UTF-8, SHA-256. So:
+**What the hash covers** (recap of §2.9): the **content** above `history:`, minus
+comments, **minus styling** (`page:`/`font:`/`style:` lines and presentation props),
+minus `sign:`/`freeze:`/`certify:`/`amendment:` lines, NFC-normalized, LF-joined,
+trimmed, UTF-8, SHA-256 — under the recorded `spec:` version. So:
 
 - Appending `amendment:` lines or `history:`/`revision:` entries does **not**
   break the seal (verified: `intact` stays `true`).
-- Changing one character of the body flips `intact` to `false`.
+- **Restyling does not break the seal** — changing a theme, color, page size, or
+  spacing leaves `intact` true (presentation is excluded). Changing one character of
+  the *content* flips `intact` to `false`.
+- Tampering a `sign:` line, the `freeze:` metadata, or a signer's name/role/date also
+  flips `intact` (or the relevant signer's `valid`) to `false`.
 - Re-saving the file with CRLF line endings **breaks verification** — normalize
   to LF, or better, store the string returned by `sealDocument` untouched.
 
@@ -938,7 +1027,7 @@ and deterministic.
 
 ## 4. CLI reference
 
-`npm i -g @dotit/core` installs `dotit` (v1.3.0). One line each — all verified:
+`npm i -g @dotit/core` installs `dotit` (v1.21.0). One line each — all verified:
 
 ```bash
 dotit file.it                          # parse → JSON to stdout
@@ -1099,12 +1188,19 @@ Binaries: `intenttext-mcp` (stdio), `intenttext-mcp-http` (Streamable HTTP on
 13. **Dates are ISO or the query engine can't compare them.** `due<2026-07-01`
     works because values sort lexicographically; `09/03/2026` doesn't. The
     validator warns (`DATE_NOT_ISO`).
-14. **Sealing is tamper-evidence, not identity.** The seal proves *what* the
-    content was, not *who* sealed it. Pair with your own authn/authz and, if
-    legally required, detached PKI signatures over the sealed bytes (§2.9).
+14. **Sealing is tamper-evidence, not identity.** SEAL_SPEC 3 proves *what* the
+    content was and binds the *claimed* signer — but a typed name is still a claim.
+    To prove *who*, climb the identity ladder (§2.9b): inside an ERP, authenticate the
+    user and fill the signer from the session (Level 0); cross-org, use `@dotit/sign`
+    + `certify:`; for court, qualified PAdES (`@dotit/pades`).
+15. **Restyling never breaks a seal, but editing content does.** SEAL_SPEC 3 excludes
+    presentation (`page:`/`font:`/`style:` lines, color/size/align/etc. props) from the
+    hash — theme and layout changes leave `intact` true. It also covers the `freeze:`
+    metadata and each signer's identity, so editing `at:`/`status:` or a signer's
+    name/role/date *does* break the seal/signature.
 
 ---
 
-*Generated from the IntentText monorepo at `@dotit/core` 1.3.0 — every runnable
-claim executed against the built packages. Corrections: open an issue at
-https://github.com/intenttext/IntentText/issues.*
+*Generated from the IntentText monorepo at `@dotit/core` 1.21.0 / `@dotit/editor`
+1.15.0 (SEAL_SPEC 3) — every runnable claim executed against the built packages.
+Corrections: open an issue at https://github.com/intenttext/IntentText/issues.*

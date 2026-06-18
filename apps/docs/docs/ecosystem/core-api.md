@@ -11,7 +11,7 @@ TypeScript/JavaScript API reference for `@dotit/core`.
 npm install @dotit/core
 ```
 
-Current version: **1.5.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
+Current version: **1.21.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
 
 ## Parser
 
@@ -335,6 +335,9 @@ text: Amount due: {{amount}}
 const merged = mergeData(template, { number: "INV-2847", amount: "$5,000" });
 ```
 
+`mergeData` resolves `{{vars}}` inside multi-line prose blocks too, so a **fully merged**
+template (no placeholders left) can be sealed.
+
 ### `parseAndMerge(source, data, options?)`
 
 Parse and merge in one call. `options.missing` controls unresolved `{{fields}}`:
@@ -365,10 +368,16 @@ collectDocumentStyles(doc);
 
 ## Trust
 
+The trust hash is **versioned**: every `sign:`/`freeze:` line stamps a `spec:` version
+(current `SEAL_SPEC = 3`), and verification applies exactly that version forever, so a
+future byte-rule change can never silently break a historical seal. `spec: 3` excludes
+**styling** (presentation lines/properties) and **comments** from the hash, covers the
+seal's own metadata, and binds each signer's identity. See [SPEC §4](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md).
+
 ### `sealDocument(source, options)`
 
 Seal a document: appends a `sign:` line (optional) and a `freeze:` line carrying the
-SHA-256 content hash. Returns the updated source — store it exactly as returned
+SHA-256 seal hash and `spec: 3`. Returns the updated source — store it exactly as returned
 (the hash covers the exact bytes).
 
 ```typescript
@@ -380,24 +389,50 @@ const result = sealDocument(source, { signer: "Ahmed Al-Rashid", role: "CEO" });
 
 ### `verifyDocument(source)`
 
-Verify document integrity against its seal.
+Verify document integrity against its seal. **Multi-sign aware:** each signer is reported
+with `signedCurrentVersion` (did their signature match the *current* content?), plus the
+recorded `spec` and whether it is `specOutdated` (an older, weaker ruleset). A signer who
+signed an earlier version is reported as such, not as a blanket failure.
 
 ```typescript
 import { verifyDocument } from "@dotit/core";
 
 const result = verifyDocument(source);
-// result.intact, result.hash, result.frozen, result.signers
+// result.intact, result.hash, result.frozen, result.spec, result.specOutdated, result.signers
 ```
 
-### `computeDocumentHash(source)`
+### `computeDocumentHash(source)` / `computeSignatureHash(source, signer)`
 
-Compute SHA-256 hash of document content (above history boundary).
+Compute the SHA-256 hash of document content (above the history boundary). The two **scopes**:
+`computeDocumentHash` is the **seal** scope (content + signatures + freeze metadata);
+`computeSignatureHash` is the **content** scope for one signer (also binds their identity).
 
 ```typescript
-import { computeDocumentHash } from "@dotit/core";
+import { computeDocumentHash, computeSignatureHash } from "@dotit/core";
 
-const hash = computeDocumentHash(source);
+const sealHash = computeDocumentHash(source);
 // "sha256:a1b2c3..."
+const sigHash = computeSignatureHash(source, { signer: "Ahmed", role: "CEO", at });
+```
+
+### `signatureIdentity(line)` / `signatureMatchesContent(source, signer)`
+
+`signatureIdentity` extracts the bound `{ signer, role, at }` from a `sign:` line;
+`signatureMatchesContent` checks whether a signer's hash still matches the current content
+(the per-signer integrity check behind `verifyDocument`).
+
+### Integrity-gated trust band — `renderTrustBand`, `TRUST_BAND_CSS`, `trustBandPositionCss`
+
+`renderTrustBand(source, options?)` renders the on-document trust band (sealed, signed,
+broken, …). It **verifies before it draws**: a tampered document renders a red
+**"SEAL BROKEN"** stamp on every surface (screen, print, PDF) — never a clean seal. Pair
+with `TRUST_BAND_CSS` (the stylesheet) and `trustBandPositionCss` (placement). Tiers
+include the new **sealed** (indigo) and **broken** (red).
+
+```typescript
+import { renderTrustBand, TRUST_BAND_CSS, trustBandPositionCss } from "@dotit/core";
+
+const bandHtml = renderTrustBand(source); // "SEAL BROKEN" if the content was tampered
 ```
 
 ### `computeTrustDiff(before, after)`
@@ -432,12 +467,16 @@ interface VerifyResult {
   intact: boolean;
   frozen: boolean;
   frozenAt?: string;
+  spec?: number; // the recorded seal ruleset (e.g. 3)
+  specOutdated?: boolean; // true if the seal predates the current SEAL_SPEC
   signers?: Array<{
     signer: string;
     role?: string;
     at: string;
     valid: boolean;
     signedCurrentVersion: boolean;
+    spec?: number;
+    specOutdated?: boolean;
   }>;
   hash?: string;
   expectedHash?: string;

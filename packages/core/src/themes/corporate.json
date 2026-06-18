@@ -53,27 +53,27 @@
       "background": "code-bg",
       "font-family": "mono",
       "padding": "0.2em 0.4em",
-      "border-radius": "3px"
+      "border-radius": "0"
     },
     "sign": {
       "border": "1px solid",
       "border-color": "trust-signed",
       "padding": "0.75em",
-      "border-radius": "4px"
+      "border-radius": "0"
     },
     "approve": {
       "background": "#f0fdf4",
       "border": "1px solid",
       "border-color": "trust-approved",
       "padding": "0.5em 0.75em",
-      "border-radius": "4px"
+      "border-radius": "0"
     },
     "freeze": {
       "background": "#f5f3ff",
       "border": "2px solid",
       "border-color": "trust-frozen",
       "padding": "1em",
-      "border-radius": "4px",
+      "border-radius": "0",
       "text-align": "center"
     }
   },

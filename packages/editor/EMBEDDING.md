@@ -123,6 +123,10 @@ declare function indexAnswers(a: Record<string, string>): void;
 - **Trust** never happens implicitly — the editor only reports intent
   (`onTrustAction`, `onSubmit`); you call `@dotit/core`'s `sealDocument` /
   `signDocument` / `verifyDocument` (or POST to the UTS service) so your app stays in
-  control of keys and policy.
+  control of keys and policy. The built-in trust banner is multi-sign aware (per-signer
+  `Signed · N/M`; an older-ruleset seal shows `Sealed · older ruleset`; a tampered seal
+  shows `SEAL BROKEN`), and the `"view"` surface plus print/PDF draw `@dotit/core`'s
+  unified, integrity-gated certification band (`renderTrustBand`) — identical on screen
+  and on paper, and never drawn over a tampered document.
 - **Source ↔ editor** round-trips losslessly (`sourceToDoc` / `docToSource`), so a
   sealed document keeps its hash through an open/close.

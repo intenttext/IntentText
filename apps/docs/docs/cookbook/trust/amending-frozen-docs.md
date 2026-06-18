@@ -28,9 +28,9 @@ The `amendment:` keyword adds a formal change record **alongside** the sealed co
 ```intenttext
 // ... original content above ...
 
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2c3d4
-sign: Maria Santos | role: COO | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8
-freeze: | status: locked | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2c3d4 | spec: 3
+sign: Maria Santos | role: COO | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8 | spec: 3
+freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2 | spec: 3 | status: locked
 
 // Amendment lines are excluded from the document hash, so they don't break the seal
 amendment: Payment terms updated | section: Payment | was: Net 15 | now: Net 30 | ref: Amendment #1 | by: Ahmed Al-Rashid | approved-by: Sarah Chen | at: 2026-09-15
@@ -84,7 +84,7 @@ The original seal is verified first. Amendments are listed separately. A reader 
 Amendments are additive. Each gets its own reference number:
 
 ```intenttext
-freeze: | status: locked | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2
+freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2 | spec: 3 | status: locked
 
 amendment: Payment terms updated | section: Payment | was: Net 15 | now: Net 30 | ref: Amendment #1 | by: Ahmed Al-Rashid | approved-by: Sarah Chen | at: 2026-09-15
 
@@ -100,7 +100,7 @@ Each amendment can have its own `approved-by:` — the approval chain for an ame
 For high-stakes amendments, add separate `approve:` blocks before the `amendment:`:
 
 ```intenttext
-freeze: | status: locked | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2
+freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2 | spec: 3 | status: locked
 
 approve: Amendment #1 legal review | by: Sarah Chen | role: General Counsel | at: 2026-09-14
 amendment: Payment terms updated | section: Payment | was: Net 15 | now: Net 30 | ref: Amendment #1 | by: Ahmed Al-Rashid | approved-by: Sarah Chen | at: 2026-09-15

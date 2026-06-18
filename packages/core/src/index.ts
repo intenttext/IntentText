@@ -119,8 +119,12 @@ export type {
 } from "./executor";
 // v2.8 trust and history
 export {
+  SEAL_SPEC,
   computeDocumentHash,
   computeDocumentHashLegacy,
+  computeSignatureHash,
+  signatureIdentity,
+  signatureMatchesContent,
   hashMatches,
   findHistoryBoundaryInSource,
   sealDocument,
@@ -145,6 +149,9 @@ export type { StoredDocument } from "./storage";
 export {
   renderSeal,
   sealForDocument,
+  renderTrustBand,
+  TRUST_BAND_CSS,
+  trustBandPositionCss,
   detectTrustState,
   contentHashOf,
   TIER_STYLES,

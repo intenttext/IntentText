@@ -146,60 +146,83 @@ keywords remain recognized but are not part of any tier.
 
 ## 4. Trust model (contract profile)
 
-- `sign:` / `approve:` record an actor against the current document hash.
-- `freeze:` locks the document; the content hash is recorded.
-- `verifyDocument()` recomputes the hash and reports tamper status.
-- The `history:` boundary separates the live document from its append-only audit
-  log; content above the boundary is what gets hashed.
+Trust is **tamper-evidence, not PKI**: anyone with the source and SHA-256 can reproduce a
+hash and detect any change. Proving *who* really signed is a layer **above** the hash —
+cryptographic signatures (`@dotit/sign`, ed25519), certification (`certify:`), and legal
+PAdES (`@dotit/pades`); see the identity ladder in `INTEGRATION.md`.
 
-### 4.1 Canonicalization — the exact bytes that get hashed
+- `sign:` records an actor's approval against a content hash that **binds their identity**.
+- `freeze:` **seals** the document — its hash covers the content *and* the signatures *and*
+  the seal's own metadata.
+- `approve:` records a workflow approval (part of the hashed body).
+- `verifyDocument()` recomputes and reports tamper status + per-signer validity.
+- The `history:` boundary separates the live document from its append-only audit log; only
+  content **above** the boundary is hashed.
 
-The document hash is **tamper-evidence, not PKI**: anyone with the source and a SHA-256
-implementation can reproduce it. The algorithm (`computeDocumentHash` in
-[`src/trust.ts`](src/trust.ts)) is deliberately tiny and operates on the **raw source
-string**, in this exact order:
+### 4.1 Versioned canonicalization — the exact bytes that get hashed
 
-1. **Cut at the history boundary.** Scan lines top-to-bottom; the boundary is the first
-   line that, *trimmed*, equals `history:` (legacy: a `---` line immediately followed by
-   a `// history` line). Keep only the bytes **before** that line. If there is no
-   boundary, keep the whole source. The append-only audit log below `history:` is never
-   hashed, so adding history entries never changes the document hash.
-2. **Drop the seal lines.** From the kept content, remove every line whose **raw,
-   un-trimmed** text starts with `sign:`, `freeze:`, or `amendment:`. These carry the
-   seal metadata whose own `hash:` field references the body *without* them — so they
-   must be excluded to avoid a circular definition. (Prefix match is literal: an indented
-   `  sign:` is **not** removed.)
-3. **Join and trim.** Re-join the surviving lines with a single `\n` (LF), then apply one
-   `String.trim()` to the whole result (strips leading/trailing whitespace, including a
-   trailing newline).
-4. **Hash.** `"sha256:" + sha256(utf8Bytes(body)).toHex()`.
+Every seal/signature stamps a **`spec:` version** recording WHICH byte-rules produced its
+hash; verification applies exactly that version **forever**, so a future rule change can
+never silently break a historical seal. The current version is **`SEAL_SPEC = 3`**.
 
-Determinism notes for re-implementers:
+Versions (each frozen once shipped — `CANONICALIZERS` in [`src/trust.ts`](src/trust.ts)):
 
-- **Encoding is UTF-8; line ending is LF (`\n`).** A file saved with CRLF hashes
-  differently — normalize to LF before hashing.
-- The hash covers the **canonical source text**, not the parsed model — property order,
-  spacing inside a line, and inline marks are all significant. Round-tripping through
-  `documentToSource()` produces canonical text; editing in the visual editor preserves
-  trust lines verbatim (see the editor's `itTrust` node) so a save does not perturb the
-  hash.
-- **A serialize round-trip preserves the hashed bytes.** `documentToSource(parseIntentText(src))`
-  reproduces the canonical body byte-for-byte for a document already in canonical form
-  (which a sealed document is — it was hashed over its canonical text), so a sealed or
-  signed document **still verifies** after a parse → serialize round-trip. This is the
-  reason the parser captures comments, blank lines, and prose-merge boundaries as trivia
-  (see §5.1): without it, re-serialization would drop blank lines and collapse adjacent
-  prose, changing the bytes the hash sees and breaking the seal. Seal a document *after*
-  canonicalizing it (the editor and `documentToSource` both emit canonical text).
-- `approve:` lines are **not** stripped — an approval is part of the body it approves and
-  is included in the hash.
+| spec | rules |
+| ---- | ----- |
+| v0 | raw bytes (pre-NFC) |
+| v1 | NFC normalization |
+| v2 | NFC; excludes comments; the seal scope covers signatures |
+| **v3** (current) | NFC; **also excludes styling**, covers the seal's own metadata, and **binds the signer identity** |
 
-`sealDocument()` computes the hash, then inserts (just above the `history:` boundary, or
-at end of file) a `sign:` line — `sign: <signer> | role: <role> | at: <ISO8601> | hash:
-<hash>` — followed by `freeze: | at: <ISO8601> | hash: <hash> | status: locked`.
-`verifyDocument()` recomputes the hash and compares it to the `freeze` block's `hash:`
-(`intact`), and reports, per signer, whether their recorded hash matches the frozen hash
-(`valid`) and/or the current hash (`signedCurrentVersion`).
+**Two scopes.** A hash covers one of two scopes:
+
+- **content** — each `sign:` line's hash. Co-signers commit to the same content, so adding a
+  signature never changes it.
+- **seal** — the `freeze:` line's hash. Covers content **+ the signatures + the freeze line's
+  own metadata**, so tampering the body, *a signature*, or *the seal metadata* all break it.
+
+**The v3 algorithm** (`computeDocumentHash` / `computeSignatureHash`), on the raw source:
+
+1. **Cut at the history boundary** — keep only bytes before the first trimmed `history:`
+   line. The audit log is never hashed.
+2. **Drop comments** — any line whose trimmed text starts with `//`.
+3. **Drop styling** — whole presentation lines (`page:`, `font:`, `style:`) and presentation
+   *properties* on content lines (`color`, `size`, `family`, `align`, `bg`, `indent`,
+   `leading`, `space-before/after`, `opacity`, `border`, `valign`, `theme`, `margin(s)`,
+   `orientation`, `width`, `height`). **Restyling never breaks a seal** — only real content
+   does ("sign content, not presentation").
+4. **Apply the scope to trust lines:**
+   - _content scope:_ drop `sign:`/`freeze:`/`certify:`/`amendment:`.
+   - _seal scope:_ keep `sign:` lines whole; keep the `freeze:` line with its self-referential
+     `hash:` value blanked (its `at:`/`status:`/`spec:` stay, so tampering them breaks the
+     seal); drop `certify:`/`amendment:`.
+5. **NFC-normalize → join with `\n` → `trim()` → SHA-256** ⇒ `"sha256:" + hex`.
+6. **Signature identity** (content scope only): a signature hash appends ` sig:<signer>|<role>|<at>`
+   to the content body before hashing, so editing the signer's name/role/date breaks *that*
+   signature — even before the document is sealed.
+
+Determinism for re-implementers: **UTF-8, LF (`\n`) line endings, NFC.** A serialize
+round-trip — `documentToSource(parseIntentText(src))` — preserves the hashed bytes (the
+parser captures comments, blank lines, and prose-merge boundaries as trivia, §5.1), so a
+sealed document still verifies after parse → serialize. Seal *after* canonicalizing (the
+editor and `documentToSource` emit canonical text). `approve:` is **not** stripped — an
+approval is part of the body it approves.
+
+**Sealing & verifying.** `signDocument()` inserts `sign: <signer> | role: <role> | at:
+<ISO8601> | hash: <contentHash> | spec: 3`. `sealDocument()` adds (optionally) a `sign:`
+line then `freeze: | at: <ISO8601> | hash: <sealHash> | spec: 3 | status: locked`.
+`verifyDocument()` returns:
+
+- `intact` — the seal-scope hash matches `freeze.hash` (any content / signature / seal-metadata
+  change → `false`).
+- `signers[].signedCurrentVersion` / `valid` — per signer, whether their signature still
+  matches the current content. **Multi-sign aware:** a signer who signed an earlier version
+  is reported as such, not as a blanket failure.
+- `spec` / `specOutdated` — the recorded ruleset and whether it predates the current one (an
+  older, weaker seal — re-seal to upgrade).
+
+The trust band (`renderTrustBand`) **verifies before it draws**: a tampered document renders
+a red **"SEAL BROKEN"** stamp on every surface (screen, print, PDF) — never a clean seal.
 
 ## 5. Stability guarantees
 

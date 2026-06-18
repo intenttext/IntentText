@@ -9,6 +9,9 @@ import {
   renderPrint,
   listBuiltinThemes,
   cssContentValue,
+  renderTrustBand,
+  TRUST_BAND_CSS,
+  trustBandPositionCss,
 } from "@dotit/core";
 import { getPageGeometry } from "./page-geometry";
 import { printHtmlViaIframe } from "./print-iframe";
@@ -66,11 +69,25 @@ function buildWysiwygPrint(content: string, printMode: string): string | null {
     : `${g.width}px ${g.height}px`;
   const marginCss = `${g.marginTop}px ${g.marginRight}px ${g.marginBottom}px ${g.marginLeft}px`;
 
+  const hSize = g.headerSize || "10pt";
+  const fSize = g.footerSize || "10pt";
   let pageCss = `@page{size:${sizeCss};margin:${marginCss};}`;
   if (g.header)
-    pageCss += `@page{@top-center{content:${cssContent(g.header)};font:10px -apple-system,sans-serif;color:#9aa0a6;}}`;
+    pageCss += `@page{@top-center{content:${cssContent(g.header)};font-family:-apple-system,sans-serif;font-size:${hSize};color:#9aa0a6;}}`;
   if (g.footer)
-    pageCss += `@page{@bottom-center{content:${cssContent(g.footer)};font:10px -apple-system,sans-serif;color:#9aa0a6;}}`;
+    pageCss += `@page{@bottom-center{content:${cssContent(g.footer)};font-family:-apple-system,sans-serif;font-size:${fSize};color:#9aa0a6;}}`;
+
+  // Unified trust band (core) — pinned in the bottom margin so it repeats on every
+  // printed page and never takes content space. Same band core's renderPrint uses.
+  let bandHtml = "";
+  try {
+    bandHtml = renderTrustBand(content);
+  } catch {
+    /* no band */
+  }
+  // Shared band visual (single source of truth in core) + fixed positioning so it
+  // pins in the bottom-right corner and repeats on every printed page.
+  const bandCss = bandHtml ? TRUST_BAND_CSS + trustBandPositionCss("fixed") : "";
 
   // Strip the on-screen sheet chrome so only the page content prints.
   const overrides = `
@@ -78,10 +95,11 @@ function buildWysiwygPrint(content: string, printMode: string): string | null {
     .docs-page,.docs-page.docs-sheet{box-shadow:none;border-radius:0;margin:0;width:auto;min-height:0;padding:0;background:#fff;}
     .docs-page .tiptap{padding:0;}
     [data-it-spacer]{display:none!important;}
+    ${bandCss}
     ${printMode === "minimal-ink" ? MINIMAL_INK_CSS : ""}
   `;
 
-  return `<!doctype html><html><head><meta charset="utf-8">${styles}<style>${pageCss}${overrides}</style></head><body><div class="docs-page docs-sheet"><div class="tiptap">${bodyHtml}</div></div></body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8">${styles}<style>${pageCss}${overrides}</style></head><body><div class="docs-page docs-sheet"><div class="tiptap">${bandHtml}${bodyHtml}</div></div></body></html>`;
 }
 
 function download(data: string, filename: string, mime: string) {
@@ -100,24 +118,29 @@ function buildPrintHtml(
   content: string,
   theme: string,
   printMode: PrintMode,
+  bare = false,
 ): string {
-  let full = buildWysiwygPrint(content, printMode);
+  // BARE prints the content-only projection through core's print engine (never the
+  // styled WYSIWYG canvas), so "print" from the Bare view matches what's on screen.
+  let full = bare ? "" : buildWysiwygPrint(content, printMode) || "";
   if (!full) {
     const doc = parseIntentText(content);
-    full = renderPrint(doc, { theme });
+    full = renderPrint(doc, { theme, bare });
     if (printMode === "minimal-ink") full = injectCss(full, MINIMAL_INK_CSS);
   }
   return full;
 }
 
-/** Print / save-as-PDF via the browser's print dialog. Browser-only. */
+/** Print / save-as-PDF via the browser's print dialog. Browser-only.
+ *  `bare` prints the content-only (as-signed) projection. */
 export function exportDocumentPDF(
   content: string,
   theme: string,
   printMode: PrintMode = "normal",
+  bare = false,
 ) {
   try {
-    printHtmlViaIframe(buildPrintHtml(content, theme, printMode));
+    printHtmlViaIframe(buildPrintHtml(content, theme, printMode, bare));
   } catch {
     /* ignore */
   }

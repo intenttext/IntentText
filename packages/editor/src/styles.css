@@ -480,10 +480,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font: 10px -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   color: #9aa0a6;
   pointer-events: none;
   overflow: hidden;
+}
+/* Running-header/footer size — bumped default; per-document override comes from
+   `header: … | size: 13px` (set as --page-header-size on the sheet). */
+.docs-pb-header {
+  font-size: var(--page-header-size, 11.5px);
+}
+.docs-pb-footer {
+  font-size: var(--page-footer-size, 11.5px);
 }
 .docs-pb-text {
   white-space: nowrap;
@@ -1386,7 +1394,9 @@
   color: #1a73e8;
 }
 
-/* ribbon body — the active tab's command groups */
+/* ribbon body — the active tab's command groups.
+   overflow MUST be visible so the dropdown menus (text / Default / font / colour /
+   insert) can open below the row instead of being clipped by the ribbon. */
 .docs-ribbon-shell .docs-ribbon {
   display: flex;
   align-items: stretch;
@@ -1394,8 +1404,7 @@
   padding: 7px 12px;
   min-height: 88px;
   background: #f5f5f5;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: visible;
 }
 .docs-ribbon-shell .docs-ribbon[data-open="0"] {
   display: none;
@@ -1460,6 +1469,62 @@
 .docs-ribbon-shell .docs-ribbon[data-tab="layout"] .ribbon-group:not([data-tab="layout"]),
 .docs-ribbon-shell .docs-ribbon[data-tab="trust"] .ribbon-group:not([data-tab="trust"]) {
   display: none !important;
+}
+
+/* ── Ribbon ⇄ Simple toggle + the compact Simple toolbar ───────────── */
+/* Right-aligned cluster on the formatting row: mode toggle + (Simple) Trust.
+   Not tab-gated, so it stays visible in every tab and in Simple mode. */
+.docs-ribbon-right {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-inline-start: 8px;
+}
+.docs-ribbon-mode {
+  appearance: none;
+  border: 1px solid #dcdcdc;
+  background: #fff;
+  height: 26px;
+  padding: 0 10px;
+  margin-inline-end: 4px;
+  align-self: center;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.docs-ribbon-mode:hover {
+  background: #f0f0f0;
+  color: #222;
+}
+.docs-ribbon-simple-label {
+  align-self: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9a9a9a;
+  padding-inline-start: 4px;
+}
+/* SIMPLE MODE — smaller header: thinner strip, one compact control row, no Word
+   group-name labels (just the controls), organized in a single tidy line. */
+.docs-ribbon-shell--simple .docs-ribbon-tabs {
+  height: 30px;
+  background: #f5f5f5;
+}
+.docs-ribbon-shell--simple .docs-ribbon {
+  min-height: 0;
+  padding: 4px 10px;
+}
+.docs-ribbon-shell--simple .ribbon-group {
+  padding: 0 8px;
+  justify-content: center;
+}
+.docs-ribbon-shell--simple .ribbon-group-label {
+  display: none;
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -1763,22 +1828,13 @@ textarea.form-fill-control {
   color: #1a7f37;
   font-weight: 600;
 }
-.ribbon-theme-select {
-  height: 26px;
-  max-width: 110px;
-  margin-inline-start: 4px;
-  padding: 0 4px;
-  border: 1px solid #dadce0;
-  border-radius: 4px;
-  background: #fff;
-  color: #3c4043;
-  font-size: 12px;
-  font-family: inherit;
-  cursor: pointer;
+/* Document theme — custom dropdown (matches Title / Default chrome). */
+.docs-tb-theme-select {
+  width: 132px;
+  min-width: 132px;
 }
-.ribbon-theme-select:focus {
-  outline: none;
-  border-color: var(--accent, #2563eb);
+.docs-theme-menu {
+  min-width: 150px;
 }
 /* Page-size selector — same chrome as the theme select, narrower. */
 .ribbon-page-size {
@@ -1846,85 +1902,210 @@ textarea.form-fill-control {
    Document status banner (trust) + document properties strip
    ═══════════════════════════════════════════════════════════════ */
 
-.docs-trust-banner {
+/* ── Trust status CHIP — a small right-aligned box, not a full-width band ──── */
+.docs-trust-chip {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  justify-content: flex-end;     /* push the pill to the top-right, out of the way */
+  position: relative;
   flex-shrink: 0;
-  padding: 7px 14px;
-  font-size: 12.5px;
-  border-bottom: 1px solid transparent;
+  margin: 6px 14px 0;
+  z-index: 5;
 }
-.docs-trust-banner__icon {
+.docs-trust-chip__main {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px 3px 4px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: filter 0.12s ease;
+}
+.docs-trust-chip__main:hover {
+  filter: brightness(0.97);
+}
+.docs-trust-chip__icon {
   line-height: 1;
 }
-/* Live Hash-Based Ambient Seal — sits at the head of the banner. */
-.docs-trust-banner__seal {
+.docs-trust-chip__title {
+  font-weight: 700;
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+/* Live Hash-Based Ambient Seal — small, at the head of the chip. */
+.docs-trust-chip__seal {
   display: inline-flex;
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   line-height: 0;
 }
-.docs-trust-banner__seal svg {
-  width: 32px;
-  height: 32px;
+.docs-trust-chip__seal svg {
+  width: 22px;
+  height: 22px;
 }
-.docs-trust-banner--draft {
+.docs-trust-chip__verify {
+  font-weight: 700;
+  font-size: 12px;
+}
+.docs-trust-chip__verify--ok {
+  color: #15803d;
+}
+.docs-trust-chip__verify--bad {
+  color: #dc2626;
+}
+.docs-trust-chip__caret {
+  font-size: 9px;
+  opacity: 0.55;
+}
+/* Expanded detail — a small popover under the chip (doesn't push layout). */
+.docs-trust-chip__detail {
+  position: absolute;
+  top: calc(100% + 4px);
+  inset-inline-end: 0;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 8px 11px;
+  border: 1px solid #e4e4e2;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  font-size: 12px;
+  line-height: 1.45;
+  color: #374151;
+}
+/* The actionable trust popover (sign/seal/verify) hosted under the chip. The
+   TrustActions body uses the .trust-popover__* styles; this is just the box. */
+.docs-trust-chip__pop {
+  position: absolute;
+  top: calc(100% + 4px);
+  inset-inline-end: 0;
+  z-index: 60;
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  padding: 12px;
+  border: 1px solid #dadce0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+  text-align: start;
+}
+/* The actions ALWAYS stack vertically (state → help → divider → buttons). */
+.trust-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.trust-actions .trust-popover__help-toggle {
+  align-self: flex-start;
+}
+.docs-trust-chip__verify-line {
+  margin-top: 5px;
+  font-weight: 600;
+}
+.docs-trust-chip__verify-line--ok {
+  color: #15803d;
+}
+.docs-trust-chip__verify-line--bad {
+  color: #dc2626;
+}
+/* Tier colours — applied to the pill (border + tint + text). */
+.docs-trust-chip--draft .docs-trust-chip__main {
   background: #f7f7f6;
   border-color: #e4e4e2;
   color: #4b5563;
 }
-.docs-trust-banner__title {
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-.docs-trust-banner__text {
-  opacity: 0.85;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.docs-trust-banner__verify {
-  margin-inline-start: auto;
-  flex-shrink: 0;
-  padding: 2px 9px;
-  border-radius: 10px;
-  font-size: 11.5px;
-  font-weight: 600;
-}
-.docs-trust-banner--sealed {
+.docs-trust-chip--sealed .docs-trust-chip__main {
   background: #fff8e7;
   border-color: #eedaa6;
   color: #7a5300;
 }
-.docs-trust-banner--signed {
+.docs-trust-chip--signed .docs-trust-chip__main {
   background: #f3f6ff;
   border-color: #d5def4;
   color: #2c3e6b;
 }
-.docs-trust-banner--approved {
+/* Broken seal — loud red so a tampered document is obvious at a glance. */
+.docs-trust-chip--broken .docs-trust-chip__main {
+  background: #fef2f2;
+  border-color: #f3b4b4;
+  color: #b91c1c;
+  font-weight: 600;
+}
+/* Sealed under an OLDER ruleset (weaker — signatures not covered). Caution orange,
+   distinct from the normal seal and the red of a broken one. */
+.docs-trust-chip--weak .docs-trust-chip__main {
+  background: #fff4e5;
+  border-color: #f0a030;
+  color: #92400e;
+  font-weight: 600;
+}
+.docs-trust-chip--approved .docs-trust-chip__main {
   background: #f1f9f2;
   border-color: #cfe8d4;
   color: #1d6334;
 }
-/* Template — outside the trust workflow: slate, with a dashed border that
-   echoes the dashed template seal. */
-.docs-trust-banner--template {
+.docs-trust-chip--template .docs-trust-chip__main {
   background: #f8fafc;
   border-color: #cbd5e1;
   border-style: dashed;
   color: #475569;
 }
-.docs-trust-banner__verify--ok {
-  background: rgba(22, 163, 74, 0.12);
-  color: #15803d;
+
+/* ── Document properties — compact popover (for a host title bar) ──────────── */
+.docs-props-pop {
+  position: relative;
+  display: inline-flex;
 }
-.docs-trust-banner__verify--bad {
-  background: rgba(220, 38, 38, 0.12);
-  color: #dc2626;
+.docs-props-pop-btn {
+  appearance: none;
+  border: 1px solid #dcdcdc;
+  background: #fff;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.docs-props-pop-btn:hover {
+  background: #f0f0f0;
+  color: #222;
+}
+.docs-props-pop-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 5px;
+  width: 340px;
+  max-width: min(440px, 92vw);
+  max-height: 60vh;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid #e4e4e2;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.docs-props-pop-title {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9aa0a6;
 }
 .docs-trust-banner__warn {
   margin-inline-start: auto;
@@ -1992,6 +2173,22 @@ textarea.form-fill-control {
   color: #8a7f63;
   margin-inline-end: 4px;
 }
+/* In the (wider) popover, each property is its own full-width readable row, with
+   the key as a fixed-width label so long header/footer values wrap cleanly. */
+.docs-props-pop-menu .docs-props-chip {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+.docs-props-pop-menu .docs-props-chip b {
+  flex: 0 0 auto;
+  min-width: 64px;
+  font-size: 11px;
+  text-transform: capitalize;
+}
 
 /* ── Bidi isolation (WhatsApp-style) ─────────────────────────────────────
    Mixed Arabic/English/number values resolve their own direction from their
@@ -2020,8 +2217,23 @@ textarea.form-fill-control {
    Horizontal ruler — Google Docs strip above the page
    ═══════════════════════════════════════════════════════════════ */
 
-.docs-ruler {
+/* Row: a corner spacer (= vertical ruler width) + the horizontal ruler, so the
+   ruler starts exactly where the canvas does and shares its width. */
+.docs-ruler-row {
   flex-shrink: 0;
+  display: flex;
+}
+.docs-ruler-corner {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-bottom: 1px solid #dadce0;
+  border-right: 1px solid #dadce0;
+}
+.docs-ruler {
+  flex: 1;
+  min-width: 0;
   height: 20px;
   background: #fff;
   border-bottom: 1px solid #dadce0;
@@ -2185,15 +2397,26 @@ textarea.form-fill-control {
 .trust-popover {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
+  /* Default: control sits at the inline-START (Trust tab on the LEFT in the
+     ribbon) → anchor left, open rightward. The `--end` variant is for the control
+     on the inline-END (Simple mode's right cluster) → anchor right, open leftward.
+     Position-aware so neither layout clips off-screen. Logical props flip for RTL. */
+  inset-inline-start: 0;
+  inset-inline-end: auto;
   z-index: 50;
   width: 280px;
+  max-width: calc(100vw - 24px);
   background: #fff;
   border: 1px solid #dadce0;
   border-radius: 10px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
   padding: 12px;
   font-size: 13px;
+}
+/* Control on the inline-END (Simple mode right cluster) → open leftward. */
+.trust-popover--end {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
 }
 .trust-popover__state strong {
   display: block;
@@ -2379,83 +2602,648 @@ textarea.form-fill-control {
   border-radius: 2px;
   overflow: hidden;
 }
+/* Unified trust band — one per page sheet, in the bottom margin (out of content
+   flow), semi-transparent. Position (left/right/bottom) is set inline from the
+   page geometry; this is the look. The band markup comes from core renderTrustBand. */
+/* Positioning only — the band's VISUAL (card, seal size, opacity, caption) comes
+   from core's TRUST_BAND_CSS, injected by DocumentView, so the look never drifts
+   from print/standalone renders. The host pins the band to the sheet's corner. */
+.it-trust-band-host {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
 .docs-view-page-body {
   box-sizing: border-box;
   height: 100%;
 }
 
 /* ── Change indicator (Phase 3): ambient "unsaved changes" + Review panel ── */
-.it-change-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.35rem 0.9rem;
-  font-size: 0.8rem;
-  color: #475569;
-  background: #fffdf5;
-  border-bottom: 1px solid #f1e9c8;
+/* Per-row change marker — a small amber dot in the left margin of any block that
+   differs from the opened/saved baseline. Read-only decoration (no byte impact). */
+.docs-page .tiptap .it-row-changed {
   position: relative;
+}
+/* Change dots show ONLY on trusted (signed/sealed) documents — on a fresh doc
+   they'd clutter every edited line. Gated by [data-trusted] on .docs-page-flow. */
+.docs-page-flow[data-trusted="1"] .tiptap .it-row-changed::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 0.45em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d97706;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* Inline edit of a meta/metric/style chip (double-click → one-line raw editor). */
+.docs-page .tiptap [data-editing] {
+  outline: 2px solid #93c5fd;
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+.it-doc-chip-edit {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12.5px;
+  width: min(560px, 92%);
+  padding: 3px 7px;
+  border: 1px solid #94a3b8;
+  border-radius: 4px;
+  background: #fff;
+  color: #1f2937;
+}
+.docs-page .tiptap [data-it-meta],
+.docs-page .tiptap [data-it-metric],
+.docs-page .tiptap [data-it-style-rule] {
+  cursor: text;
+}
+
+/* Change indicator — a small right-aligned chip (NOT a full-width bar). Appears
+   only when the document differs from the version that was opened. */
+.it-change-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 14px 0;
+}
+.it-change-row:empty {
+  display: none;
+}
+.it-change-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px 3px 10px;
+  font-size: 12px;
+  color: #334155;
+  background: #fffdf5;
+  border: 1px solid #f1e0a8;
+  border-radius: 999px;
 }
 .it-change-dot {
   color: #d97706;
-  font-size: 0.7rem;
+  font-size: 8px;
   line-height: 1;
 }
 .it-change-count {
   font-weight: 600;
-  color: #334155;
-}
-.it-change-actions {
-  display: flex;
-  gap: 0.35rem;
-  margin-inline-start: auto;
 }
 .it-change-btn {
   font: inherit;
-  font-size: 0.78rem;
-  padding: 0.2rem 0.55rem;
+  font-size: 12px;
+  line-height: 1;
+  padding: 3px 7px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   background: #fff;
   color: #334155;
   cursor: pointer;
-  line-height: 1.4;
 }
 .it-change-btn:hover:not(:disabled) {
   background: #f8fafc;
   border-color: #cbd5e1;
 }
 .it-change-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: default;
 }
-.it-change-review-btn {
-  border-color: #c7d2fe;
-  color: #4338ca;
+.it-change-reset {
+  border-color: #fbcfe8;
+  color: #be185d;
 }
-.it-change-review-panel {
-  position: absolute;
-  inset-inline-end: 0.9rem;
-  top: calc(100% + 4px);
-  width: min(560px, 92vw);
-  max-height: 60vh;
+
+/* ════════════════════════════════════════════════════════════════
+   Bare view — the document "as signed" (BareView.tsx)
+   Clean page, theme typography only; core's bare renderer has already
+   stripped all authored decoration.
+   ════════════════════════════════════════════════════════════════ */
+.bare-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #e9eaee;
+}
+.bare-view-scroll {
+  flex: 1;
   overflow: auto;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
-  z-index: 40;
+  padding: 20px 24px 48px;
 }
-.it-change-review-head {
+.bare-view-page {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e2e5ea;
+  border-radius: 3px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+  padding: 56px 64px;
+}
+/* The bare document never carries inline decoration; keep the container plain. */
+.bare-view-doc .intent-document.intent-bare {
+  color: #14181f;
+}
+@media (max-width: 768px) {
+  .bare-view-page {
+    padding: 32px 24px;
+  }
+}
+
+
+/* ─── Visual Form Designer (separate Design view) ─────────── */
+.fd-scroll {
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bg-canvas, #f3f4f6);
+  padding: 28px 16px 80px;
+}
+.fd-sheet {
+  max-width: 720px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid var(--border,#e2e5ea);
+  border-radius: 10px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+  padding: 28px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fd-title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 4px 0;
+  color: var(--text-primary);
+  background: transparent;
+  font-family: inherit;
+}
+.fd-title:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+.fd-add-title {
+  align-self: flex-start;
+  background: none;
+  border: 1px dashed var(--border,#e2e5ea);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+.fd-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 4px 0;
+}
+.fd-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.fd-grip {
+  cursor: grab;
+  color: #c2c6cf;
+  font-size: 14px;
+  line-height: 1.8;
+  user-select: none;
+  flex: 0 0 auto;
+}
+.fd-grip:active {
+  cursor: grabbing;
+}
+.fd-x {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #b0b4bd;
+  cursor: pointer;
+  font-size: 12px;
+}
+.fd-x:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+.fd-section,
+.fd-sub,
+.fd-desc {
+  flex: 1;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: transparent;
+  resize: vertical;
+}
+.fd-section {
+  font-size: 1.15rem;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 0;
+}
+.fd-sub {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #444;
+}
+.fd-desc {
+  font-size: 0.92rem;
+  color: #444;
+  min-height: 2em;
+}
+.fd-section:focus,
+.fd-sub:focus,
+.fd-desc:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.fd-fieldrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: stretch;
+}
+.fd-field {
+  flex: 1 1 100%;
+  border: 1px solid var(--border,#e2e5ea);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fcfcfd;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fd-field--half {
+  flex: 0 1 calc(50% - 16px);
+  min-width: 200px;
+}
+.fd-field.fd-drop,
+.fd-block.fd-drop {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+}
+.fd-field__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fd-mini {
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 5px;
+  border: 1px solid var(--border,#e2e5ea);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text-primary);
+}
+.fd-chip {
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid var(--border,#e2e5ea);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.fd-chip.on {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4f46e5;
+  font-weight: 600;
+}
+.fd-field__bar .fd-x {
+  margin-inline-start: auto;
+}
+.fd-field__label {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 3px 0;
+  color: var(--text-primary);
+  background: transparent;
+}
+.fd-field__label:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+.fd-field__opts {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid var(--border,#e2e5ea);
+  border-radius: 6px;
+}
+.fd-prev {
+  display: block;
+  color: #9aa0a6;
+  font-size: 0.88rem;
+}
+.fd-prev-box {
+  border: 1px solid #d9dce2;
+  border-radius: 4px;
+  padding: 7px 9px;
+  background: #fff;
+  min-height: 1.6em;
+}
+.fd-prev-area {
+  border: 1px solid #d9dce2;
+  border-radius: 4px;
+  background: #fff;
+  min-height: 3.5em;
+  display: block;
+}
+.fd-prev-choice {
+  border: 1px solid #d9dce2;
+  border-radius: 4px;
+  padding: 7px 9px;
+  background: #fff;
+}
+.fd-prev-check {
+  color: #555;
+}
+.fd-prev-sig {
+  font-family: cursive;
+  color: #b0b4bd;
+}
+.fd-prev-file {
+  border: 1px dashed #d0d4db;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #fafbfc;
+}
+.fd-addbar {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border,#e2e5ea);
+}
+.fd-addbar__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.fd-addbar__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+.fd-addbar__row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.fd-add {
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--border,#e2e5ea);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.fd-add:hover {
+  border-color: #4f46e5;
+  box-shadow: 0 1px 5px rgba(79, 70, 229, 0.12);
+}
+.fd-add--alt {
+  color: var(--text-muted);
+  border-style: dashed;
+}
+
+/* ── Live SOURCE PANEL (draggable, on-demand source beside any surface) ──────
+   Shared by web + desktop + embedded. Portable var fallbacks so it styles
+   correctly in any host (the host's theme vars override the fallbacks). */
+.source-panel {
+  flex: 0 0 420px;
+  max-width: 80%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg-panel, #f7f8fa);
+  border-inline-start: 1px solid var(--border, #e2e5ea);
+  animation: source-panel-in 0.16s ease;
+}
+/* Drag handle on the left edge — widen the on-demand source over the margin. */
+.source-panel__resize {
+  position: absolute;
+  top: 0;
+  left: -3px;
+  width: 7px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 5;
+}
+.source-panel__resize::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 3px;
+  width: 1px;
+  height: 100%;
+  background: transparent;
+  transition: background 0.12s ease;
+}
+.source-panel__resize:hover::after {
+  background: var(--accent, #4f46e5);
+}
+@keyframes source-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.source-panel__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 0.9rem;
-  border-bottom: 1px solid #f1f5f9;
-  position: sticky;
-  top: 0;
-  background: #fff;
+  flex: 0 0 auto;
+  height: 38px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border, #e2e5ea);
+  background: var(--bg-toolbar, var(--bg-app, #fff));
 }
-.it-change-review-body {
-  padding: 0.6rem 0.9rem 1rem;
+.source-panel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
 }
+.source-panel__glyph {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--accent, #4f46e5);
+  font-size: 12px;
+}
+.source-panel__live {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.12);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.source-panel__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-muted, #6b7280);
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+.source-panel__close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-primary, #111827);
+}
+.source-panel__editor {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+/* The highlight layer (behind) and the textarea (on top) must overlay EXACTLY:
+   identical font, size, line-height, padding, wrapping — so the coloured text
+   sits perfectly under the editable, transparent caret text. */
+.source-panel__code,
+.source-panel__input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 12px 14px;
+  border: 0;
+  font:
+    12.5px / 1.6 ui-monospace,
+    "SF Mono",
+    Menlo,
+    Consolas,
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  tab-size: 2;
+  overflow: auto;
+  box-sizing: border-box;
+}
+.source-panel__code {
+  pointer-events: none;
+  color: #111827;
+}
+.source-panel__input {
+  color: transparent;
+  background: transparent;
+  caret-color: #111827;
+  resize: none;
+  outline: none;
+}
+[data-theme="dark"] .source-panel__input {
+  caret-color: #e5e7eb;
+}
+.sp-line {
+  display: block;
+}
+.sp-kw {
+  color: var(--accent, #4f46e5);
+  font-weight: 600;
+}
+/* Trust colouring — made DISTINCT so it reads at a glance:
+   content = strong dark ink (default), styling = light gray + italic (clearly
+   "ignored"), whole styling lines get a faint stripe, seal = green tint. */
+.source-panel__code {
+  color: #111827;
+}
+.sp-pres,
+.sp-seg-pres {
+  color: #b0b6bf;
+  font-style: italic;
+}
+.sp-pres {
+  background: rgba(15, 23, 42, 0.04);
+}
+.sp-pres .sp-kw {
+  color: inherit;
+  font-weight: 400;
+}
+.sp-seg-pres .sp-sep,
+.sp-sep {
+  color: #cbd0d8;
+  padding: 0 1px;
+}
+.sp-trust {
+  color: #15803d;
+  background: rgba(22, 163, 74, 0.09);
+  font-weight: 600;
+}
+[data-theme="dark"] .source-panel__code {
+  color: #e5e7eb;
+}
+[data-theme="dark"] .sp-pres,
+[data-theme="dark"] .sp-seg-pres {
+  color: #6b7280;
+}
+[data-theme="dark"] .sp-pres {
+  background: rgba(255, 255, 255, 0.05);
+}
+[data-theme="dark"] .sp-trust {
+  color: #4ade80;
+}
+/* Legend strip under the header. */
+.source-panel__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border, #e2e5ea);
+  font-size: 10.5px;
+  color: var(--text-muted, #6b7280);
+}
+.sp-leg {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.sp-leg-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+.sp-leg-content {
+  background: var(--text-primary, #111827);
+}
+.sp-leg-pres {
+  background: var(--text-muted, #6b7280);
+  opacity: 0.6;
+}
+.sp-leg-trust {
+  background: #16a34a;
+}
+@media (max-width: 768px) {
+  .source-panel {
+    display: none;
+  }
+}
+

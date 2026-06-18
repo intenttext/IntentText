@@ -50,20 +50,20 @@ Multiple approvals are common — legal, finance, management, compliance.
 Integrity hash seal (tamper-evident record):
 
 ```intenttext
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4...
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4... | spec: 3
 ```
 
-`sign:` is tamper-evident — it records the signer's name, role, timestamp, and a SHA-256 hash of the document body at the time of signing. If the document is modified after signing, the stored hash will no longer match and verification will report the discrepancy. This is integrity sealing, not cryptographic non-repudiation (there are no private keys or PKI).
+`sign:` is tamper-evident — it records the signer's name, role, timestamp, a SHA-256 hash of the document content at the time of signing, and the `spec:` ruleset that produced it. The hash **binds the signer's identity**, so editing the content _or_ the named signer makes the stored hash no longer match, and verification reports the discrepancy. This is integrity sealing, not cryptographic non-repudiation (there are no private keys or PKI — anyone can type a name; proving _who_ is Layer 2 below).
 
 ## Step 4: Freeze
 
 Seal the document:
 
 ```intenttext
-freeze: | status: locked | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8...
+freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8... | spec: 3 | status: locked
 ```
 
-After `freeze:`, the document is immutable. Any edit changes the content, which invalidates the hash.
+After `freeze:`, the document is sealed. Any edit to the **content** changes the hash and breaks the seal. **Restyling is free** — changing the theme, fonts, colors, page size, or layout never breaks a seal (presentation is excluded from the hash), and so are comments (`//`). The seal also covers its own metadata, so editing the `freeze:` line's `at:`/`status:` breaks it too.
 
 ## Seal with the CLI
 
@@ -96,11 +96,17 @@ dotit verify contract.it
 If someone edits the file:
 
 ```
-❌  Document has been modified since sealing
+❌  SEAL BROKEN — document modified since sealing
     Sealed:   2026-03-06T14:33:00Z
     Expected: sha256:a1b2c3...
     Current:  sha256:x9y8z7...
 ```
+
+`verifyDocument()` is **multi-sign aware**: it reports each signer's
+`signedCurrentVersion` separately, plus the recorded `spec` and whether it is outdated.
+A signer who signed an earlier version is shown as such — not a blanket failure — and a
+tampered document never renders a clean seal: `renderTrustBand` verifies _before_ it
+draws, stamping a red **"SEAL BROKEN"** band on screen, print, and PDF.
 
 ## Step 5: Amend (when needed)
 
@@ -214,27 +220,43 @@ signline: Ahmed Al-Rashid | role: CEO | org: Acme Corp | date-line: Date
 ## What exactly gets hashed
 
 The hash is **reproducible by anyone** — there is no secret. Given the source file and
-any SHA-256 implementation, you can recompute it and confirm a seal yourself. The
-algorithm runs on the **raw source text**, in order:
+any SHA-256 implementation, you can recompute it and confirm a seal yourself. The current
+ruleset is **`spec: 3`** (`SEAL_SPEC = 3`). The algorithm runs on the **raw source text**,
+in order:
 
 1. **Cut at the `history:` boundary.** Only the content _above_ `history:` is hashed, so
    appending audit-log entries never changes the document hash. (No boundary → the whole
    file.)
-2. **Drop the seal lines.** Lines starting with `sign:`, `freeze:`, or `amendment:` are
-   removed before hashing — their own `hash:` field refers to the body _without_ them, so
-   including them would be circular. (`approve:` lines **are** hashed — an approval is
-   part of what it approves.)
-3. **Join with `\n` and trim.** Surviving lines are joined with LF and the whole string
-   is trimmed once.
-4. **Hash.** `sha256:` + the hex SHA-256 of those UTF-8 bytes.
+2. **Drop comments.** Any line whose trimmed text starts with `//` is removed.
+3. **Drop styling.** Whole presentation lines (`page:`, `font:`, `style:`) and presentation
+   _properties_ on content lines (`color`, `size`, `family`, `align`, `bg`, `margin`,
+   `leading`, `space-before/after`, `border`, …) are removed. **Restyling never breaks a
+   seal** — "sign content, not presentation."
+4. **Drop the seal lines (per scope).** For the **content** scope (each `sign:` line),
+   `sign:`/`freeze:`/`certify:`/`amendment:` are removed. For the **seal** scope (the
+   `freeze:` hash), `sign:` lines are kept whole and the `freeze:` line is kept with only
+   its own `hash:` value blanked (its `at:`/`status:`/`spec:` stay, so editing the seal
+   metadata breaks it). (`approve:` lines **are** hashed — an approval is part of what it
+   approves.)
+5. **NFC-normalize, join with `\n`, trim, hash.** Surviving lines are Unicode-NFC
+   normalized, joined with LF, trimmed once, and hashed: `sha256:` + the hex SHA-256 of
+   those UTF-8 bytes.
+6. **Bind the signer identity** (content scope only). A `sign:` hash also commits to the
+   signer's `name | role | at`, so editing the signer on a signed document breaks _that_
+   signature — even before the document is sealed.
+
+**Two scopes.** Each `sign:` line's hash covers **content**; the `freeze:` line's hash
+covers the **seal** scope — content _plus_ the signatures _plus_ the seal's own metadata —
+so tampering the body, a signature, or the seal metadata all break it.
 
 :::note Reproducibility & determinism
-Encoding is **UTF-8**, line ending is **LF (`\n`)** — a file saved with CRLF hashes
-differently, so normalize line endings before hashing. The hash covers the _canonical
-source text_, so property order and spacing inside a line matter. Editing in the visual
-editor preserves trust lines verbatim, so a normal save never perturbs the hash. The
-exact, byte-level spec — with a reference reimplementation that reproduces the core
-hash — is **[SPEC §4.1](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md)**.
+Encoding is **UTF-8**, line ending is **LF (`\n`)**, normalization is **NFC** — so a file
+re-saved in another editor (precomposed vs decomposed accents, etc.) still verifies.
+Editing in the visual editor preserves trust lines verbatim, so a normal save never
+perturbs the hash. Every seal/signature stamps a **`spec:` version**, and verification
+applies exactly that version forever — a future rule change can never silently break a
+historical seal. The exact, byte-level spec — with a reference reimplementation that
+reproduces the core hash — is **[SPEC §4](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md)**.
 :::
 
 ## Storing sealed documents in a database
@@ -265,11 +287,14 @@ systems:
   bit-for-bit the one that was sealed.
 - ✅ **Self-verifiable, offline, forever.** No vendor, key server, or network is needed
   to check a seal — just the file and SHA-256. The trust property travels with the file.
-- ❌ **Not cryptographic non-repudiation.** There are no private keys or PKI. A `sign:`
-  line asserts _who_ sealed _which content_; it does not cryptographically bind that
-  assertion to a verified identity. Anyone who can edit the file can also recompute a new
-  hash and re-seal it under any name — what they _cannot_ do is silently alter the
-  sealed body and have the old seal still verify.
+- ✅ **Bound claimed identity.** A `sign:` hash also commits to the signer's
+  `name | role | at`, so editing the signer on a signed document breaks _that_ signature.
+- ❌ **Not cryptographic non-repudiation.** There are no private keys or PKI in Layer 1.
+  A `sign:` line records _who_ sealed _which content_ and is tamper-evident, but anyone can
+  **type** a name — the integrity layer alone does not prove _who_ really signed. Proving
+  identity is a layer above (cryptographic signatures, certification, PAdES — below).
+  Anyone who can edit the file can recompute a new hash and re-seal it under any name; what
+  they _cannot_ do is silently alter the sealed body and have the old seal still verify.
 - ❌ **Not a trusted timestamp.** The `at:` time is self-asserted, not attested by a
   third party.
 

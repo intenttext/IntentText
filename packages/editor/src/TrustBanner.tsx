@@ -8,10 +8,24 @@
 //    (meta: id/version/owner…, page:, font:, header:, footer:, watermark:),
 //    which is otherwise invisible in the page.
 
-import { useMemo, useState } from "react";
-import { parseIntentText, sealForDocument, isTemplate } from "@dotit/core";
+import { useMemo, useRef, useState } from "react";
+import {
+  parseIntentText,
+  sealForDocument,
+  isTemplate,
+  signatureMatchesContent,
+  SEAL_SPEC,
+} from "@dotit/core";
+
+/** The ruleset version a seal was made under (from its freeze: line), or null. */
+function sealSpecOf(source: string): number | null {
+  const m = source.match(/^\s*freeze:[^\n]*\bspec:\s*(\d+)/m);
+  return m ? Number(m[1]) : null;
+}
 import type { TrustTier } from "@dotit/core";
 import type { TrustState } from "./trust-state";
+import { announcePopover, usePopover } from "./popover-bus";
+import { TrustActions } from "./TrustActions";
 
 /* ── Trust status banner ─────────────────────────────────────── */
 
@@ -21,6 +35,12 @@ interface TrustBannerProps {
   intact: boolean | null;
   /** Live `.it` source — drives the hash-based ambient seal. */
   source: string;
+  /**
+   * Apply a new source from a trust action. When provided (with `source`), the
+   * chip becomes the SINGLE, complete trust control: expanding it offers
+   * sign/seal/verify/unseal. Omit for a read-only status chip.
+   */
+  onChange?: (source: string) => void;
 }
 
 function who(by: string, role?: string): string {
@@ -36,11 +56,49 @@ function who(by: string, role?: string): string {
  */
 function tierFor(trust: TrustState, intact: boolean | null): TrustTier | undefined {
   if (trust.isSealed) return intact === false ? "draft" : "signed";
-  if (trust.signatures.length > 0) return "signed";
+  // A signed doc whose content no longer matches its signatures is broken → gray.
+  if (trust.signatures.length > 0) return intact === false ? "draft" : "signed";
   // tracked / approved / draft carry no crypto layer → leave undefined so
   // sealForDocument detects the claimed tier from the source (e.g. certify:).
   return undefined;
 }
+
+/**
+ * Per-signer validity for the CURRENT content. Each `sign:` line is checked with
+ * core's `signatureMatchesContent` (spec-aware: v3 binds the signer identity).
+ * A signer whose hash no longer matches signed an EARLIER version — that's normal
+ * for multi-sign (someone signs, the doc is edited, someone else signs the new
+ * version): the earlier signature is "earlier version", the later one stays valid.
+ */
+function signerStatuses(
+  source: string,
+): Array<{ signer: string; role?: string; at?: string; valid: boolean }> {
+  let sigs: Array<{
+    signer: string;
+    role?: string;
+    at?: string;
+    hash?: string;
+    spec?: number;
+  }> = [];
+  try {
+    sigs = parseIntentText(source).metadata?.signatures ?? [];
+  } catch {
+    return [];
+  }
+  return sigs.map((s) => ({
+    signer: s.signer,
+    role: s.role,
+    at: s.at,
+    valid: (() => {
+      try {
+        return signatureMatchesContent(source, s);
+      } catch {
+        return false;
+      }
+    })(),
+  }));
+}
+
 
 /**
  * The live Hash-Based Ambient Seal for the document being edited. Rendered from
@@ -66,7 +124,7 @@ function BannerSeal({
   if (!seal) return null;
   return (
     <span
-      className="docs-trust-banner__seal"
+      className="docs-trust-chip__seal"
       title={`Ambient seal · ${seal.hash.replace(/^sha256:/, "").slice(0, 12)}`}
       aria-hidden
       dangerouslySetInnerHTML={{ __html: seal.svg }}
@@ -74,108 +132,211 @@ function BannerSeal({
   );
 }
 
-export function TrustBanner({ trust, intact, source }: TrustBannerProps) {
-  // A TEMPLATE (.it blueprint) is OUTSIDE the trust workflow — it can't be
-  // sealed/signed/certified, so it has no Draft/Signed/Sealed state at all. This
-  // MUST be the first branch: the slate dashed seal (rendered for free by
-  // sealForDocument, which detects the template tier) plus template wording, and
-  // never a trust verdict. Merge it with data first to get a signable document.
+/** Derive the one compact status the chip shows: variant + icon + title + the
+ *  longer detail (shown on hover and when expanded) + an optional verify verdict. */
+function trustStatus(trust: TrustState, intact: boolean | null, source: string) {
   if (isTemplate(source)) {
-    return (
-      <div
-        className="docs-trust-banner docs-trust-banner--template"
-        role="status"
-      >
-        <BannerSeal source={source} trust={trust} intact={intact} />
-        <span className="docs-trust-banner__icon">📐</span>
-        <span className="docs-trust-banner__title">Template</span>
-        <span className="docs-trust-banner__text">
-          outside the trust workflow · merge with data to produce a signable
-          document
-        </span>
-      </div>
-    );
+    return {
+      variant: "template",
+      icon: "📐",
+      title: "Template",
+      detail:
+        "Outside the trust workflow — merge with data to produce a signable document.",
+      verify: null as null | { ok: boolean; text: string },
+    };
   }
-
   if (trust.isSealed) {
     const signer = trust.sealedBy || "unknown";
     const role = trust.signatures[trust.signatures.length - 1]?.role;
-    return (
-      <div className="docs-trust-banner docs-trust-banner--sealed" role="status">
-        <BannerSeal source={source} trust={trust} intact={intact} />
-        <span className="docs-trust-banner__icon">🔒</span>
-        <span className="docs-trust-banner__title">Sealed</span>
-        <span className="docs-trust-banner__text">
-          signed by {who(signer, role)}
-          {trust.sealedAt ? ` on ${trust.sealedAt}` : ""} · read-only
-        </span>
-        {intact === true && (
-          <span className="docs-trust-banner__verify docs-trust-banner__verify--ok">
-            hash verified ✓
-          </span>
-        )}
-        {intact === false && (
-          <span className="docs-trust-banner__verify docs-trust-banner__verify--bad">
-            ⚠ hash mismatch — content changed after sealing
-          </span>
-        )}
-      </div>
-    );
+    // A sealed doc whose content no longer hashes to the sealed hash is BROKEN —
+    // say so loudly (red), not a quiet "Sealed ✓".
+    if (intact === false) {
+      return {
+        variant: "broken",
+        icon: "⚠",
+        title: "Seal broken",
+        detail:
+          "Content changed after sealing — the hash no longer matches. This is NOT the sealed document.",
+        verify: { ok: false, text: "Hash mismatch — tampered since sealing." },
+      };
+    }
+    // A valid seal made under an OLDER ruleset is weaker — spec ≤ 1 doesn't cover
+    // signatures, so a signer could be altered without breaking the seal. Show it as
+    // a caution (amber) and advise re-sealing, so it never reads as fully trusted.
+    const spec = sealSpecOf(source);
+    if (intact === true && spec != null && spec < SEAL_SPEC) {
+      return {
+        variant: "weak",
+        icon: "⚠",
+        title: "Sealed · older ruleset",
+        detail: `Signed by ${who(signer, role)}${trust.sealedAt ? ` on ${trust.sealedAt}` : ""}. Sealed under ruleset v${spec}, which does NOT protect signatures — re-seal to upgrade to v${SEAL_SPEC}.`,
+        verify: {
+          ok: false,
+          text: `⚠ Older ruleset (v${spec}) — signatures aren't protected. Re-seal to upgrade.`,
+        },
+      };
+    }
+    return {
+      variant: "sealed",
+      icon: "🔒",
+      title: "Sealed",
+      detail: `Signed by ${who(signer, role)}${trust.sealedAt ? ` on ${trust.sealedAt}` : ""} · read-only.`,
+      verify:
+        intact === true
+          ? { ok: true, text: "Verified — unaltered since sealing." }
+          : null,
+    };
   }
-
   if (trust.signatures.length > 0) {
-    const n = trust.signatures.length;
-    // A signed-but-unsealed document stays EDITABLE — but editing changes the
-    // bytes the signatures cover, so we warn (Word-style) that doing so breaks
-    // them. Sealing locks it read-only; that's a separate action.
-    return (
-      <div className="docs-trust-banner docs-trust-banner--signed" role="status">
-        <BannerSeal source={source} trust={trust} intact={intact} />
-        <span className="docs-trust-banner__icon">✍</span>
-        <span className="docs-trust-banner__title">Signed</span>
-        <span className="docs-trust-banner__text">
-          by{" "}
-          {trust.signatures
-            .map((s) => `${who(s.by, s.role)}${s.at ? ` on ${s.at}` : ""}`)
-            .join(" · ")}
-        </span>
-        <span className="docs-trust-banner__warn">
-          ⚠ Editing will break {n} signature{n === 1 ? "" : "s"}
-        </span>
-      </div>
-    );
-  }
+    // PER-SIGNER status (multi-sign aware): a signature is valid for the CURRENT
+    // content or it signed an EARLIER version (normal when the doc changed between
+    // signatures). We never collapse to a blanket "broken" while a later signer's
+    // signature is still valid for what's on screen.
+    const st = signerStatuses(source);
+    const n = st.length;
+    const valid = st.filter((s) => s.valid);
+    const stale = st.filter((s) => !s.valid);
+    const list = (arr: typeof st) =>
+      arr.map((s) => `${who(s.signer, s.role)}`).join(" · ");
 
+    if (valid.length === 0) {
+      // No one has signed the version on screen → broken (red).
+      return {
+        variant: "broken",
+        icon: "⚠",
+        title: n === 1 ? "Signature broken" : "Signatures broken",
+        detail: `Content changed since signing — ${n === 1 ? "the signature no longer matches" : "no signature matches the current version"}. Re-sign to restore.`,
+        verify: {
+          ok: false,
+          text: "Signature hash mismatch — edited after signing.",
+        },
+      };
+    }
+    if (stale.length > 0) {
+      // Mixed: some signed THIS version, some signed an earlier one.
+      return {
+        variant: "signed",
+        icon: "✍",
+        title: `Signed · ${valid.length}/${n}`,
+        detail: `Signed (this version): ${list(valid)}. Signed an earlier version: ${list(stale)} — re-sign to cover the current text.`,
+        verify: {
+          ok: true,
+          text: `${valid.length} of ${n} signatures cover the current version.`,
+        },
+      };
+    }
+    return {
+      variant: "signed",
+      icon: "✍",
+      title: "Signed",
+      detail:
+        `Signed by ${st
+          .map((s) => `${who(s.signer, s.role)}${s.at ? ` on ${s.at}` : ""}`)
+          .join(" · ")}. ⚠ Editing breaks signatures over the changed content.`,
+      verify: { ok: true, text: "All signatures match the current content." },
+    };
+  }
   if (trust.approvals.length > 0) {
-    return (
-      <div
-        className="docs-trust-banner docs-trust-banner--approved"
-        role="status"
-      >
-        <BannerSeal source={source} trust={trust} intact={intact} />
-        <span className="docs-trust-banner__icon">✓</span>
-        <span className="docs-trust-banner__title">Approved</span>
-        <span className="docs-trust-banner__text">
-          by{" "}
-          {trust.approvals
-            .map((a) => `${who(a.by, a.role)}${a.at ? ` on ${a.at}` : ""}`)
-            .join(" · ")}
-        </span>
-      </div>
-    );
+    return {
+      variant: "approved",
+      icon: "✓",
+      title: "Approved",
+      detail: `Approved by ${trust.approvals
+        .map((a) => `${who(a.by, a.role)}${a.at ? ` on ${a.at}` : ""}`)
+        .join(" · ")}.`,
+      verify: null,
+    };
   }
+  return {
+    variant: "draft",
+    icon: "📝",
+    title: "Draft",
+    detail: "Not signed or sealed yet — the seal updates as you edit.",
+    verify: null,
+  };
+}
 
-  // Draft — no trust block yet. Still show the live ambient seal (gray crown)
-  // so the seal is present from the first keystroke and visibly changes as the
-  // document evolves; it turns blue/green/gold the moment a trust line lands.
+/**
+ * Compact, professional status CHIP (not a full-width banner): a small right-aligned
+ * box showing the live ambient seal + the document's trust state, with details on
+ * hover and an expand toggle. Keeps the canvas clean while the trust verdict stays
+ * one glance away.
+ */
+export function TrustBanner({
+  trust,
+  intact,
+  source,
+  onChange,
+}: TrustBannerProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  usePopover("trust-chip", ref, open, () => setOpen(false));
+  const s = trustStatus(trust, intact, source);
+  // Grey the ambient seal only when the verdict is actually BROKEN (no signature
+  // covers the current version) — not for a multi-sign doc where a later signer is
+  // still valid (that shows "Signed · N/M", which stays trusted).
+  const sigBroken = s.variant === "broken";
+  const sealIntactForTier = sigBroken ? false : intact;
+  // Actionable when the host can apply edits → the chip IS the trust control.
+  const actionable = typeof onChange === "function";
+
   return (
-    <div className="docs-trust-banner docs-trust-banner--draft" role="status">
-      <BannerSeal source={source} trust={trust} intact={intact} />
-      <span className="docs-trust-banner__icon">📝</span>
-      <span className="docs-trust-banner__title">Draft</span>
-      <span className="docs-trust-banner__text">
-        not signed or sealed yet · the seal updates as you edit
-      </span>
+    <div
+      ref={ref}
+      className={`docs-trust-chip docs-trust-chip--${s.variant}`}
+      role="status"
+    >
+      <button
+        type="button"
+        className="docs-trust-chip__main"
+        title={s.detail}
+        aria-expanded={open}
+        onClick={() => {
+          const next = !open;
+          setOpen(next);
+          if (next) announcePopover("trust-chip");
+        }}
+      >
+        <BannerSeal source={source} trust={trust} intact={sealIntactForTier} />
+        <span className="docs-trust-chip__icon" aria-hidden>
+          {s.icon}
+        </span>
+        <span className="docs-trust-chip__title">{s.title}</span>
+        {s.verify && (
+          <span
+            className={`docs-trust-chip__verify docs-trust-chip__verify--${s.verify.ok ? "ok" : "bad"}`}
+          >
+            {s.verify.ok ? "✓" : "⚠"}
+          </span>
+        )}
+        <span className="docs-trust-chip__caret" aria-hidden>
+          {open ? "▾" : "▸"}
+        </span>
+      </button>
+      {open &&
+        (actionable ? (
+          <div className="docs-trust-chip__pop">
+            <TrustActions
+              content={source}
+              onChange={onChange!}
+              trust={trust}
+              intact={intact}
+              onDone={() => setOpen(false)}
+            />
+          </div>
+        ) : (
+          <div className="docs-trust-chip__detail">
+            {s.detail}
+            {s.verify && (
+              <div
+                className={`docs-trust-chip__verify-line docs-trust-chip__verify-line--${s.verify.ok ? "ok" : "bad"}`}
+              >
+                {s.verify.ok ? "✓ " : "⚠ "}
+                {s.verify.text}
+              </div>
+            )}
+          </div>
+        ))}
     </div>
   );
 }
@@ -242,11 +403,55 @@ function collectDocProps(source: string): DocProp[] {
   return props;
 }
 
-export function DocPropsBar({ source }: { source: string }) {
+export function DocPropsBar({
+  source,
+  compact = false,
+}: {
+  source: string;
+  compact?: boolean;
+}) {
   const [open, setOpen] = useState(false);
+  const popRef = useRef<HTMLDivElement>(null);
+  usePopover("doc-props", popRef, open, () => setOpen(false));
   const props = useMemo(() => collectDocProps(source), [source]);
 
   if (props.length === 0) return null;
+
+  // Compact (title-bar) mode: a small "Properties ▾" button that opens a dropdown
+  // of the property boxes — keeps the top header tidy.
+  if (compact) {
+    return (
+      <div ref={popRef} className={`docs-props-pop${open ? " open" : ""}`}>
+        <button
+          type="button"
+          className="docs-props-pop-btn"
+          onClick={() => {
+            const next = !open;
+            setOpen(next);
+            if (next) announcePopover("doc-props");
+          }}
+          aria-expanded={open}
+          title="Document properties"
+        >
+          Properties ▾
+        </button>
+        {open && (
+          <div
+            className="docs-props-pop-menu"
+            role="dialog"
+            aria-label="Document properties"
+          >
+            <p className="docs-props-pop-title">Document properties</p>
+            {props.map((p, i) => (
+              <span className="docs-props-chip" key={`${p.key}-${i}`}>
+                <b>{p.key}</b> {p.value}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // Collapsed: a one-line summary of the leading properties.
   const summary = props

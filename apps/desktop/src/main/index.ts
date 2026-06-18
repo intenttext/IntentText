@@ -5,7 +5,7 @@
 // renderer talks to it through window.electronAPI (see ../preload) which the Tauri
 // shims (../renderer/src/tauri-shims/*) call — so the React app is unchanged.
 
-import { app, BrowserWindow, ipcMain, dialog, shell, Menu, safeStorage, screen } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell, Menu, safeStorage, screen, nativeImage } from "electron";
 import { join, dirname, basename } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -22,6 +22,14 @@ import { existsSync } from "node:fs";
 import chokidar, { type FSWatcher } from "chokidar";
 
 const isDev = !app.isPackaged;
+// The .it app icon. Packaged: copied beside the binary via build.extraResources.
+// Dev: read from the source resources dir (out/main → ../../resources). Used for
+// the dock (macOS) + window/taskbar icon (Windows) so the RUNNING app shows the
+// .it mark, not Electron's default. (The packaged .app/.exe Finder icon comes
+// from build.mac.icon/build.win.icon — icon.icns/icon.png — independently.)
+const ICON_PATH = app.isPackaged
+  ? join(process.resourcesPath, "icon.png")
+  : join(__dirname, "../../resources/icon.png");
 const SETTINGS_PATH = () => join(app.getPath("userData"), "settings.json");
 const IDENTITY_PATH = () => join(app.getPath("userData"), "identity.bin");
 const PADES_IDENTITY_PATH = () =>
@@ -60,6 +68,8 @@ function createWindow(file?: string): BrowserWindow {
     minHeight: 600,
     titleBarStyle: "hiddenInset",
     backgroundColor: "#f3f4f6",
+    // Windows/Linux taskbar + window icon (macOS uses the dock icon set below).
+    icon: ICON_PATH,
     show: false,
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
@@ -123,6 +133,19 @@ function createWindow(file?: string): BrowserWindow {
     windowFiles.delete(win.webContents.id);
     for (const [p, w] of docWindows) if (w === win) docWindows.delete(p);
     if (win === mainWindow) mainWindow = null;
+  });
+  // macOS resilience: Chromium's network service can crash on first paint
+  // ("Network service crashed, restarting service"), which fails the initial
+  // loadURL(localhost dev server) and leaves the window blank. Retry the load a
+  // few times (skipping ERR_ABORTED -3, which is a benign HMR navigation).
+  let loadRetries = 0;
+  win.webContents.on("did-fail-load", (_e, code, _desc, _url, isMainFrame) => {
+    if (isMainFrame && code !== -3 && loadRetries < 6) {
+      loadRetries++;
+      setTimeout(() => {
+        if (!win.isDestroyed()) loadRenderer(win);
+      }, 400);
+    }
   });
   loadRenderer(win);
   return win;
@@ -639,6 +662,13 @@ app.whenReady().then(() => {
   // Windows/Linux: a .it path may arrive as an argv on cold start.
   const argFile = process.argv.find((a) => a.endsWith(".it"));
   if (argFile) pendingOpen = argFile;
+
+  // macOS dock icon — the .it mark, so the RUNNING app (incl. dev) never shows
+  // Electron's default. The packaged .app's Finder icon comes from build.mac.icon.
+  if (process.platform === "darwin" && app.dock) {
+    const dockIcon = nativeImage.createFromPath(ICON_PATH);
+    if (!dockIcon.isEmpty()) app.dock.setIcon(dockIcon);
+  }
 
   buildMenu();
   mainWindow = createWindow();

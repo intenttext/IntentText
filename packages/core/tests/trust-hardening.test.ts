@@ -116,13 +116,32 @@ describe("trust visuals + per-paragraph direction (1.2.1)", () => {
     expect(html).toContain('it-approval__date');
   });
 
-  it("sign: renders the signature-line look and never claims 'verified' on a plain hash", () => {
-    const plain = renderHTML(parseIntentText("sign: Ahmed | role: CEO | at: 2026-06-12 | hash: sha256:abc"));
-    expect(plain).toContain('it-signature__rule');
-    expect(plain).toContain('Signed');
-    expect(plain).not.toContain('verified');
-    const crypto = renderHTML(parseIntentText("sign: Ahmed | role: CEO | at: 2026-06-12 | hash: sha256:abc | key: ed25519:k | sig: s"));
-    expect(crypto).toContain('✓ Signed');
+  it("sign:/freeze: show ONLY in the unified trust band, never as inline body text", () => {
+    // The signer/seal info lives in ONE certification stamp (the trust band, corner),
+    // not duplicated as an inline block in the document flow. Use a REAL signature
+    // (matching hash) so the integrity gate shows the intact "Signed" caption.
+    const src = signDocument("title: T\ntext: body", {
+      signer: "Ahmed",
+      role: "CEO",
+    }).source;
+    const signed = renderHTML(parseIntentText(src));
+    expect(signed).toContain("it-trust-band"); // the band is present
+    expect(signed).toContain("Signed Ahmed (CEO)"); // who, in the band caption
+    // Check the rendered BODY past the stylesheet — the <style> defines the legacy
+    // signature class and the .it-trust-band--broken selector, so a whole-string
+    // match would be a false positive.
+    const body = signed.slice(signed.lastIndexOf("</style>"));
+    expect(body).not.toContain("it-trust-band--broken"); // intact → not broken
+    expect(body).not.toContain("it-signature__rule");
+    expect(body).not.toContain("verified"); // never over-claims
+  });
+
+  it("a trusted doc's band can be opted out with seal:false (e.g. when the host adds its own)", () => {
+    const src = "title: T\ntext: body\nsign: Ahmed | role: CEO | hash: sha256:abc";
+    expect(renderHTML(parseIntentText(src))).toContain("it-trust-band");
+    expect(renderHTML(parseIntentText(src), { seal: false })).not.toContain(
+      "it-trust-band",
+    );
   });
 
   it("per-paragraph dir: makes one block RTL without flipping others", () => {

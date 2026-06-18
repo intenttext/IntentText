@@ -14,14 +14,14 @@
     "dist:mac": "pnpm run build && electron-builder --mac"
   },
   "dependencies": {
-    "@dotit/core": "workspace:*",
-    "@dotit/editor": "workspace:*",
-    "@dotit/sign": "workspace:^",
+    "@dotit/core": "^1.21.2",
+    "@dotit/editor": "^1.16.1",
+    "@dotit/sign": "^1.4.2",
     "chokidar": "^4.0.1",
     "lucide-react": "^0.577.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "@dotit/pades": "workspace:^"
+    "@dotit/pades": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -47,6 +47,12 @@
     },
     "files": [
       "out/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/icon.png",
+        "to": "icon.png"
+      }
     ],
     "mac": {
       "category": "public.app-category.productivity",

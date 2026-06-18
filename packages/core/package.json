@@ -1,6 +1,6 @@
 {
   "name": "@dotit/core",
-  "version": "1.16.0",
+  "version": "1.21.2",
   "description": "IntentText Parser, HTML Renderer, and Converters",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,7 +15,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "test": "vitest run",
-    "test:byte": "vitest run tests/byte-preservation.test.ts tests/lossless-roundtrip.test.ts",
+    "test:byte": "vitest run tests/byte-preservation.test.ts tests/lossless-roundtrip.test.ts tests/seal-versioning.test.ts",
     "size:report": "node scripts/report-package-size.cjs",
     "size:check": "node scripts/check-package-size.cjs",
     "pack:check": "node scripts/check-pack-footprint.cjs",

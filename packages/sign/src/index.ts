@@ -23,6 +23,7 @@ import {
   computeDocumentHash,
   computeDocumentHashLegacy,
   assertNotTemplate,
+  SEAL_SPEC,
 } from "@dotit/core";
 
 // ─── Encoding helpers (base64url, dependency-free) ───────────────────────────
@@ -166,6 +167,7 @@ export function signDocumentCrypto(
     role ? `role: ${role}` : null,
     `at: ${at}`,
     `hash: ${hash}`,
+    `spec: ${SEAL_SPEC}`,
     `key: ed25519:${publicKey}`,
     `sig: ${toB64url(sig)}`,
   ].filter(Boolean);
@@ -257,9 +259,18 @@ export function verifyCryptoSignatures(source: string): SignatureCheck[] {
       const sig = fromB64url(sigField);
       const payloadFor = (h: string) =>
         signingPayload(h, signer, role ?? "", at ?? "");
+      // Verify against the canonicalization spec the signature RECORDED (forever
+      // stable). A pre-versioning signature (no spec:) falls back to current||legacy.
+      const specRaw = (p as Record<string, string>).spec;
       const ok =
-        ed25519.verify(sig, payloadFor(currentHash), pub) ||
-        ed25519.verify(sig, payloadFor(legacyHash), pub);
+        specRaw != null
+          ? ed25519.verify(
+              sig,
+              payloadFor(computeDocumentHash(source, Number(specRaw))),
+              pub,
+            )
+          : ed25519.verify(sig, payloadFor(currentHash), pub) ||
+            ed25519.verify(sig, payloadFor(legacyHash), pub);
       out.push({
         signer,
         role,
@@ -403,6 +414,7 @@ export function certifyDocument(
     entity ? `entity: ${entity}` : null,
     `at: ${at}`,
     `hash: ${hash}`,
+    `spec: ${SEAL_SPEC}`,
     `key: ed25519:${issuerKey}`,
     `sig: ${toB64url(sig)}`,
     options.intermediateCert ? `ica: ${options.intermediateCert}` : null,
@@ -492,11 +504,16 @@ export function verifyCertifications(
       continue;
     }
     const publicKey = keyField.replace(/^ed25519:/, "");
+    // Verify against the spec version the certification RECORDED (forever stable);
+    // pre-versioning certifications fall back to the current hash.
+    const specRaw = (p as Record<string, string>).spec;
+    const certHash =
+      specRaw != null ? computeDocumentHash(source, Number(specRaw)) : currentHash;
     let signatureValid = false;
     try {
       signatureValid = ed25519.verify(
         fromB64url(sigField),
-        certPayload(currentHash, issuer, account ?? "", entity ?? "", at ?? ""),
+        certPayload(certHash, issuer, account ?? "", entity ?? "", at ?? ""),
         fromB64url(publicKey),
       );
     } catch {

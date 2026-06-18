@@ -7,6 +7,7 @@ import {
   parseAndMerge,
   validateDocumentSemantic,
   documentToSource,
+  isTemplate,
   _resetIdCounter,
   ALIASES,
   effectiveField,
@@ -486,5 +487,34 @@ describe("style properties", () => {
     expect(doc.blocks[0].properties?.bg).toBe("yellow");
     // Type is still text (formerly note)
     expect(doc.blocks[0].type).toBe("text");
+  });
+});
+
+// merge into MULTI-LINE prose paragraphs (the _merged byte-record path)
+describe("merge resolves multi-line prose paragraphs", () => {
+  it("substitutes {{vars}} across consecutive text: lines in the serialized source", () => {
+    // The parser collapses consecutive text: lines into ONE block but keeps the
+    // per-line originals in _merged, which documentToSource re-emits verbatim.
+    const src =
+      "title: Letter\nsummary: To {{recipient.name}}\ntext: Dear {{recipient.name}},\ntext: {{body}}\n";
+    const merged = documentToSource(
+      parseAndMerge(
+        src,
+        { recipient: { name: "Sara" }, body: "Please review." },
+        { missing: "keep" },
+      ),
+    );
+    expect(merged).toContain("text: Dear Sara,");
+    expect(merged).toContain("text: Please review.");
+    expect(merged).not.toContain("{{recipient.name}}");
+    expect(merged).not.toContain("{{body}}");
+  });
+
+  it("a fully-merged multi-line template is no longer isTemplate (so it can be sealed)", () => {
+    const src = "title: T\ntext: Hello {{a}},\ntext: see {{b}}.\n";
+    const merged = documentToSource(
+      parseAndMerge(src, { a: "Ann", b: "the report" }, { missing: "keep" }),
+    );
+    expect(isTemplate(merged)).toBe(false);
   });
 });

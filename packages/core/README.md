@@ -88,6 +88,8 @@ const result = parseAndMerge(templateString, data);
 - Missing fields: `parseAndMerge(src, data, { missing: "blank" })` renders an
   unresolved `{{field}}` empty — use for finished documents so an invoice never
   prints a literal `{{customer.phone}}` (default `"keep"` aids template authoring)
+- Multi-line prose: `{{vars}}` resolve inside multi-line prose paragraphs too, so a
+  fully-merged template is no longer `isTemplate()` and can be sealed
 
 ### Server-side PDFs
 
@@ -116,10 +118,45 @@ import { sealDocument, verifyDocument } from "@dotit/core";
 const sealed = sealDocument(source, { signer: "Sarah Chen", role: "Legal" });
 const result = verifyDocument(sealed.source);
 console.log(result.intact); // true — false if a single character changed
+console.log(result.spec, result.specOutdated); // 3, false — recorded ruleset
+result.signers.forEach((s) => s.signedCurrentVersion); // per-signer, multi-sign aware
 ```
 
-The hashing rules are open and documented in [SPEC.md](./SPEC.md), so anyone with the
-library can verify independently.
+**Sign content, not presentation.** Hashing is **versioned** (`SEAL_SPEC = 3`): every
+`sign:`/`freeze:` line stamps `spec: 3`, and verification applies the **recorded** spec
+forever, so a future rule change never breaks a historical seal. The current rules
+NFC-normalize and **exclude styling** (comments, `page:`/`font:`/`style:` lines, and
+presentation props like `color`/`size`/`align`), so restyling never breaks a seal; they
+**cover** the content, every signature, and the `freeze:` line's own metadata, and each
+signature **binds the signer's identity** (name|role|at). A `sign:` hash covers the
+**content** scope (co-signers share it); a `freeze:` hash covers the **seal** scope.
+
+```typescript
+import {
+  computeSignatureHash,
+  signatureIdentity,
+  signatureMatchesContent,
+} from "@dotit/core";
+
+const id = signatureIdentity("Sarah Chen", "Legal"); // "Sarah Chen|Legal|<at>"
+const h = computeSignatureHash(source, id); // a signature's content+identity hash
+signatureMatchesContent(source, sig); // spec-aware: still valid for current content?
+```
+
+Trust tiers are `draft`, `signed`, `sealed` (indigo), `certified`, `root-certified`,
+`template`, and `broken` (red) — see `TrustTier` / `TIER_STYLES`. The hashing rules are
+open and documented in [SPEC.md](./SPEC.md) §4, so anyone with the library can verify
+independently.
+
+#### The certification stamp (integrity gate)
+
+`renderTrustBand(source)` is the single source of truth for the certification stamp
+across `renderHTML` / `renderPrint`. It **verifies before it draws**: a tampered
+(broken-seal) document renders a red **"SEAL BROKEN"** stamp — never a clean seal.
+
+```typescript
+import { renderTrustBand, TRUST_BAND_CSS, trustBandPositionCss } from "@dotit/core";
+```
 
 ### In-file approval workflow (derived, never stored)
 

@@ -1,7 +1,13 @@
 import { IntentBlock, IntentDocument, InlineNode, PrintLayout } from "./types";
 import { effectiveProperties } from "./defaults";
 import { DOCUMENT_CSS } from "./document-css";import { IntentTheme, getBuiltinTheme, generateThemeCSS } from "./theme";
-import { sealForDocument, type TrustTier } from "./seal";
+import {
+  sealForDocument,
+  renderTrustBand,
+  TRUST_BAND_CSS,
+  trustBandPositionCss,
+  type TrustTier,
+} from "./seal";
 import { documentToSource } from "./source";
 
 export interface RenderOptions {
@@ -13,7 +19,49 @@ export interface RenderOptions {
    * pass an object to force a verified tier or set the size (pt). Default off.
    */
   seal?: boolean | { tier?: TrustTier; size?: number };
+  /**
+   * BARE / "as signed" rendering. When true, ALL visual decoration is suppressed —
+   * authored colour, size, font family, background, alignment, spacing/indent,
+   * opacity, border, `style:` rules — leaving only the content and its EMPHASIS
+   * (bold / italic / underline / strike). This is the canonical view of what the
+   * signature actually covers (see canonicalContent): a court/legal viewer where
+   * styling cannot exist, so it can never hide or distort the signed content.
+   */
+  bare?: boolean;
 }
+
+/**
+ * Emphasis carries MEANING — it changes how text reads ("shall **not**") — so it
+ * stays in the bare/signed view. Every other STYLE_PROPERTIES key is pure
+ * appearance and is dropped when rendering bare. Keep this in sync with the
+ * content projection that the signature hashes.
+ */
+const EMPHASIS_PROPS = new Set(["weight", "italic", "underline", "strike"]);
+
+// Module-scoped bare-render flag. Set at the start of renderHTML (synchronous,
+// single-threaded rendering → no reentrancy) and restored in a finally. Read by
+// extractInlineStyles + getAlignmentClass so every styling choke point honours it.
+let BARE_RENDER = false;
+
+// Bare view = a plain typed document: strip every box/border/background/shadow so
+// only the content + emphasis remain — no callout boxes, contact cards, coloured
+// rules, field boxes, or seal/sign frames. `.intent-bare .x` (specificity 0,2,0)
+// beats the theme/DOCUMENT_CSS single-class rules, and it's emitted AFTER them.
+const BARE_RESET_CSS = `
+.intent-bare .intent-callout,
+.intent-bare .it-callout,
+.intent-bare .intent-info,
+.intent-bare .it-contact,
+.intent-bare .it-deadline,
+.intent-bare .intent-sign,
+.intent-bare .intent-approve,
+.intent-bare .intent-freeze,
+.intent-bare .it-field-box,
+.intent-bare .it-epigraph{background:none !important;border:0 !important;border-radius:0 !important;box-shadow:none !important;padding-inline:0 !important;}
+.intent-bare .intent-summary{border:0 !important;padding-inline-start:0 !important;}
+.intent-bare .intent-callout-icon,
+.intent-bare .it-callout-icon{display:none;}
+`;
 
 function resolveThemeSync(ref: string | IntentTheme | undefined): IntentTheme {
   if (ref && typeof ref === "object") return ref;
@@ -422,6 +470,8 @@ function applyInlineFormatting(
 }
 
 function getAlignmentClass(props: Record<string, string | number>): string {
+  // Alignment is styling — dropped in the bare/signed view.
+  if (BARE_RENDER) return "";
   const raw = String(props.align || "")
     .toLowerCase()
     .trim();
@@ -507,6 +557,9 @@ function extractInlineStyles(
   const styles: string[] = [];
   const decorations: string[] = [];
   for (const [prop, css] of Object.entries(STYLE_PROPERTIES)) {
+    // Bare/signed view keeps emphasis (bold/italic/underline/strike), drops the
+    // rest (colour/size/font/bg/align/spacing/…).
+    if (BARE_RENDER && !EMPHASIS_PROPS.has(prop)) continue;
     const value = properties[prop];
     if (value === undefined || value === "") continue;
     // Values can come from merged data (e.g. `color: {{brandColor}}`) — sanitize
@@ -641,7 +694,17 @@ function renderBlock(block: IntentBlock): string {
     props.dir === "rtl" || props.dir === "ltr" || props.dir === "auto"
       ? String(props.dir)
       : "";
-  const dirAttr = blockDir ? ` dir="${blockDir}"` : "";
+  // Direction is CONTENT, never decoration — Arabic IS right-to-left — so it's
+  // always honoured (kept in the bare/signed view too). In bare mode, blocks with
+  // no explicit dir get dir="auto" so each paragraph's direction is derived from
+  // its own characters: Arabic flows RTL, Latin flows LTR, even in a mixed doc and
+  // even if the document was never flagged. Alignment then follows direction (the
+  // CSS is logical — text-align:start/end), so dropping authored `align` is safe.
+  const dirAttr = blockDir
+    ? ` dir="${blockDir}"`
+    : BARE_RENDER
+      ? ` dir="auto"`
+      : "";
 
   const { inner: splitContent, splitClass } = splitEnd(content, props);
 
@@ -1161,16 +1224,23 @@ function renderBlock(block: IntentBlock): string {
         props.key != null ? ` data-key="${escapeHtml(String(props.key))}"` : "";
       const dataAttrs = `${keyAttr} data-type="${safeType}"${required ? ' data-required="true"' : ""}`;
       const labelHtml = `<span class="it-input-name it-field-label">${content}${required ? '<span class="it-field-req">*</span>' : ""}</span>`;
+      // Layout width (presentation): a validated CSS length → a flex-basis so two
+      // narrow fields share the row. Rejected if it isn't a plain length (no CSS
+      // injection from source).
+      const widthRaw = props.width != null ? String(props.width).trim() : "";
+      const widthStyle = /^[0-9]+(\.[0-9]+)?(%|px|em|rem|ch|vw)?$/.test(widthRaw)
+        ? ` style="flex:0 1 calc(${widthRaw} - 8px);min-width:0"`
+        : "";
 
       if (fieldType === "checkbox") {
         const checked = /^(yes|true|on|1|checked|x)$/i.test(rawValue.trim());
-        return `<div class="it-input it-field it-field-checkbox"${dataAttrs}><span class="it-field-check${checked ? " checked" : ""}" aria-hidden="true"></span>${labelHtml}</div>`;
+        return `<div class="it-input it-field it-field-checkbox"${dataAttrs}${widthStyle}><span class="it-field-check${checked ? " checked" : ""}" aria-hidden="true"></span>${labelHtml}</div>`;
       }
       if (fieldType === "signature") {
         const inner = hasValue
           ? `<span class="it-field-value">${escapeHtml(rawValue)}</span>`
           : "";
-        return `<div class="it-input it-field it-field-signature"${dataAttrs}><span class="it-field-box it-field-sig">${inner}</span>${labelHtml}</div>`;
+        return `<div class="it-input it-field it-field-signature"${dataAttrs}${widthStyle}><span class="it-field-box it-field-sig">${inner}</span>${labelHtml}</div>`;
       }
       const options = String(props.options ?? "")
         .split(",")
@@ -1181,7 +1251,7 @@ function renderBlock(block: IntentBlock): string {
         : fieldType === "choice" && options.length
           ? `<span class="it-field-hint">${escapeHtml(options.join("  /  "))}</span>`
           : "";
-      return `<div class="it-input it-field it-field-${safeType}"${dataAttrs}>${labelHtml}<span class="it-field-box it-field-box-${safeType} ${hasValue ? "filled" : "blank"}">${boxInner}</span></div>`;
+      return `<div class="it-input it-field it-field-${safeType}"${dataAttrs}${widthStyle}>${labelHtml}<span class="it-field-box it-field-box-${safeType} ${hasValue ? "filled" : "blank"}">${boxInner}</span></div>`;
     }
 
     case "output": {
@@ -1319,37 +1389,14 @@ function renderBlock(block: IntentBlock): string {
       </div>`;
     }
 
-    case "sign": {
-      const signerName = escapeHtml(block.content);
-      const signRole = props.role ? escapeHtml(String(props.role)) : "";
-      const signAt = props.at ? formatTrustDate(String(props.at)) : "";
-      // A `sign:` carrying key:+sig: is a real Ed25519 signature; otherwise it's
-      // a hash-bound record. The static renderer does NOT run the crypto check
-      // (that's @dotit/sign / the verify portal / the editor), so a printed page
-      // says "Signed", never "verified" — it must not assert a check it can't do.
-      const isCrypto = !!props.sig && !!props.key;
-      const meta = [signRole, signAt].filter(Boolean).join(" · ");
-      return `<div class="it-signature">
-        <div class="it-signature__body">
-          <span class="it-signature__rule"></span>
-          <span class="it-signature__name">${signerName}</span>
-          ${meta ? `<span class="it-signature__meta">${meta}</span>` : ""}
-        </div>
-        <span class="it-signature__badge">${isCrypto ? "✓ Signed" : "Signed"}</span>
-      </div>`;
-    }
+    // sign: / freeze: render NOTHING inline — they're consolidated into the single
+    // trust BAND/stamp (renderTrustBand), so the signer/seal info appears once, in
+    // the corner, without a duplicate block taking content space.
+    case "sign":
+      return "";
 
-    case "freeze": {
-      const freezeAt = props.at ? formatTrustDate(String(props.at)) : "";
-      const freezeHash = props.hash
-        ? escapeHtml(String(props.hash)).slice(0, 20) + "..."
-        : "";
-      return `<div class="it-sealed-banner">
-        <span class="it-sealed-banner__text">Sealed document</span>
-        ${freezeAt ? `<span class="it-sealed-banner__date">${freezeAt}</span>` : ""}
-        ${freezeHash ? `<span class="it-sealed-banner__hash">${freezeHash}</span>` : ""}
-      </div>`;
-    }
+    case "freeze":
+      return "";
 
     case "revision":
       // Should never appear above the history boundary — render as muted if somehow present
@@ -1646,6 +1693,20 @@ function renderBlocks(
       continue;
     }
 
+    // Collect consecutive `input:` form fields into a flex row. A field with a
+    // `width:` (e.g. 50%) takes that share, so two narrow fields sit side by side;
+    // a full-width field wraps to its own line. (width is presentation — excluded
+    // from the trust hash — so two-column layout never affects a seal.)
+    if (block.type === "input") {
+      html += '<div class="it-field-row">';
+      while (i < blocks.length && blocks[i].type === "input") {
+        html += renderBlock(blocks[i]);
+        i++;
+      }
+      html += "</div>";
+      continue;
+    }
+
     // Render the block itself
     html += renderBlock(block);
 
@@ -1673,6 +1734,9 @@ export function renderHTML(
 ): string {
   if (!document || !document.blocks) return "";
 
+  const prevBare = BARE_RENDER;
+  BARE_RENDER = !!options?.bare;
+  try {
   const bodyHtml = renderBlocks(document.blocks);
 
   // Collect and render footnotes at bottom
@@ -1699,19 +1763,46 @@ export function renderHTML(
   const theme = resolveThemeSync(themeRef);
   const themeCSS = generateThemeCSS(theme, "web");
   // v4.3: scoped `style:` rules — applied after the theme so house styling wins.
-  const docStyleCSS = documentStyleCSS(document);
+  // Bare view drops them entirely (house styling is decoration).
+  const docStyleCSS = BARE_RENDER ? "" : documentStyleCSS(document);
+
+  // Unified trust band — the single certification surface (sign:/freeze: never render
+  // inline). Shown for a trusted doc, anchored bottom-right of the document; `seal:
+  // false` opts out. Skipped in the bare projection (pure content), where the editor's
+  // page view supplies its own per-sheet band.
+  const isTrusted = document.blocks.some(
+    (b) => b.type === "sign" || b.type === "freeze",
+  );
+  const wantBand =
+    !BARE_RENDER && (options?.seal === false ? false : !!options?.seal || isTrusted);
+  let bandHtml = "";
+  let bandCSS = "";
+  if (wantBand) {
+    bandHtml = renderTrustBand(documentToSource(document));
+    if (bandHtml) {
+      bandCSS =
+        `.intent-document{position:relative;}` +
+        TRUST_BAND_CSS +
+        trustBandPositionCss("absolute");
+    }
+  }
 
   // Wrap in a container
   const direction =
     document.metadata?.language === "rtl" ? 'dir="rtl"' : 'dir="ltr"';
 
-  return `<div class="intent-document" ${direction}>
+  return `<div class="intent-document${BARE_RENDER ? " intent-bare" : ""}" ${direction}>
 <style>
 ${DOCUMENT_CSS}${themeCSS}
 ${docStyleCSS}
+${BARE_RENDER ? BARE_RESET_CSS : ""}
+${bandCSS}
 </style>
-${html}
+${html}${bandHtml}
 </div>`;
+  } finally {
+    BARE_RENDER = prevBare;
+  }
 }
 
 // Build dynamic CSS from font: and page: blocks
@@ -1761,6 +1852,9 @@ export function renderPrint(
 ): string {
   if (!doc || !doc.blocks) return "";
 
+  const prevBare = BARE_RENDER;
+  BARE_RENDER = !!options?.bare;
+  try {
   const bodyHtml = renderBlocks(doc.blocks);
 
   // Collect and render footnotes at bottom
@@ -1836,7 +1930,7 @@ export function renderPrint(
 
   // v2.9: Watermark HTML element
   let watermarkHtml = "";
-  if (layout.watermark && layout.watermark.content) {
+  if (layout.watermark && layout.watermark.content && !BARE_RENDER) {
     const wp = layout.watermark.properties || {};
     // escapeHtml blocks quote-breakout, but inside a style="" value a stray `;`
     // would let an attacker inject extra CSS declarations (e.g. an exfiltrating
@@ -1873,25 +1967,30 @@ export function renderPrint(
 @media print{.it-print-minimal *{background-color:transparent !important;color:black !important;}.it-print-minimal strong,.it-print-minimal b{font-weight:bold;color:black !important;}.it-print-minimal em,.it-print-minimal i{font-style:italic;color:black !important;}.it-print-minimal .it-border{border:1px solid black !important;}}`
       : "";
 
-  // Trust seal — opt-in stamp in the top-right corner of the first page.
+  // Trust seal — the hash-derived ambient seal stamp, top-right of the first page.
+  // AUTO-shown for signed/sealed/certified documents (a printed contract should
+  // carry its seal); `seal: false` opts out, `seal: {…}` forces options.
+  const isTrusted = doc.blocks.some(
+    (b) => b.type === "sign" || b.type === "freeze",
+  );
+  const wantSeal = options?.seal === false ? false : !!options?.seal || isTrusted;
   let sealHtml = "";
   let sealCSS = "";
-  if (options?.seal) {
-    const sealOpts = typeof options.seal === "object" ? options.seal : {};
-    const sz = sealOpts.size ?? 84;
-    const { svg } = sealForDocument(documentToSource(doc), {
-      tier: sealOpts.tier,
-      size: sz,
-    });
-    sealHtml = `<div class="it-trust-seal">${svg}</div>`;
-    sealCSS = `body.it-print .it-trust-seal{float:right;width:${sz}pt;height:${sz}pt;margin:0 0 8pt 14pt;}body.it-print .it-trust-seal svg{width:100%;height:100%;display:block;}`;
+  if (wantSeal) {
+    // The unified trust band, pinned in the bottom-RIGHT corner so it repeats on
+    // EVERY printed page and never takes content space (position:fixed). Shared
+    // visual style with every other surface — single source of truth in core.
+    sealHtml = renderTrustBand(documentToSource(doc));
+    if (sealHtml) {
+      sealCSS = TRUST_BAND_CSS + trustBandPositionCss("fixed");
+    }
   }
 
   return `<!DOCTYPE html><html ${direction}><head><meta charset="utf-8"><style>
 ${dynamicCSS}
 ${DOCUMENT_CSS}
 ${themeCSS}
-${documentStyleCSS(doc)}
+${BARE_RENDER ? "" : documentStyleCSS(doc)}
 /* Print: the page box is handled by @page margins, so neutralise the screen
    document container's own max-width/centering/padding. */
 .intent-document{max-width:none;margin:0;padding:0;}
@@ -1954,5 +2053,9 @@ body.it-print .it-signline-rule{border-bottom:1pt solid #000;margin-bottom:4pt;}
 body.it-print .it-contact{border:none;padding:0;margin:0.3em 0;}
 body.it-print .it-deadline{border-inline-start:3pt solid #000;padding-inline-start:8pt;margin:0.5em 0;}
 body.it-print .it-deadline-date{font-weight:bold;text-decoration:underline;}
-</style></head><body class="${bodyClass}"><div class="intent-document">${watermarkHtml}${sealHtml}${html}</div></body></html>`;
+${BARE_RENDER ? BARE_RESET_CSS : ""}
+</style></head><body class="${bodyClass}"><div class="intent-document${BARE_RENDER ? " intent-bare" : ""}">${watermarkHtml}${sealHtml}${html}</div></body></html>`;
+  } finally {
+    BARE_RENDER = prevBare;
+  }
 }

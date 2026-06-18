@@ -14,13 +14,22 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { IntentTextEditor, DocumentView, FormFill, Redline } from "@dotit/editor";
+import {
+  IntentTextEditor,
+  DocumentView,
+  FormFill,
+  FormDesigner,
+  Redline,
+  BareView,
+  SourcePanel,
+} from "@dotit/editor";
 import type { TrustAction } from "@dotit/editor";
 import { isTemplate, isForm, hasTrackedChanges, compareVersions } from "@dotit/core";
 import {
   BadgeCheck,
   Clock,
   Code2,
+  Eye,
   ListTree,
   FileDown,
   FileText,
@@ -101,7 +110,12 @@ export default function App() {
   );
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("library");
   const [mode, setMode] = useState<DocMode>("view");
+  // The draggable, live SOURCE side-panel (the .it bytes beside the page) and the
+  // BARE "as signed" read view — the same surfaces the web editor offers, now
+  // shared from @dotit/editor. Source is the tamper surface: available even when
+  // sealed (editing it breaks the seal, which print/PDF then shows honestly).
   const [sourceView, setSourceView] = useState(false);
+  const [bareView, setBareView] = useState(false);
   const [theme, setTheme] = useState(
     () => localStorage.getItem("dotit.doc.theme") ?? "corporate",
   );
@@ -481,16 +495,6 @@ export default function App() {
 
   const mainPane = useMemo(() => {
     if (!doc) return null;
-    if (sourceView && mode === "edit") {
-      return (
-        <textarea
-          className="source-view"
-          spellCheck={false}
-          value={doc.content}
-          onChange={(e) => docApi.setContent(e.target.value)}
-        />
-      );
-    }
     // VIEW = the static "read like a PDF" DocumentView: real, separate page-sheets
     // that paint reliably (unlike the live editor's decoration-based pagination,
     // which macOS WKWebView left unpainted in read-only). EDIT = the full live
@@ -522,6 +526,13 @@ export default function App() {
         );
       }
       return <DocumentView value={doc.content} theme={theme} />;
+    }
+    // EDIT mode. A FORM edits in the visual FormDesigner (fields as real boxes,
+    // drag-reorder, Full/Half width) — the same builder the web app uses. Everything
+    // else edits in the full live editor. (View mode fills the form; so Edit⇄View =
+    // Design⇄Fill for forms.)
+    if (isForm(doc.content)) {
+      return <FormDesigner value={doc.content} onChange={docApi.setContent} />;
     }
     return (
       <IntentTextEditor
@@ -615,15 +626,25 @@ export default function App() {
                   <Pencil size={13} /> {mode === "edit" ? "Done" : "Edit"}
                 </button>
               )}
-              {mode === "edit" && !docIsSealed && (
-                <button
-                  className={`icon-btn${sourceView ? " active" : ""}`}
-                  title="Toggle source (⌘⇧E)"
-                  onClick={() => setSourceView((v) => !v)}
-                >
-                  <Code2 size={15} />
-                </button>
-              )}
+              {/* Bare "as signed" read view — content + emphasis only, all
+                  decoration stripped. The canonical surface to read a contract. */}
+              <button
+                className={`icon-btn${bareView ? " active" : ""}`}
+                title="Bare view — read the document as signed"
+                onClick={() => setBareView((v) => !v)}
+              >
+                <Eye size={15} />
+              </button>
+              {/* Live source side-panel — the .it bytes beside the page, editable.
+                  Available in every mode (incl. sealed): it's the tamper surface,
+                  and any edit that breaks the seal is shown honestly in print/PDF. */}
+              <button
+                className={`icon-btn${sourceView ? " active" : ""}`}
+                title="Toggle source panel (⌘⇧E)"
+                onClick={() => setSourceView((v) => !v)}
+              >
+                <Code2 size={15} />
+              </button>
               <span className="topbar-divider" />
               <button
                 className="icon-btn"
@@ -771,7 +792,26 @@ export default function App() {
               blink in like a database row. */}
           <div className="doc-surface" key={doc?.path ?? "home"}>
           {doc ? (
-            mainPane
+            // The content surface and the live source panel sit side by side, so
+            // the source can be opened beside ANY view (read, edit, fill, design)
+            // — and resized — without leaving it. Bare view ("as signed") swaps
+            // in over the content when toggled.
+            <div className="doc-with-source">
+              <div className="doc-with-source__main">
+                {bareView ? (
+                  <BareView value={doc.content} theme={theme} />
+                ) : (
+                  mainPane
+                )}
+              </div>
+              {sourceView && (
+                <SourcePanel
+                  source={doc.content}
+                  onChange={docApi.setContent}
+                  onClose={() => setSourceView(false)}
+                />
+              )}
+            </div>
           ) : (
             <div className="empty-state">
               <div className="home-hero">

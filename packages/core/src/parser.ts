@@ -1772,6 +1772,9 @@ export function parseIntentText(
           : undefined,
         at: block.properties?.at ? String(block.properties.at) : "",
         hash: block.properties?.hash ? String(block.properties.hash) : "",
+        ...(block.properties?.spec != null && {
+          spec: Number(block.properties.spec),
+        }),
       });
       // Still emit sign: as a block for rendering
     }
@@ -1781,6 +1784,9 @@ export function parseIntentText(
       freezeMeta = {
         at: block.properties?.at ? String(block.properties.at) : "",
         hash: block.properties?.hash ? String(block.properties.hash) : "",
+        ...(block.properties?.spec != null && {
+          spec: Number(block.properties.spec),
+        }),
         status: "locked",
       };
       // Still emit freeze: as a block for rendering

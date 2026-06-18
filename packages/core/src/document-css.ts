@@ -28,17 +28,19 @@ export const DOCUMENT_CSS = `
 .intent-task-text{flex:1;}
 .intent-task-meta{display:flex;gap:6px;color:#888;font-size:0.78rem;white-space:nowrap;}
 /* ── Form fields (IntentText Forms) — fillable boxes; print like a real form ── */
+.it-field-row{display:flex;flex-wrap:wrap;column-gap:16px;align-items:flex-start;}
+.it-field-row>.it-field{flex:1 1 100%;}
 .it-field{display:flex;align-items:center;gap:10px;margin:9px 0;}
 .it-field-label{color:#333;font-size:0.92rem;flex-shrink:0;max-width:42%;}
 .it-field-req{color:#c0392b;margin-inline-start:2px;}
-.it-field-box{flex:1;min-height:1.7em;padding:5px 9px;border:1px solid #b9bcc4;border-radius:3px;background:#fcfcfd;display:flex;align-items:center;}
+.it-field-box{flex:1;min-height:1.7em;padding:5px 9px;border:1px solid #b9bcc4;border-radius:0;background:#fcfcfd;display:flex;align-items:center;}
 .it-field-box.blank{background:#fbfbfc;}
 .it-field-value{color:#111;}
 .it-field-value.it-field-default{color:#8a8f98;font-style:italic;}
 .it-field-hint{color:#aab0ba;font-size:0.85rem;}
 .it-field-box-textarea{min-height:4.5em;align-items:flex-start;}
 .it-field-checkbox{gap:8px;}
-.it-field-check{width:15px;height:15px;border:1.5px solid #888;border-radius:3px;flex-shrink:0;display:inline-block;position:relative;}
+.it-field-check{width:15px;height:15px;border:1.5px solid #888;border-radius:0;flex-shrink:0;display:inline-block;position:relative;}
 .it-field-check.checked{background:#1a73e8;border-color:#1a73e8;}
 .it-field-check.checked::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
 .it-field-signature{align-items:flex-end;}
@@ -97,7 +99,7 @@ export const DOCUMENT_CSS = `
 .intent-callout-content{flex:1;color:#222;}
 /* Info is the quiet variant: a soft gray panel with an ⓘ marker and italic
    text — "this is worth noting", not an alarm. */
-.intent-info{background:#f5f6f8;border-inline-start:3px solid #c7ccd3;border-radius:0 3px 3px 0;padding-block:8px;padding-inline-start:12px;padding-inline-end:14px;}
+.intent-info{background:#f5f6f8;border-inline-start:3px solid #c7ccd3;border-radius:0;padding-block:8px;padding-inline-start:12px;padding-inline-end:14px;}
 .intent-info .intent-callout-label{display:none;}
 .intent-info .intent-callout-content{font-style:italic;color:#4f4f4f;}
 .intent-info .intent-callout-content::before{content:"ⓘ ";font-style:normal;font-weight:600;color:#6e6e6e;}

@@ -14,17 +14,17 @@ importers:
   apps/desktop:
     dependencies:
       '@dotit/core':
-        specifier: workspace:*
-        version: link:../../packages/core
+        specifier: ^1.21.2
+        version: 1.21.2
       '@dotit/editor':
-        specifier: workspace:*
-        version: link:../../packages/editor
+        specifier: ^1.16.1
+        version: 1.16.1(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@dotit/pades':
-        specifier: workspace:^
-        version: link:../../packages/pades
+        specifier: ^1.0.0
+        version: 1.0.0(pdfkit@0.10.0)
       '@dotit/sign':
-        specifier: workspace:^
-        version: link:../../packages/sign
+        specifier: ^1.4.2
+        version: 1.4.2
       chokidar:
         specifier: ^4.0.1
         version: 4.0.3
@@ -75,8 +75,8 @@ importers:
         specifier: 3.10.1
         version: 3.10.1(@algolia/client-search@5.52.1)(@docusaurus/faster@3.10.1(@docusaurus/types@3.10.1(@swc/core@1.15.41(@swc/helpers@0.5.5))(postcss@8.5.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@swc/helpers@0.5.5)(postcss@8.5.15))(@mdx-js/react@3.1.1(@types/react@19.2.15)(react@19.2.6))(@rspack/core@1.7.11(@swc/helpers@0.5.5))(@swc/core@1.15.41(@swc/helpers@0.5.5))(@types/react@19.2.15)(postcss@8.5.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(search-insights@2.17.3)(typescript@5.6.3)
       '@dotit/core':
-        specifier: workspace:^
-        version: link:../../packages/core
+        specifier: ^1.21.1
+        version: 1.21.2
       '@mdx-js/react':
         specifier: ^3.0.0
         version: 3.1.1(@types/react@19.2.15)(react@19.2.6)
@@ -121,11 +121,11 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.6)
       '@dotit/core':
-        specifier: workspace:*
-        version: link:../../packages/core
+        specifier: ^1.21.2
+        version: 1.21.2
       '@dotit/editor':
-        specifier: workspace:*
-        version: link:../../packages/editor
+        specifier: ^1.16.1
+        version: 1.16.1(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.15
@@ -155,8 +155,8 @@ importers:
   apps/hub:
     dependencies:
       '@dotit/core':
-        specifier: workspace:*
-        version: link:../../packages/core
+        specifier: ^1.21.1
+        version: 1.21.2
       mongodb:
         specifier: ^7.1.0
         version: 7.2.0(socks@2.8.9)
@@ -207,11 +207,11 @@ importers:
   apps/verify:
     dependencies:
       '@dotit/core':
-        specifier: ^1.2.3
-        version: link:../../packages/core
+        specifier: ^1.21.1
+        version: 1.21.2
       '@dotit/sign':
-        specifier: ^1.2.0
-        version: link:../../packages/sign
+        specifier: ^1.4.2
+        version: 1.4.2
       react:
         specifier: ^19.2.4
         version: 19.2.6
@@ -253,8 +253,8 @@ importers:
         specifier: ^0.4.0
         version: 0.4.0
       '@dotit/core':
-        specifier: workspace:*
-        version: link:../core
+        specifier: ^1.21.1
+        version: 1.21.2
       minimatch:
         specifier: ^9.0.0
         version: 9.0.9
@@ -300,8 +300,8 @@ importers:
   packages/editor:
     dependencies:
       '@dotit/core':
-        specifier: workspace:^
-        version: link:../core
+        specifier: ^1.21.2
+        version: 1.21.2
       '@tiptap/core':
         specifier: ^3.20.1
         version: 3.23.6(@tiptap/pm@3.23.6)
@@ -401,11 +401,11 @@ importers:
   packages/mcp:
     dependencies:
       '@dotit/core':
-        specifier: workspace:^
-        version: link:../core
+        specifier: ^1.21.1
+        version: 1.21.2
       '@dotit/sign':
-        specifier: workspace:^
-        version: link:../sign
+        specifier: ^1.4.2
+        version: 1.4.2
       '@modelcontextprotocol/sdk':
         specifier: ^1.0.0
         version: 1.29.0(zod@4.4.3)
@@ -463,8 +463,8 @@ importers:
   packages/pdf:
     dependencies:
       '@dotit/core':
-        specifier: workspace:^
-        version: link:../core
+        specifier: ^1.21.1
+        version: 1.21.2
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
@@ -473,8 +473,8 @@ importers:
         version: 25.1.0(proxy-agent@6.5.0)
     devDependencies:
       '@dotit/pades':
-        specifier: workspace:^
-        version: link:../pades
+        specifier: ^1.0.0
+        version: 1.0.0(pdfkit@0.10.0)
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.41
@@ -491,8 +491,8 @@ importers:
   packages/sign:
     dependencies:
       '@dotit/core':
-        specifier: workspace:^
-        version: link:../core
+        specifier: ^1.21.1
+        version: 1.21.2
       '@noble/curves':
         specifier: ^1.8.1
         version: 1.9.7
@@ -510,8 +510,8 @@ importers:
   packages/vscode:
     dependencies:
       '@dotit/core':
-        specifier: workspace:*
-        version: link:../core
+        specifier: ^1.21.1
+        version: 1.21.2
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -530,13 +530,13 @@ importers:
     dependencies:
       '@dotit/core':
         specifier: ^1.2.4
-        version: link:../../packages/core
+        version: 1.21.2
       '@dotit/pades':
         specifier: workspace:^
         version: link:../../packages/pades
       '@dotit/sign':
         specifier: ^1.3.0
-        version: link:../../packages/sign
+        version: 1.4.2
       express:
         specifier: ^4.21.2
         version: 4.22.2
@@ -1804,6 +1804,24 @@ packages:
   '@docusaurus/utils@3.10.1':
     resolution: {integrity: sha512-3ojeJry9xBYdJO6qoyyzqeJFSJBVx2mXhyDzSdjwL2+URFQMf+h25gG38iswGImicK0ELjTd1EL2xzk8hf3QPw==}
     engines: {node: '>=20.0'}
+
+  '@dotit/core@1.21.2':
+    resolution: {integrity: sha512-VKf9ld/NNS70GloRij25/64C/2D7Su+8ge9+Z9I0WiytN7KwUUP2X293cMaV4V1DOqvh8zJQOwusomHrFEnL2A==}
+    hasBin: true
+
+  '@dotit/editor@1.16.1':
+    resolution: {integrity: sha512-9Hgd7UxzK5ecWwzt3ZJY/1qWO7dq7ga08cWlehNF+GY/PiilI6WoGhBhnJqyRYBGum0Xqi6SRyLlDpt+tHAsKQ==}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+
+  '@dotit/pades@1.0.0':
+    resolution: {integrity: sha512-CkYEpJcMl0XW27RkGgcFCmKefFp49Ok/u5gkxWC149josDwfcgLjErMg2YzUdnnCXAmB4ggMA+X5T3ORKnVOjg==}
+    hasBin: true
+
+  '@dotit/sign@1.4.2':
+    resolution: {integrity: sha512-L44ICTgdBGt8u47dSLVG5GGShx7WcL5tZkVV8xqVjFKNmUeAe4NaEyWoh2PYKunYkXNk0cISY2lERDIHODTqiw==}
+    hasBin: true
 
   '@electron/asar@3.4.1':
     resolution: {integrity: sha512-i4/rNPRS84t0vSRa2HorerGRXWyF4vThfHesw0dmcWHp+cspK743UanA0suA5Q5y8kzY2y6YKrvbIUn69BCAiA==}
@@ -12280,6 +12298,54 @@ snapshots:
       - supports-color
       - uglify-js
       - webpack-cli
+
+  '@dotit/core@1.21.2':
+    dependencies:
+      '@types/node': 20.19.41
+      fflate: 0.8.3
+      node-html-parser: 7.1.0
+
+  '@dotit/editor@1.16.1(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+    dependencies:
+      '@dotit/core': 1.21.2
+      '@tiptap/core': 3.23.6(@tiptap/pm@3.23.6)
+      '@tiptap/extension-color': 3.23.6(@tiptap/extension-text-style@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6)))
+      '@tiptap/extension-font-family': 3.23.6(@tiptap/extension-text-style@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6)))
+      '@tiptap/extension-highlight': 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))
+      '@tiptap/extension-paragraph': 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))
+      '@tiptap/extension-placeholder': 3.23.6(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))
+      '@tiptap/extension-subscript': 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6)
+      '@tiptap/extension-superscript': 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6)
+      '@tiptap/extension-text-align': 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))
+      '@tiptap/extension-text-style': 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))
+      '@tiptap/extension-underline': 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))
+      '@tiptap/pm': 3.23.6
+      '@tiptap/react': 3.23.6(@floating-ui/dom@1.7.6)(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6)(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@tiptap/starter-kit': 3.23.6
+      lucide-react: 0.577.0(react@19.2.6)
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
+    transitivePeerDependencies:
+      - '@floating-ui/dom'
+      - '@tiptap/extensions'
+      - '@types/react'
+      - '@types/react-dom'
+
+  '@dotit/pades@1.0.0(pdfkit@0.10.0)':
+    dependencies:
+      '@signpdf/placeholder-plain': 3.3.0(pdfkit@0.10.0)
+      '@signpdf/signpdf': 3.3.0
+      '@signpdf/utils': 3.3.0
+      asn1js: 3.0.10
+      pkijs: 3.4.0
+      pvutils: 1.1.5
+    transitivePeerDependencies:
+      - pdfkit
+
+  '@dotit/sign@1.4.2':
+    dependencies:
+      '@dotit/core': 1.21.2
+      '@noble/curves': 1.9.7
 
   '@electron/asar@3.4.1':
     dependencies:

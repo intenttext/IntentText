@@ -105,10 +105,23 @@ Trust is three opt-in layers, each verifiable **offline, forever**, with nothing
 3. **Authority** (`@dotit/sign` + UTS) — a `certify:` line binding the key to a verified org,
    chaining root→intermediate.
 
-**What gets hashed** (you must respect this when generating sealed docs): the raw source
-**above the `history:` boundary**, with `sign:`/`freeze:`/`certify:`/`amendment:` lines removed
-(`approve:` lines ARE hashed), joined with `\n`, trimmed, NFC-normalized, UTF-8. Line ending
-is **LF**. → `sha256:` + hex.
+**What gets hashed** (you must respect this when generating sealed docs): the **content**
+above the `history:` boundary, NFC-normalized, joined with `\n`, trimmed, UTF-8, LF line
+endings → `sha256:` + hex. The hash is **versioned** — every `sign:`/`freeze:` stamps a
+`spec:` (current = **`SEAL_SPEC = 3`**), and verification uses the *recorded* spec forever,
+so old seals never silently break. Under v3 the hash **excludes**:
+- **Comments** (`//` lines) and **styling** — whole presentation lines (`page:`/`font:`/`style:`)
+  and presentation props (`color`, `size`, `align`, `bg`, `leading`, `margin`, `theme`, …).
+  **Restyling never breaks a seal** ("sign content, not presentation").
+- The trust lines per scope: a `sign:` line's hash drops `sign:`/`freeze:`/`certify:`/`amendment:`
+  and **binds the signer identity** (signer/role/at are folded in, so editing them breaks that
+  signature); the `freeze:` (seal) hash keeps the `sign:` lines and the `freeze:` line's own
+  `at:`/`status:`/`spec:` metadata, so tampering them breaks the seal.
+
+`approve:` lines are ALWAYS hashed (an approval is part of what gets approved).
+`verifyDocument()` reports per-signer `valid` / `signedCurrentVersion` (multi-sign aware) plus
+`spec` / `specOutdated`; `renderTrustBand()` **verifies before drawing** — a tampered doc shows a
+red **SEAL BROKEN** stamp, never a clean seal.
 
 **The lifecycle:** `draft → track → approve → sign → freeze → amend`.
 
@@ -119,8 +132,12 @@ is **LF**. → `sha256:` + hex.
   approval *order* is tamper-evident; `verifyAuditChain(source)` reports the first broken link.
 
 **Honest scope** — state this accurately, never overclaim:
-- ✅ Integrity is self-proving (offline, no anchor).
-- ⚠️ Authenticity needs an anchor — the `certify:` chain (Layer 3) or your app's identity registry.
+- ✅ Integrity is self-proving (offline, no anchor). SEAL_SPEC 3 is the integrity **floor**:
+  the content and the *claimed* signer are tamper-evident.
+- ⚠️ Authenticity (proving *who*) is a ladder **above** the hash — a typed name is only a claim.
+  Inside an ERP: authenticate the user and fill the signer from the session, then sign with a
+  bound key/attestation (Level 0). Cross-org: ed25519 + a shared CA `certify:` chain. Court:
+  qualified PAdES. (See `INTEGRATION.md` §2.9b / `docs-internal/identity.md`.)
 - ⚠️ Time inside the file (`at:`) is **self-asserted**. Provable time = an RFC-3161 timestamp,
   available on the **PAdES** PDF export (`@dotit/pades`), not the native `.it`.
 

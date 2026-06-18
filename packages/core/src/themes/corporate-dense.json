@@ -1,0 +1,69 @@
+{
+  "name": "corporate-dense",
+  "version": "1.0.0",
+  "description": "Business — clean sans, packed tighter (more content per page)",
+  "author": "IntentText",
+  "fonts": {
+    "body": "Inter",
+    "heading": "Inter",
+    "mono": "JetBrains Mono",
+    "size": "10pt",
+    "leading": "1.4"
+  },
+  "colors": {
+    "text": "#1a1a2e",
+    "heading": "#0f0f23",
+    "muted": "#6b7280",
+    "accent": "#2563eb",
+    "border": "#e5e7eb",
+    "background": "#ffffff",
+    "code-bg": "#f8fafc",
+    "trust-approved": "#16a34a",
+    "trust-signed": "#2563eb",
+    "trust-frozen": "#7c3aed",
+    "trust-warning": "#dc2626",
+    "watermark": "#00000010"
+  },
+  "spacing": {
+    "page-margin": "18mm",
+    "section-gap": "1.2em",
+    "block-gap": "0.4em",
+    "indent": "1.2em"
+  },
+  "blocks": {
+    "section": {
+      "border-bottom": true,
+      "font-weight": "600",
+      "margin-top": "1.2em"
+    },
+    "quote": {
+      "border-inline-start": "3px solid",
+      "border-color": "accent",
+      "padding-inline-start": "1em",
+      "font-style": "italic",
+      "color": "muted"
+    },
+    "code": {
+      "background": "code-bg",
+      "font-family": "mono",
+      "padding": "0.15em 0.35em"
+    },
+    "sign": {
+      "border": "1px solid",
+      "border-color": "trust-signed",
+      "padding": "0.5em"
+    },
+    "freeze": {
+      "border": "2px solid",
+      "border-color": "trust-frozen",
+      "padding": "0.6em",
+      "text-align": "center"
+    }
+  },
+  "print": {
+    "header-font-size": "8pt",
+    "footer-font-size": "8pt",
+    "header-color": "muted",
+    "footer-color": "muted"
+  }
+}

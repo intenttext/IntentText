@@ -20,15 +20,23 @@
  * are present); cryptographic VERIFICATION of those claims is @dotit/sign's job —
  * pass a verified tier in when you have one.
  */
-import { computeDocumentHash, isSealed } from "./trust";
+import {
+  computeDocumentHash,
+  isSealed,
+  verifyDocument,
+  signatureMatchesContent,
+} from "./trust";
 import { isTemplate } from "./template";
+import { parseIntentText } from "./parser";
 
 export type TrustTier =
   | "draft"
   | "signed"
+  | "sealed"
   | "certified"
   | "root-certified"
-  | "template";
+  | "template"
+  | "broken";
 
 export interface TierStyle {
   /** Primary ink — rings, monogram, arc text. */
@@ -39,14 +47,17 @@ export interface TierStyle {
 
 /**
  * gray → blue → green → gold for the four trust tiers; slate for `template`,
- * which is OUTSIDE the trust workflow (a blueprint, not a record).
+ * which is OUTSIDE the trust workflow (a blueprint, not a record); RED for `broken`
+ * — a sealed/signed document whose content no longer matches its hash (tampered).
  */
 export const TIER_STYLES: Record<TrustTier, TierStyle> = {
   draft: { color: "#6b7280", accent: "#9ca3af" },
   signed: { color: "#2f6fed", accent: "#2f6fed" },
+  sealed: { color: "#4f46e5", accent: "#4f46e5" },
   certified: { color: "#0e9f6e", accent: "#0e9f6e" },
   "root-certified": { color: "#c58a1a", accent: "#c58a1a" },
   template: { color: "#94a3b8", accent: "#94a3b8" },
+  broken: { color: "#d93025", accent: "#d93025" },
 };
 
 export interface TrustState {
@@ -97,12 +108,15 @@ export function detectTrustState(source: string): TrustState {
   } else if (certified) {
     tier = "certified";
     label = "CERTIFIED";
+  } else if (sealed) {
+    // A seal (the integrity LOCK) is its own indigo tier — visually distinct from a
+    // bare signature. Ranked above `signed` because a sealed doc is usually also
+    // signed, and the lock is the stronger statement.
+    tier = "sealed";
+    label = "SEALED";
   } else if (signed) {
     tier = "signed";
     label = "SIGNED";
-  } else if (sealed) {
-    tier = "signed"; // integrity-only shares the blue tier
-    label = "SEALED";
   } else {
     tier = "draft";
     label = "DRAFT";
@@ -119,25 +133,7 @@ function hashBytes(hash: string): number[] {
   return out.length ? out : [0];
 }
 
-function polar(cx: number, cy: number, r: number, deg: number): [number, number] {
-  const a = (deg * Math.PI) / 180;
-  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-}
-
 const r2 = (n: number) => Math.round(n * 100) / 100;
-
-function arcPath(
-  cx: number,
-  cy: number,
-  r: number,
-  startDeg: number,
-  endDeg: number,
-  sweep: 0 | 1,
-): string {
-  const [x1, y1] = polar(cx, cy, r, startDeg);
-  const [x2, y2] = polar(cx, cy, r, endDeg);
-  return `M ${r2(x1)} ${r2(y1)} A ${r} ${r} 0 0 ${sweep} ${r2(x2)} ${r2(y2)}`;
-}
 
 function esc(s: string): string {
   return s.replace(/[<>&"]/g, (c) =>
@@ -155,55 +151,6 @@ const IT_PATH =
 function itMark(cx: number, cy: number, h: number, fill: string): string {
   const k = h / 728;
   return `<g transform="translate(${r2(cx - 499 * k)},${r2(cy + 350 * k)}) scale(${k.toFixed(4)})"><path d="${IT_PATH}" fill="${fill}"/></g>`;
-}
-
-function gcd(a: number, b: number): number {
-  while (b) {
-    [a, b] = [b, a % b];
-  }
-  return a || 1;
-}
-
-/**
- * The hash-derived GUILLOCHÉ ROSETTE — the engraved, interwoven lacework you see on
- * banknotes, passports and certificates. It is a hypotrochoid (spirograph) curve
- * whose big/rolling radii and pen offset are read from the hash, traced for as many
- * turns as it takes to close, and layered a few times for the woven moiré. The
- * petal count and weave are therefore deterministic in the hash: same document →
- * identical rosette; any change → a visibly different one. Reads as an official
- * security seal, not a random splatter.
- */
-function guilloche(
-  bytes: number[],
-  color: string,
-  cx: number,
-  cy: number,
-  maxR: number,
-): string {
-  const b = (i: number) => bytes[((i % bytes.length) + bytes.length) % bytes.length];
-  const Rb = 24 + (b(0) % 18); // fixed (big) circle
-  let Rr = 7 + (b(1) % 9); // rolling circle
-  if (Rb % Rr === 0) Rr += 1; // avoid a trivially-early-closing (boring) curve
-  const g = gcd(Rb, Rr);
-  const turns = Rr / g; // 2π·turns closes the curve
-  const Pd = Rr * (0.55 + (b(2) % 45) / 100); // pen offset (petal depth)
-  const extent = Rb - Rr + Pd;
-  const k = maxR / extent; // scale to fit maxR
-  const N = Math.max(260, turns * 100);
-  let s = "";
-  for (let L = 0; L < 3; L++) {
-    const phase = L * (0.5 + (b(3 + L) % 40) / 100);
-    const scale = k * (1 - L * 0.12);
-    const pts: string[] = [];
-    for (let i = 0; i <= N; i++) {
-      const t = (i / N) * Math.PI * 2 * turns + phase;
-      const x = (Rb - Rr) * Math.cos(t) + Pd * Math.cos(((Rb - Rr) / Rr) * t);
-      const y = (Rb - Rr) * Math.sin(t) - Pd * Math.sin(((Rb - Rr) / Rr) * t);
-      pts.push(`${r2(cx + x * scale)},${r2(cy + y * scale)}`);
-    }
-    s += `<polyline points="${pts.join(" ")}" fill="none" stroke="${color}" stroke-width="0.45" opacity="${(0.85 - L * 0.16).toFixed(2)}"/>`;
-  }
-  return s;
 }
 
 // ─── The seal ────────────────────────────────────────────────────────────────
@@ -232,72 +179,66 @@ export function renderSeal(opts: SealRenderOptions): string {
   const showText = opts.text !== false;
   const label = opts.label ?? tier.replace(/-/g, " ").toUpperCase();
   const bytes = hashBytes(opts.hash);
-  const cleanHex = opts.hash.replace(/^sha256:/i, "").replace(/[^0-9a-fA-F]/g, "");
+  const b = (i: number) =>
+    bytes[((i % bytes.length) + bytes.length) % bytes.length];
+  const cleanHex = opts.hash
+    .replace(/^sha256:/i, "")
+    .replace(/[^0-9a-fA-F]/g, "");
   const shortHash = (cleanHex.slice(0, 8) || "00000000").toUpperCase();
-  const uid = `s${cleanHex.slice(0, 8) || "0"}-${tier}`;
-  const cx = 50;
-  const cy = 50;
-  const style =
-    `<style>` +
-    `.sl-arc{font:600 6px Georgia,"Times New Roman",serif;letter-spacing:2px;}` +
-    `.sl-hash{font:500 5.4px ui-monospace,"SFMono-Regular",Menlo,monospace;letter-spacing:1.5px;}` +
-    `.sl-star{font:6px serif;}` +
-    `</style>`;
 
-  // Template — OUTSIDE the trust workflow. No bloom (a blueprint has no meaningful
-  // hash); a faint dashed ring + TEMPLATE label, clearly not a sealed record.
+  // A flat, rounded-square card (the reference aesthetic) — subtle, not a stamp.
+  const dashed = tier === "template";
+  const card =
+    `<rect x="2.5" y="2.5" width="95" height="95" rx="14" fill="#ffffff" ` +
+    `stroke="${color}" stroke-width="1"${dashed ? ' stroke-dasharray="2 3"' : ""} opacity="0.85"/>`;
+  // Faint ".it" mark, bottom-right corner.
+  const mark = `<g opacity="0.5">${itMark(84, 87, 9, color)}</g>`;
+  // Tiny hash caption (the fingerprint, in words), bottom-left.
+  const cap = showText
+    ? `<text x="9.5" y="90.5" font-family="ui-monospace,Menlo,monospace" font-size="5" letter-spacing="0.6" fill="${color}" opacity="0.55">${shortHash}</text>`
+    : "";
+
+  // Template — a blueprint has no meaningful content hash, so no generative
+  // pattern: just the empty dashed card + the faint mark.
   if (tier === "template") {
-    const tlabel = opts.label ?? "TEMPLATE";
-    const tArc = showText
-      ? `<defs><path id="${uid}t" d="${arcPath(cx, cy, 37, 212, 328, 1)}"/></defs>` +
-        `<text class="sl-arc" fill="${color}"><textPath href="#${uid}t" startOffset="50%" text-anchor="middle">${esc(tlabel)}</textPath></text>`
-      : "";
     return (
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${esc(tlabel)} — not part of the trust workflow">` +
-      style +
-      `<circle cx="50" cy="50" r="46" fill="none" stroke="${color}" stroke-width="0.7" stroke-dasharray="1.5 3" opacity="0.7"/>` +
-      itMark(cx, cy, 20, color) +
-      tArc +
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${esc(label)} — not part of the trust workflow">` +
+      card +
+      mark +
       `</svg>`
     );
   }
 
-  const root = tier === "root-certified";
-  // The notary border: a heavier outer ring (heaviest for root) + a hairline inner
-  // ring, and a hairline ring just inside the arc text band.
-  const rings =
-    `<circle cx="50" cy="50" r="46" fill="none" stroke="${color}" stroke-width="${root ? 1.4 : 1.1}"/>` +
-    `<circle cx="50" cy="50" r="43" fill="none" stroke="${color}" stroke-width="0.5"/>` +
-    `<circle cx="50" cy="50" r="30.5" fill="none" stroke="${color}" stroke-width="0.5" opacity="0.8"/>`;
-  // A white disc carries the .it monogram clear of the rosette lacework.
-  const disc =
-    `<circle cx="50" cy="50" r="13" fill="#ffffff"/>` +
-    `<circle cx="50" cy="50" r="13" fill="none" stroke="${color}" stroke-width="0.5"/>`;
-  // Root-certified: small stars flank the seal at 3 & 9 o'clock (the gap between the
-  // top label arc and the bottom hash arc), signalling the root-chain authority.
-  const stars = root
-    ? `<text x="8.5" y="52" text-anchor="middle" class="sl-star" fill="${color}">★</text>` +
-      `<text x="91.5" y="52" text-anchor="middle" class="sl-star" fill="${color}">★</text>`
-    : "";
-
-  const arcText = showText
-    ? `<defs>` +
-      `<path id="${uid}t" d="${arcPath(cx, cy, 37, 212, 328, 1)}"/>` +
-      `<path id="${uid}b" d="${arcPath(cx, cy, 37, 148, 32, 0)}"/>` +
-      `</defs>` +
-      `<text class="sl-arc" fill="${color}"><textPath href="#${uid}t" startOffset="50%" text-anchor="middle">${esc(label)}</textPath></text>` +
-      `<text class="sl-hash" fill="${color}" opacity="0.85"><textPath href="#${uid}b" startOffset="50%" text-anchor="middle">${shortHash}</textPath></text>`
-    : "";
+  // Hash-based LINEAR WAVE field: flowing horizontal lines whose amplitude,
+  // frequency and phase are read straight from the SHA-256 — same document →
+  // byte-identical seal, any change → a visibly different wave. Flat + subtle +
+  // unique (no crown, no kitsch).
+  const LINES = 9;
+  const x0 = 13;
+  const x1 = 87;
+  const yTop = 23;
+  const yBot = 73;
+  let waves = "";
+  for (let li = 0; li < LINES; li++) {
+    const baseY = yTop + (li / (LINES - 1)) * (yBot - yTop);
+    const amp = 2 + (b(li * 3) % 55) / 11; // ~2..7
+    const freq = 1.4 + (b(li * 3 + 1) % 100) / 40; // wave count across the width
+    const phase = (b(li * 3 + 2) / 255) * Math.PI * 2;
+    const op = (0.3 + (b(li * 3 + 1) % 45) / 100).toFixed(2); // 0.30..0.74
+    const pts: string[] = [];
+    for (let x = x0; x <= x1; x += 2) {
+      const t = ((x - x0) / (x1 - x0)) * Math.PI * 2 * freq + phase;
+      pts.push(`${r2(x)},${r2(baseY + amp * Math.sin(t))}`);
+    }
+    waves += `<polyline points="${pts.join(" ")}" fill="none" stroke="${color}" stroke-width="0.9" stroke-linecap="round" opacity="${op}"/>`;
+  }
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${esc(label)} trust seal ${shortHash}">` +
-    style +
-    rings +
-    guilloche(bytes, color, cx, cy, 28) +
-    disc +
-    itMark(cx, cy, 15, color) +
-    stars +
-    arcText +
+    card +
+    waves +
+    mark +
+    cap +
     `</svg>`
   );
 }
@@ -342,4 +283,148 @@ export function sealForDocument(
     text: opts?.text,
   });
   return { svg, tier, label: state.label, hash };
+}
+
+const BAND_MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+function bandDate(s?: string): string {
+  if (!s) return "";
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${Number(m[3])} ${BAND_MONTHS[Number(m[2]) - 1]} ${m[1]}` : s;
+}
+
+/**
+ * The unified TRUST BAND — one quiet certification area combining the hash seal,
+ * who signed, and the freeze: "◈  Signed Emad (CEO) · Sealed 17 Jun 2026 · e6b7c5…".
+ * Returns "" for an unsigned draft. The caller positions/styles `.it-trust-band`
+ * (the print path pins it `fixed` in the bottom margin so it repeats on every page
+ * and never takes content space; the screen page-view places one per sheet).
+ */
+export function renderTrustBand(source: string): string {
+  const doc = parseIntentText(source);
+  const sigs = doc.metadata?.signatures ?? [];
+  const freeze = doc.metadata?.freeze;
+  if (sigs.length === 0 && !freeze) return "";
+
+  // INTEGRITY GATE — the band MUST reflect reality on every surface (print, PDF,
+  // screen). A sealed/signed document whose content no longer matches its hash is
+  // TAMPERED: we render a loud RED "BROKEN" stamp, never the clean certification
+  // (printing a valid-looking seal on a modified document would be a forgery).
+  const broken = isTrustBroken(source, sigs, freeze);
+
+  if (broken) {
+    const { svg } = sealForDocument(source, {
+      size: 96,
+      text: false,
+      tier: "broken",
+    });
+    const what = freeze ? "SEAL BROKEN" : "SIGNATURE BROKEN";
+    const cap = [what, "Modified after sealing", "Not the certified document"]
+      .map(
+        (p, i) =>
+          `<span class="it-trust-band__line${i === 0 ? " it-trust-band__line--alert" : ""}">${esc(p)}</span>`,
+      )
+      .join("");
+    return (
+      `<div class="it-trust-band it-trust-band--broken">` +
+      `<span class="it-trust-band__seal">${svg}</span>` +
+      `<span class="it-trust-band__cap">${cap}</span>` +
+      `</div>`
+    );
+  }
+
+  const state = detectTrustState(source);
+  const { svg } = sealForDocument(source, {
+    size: 96,
+    text: false,
+    tier: state.tier,
+  });
+  const who = sigs
+    .map((s) => (s.role ? `${s.signer} (${s.role})` : s.signer))
+    .join(", ");
+  const parts: string[] = [];
+  if (who) parts.push(`Signed ${who}`);
+  if (freeze) parts.push(`Sealed${freeze.at ? ` ${bandDate(freeze.at)}` : ""}`);
+  const hash = String(freeze?.hash || sigs[0]?.hash || "")
+    .replace(/^sha256:/, "")
+    .slice(0, 10);
+  if (hash) parts.push(hash);
+  // Each caption part on its own centered line — the band stacks the stamp above
+  // the small gray caption, vertically centered with spacing (TRUST_BAND_CSS).
+  const cap = parts
+    .map((p) => `<span class="it-trust-band__line">${esc(p)}</span>`)
+    .join("");
+  return (
+    `<div class="it-trust-band">` +
+    `<span class="it-trust-band__seal">${svg}</span>` +
+    `<span class="it-trust-band__cap">${cap}</span>` +
+    `</div>`
+  );
+}
+
+/**
+ * Is the document's trust evidence broken (content changed since sealing/signing)?
+ * Sealed docs verify against the freeze (seal scope); signed-but-not-sealed docs
+ * verify each signature against the content. Any parse/verify failure is treated as
+ * broken — the band errs toward NOT certifying a document it can't vouch for.
+ */
+function isTrustBroken(
+  source: string,
+  sigs: Array<{
+    hash?: string;
+    spec?: number;
+    signer?: string;
+    role?: string;
+    at?: string;
+  }>,
+  freeze: { hash?: string } | undefined,
+): boolean {
+  try {
+    if (freeze) return verifyDocument(source).intact === false;
+    if (sigs.length > 0) {
+      return !sigs.every((s) => signatureMatchesContent(source, s));
+    }
+  } catch {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * The VISUAL style for the trust band — a quiet, presentation-grade certification
+ * stamp (the hash seal + who signed + sealed date). Single source of truth shared
+ * by every surface that shows the band (renderHTML, renderPrint, the editor's page
+ * view, the WYSIWYG print path) so they never drift. POSITIONING is added per
+ * surface via trustBandPositionCss(): fixed for paginated print (repeats per page),
+ * absolute for a single scrolling render / one per on-screen sheet.
+ */
+export const TRUST_BAND_CSS =
+  // Vertical stamp: the hash seal on top, the caption stacked below — everything
+  // centered, with space between the parts. The seal stays prominent; the caption
+  // is small, gray, and faded so it certifies without competing with content.
+  `.it-trust-band{display:inline-flex;flex-direction:column;align-items:center;gap:6px;` +
+  `padding:8px 12px;pointer-events:none;text-align:center;}` +
+  `.it-trust-band__seal{display:inline-flex;width:54px;height:54px;flex:0 0 auto;}` +
+  `.it-trust-band__seal svg{width:100%;height:100%;display:block;}` +
+  `.it-trust-band__cap{display:flex;flex-direction:column;align-items:center;gap:2px;` +
+  `font:7.5pt/1.25 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;` +
+  `color:#8a8f98;opacity:0.8;letter-spacing:0.02em;}` +
+  `.it-trust-band__line{white-space:nowrap;}` +
+  // BROKEN: loud red caption so a tampered document can never present as certified.
+  `.it-trust-band--broken .it-trust-band__cap{color:#d93025;opacity:1;}` +
+  `.it-trust-band__line--alert{font-weight:700;letter-spacing:0.05em;}`;
+
+/**
+ * Positioning for the trust band. `mode` is "fixed" (paginated print — pinned in the
+ * page's bottom-right so it repeats on every page) or "absolute" (a single scrolling
+ * render / one per on-screen sheet). `inset` is the corner offset (CSS length).
+ * The band sits in the BOTTOM-RIGHT corner and never takes content flow space.
+ */
+export function trustBandPositionCss(
+  mode: "fixed" | "absolute",
+  inset = "8mm",
+): string {
+  return `.it-trust-band{position:${mode};right:${inset};bottom:${inset};left:auto;top:auto;z-index:5;}`;
 }

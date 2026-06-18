@@ -10,9 +10,13 @@ and **certifications** are computed and verified. It is the contract that indepe
 implementations (and enterprise/legal reviewers) can rely on. It complements the
 [keyword reference](./index.md); here we specify only the trust layer.
 
-> **Status:** v1 (matches `@dotit/core` ≥ 1.9.0 and `@dotit/sign` ≥ 1.4.1). The hash rule
-> changed in 1.9.0 (Unicode normalization); verifiers MUST accept the legacy hash for
-> documents sealed before that — see [Backward compatibility](#9-backward-compatibility).
+> **Status:** `SEAL_SPEC = 3` (matches `@dotit/core` ≥ 1.21.0 and `@dotit/sign` ≥ 1.4.1).
+> Every seal/signature **stamps the `spec:` version** that produced its hash, and a
+> verifier applies exactly that version forever, so a rule change can never silently break
+> a historical seal — see [Versioning & backward compatibility](#9-versioning--backward-compatibility).
+> The canonical, byte-level definition is
+> [SPEC §4](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md); this
+> page is the reference summary.
 
 The key words MUST, SHOULD, and MAY are used as in RFC 2119.
 
@@ -41,30 +45,58 @@ The following keywords are **trust lines** and receive special treatment by the 
 
 ## 2. Content hash (canonicalization)
 
-The **content hash** is computed as follows (`computeDocumentHash`):
+Hashing is **versioned**. The current ruleset is **`spec: 3`** (`SEAL_SPEC = 3`); each
+shipped version is frozen forever (`CANONICALIZERS` in `trust.ts`):
+
+| spec | rules |
+| ---- | ----- |
+| v0 | raw bytes (pre-NFC) |
+| v1 | NFC normalization |
+| v2 | NFC; excludes comments; the seal scope covers signatures |
+| **v3** (current) | NFC; **also excludes styling**, covers the seal's own metadata, and **binds the signer identity** |
+
+There are **two scopes**. A hash covers one of them:
+
+- **content** — each `sign:` line's hash. Co-signers commit to the same content, so adding
+  a signature never changes it.
+- **seal** — the `freeze:` line's hash. Covers the content **+ the signatures + the
+  `freeze:` line's own metadata**, so tampering the body, *a signature*, or *the seal
+  metadata* all break it.
+
+The **v3 hash** (`computeDocumentHash` / `computeSignatureHash`) is computed as follows:
 
 1. Take the **body** (text before the history boundary; the whole document if there is no
    boundary).
-2. Split into lines on `\n`. **Remove** every line that, with no leading trimming, begins
-   with `sign:`, `freeze:`, `certify:`, or `amendment:`. (These are metadata *about* the
-   content; adding a signature, seal, or certification MUST NOT change the content hash.)
-3. Join the remaining lines with `\n` and trim leading/trailing whitespace.
-4. **Unicode-normalize to NFC.** This makes two byte-different but visually identical
-   documents (e.g. precomposed `é` U+00E9 vs decomposed `e`+◌́ U+0065 U+0301) hash the same,
-   so re-saving in another editor does not invalidate a seal.
-5. Compute `SHA-256` over the UTF-8 bytes and format as
-   `sha256:` + lowercase hex.
+2. Split into lines on `\n`. **Drop comments** — any line whose trimmed text begins with `//`.
+3. **Drop styling** — whole presentation lines (`page:`, `font:`, `style:`) and presentation
+   *properties* on content lines (`color`, `size`, `family`, `align`, `bg`, `indent`,
+   `leading`, `space-before/after`, `opacity`, `border`, `valign`, `theme`, `margin(s)`,
+   `orientation`, `width`, `height`). **Restyling MUST NOT break a seal** ("sign content,
+   not presentation").
+4. **Apply the scope to the trust lines:**
+   - *content scope:* remove every line beginning `sign:`, `freeze:`, `certify:`, or
+     `amendment:`.
+   - *seal scope:* keep `sign:` lines whole; keep the `freeze:` line with its own `hash:`
+     value **blanked** (its `at:`/`status:`/`spec:` stay, so editing them breaks the seal);
+     remove `certify:`/`amendment:`.
+5. **NFC-normalize**, join the remaining lines with `\n`, trim, and `SHA-256` over the UTF-8
+   bytes, formatted `sha256:` + lowercase hex. NFC makes precomposed `é` U+00E9 and
+   decomposed `e`+◌́ hash the same, so re-saving in another editor does not invalidate a seal.
+6. **Signature identity** (content scope only): a signature hash appends
+   `sig:<signer>|<role>|<at>` to the body before hashing, so editing the signer's
+   name/role/date breaks *that* signature — even before the document is sealed.
 
 ```
-hash = "sha256:" + hex( SHA-256( NFC( trim( bodyLinesExcludingTrustLines.join("\n") ) ) ) )
+hash = "sha256:" + hex( SHA-256( NFC( trim( scopedBodyLines.join("\n") ) ) ) )
 ```
 
 What the hash covers and what it does **not**:
 
 - **Covered:** every body content line (title, text, sections, tables, `approve:`, …),
-  their order, and their exact text (post-NFC).
-- **Not covered:** the trust lines themselves, anything in the history section, and
-  presentation that is not part of the source text.
+  their order, and their exact text (post-NFC); the signatures and seal metadata (seal scope).
+- **Not covered:** styling (presentation lines/properties), comments (`//`), the trust
+  lines themselves (per scope), and anything in the history section. **Restyling and
+  re-commenting a sealed document leave its hash intact.**
 
 ## 3. Trust tiers
 
@@ -73,14 +105,16 @@ A verifier derives one headline **tier** from the verified (not claimed) state:
 | Tier | Condition |
 | --- | --- |
 | `template` | the document is a template (`{{…}}`, `input:`, or `meta: … type: template`) — **outside** the trust workflow; cannot be sealed/signed/certified |
-| `draft` | no verifiable trust layer (or any layer failed to verify) |
-| `signed` | an intact seal, **or** ≥1 cryptographic signature that verifies against the current content |
+| `draft` | no verifiable trust layer |
+| `broken` (red) | a trust layer is present but **failed** to verify — a tampered seal, a signature that no longer matches, or a certification whose signature fails |
+| `signed` | ≥1 cryptographic signature that verifies against the current content (no intact seal) |
+| `sealed` (indigo) | an intact `freeze:` seal |
 | `certified` | a valid UTS certification (Section 5) |
 | `root-certified` | a valid certification that **chains to the UTS root** via an `ica:` token |
 
-A broken layer (tampered seal, signature that no longer matches, certification whose
-signature fails) MUST pin the tier to `draft` — never show a higher tier over a layer that
-failed. This is honest tamper-evidence.
+A failed layer MUST surface as `broken` — never show a clean/higher tier over a layer that
+failed. This is honest tamper-evidence; the **integrity gate** (`renderTrustBand`)
+enforces it on every rendered surface (Section 8.1).
 
 ## 4. Signatures
 
@@ -104,24 +138,31 @@ sign: NAME | role: ROLE | at: ISO8601 | hash: sha256:… | key: ed25519:PUBKEY |
 ### 4.2 On-record signature (no key)
 
 ```
-sign: NAME | role: ROLE | at: DATE
+sign: NAME | role: ROLE | at: DATE | hash: sha256:… | spec: 3
 ```
 
-A `sign:` line **without** `key:`+`sig:` is an **integrity-only on-record claim** — it
-records that a named party signed, but is **not** cryptographic proof and MUST NOT be
-presented as verified. Verifiers MAY surface it as "on record."
+A `sign:` line **without** `key:`+`sig:` is an **integrity-only on-record claim**. Under
+`spec: 3` its `hash:` is the **content** scope and **binds the signer identity** (the
+`NAME | ROLE | DATE`), so editing either the content *or* the named signer breaks that
+signature — even before the document is sealed. It is still **not** cryptographic proof of
+*who* signed (anyone can type a name) and MUST NOT be presented as verified identity;
+verifiers MAY surface it as "on record." Proving *who* is the layer above (Section 4.1 /
+certification).
 
 ## 5. Seal and certification
 
 ### 5.1 Seal (`freeze:`)
 
 ```
-freeze: | at: ISO8601 | hash: sha256:… | status: locked
+freeze: | at: ISO8601 | hash: sha256:… | spec: 3 | status: locked
 ```
 
-The document is **sealed**. It is **intact** iff the current content hash equals the
-`hash` field. A seal proves **integrity** (content unchanged since sealing); it does not by
-itself prove *who* sealed it.
+The document is **sealed**. It is **intact** iff the current **seal-scope** hash (Section 2,
+computed under the line's recorded `spec:`) equals the `hash` field. Because the seal scope
+covers the content **and** the signatures **and** the `freeze:` line's own metadata, any
+change to the body, *a signature*, or the seal's `at:`/`status:` breaks it. A seal proves
+**integrity** (content unchanged since sealing) and binds each signer's claimed identity; it
+does not by itself prove *who* sealed it.
 
 ### 5.2 Certification (`certify:`)
 
@@ -204,20 +245,38 @@ signature being otherwise valid.
 Given a document `source` and a set of trusted issuer (root/key) public keys:
 
 1. If `source` is a template → tier `template`; stop.
-2. Compute `contentHash` (Section 2).
-3. **Seal:** if a `freeze:` exists, `intact = (contentHash == freeze.hash)`.
-4. **Signatures:** for each cryptographic `sign:` line, verify per §4.1.
-5. **Certifications:** for each `certify:` line, verify per §5.2; if revocation data is
+2. For each trust line, read its recorded **`spec:`** and apply **that version's**
+   canonicalizer (Section 2). Compute the **seal-scope** hash for `freeze:` and the
+   **content-scope** hash for each `sign:`.
+3. **Seal:** if a `freeze:` exists, `intact = (sealHash == freeze.hash)`; surface `spec`
+   and `specOutdated` (the recorded version predates `SEAL_SPEC`).
+4. **Per-signer:** report each signer's `signedCurrentVersion` — whether their
+   content-scope hash (identity-bound) still matches. **Multi-sign aware:** a signer who
+   signed an earlier version is reported as such, never a blanket failure.
+5. **Signatures:** for each cryptographic `sign:` line, verify per §4.1.
+6. **Certifications:** for each `certify:` line, verify per §5.2; if revocation data is
    available, apply Section 7.
-6. Derive the tier (Section 3): any broken layer ⇒ `draft`.
+7. Derive the tier (Section 3): any failed layer ⇒ `broken`.
 
-## 9. Backward compatibility
+### 8.1 Integrity gate (rendering)
 
-`@dotit/core` < 1.9.0 hashed **without** NFC normalization. For documents sealed/signed
-before 1.9.0, a verifier MUST also accept the **legacy** hash (the same computation as
-Section 2 but skipping step 4). The reference implementation exposes this as
-`computeDocumentHashLegacy()` / `hashMatches()`, and verification succeeds if **either**
-the NFC or the legacy hash matches. New documents always carry the NFC hash.
+A conforming renderer of the on-document trust band (`renderTrustBand`) MUST **verify
+before it draws**: if verification fails, it renders a red **"SEAL BROKEN"** stamp — on
+screen, in print, and in PDF — and MUST NOT render a clean `sealed`/`signed` band over a
+failed layer.
+
+## 9. Versioning & backward compatibility
+
+Every seal/signature **stamps the `spec:` version** that produced its hash, and a verifier
+applies exactly that version forever (`CANONICALIZERS`), so a future rule change can never
+silently break a historical seal. Older specs stay valid: a seal stamped `spec: 1` or `2`
+is verified under v1/v2 rules and reported as `specOutdated` (re-seal to upgrade to v3).
+
+For legacy documents written **before** versioning (no `spec:` field): `@dotit/core` < 1.9.0
+hashed without NFC, so a verifier MUST also accept the **legacy** (pre-NFC) hash. The
+reference implementation exposes `computeDocumentHashLegacy()` / `hashMatches()`, and
+verification succeeds if **any** recognized version's hash matches. New documents always
+carry `spec: 3`.
 
 ## 10. Implementation notes
 

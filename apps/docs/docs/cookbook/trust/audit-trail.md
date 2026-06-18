@@ -22,8 +22,8 @@ text: Payment within 30 days of invoice.
 
 section: Signatures
 approve: Legal review | by: Sarah Chen | role: General Counsel | at: 2026-03-20
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22 | hash: sha256:a1b2c3d4
-freeze: | status: locked | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22 | hash: sha256:a1b2c3d4 | spec: 3
+freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2 | spec: 3 | status: locked
 
 track: | by: legal@acme.co
 

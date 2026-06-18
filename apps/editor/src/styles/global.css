@@ -408,6 +408,87 @@ button {
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+/* The trust seal chip + properties popover are package components designed for the
+   editor's own rows; in this single top title bar they sit inline (no row margin). */
+.titlebar .docs-trust-chip {
+  margin: 0;
+  display: inline-flex;
+}
+.titlebar .docs-props-pop {
+  align-items: center;
+}
+/* Unsaved-changes chip — small notification in the top bar with undo/redo/reset. */
+.changes-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 5px 0 10px;
+  border: 1px solid #f1e0a8;
+  border-radius: 999px;
+  background: #fffdf5;
+  font-size: 11.5px;
+  color: #334155;
+  white-space: nowrap;
+}
+.changes-chip-dot {
+  color: #d97706;
+  font-size: 8px;
+  line-height: 1;
+}
+.changes-chip-count {
+  font-weight: 600;
+}
+.changes-chip-btn {
+  appearance: none;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 6px;
+  height: 20px;
+  min-width: 22px;
+  padding: 0 6px;
+  font-size: 12px;
+  line-height: 1;
+  color: #334155;
+  cursor: pointer;
+}
+.changes-chip-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+.changes-chip-reset {
+  border-color: #fbcfe8;
+  color: #be185d;
+}
+
+/* Document-type chip — Form / Template indicator in the top bar. */
+.doc-type-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: default;
+}
+.doc-type-chip--form {
+  background: #eef5ff;
+  border-color: #cfe0fb;
+  color: #1f4e8c;
+}
+.doc-type-chip--template {
+  background: #f3f0ff;
+  border-color: #ddd3f7;
+  color: #5b3fb0;
+  cursor: pointer;
+}
+.doc-type-chip--template:hover {
+  filter: brightness(0.97);
+}
 .titlebar-logo {
   display: inline-flex;
   align-items: center;
@@ -510,6 +591,11 @@ button {
   left: 3px;
   width: calc(50% - 3px);
   height: calc(100% - 6px);
+}
+/* 3-position variant (Visual | Bare | Source): indicator is one-third wide and
+   slides by whole-indicator steps (translateX 0 / 100% / 200%). */
+.mode-switch--3 .mode-switch-indicator {
+  width: calc(33.333% - 2px);
   background: #fff;
   border-radius: 7px;
   box-shadow:
@@ -545,6 +631,29 @@ button {
 }
 .mode-switch-btn.active svg {
   opacity: 0.85;
+}
+
+/* Document-type cluster: the type chip + its sub-mode switch (Design|Fill /
+   Edit|Preview), kept together on the right of the title bar. */
+.doc-type-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Sub-mode switch — the same pill as the main Visual|Bare switch, a touch smaller,
+   with an explicit sliding indicator (the 2-position base has none). */
+.mode-switch--sub .mode-switch-indicator {
+  background: #fff;
+  border-radius: 7px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+.mode-switch--sub .mode-switch-btn {
+  padding: 4px 12px;
+  font-size: 12px;
 }
 
 /* ─── Preview Error ───────────────────────────────────────── */
@@ -1311,3 +1420,17 @@ button {
     display: none !important;
   }
 }
+
+/* ── Live source peek panel ─────────────────────────────────────────────
+   A read-only view of the raw .it, shown in the empty margin beside the page
+   so edits are visible in the source without switching to Source mode. */
+.source-peek-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+.source-peek-btn.active:hover {
+  background: var(--accent);
+  color: #fff;
+  opacity: 0.92;
+}
+

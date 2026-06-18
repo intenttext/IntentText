@@ -7,8 +7,11 @@ import {
 import {
   computeDocumentHash,
   findHistoryBoundaryInSource,
+  signDocument,
   sealDocument,
   verifyDocument,
+  hashMatches,
+  signatureMatchesContent,
   generateBlockId,
   blockFingerprint,
   matchBlocksToRegistry,
@@ -664,7 +667,7 @@ describe("verifyDocument — multi-signer semantics", () => {
     expect(result.signers?.[0].signedCurrentVersion).toBe(true);
   });
 
-  it("signer who signed same version as freeze is valid even after tampering", () => {
+  it("a broken seal no longer vouches for its signers (v2: conservative)", () => {
     const base = `title: Contract\ntext: Terms and conditions\n`;
     const sealed = sealDocument(base, { signer: "Alice", role: "CEO" });
     // Tamper with content — hash changes
@@ -674,10 +677,12 @@ describe("verifyDocument — multi-signer semantics", () => {
     );
     const result = verifyDocument(tampered);
     expect(result.intact).toBe(false);
-    // Signer approved the sealed version — valid against freeze hash
-    expect(result.signers?.[0].valid).toBe(true);
-    // But not valid against the current (tampered) document
+    // v2 separates scopes (signature = content hash, freeze = seal hash), so the
+    // sealed content can't be reconstructed from a tampered doc. We therefore do
+    // NOT affirm any signer on a broken seal — a green "valid" on a modified
+    // document would be misleading. Both flags drop to false.
     expect(result.signers?.[0].signedCurrentVersion).toBe(false);
+    expect(result.signers?.[0].valid).toBe(false);
   });
 
   it("multi-signer same version: both valid", () => {
@@ -714,5 +719,150 @@ describe("verifyDocument — multi-signer semantics", () => {
     // Bob signed V2, freeze is V2 — he approved the sealed version
     expect(result.signers?.[1].signer).toBe("Bob");
     expect(result.signers?.[1].valid).toBe(true);
+  });
+});
+
+// ─── Seal-break hardening (SEAL_SPEC v2) ─────────────────────────────────────
+// The exact contract: a seal breaks on ANY change to the actual content OR to a
+// signature; it does NOT break on comments or on freeze metadata other than the
+// hash. Two scopes make this work — the seal hash covers content + signatures,
+// each signature hash covers content only.
+describe("seal-break hardening — what does and does NOT break a seal", () => {
+  // A signed-then-sealed doc with a comment line, so we can prove comments are inert.
+  function sealedFixture() {
+    const base =
+      "title: Service Agreement\n// internal note: review before sending\ntext: Pay 24000 USD on delivery.\n";
+    const signed = signDocument(base, { signer: "Ahmed", role: "CEO" }).source;
+    return sealDocument(signed, { signer: "Ahmed", skipSign: true }).source;
+  }
+
+  it("CASE 1 — changing actual content BREAKS the seal", () => {
+    const sealed = sealedFixture();
+    expect(verifyDocument(sealed).intact).toBe(true);
+    const tampered = sealed.replace("24000", "24001");
+    expect(verifyDocument(tampered).intact).toBe(false);
+  });
+
+  it("CASE 2 — changing a signature line BREAKS the seal", () => {
+    const sealed = sealedFixture();
+    expect(verifyDocument(sealed).intact).toBe(true);
+    // Rename the signer — content is untouched, only the sign: line changes.
+    const tampered = sealed.replace("sign: Ahmed", "sign: Mallory");
+    expect(verifyDocument(tampered).intact).toBe(false);
+  });
+
+  it("CASE 2b — tampering a signature's stored hash BREAKS the seal", () => {
+    const sealed = sealedFixture();
+    const signHashMatch = sealed.match(/sign:[^\n]*hash:\s*(sha256:[0-9a-f]+)/);
+    expect(signHashMatch).toBeTruthy();
+    const tampered = sealed.replace(
+      signHashMatch![1],
+      "sha256:" + "0".repeat(64),
+    );
+    expect(verifyDocument(tampered).intact).toBe(false);
+  });
+
+  it("CASE 3 — changing a comment does NOT break the seal", () => {
+    const sealed = sealedFixture();
+    const edited = sealed.replace(
+      "// internal note: review before sending",
+      "// internal note: edited freely, no trust impact",
+    );
+    expect(edited).not.toBe(sealed);
+    expect(verifyDocument(edited).intact).toBe(true);
+  });
+
+  it("CASE 3b — adding or removing a comment does NOT break the seal", () => {
+    const sealed = sealedFixture();
+    const withExtra = sealed.replace(
+      "text: Pay 24000 USD on delivery.",
+      "// another reviewer note\ntext: Pay 24000 USD on delivery.",
+    );
+    expect(verifyDocument(withExtra).intact).toBe(true);
+    const without = sealed.replace(
+      "// internal note: review before sending\n",
+      "",
+    );
+    expect(verifyDocument(without).intact).toBe(true);
+  });
+
+  it("CASE 4 — changing the freeze's OWN metadata (status/at) BREAKS the seal (v3)", () => {
+    // v3 covers the seal's own metadata (everything on the freeze line except its
+    // self-referential hash), so back-dating or re-statusing a seal is detected.
+    const sealed = sealedFixture();
+    expect(verifyDocument(sealed).intact).toBe(true);
+    const statusEdit = sealed.replace("status: locked", "status: archived");
+    expect(verifyDocument(statusEdit).intact).toBe(false);
+    const atEdit = sealed.replace(/(freeze:[^\n]*?at: )[^|]+/, "$11999-01-01 ");
+    expect(atEdit).not.toBe(sealed);
+    expect(verifyDocument(atEdit).intact).toBe(false);
+  });
+
+  it("CASE 5 — restyling (page/font/style line or align/color/size prop) does NOT break (v3)", () => {
+    const base =
+      "page: | size: A4 | margin: 20mm\ntitle: Invoice\ntext: Pay 100 | align: center\n";
+    const sealed = sealDocument(
+      signDocument(base, { signer: "Ahmed", role: "CEO" }).source,
+      { signer: "Ahmed", skipSign: true },
+    ).source;
+    expect(verifyDocument(sealed).intact).toBe(true);
+    expect(verifyDocument(sealed.replace("A4", "A5")).intact).toBe(true); // page line
+    expect(verifyDocument(sealed.replace("20mm", "30mm")).intact).toBe(true); // margin
+    expect(verifyDocument(sealed.replace("align: center", "align: left")).intact).toBe(
+      true,
+    ); // styling prop
+    // …but the real content still breaks it.
+    expect(verifyDocument(sealed.replace("Pay 100", "Pay 200")).intact).toBe(false);
+  });
+
+  it("signatures commit to CONTENT only — a co-signer doesn't change the content hash", () => {
+    const base = "title: Memo\ntext: Approve the budget.\n";
+    const contentHash = computeDocumentHash(base, undefined, "content");
+    const signed = signDocument(base, { signer: "Ahmed", role: "CEO" }).source;
+    // After one signature, the CONTENT hash is unchanged (signatures are excluded
+    // from the content scope), so a second signer commits to the same content.
+    expect(computeDocumentHash(signed, undefined, "content")).toBe(contentHash);
+    const coSigned = signDocument(signed, { signer: "Sarah", role: "CFO" }).source;
+    expect(computeDocumentHash(coSigned, undefined, "content")).toBe(contentHash);
+    // And every stored signature still validates against the current content
+    // (v3 binds each signer's identity — signatureMatchesContent handles that).
+    const doc = parseIntentText(coSigned);
+    expect(doc.metadata?.signatures?.length).toBe(2);
+    for (const sig of doc.metadata!.signatures!) {
+      expect(signatureMatchesContent(coSigned, sig)).toBe(true);
+    }
+  });
+
+  it("a valid seal under an OLDER ruleset is flagged specOutdated (weaker, re-seal)", () => {
+    // Hand-build a spec-1 seal (as old core would have written it): the hash covers
+    // content only, comments included, signatures excluded.
+    const body = "title: Invoice\n// note\ntext: Pay 100\n";
+    const h1 = computeDocumentHash(body, 1);
+    const sealedV1 =
+      body +
+      `sign: Emad | role: CEO | at: 2026-01-01 | hash: ${h1} | spec: 1\n` +
+      `freeze: | at: 2026-01-01 | hash: ${h1} | spec: 1 | status: locked\n`;
+    const v = verifyDocument(sealedV1);
+    expect(v.intact).toBe(true); // valid under its own (v1) rules
+    expect(v.spec).toBe(1);
+    expect(v.specOutdated).toBe(true);
+    expect(v.warning).toMatch(/ruleset v1/i);
+    // A current (v2) seal is not flagged outdated.
+    const sealedV2 = sealDocument(
+      signDocument(body, { signer: "Emad", role: "CEO" }).source,
+      { signer: "Emad", skipSign: true },
+    ).source;
+    const v2 = verifyDocument(sealedV2);
+    expect(v2.intact).toBe(true);
+    expect(v2.specOutdated).toBeFalsy();
+  });
+
+  it("the seal scope DOES cover signatures — the freeze hash != the content hash", () => {
+    const sealed = sealedFixture();
+    const contentHash = computeDocumentHash(sealed, 3, "content");
+    const sealHash = computeDocumentHash(sealed, 3, "seal");
+    expect(sealHash).not.toBe(contentHash); // signatures are inside the seal scope
+    const freezeHash = sealed.match(/freeze:[^\n]*hash:\s*(sha256:[0-9a-f]+)/)![1];
+    expect(freezeHash).toBe(sealHash);
   });
 });

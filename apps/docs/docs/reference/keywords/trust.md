@@ -90,26 +90,27 @@ approve: Compliance review | by: Maria Santos | role: Compliance Officer | ref: 
 **Category:** Trust
 **Aliases:** `توقيع:`, `sig:`
 
-Integrity hash seal. Records the signer's name, role, timestamp, and a SHA-256 hash of the document body at the time of signing. If the document is modified after signing, the stored hash will no longer match and verification will report the discrepancy. This is tamper evidence via hash comparison, not cryptographic non-repudiation.
+Integrity hash seal. Records the signer's name, role, timestamp, and a SHA-256 hash of the document content at the time of signing. The hash **binds the signer's identity** (`name | role | at`), so editing either the content or the named signer breaks that signature. The hash **excludes styling and comments** — restyling never breaks it. If the document is modified after signing, the stored hash will no longer match and verification will report the discrepancy. This is tamper evidence via hash comparison, not cryptographic non-repudiation (anyone can type a name; proving *who* is the `@dotit/sign` layer below).
 
 ### Syntax
 
 ```
-sign: signer name | role: title | at: timestamp | hash: algorithm:value
+sign: signer name | role: title | at: timestamp | hash: algorithm:value | spec: version
 ```
 
 ### Properties
 
-| Property | Type   | Required | Description                     |
-| -------- | ------ | -------- | ------------------------------- |
-| `role`   | string | no       | Signer's role                   |
-| `at`     | string | no       | Signing timestamp (ISO 8601)    |
-| `hash`   | string | no       | Content hash at time of signing |
+| Property | Type   | Required | Description                                          |
+| -------- | ------ | -------- | ---------------------------------------------------- |
+| `role`   | string | no       | Signer's role                                        |
+| `at`     | string | no       | Signing timestamp (ISO 8601)                         |
+| `hash`   | string | no       | Content hash at time of signing                      |
+| `spec`   | number | no       | Seal ruleset version that produced the hash (current `3`) |
 
 ### Examples
 
 ```intenttext
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4e5f6
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4e5f6 | spec: 3
 sign: James Miller | role: CFO | at: 2026-03-06T15:00:00Z
 ```
 
@@ -151,26 +152,27 @@ Use both when a contract needs digital verification _and_ paper signatures.
 **Category:** Trust
 **Aliases:** `تجميد:`, `lock:`
 
-Seal the document. After `freeze:`, any edit to the content above invalidates the hash.
+Seal the document. After `freeze:`, any edit to the **content** above invalidates the hash; the seal also covers the signatures and its own `at:`/`status:`, so editing those breaks it too. **Restyling and comments are excluded** — re-theming or reformatting a sealed document never breaks its seal.
 
 ### Syntax
 
 ```
-freeze: | status: locked | at: timestamp | hash: algorithm:value
+freeze: | at: timestamp | hash: algorithm:value | spec: version | status: locked
 ```
 
 ### Properties
 
-| Property | Type   | Description                         |
-| -------- | ------ | ----------------------------------- |
-| `status` | string | `locked`                            |
-| `at`     | string | Sealing timestamp (ISO 8601)        |
-| `hash`   | string | Content hash of the frozen document |
+| Property | Type   | Description                                          |
+| -------- | ------ | ---------------------------------------------------- |
+| `status` | string | `locked`                                             |
+| `at`     | string | Sealing timestamp (ISO 8601)                         |
+| `hash`   | string | Seal hash (content + signatures + seal metadata)     |
+| `spec`   | number | Seal ruleset version that produced the hash (current `3`) |
 
 ### Examples
 
 ```intenttext
-freeze: | status: locked | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8
+freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8 | spec: 3 | status: locked
 ```
 
 ### Notes
@@ -320,8 +322,8 @@ text: Full contract terms...
 
 track: | version: 1.0 | by: Ahmed Al-Rashid
 approve: Legal review complete | by: Sarah Chen | role: General Counsel | at: 2026-03-05
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4
-freeze: | status: locked | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4 | spec: 3
+freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8 | spec: 3 | status: locked
 ```
 
 ---

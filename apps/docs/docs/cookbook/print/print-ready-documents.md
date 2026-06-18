@@ -55,7 +55,7 @@ break:
 section: Signatures
 
 approve: Legal review | by: Sarah Chen | role: General Counsel | at: 2026-03-20
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22 | hash: sha256:a1b2c3d4
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22 | hash: sha256:a1b2c3d4 | spec: 3
 
 signline: Ahmed Al-Rashid | role: CEO, Acme Corp | label: Provider Signature
 signline: | label: Date | width: 30%
@@ -63,7 +63,7 @@ signline: | label: Date | width: 30%
 signline: Maria Santos | role: COO, GlobalTech | label: Client Signature
 signline: | label: Date | width: 30%
 
-freeze: | status: locked | at: 2026-03-22T15:00:00Z | hash: sha256:e5f6a7b8
+freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:e5f6a7b8 | spec: 3 | status: locked
 ```
 
 ## Step by step

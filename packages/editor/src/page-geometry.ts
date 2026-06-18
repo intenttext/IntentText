@@ -67,6 +67,9 @@ export interface PageGeometry {
   header: string;
   /** Footer text ('' if none). Supports {{page}}/{{pages}} tokens. */
   footer: string;
+  /** Optional running-header/footer font size override (`header: … | size: 13px`). */
+  headerSize?: string;
+  footerSize?: string;
   /** Ruler unit derived from the page size (A-series → cm, Letter/Legal → in). */
   unit: "cm" | "in";
   /** Resolved named size (e.g. "A4"), or the raw custom value — for the UI selector. */
@@ -114,6 +117,8 @@ export function getPageGeometry(source: string): PageGeometry {
   let marginRaw: string | undefined;
   let header = "";
   let footer = "";
+  let headerSize: string | undefined;
+  let footerSize: string | undefined;
   try {
     const doc = parseIntentText(source);
     const page = doc.blocks.find((b) => b.type === "page");
@@ -121,12 +126,15 @@ export function getPageGeometry(source: string): PageGeometry {
     if (props.size) size = String(props.size);
     if (props.orientation) orientationRaw = String(props.orientation);
     marginRaw = (props.margin ?? props.margins) as string | undefined;
-    header =
-      doc.blocks.find((b) => b.type === "header")?.content ||
-      String(props.header || "");
-    footer =
-      doc.blocks.find((b) => b.type === "footer")?.content ||
-      String(props.footer || "");
+    const headerBlock = doc.blocks.find((b) => b.type === "header");
+    const footerBlock = doc.blocks.find((b) => b.type === "footer");
+    header = headerBlock?.content || String(props.header || "");
+    footer = footerBlock?.content || String(props.footer || "");
+    // Optional per-document size override: `header: … | size: 13px`.
+    if (headerBlock?.properties?.size)
+      headerSize = String(headerBlock.properties.size);
+    if (footerBlock?.properties?.size)
+      footerSize = String(footerBlock.properties.size);
   } catch {
     /* defaults */
   }
@@ -190,6 +198,8 @@ export function getPageGeometry(source: string): PageGeometry {
     contentHeight: autoHeight ? Infinity : height - mt - mb,
     header,
     footer,
+    headerSize,
+    footerSize,
     unit,
     size,
     orientation,

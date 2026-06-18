@@ -64,14 +64,14 @@ Use `def:` near the first use of a term, or gather definitions in a glossary sec
 
 ```intenttext
 text: The document enters the sealed state after freeze.
-def: Sealed | meaning: A document whose content hash has been cryptographically locked. Any modification breaks the seal.
+def: Sealed | meaning: A document whose content hash has been locked with a SHA-256 seal. Any content modification breaks the seal; restyling and comments do not.
 ```
 
 **Grouped (formal glossary):**
 
 ```intenttext
 section: Definitions
-def: Sealed | meaning: A document whose content hash has been cryptographically locked.
+def: Sealed | meaning: A document whose content hash has been locked with a SHA-256 seal.
 def: Amendment | meaning: A formal, additive change to a frozen document that preserves the original seal.
 def: Shallow Index | meaning: A per-folder index that only catalogs files in its own directory.
 ```

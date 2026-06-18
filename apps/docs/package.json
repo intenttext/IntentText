@@ -18,7 +18,7 @@
     "@docusaurus/core": "3.10.1",
     "@docusaurus/faster": "3.10.1",
     "@docusaurus/preset-classic": "3.10.1",
-    "@dotit/core": "workspace:^",
+    "@dotit/core": "^1.21.1",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
     "lucide-react": "^0.577.0",

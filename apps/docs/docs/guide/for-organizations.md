@@ -90,7 +90,7 @@ Documents follow a lifecycle:
 2. **Track** — `track:` activates change history
 3. **Approve** — `approve:` records named approval with role and timestamp
 4. **Sign** — `sign:` records an integrity hash seal
-5. **Freeze** — `freeze:` seals the document; any edit breaks the hash
+5. **Freeze** — `freeze:` seals the document; any content edit breaks the hash (restyling doesn't)
 6. **Amend** — `amendment:` formally changes a frozen document without voiding the seal
 
 ```intenttext

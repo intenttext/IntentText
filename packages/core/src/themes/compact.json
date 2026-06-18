@@ -1,0 +1,62 @@
+{
+  "name": "compact",
+  "version": "1.0.0",
+  "description": "Dense and efficient — quotations, invoices, forms, multi-page tables",
+  "author": "IntentText",
+  "fonts": {
+    "body": "Inter",
+    "heading": "Inter",
+    "mono": "JetBrains Mono",
+    "size": "10pt",
+    "leading": "1.4"
+  },
+  "colors": {
+    "text": "#1f2937",
+    "heading": "#0f172a",
+    "muted": "#64748b",
+    "accent": "#0f766e",
+    "border": "#e2e8f0",
+    "background": "#ffffff",
+    "code-bg": "#f1f5f9",
+    "trust-approved": "#15803d",
+    "trust-signed": "#1d4ed8",
+    "trust-frozen": "#6d28d9",
+    "trust-warning": "#b91c1c",
+    "watermark": "#0000000a"
+  },
+  "spacing": {
+    "page-margin": "15mm",
+    "section-gap": "1.1em",
+    "block-gap": "0.35em",
+    "indent": "1.2em"
+  },
+  "blocks": {
+    "section": {
+      "border-bottom": true,
+      "font-weight": "700",
+      "margin-top": "1.1em",
+      "text-transform": "uppercase",
+      "letter-spacing": "0.03em",
+      "font-size": "0.82rem"
+    },
+    "sign": {
+      "border": "1px solid",
+      "border-color": "trust-signed",
+      "padding": "0.4em 0.6em",
+      "border-radius": "0"
+    },
+    "freeze": {
+      "border": "1px solid",
+      "border-color": "trust-frozen",
+      "padding": "0.5em",
+      "border-radius": "0",
+      "text-align": "center"
+    }
+  },
+  "print": {
+    "header-font-size": "7.5pt",
+    "footer-font-size": "7.5pt",
+    "header-color": "muted",
+    "footer-color": "muted"
+  }
+}

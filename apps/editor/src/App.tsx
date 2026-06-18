@@ -1,16 +1,28 @@
-import { useState, useRef, useCallback, useEffect, type ChangeEvent } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo, type ChangeEvent } from "react";
 import {
   IntentTextEditor,
   FormFill,
+  FormDesigner,
   Redline,
+  BareView,
+  DocumentView,
+  SourcePanel,
   exportDocumentPDF,
   exportDocumentHTML,
   extractTemplateVariables,
 } from "@dotit/editor";
-import { isForm, hasTrackedChanges, compareVersions } from "@dotit/core";
+import {
+  isForm,
+  hasTrackedChanges,
+  compareVersions,
+  verifyDocument,
+  parseAndMerge,
+  documentToSource,
+  updateHistory,
+} from "@dotit/core";
+import { BLANK_DOC, FORM_STARTER, TEMPLATE_STARTER, buildPreviewData } from "./starters";
 import { Toolbar } from "./toolbar/Toolbar";
 import { StatusBar } from "./status/StatusBar";
-import { MonacoEditor } from "./editor/MonacoEditor";
 import { TrustPanel } from "./panels/TrustPanel";
 import { TemplatePanel } from "./panels/TemplatePanel";
 import { SealModal } from "./modals/SealModal";
@@ -26,7 +38,6 @@ import { useDocument } from "./hooks/useDocument";
 import { useDocumentMeta } from "./hooks/useDocumentMeta";
 import { useTrustState } from "./hooks/useTrustState";
 import type { EditorMode } from "./types";
-import type * as monaco from "monaco-editor";
 import {
   DEMO_DOCS,
   DEFAULT_DEMO_DOC_ID,
@@ -66,40 +77,127 @@ export default function App() {
 
   const docState = useDocument(content);
   const { openFile, saveFile, newFile } = useFile(workspace);
-  useAutoSave(content, filename);
+  const saveState = useAutoSave(content, filename);
   const docMeta = useDocumentMeta(content, setContent);
   const trustState = useTrustState(content, setContent);
 
   const [theme, setTheme] = useState(
     () => localStorage.getItem("it-editor-theme") || "corporate",
   );
-  const [uiTheme, setUiTheme] = useState<"light" | "dark">(
-    () =>
-      (localStorage.getItem("it-editor-color") as "light" | "dark") || "light",
-  );
   const [modal, setModal] = useState<ModalType>(null);
-  const [editorMode, setEditorMode] = useState<EditorMode>(
-    () => (localStorage.getItem("it-editor-mode") as EditorMode) || "visual",
+  const [editorMode, setEditorMode] = useState<EditorMode>(() =>
+    // Sanitize: a stale "source" from before Source mode was removed → "visual".
+    localStorage.getItem("it-editor-mode") === "bare" ? "bare" : "visual",
   );
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  // Document-type sub-modes: a FORM is either designed (edit its structure) or
+  // filled (the recipient view); a TEMPLATE is either edited or previewed (merged
+  // with sample data). Defaults match the common use: fill a form, edit a template.
+  const [formView, setFormView] = useState<"design" | "fill">("fill");
+  const [templateView, setTemplateView] = useState<"edit" | "preview">("edit");
+  // Ribbon density (Ribbon vs Simple) — owned here so the toggle lives in the
+  // single top title bar (the editor's built-in toggle is suppressed).
+  const [ribbonMode, setRibbonMode] = useState<"ribbon" | "simple">(
+    () =>
+      (localStorage.getItem("dotit.ribbon.mode") as "ribbon" | "simple") ||
+      "ribbon",
+  );
+  useEffect(() => {
+    localStorage.setItem("dotit.ribbon.mode", ribbonMode);
+  }, [ribbonMode]);
+  // Live source side-panel: shows the raw .it in the empty margin beside the page,
+  // on demand, so you can watch edits land in the source without leaving Visual mode.
+  const [sourcePeek, setSourcePeek] = useState(false);
+  // Change tracking for the title-bar chip. Dirty is reported by the editor itself
+  // (doc-level: it reaches false when you undo back to the opened version — the
+  // source byte-diff couldn't, because the bridge round-trip drifts the bytes). The
+  // baseline (last clean content) is kept only for "Reset to original".
+  const [editorDirty, setEditorDirty] = useState(false);
+  const [baseline, setBaseline] = useState(content);
+  useEffect(() => {
+    if (!isUnsaved) setBaseline(content);
+  }, [isUnsaved, content]);
+
+  const templateVarCount = extractTemplateVariables(content).length;
+  // Document type — drives the top-bar mode chip + sub-mode switch.
+  const isFormDoc = useMemo(() => isForm(content), [content]);
+  // A template (but not a form): has {{vars}} or meta type:template. Forms are
+  // handled by their own design/fill switch, so exclude them here.
+  const isTemplateDoc = useMemo(
+    () => !isFormDoc && (trustState.isTemplate || templateVarCount > 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isFormDoc, trustState.isTemplate, content],
+  );
+  // Integrity verdict for the seal chip — only meaningful once sealed.
+  const sealIntact = useMemo<boolean | null>(() => {
+    if (!trustState.trust.isSealed) return null;
+    try {
+      return verifyDocument(content).intact;
+    } catch {
+      return null;
+    }
+  }, [content, trustState.trust.isSealed]);
+
+  // Template Preview: merge the template with humanized sample data so it reads like
+  // a finished document (the same merge engine production uses). Missing values keep
+  // their {{placeholder}} so nothing silently disappears.
+  const templatePreviewSource = useMemo(() => {
+    if (!isTemplateDoc || templateView !== "preview") return content;
+    try {
+      const data = buildPreviewData(extractTemplateVariables(content));
+      return documentToSource(parseAndMerge(content, data, { missing: "keep" }));
+    } catch {
+      return content;
+    }
+  }, [content, isTemplateDoc, templateView]);
+
+  // File ▸ New ▸ {Document, Form, Template} — load a starter and route to the right
+  // sub-mode (design a fresh form; edit a fresh template).
+  const newDoc = useCallback(() => newFile(BLANK_DOC), [newFile]);
+  const newForm = useCallback(() => {
+    newFile(FORM_STARTER);
+    setFormView("design");
+    setEditorMode("visual");
+  }, [newFile]);
+  const newTemplate = useCallback(() => {
+    newFile(TEMPLATE_STARTER);
+    setTemplateView("edit");
+    setEditorMode("visual");
+  }, [newFile]);
+
+  // Version history: a checkpoint baseline (the last recorded version). "Save
+  // version" records the content changes since this baseline into the doc's
+  // history: section, attributed to the author, then opens the History view.
+  const historyBaseline = useRef(content);
+  useEffect(() => {
+    // A freshly opened/created file starts a new history baseline.
+    historyBaseline.current = content;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filename]);
+  const saveVersion = useCallback(() => {
+    const author = localStorage.getItem("it-author") || "Editor";
+    try {
+      const updated = updateHistory(historyBaseline.current, content, {
+        by: author,
+      });
+      setContent(updated);
+      historyBaseline.current = updated;
+      setModal("history");
+    } catch (e) {
+      window.alert(e instanceof Error ? e.message : String(e));
+    }
+  }, [content, setContent]);
 
   useEffect(() => {
     localStorage.setItem("it-editor-theme", theme);
   }, [theme]);
   useEffect(() => {
-    localStorage.setItem("it-editor-color", uiTheme);
-    document.documentElement.setAttribute("data-theme", uiTheme);
-  }, [uiTheme]);
-  useEffect(() => {
     localStorage.setItem("it-editor-mode", editorMode);
   }, [editorMode]);
-  // The visual editor's canvas is a light, paper-like surface — force light
-  // chrome while it is active (previously done inside VisualEditor itself).
+  // Documents are light paper — the app stays in light mode (no dark theme), so
+  // neither the canvas nor the bare view ever renders dark.
   useEffect(() => {
-    if (editorMode === "visual") {
-      document.documentElement.setAttribute("data-theme", "light");
-    }
-  }, [editorMode]);
+    document.documentElement.setAttribute("data-theme", "light");
+  }, []);
 
   // Load from URL ?source= parameter (hub "Open in Editor")
   useEffect(() => {
@@ -138,29 +236,11 @@ export default function App() {
     [setContent, setFilename, markSaved],
   );
 
-  // Insert text at the caret of whichever editor is active. The visual editor
-  // listens for this event (it owns the TipTap instance).
-  const insertAtCaret = useCallback(
-    (text: string) => {
-      if (editorMode === "source" && editorRef.current) {
-        const ed = editorRef.current;
-        const sel = ed.getSelection();
-        if (sel) {
-          ed.executeEdits("template-insert", [
-            { range: sel, text, forceMoveMarkers: true },
-          ]);
-          ed.focus();
-        }
-        return;
-      }
-      window.dispatchEvent(
-        new CustomEvent("it-insert-text", { detail: text }),
-      );
-    },
-    [editorMode],
-  );
-
-  const templateVarCount = extractTemplateVariables(content).length;
+  // Insert text at the caret of the visual editor (it owns the TipTap instance
+  // and listens for this event).
+  const insertAtCaret = useCallback((text: string) => {
+    window.dispatchEvent(new CustomEvent("it-insert-text", { detail: text }));
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -174,17 +254,24 @@ export default function App() {
         openFile();
       } else if (mod && e.key === "n") {
         e.preventDefault();
-        newFile(WELCOME);
+        newFile(BLANK_DOC);
       } else if (mod && e.shiftKey && e.key === "V") {
         e.preventDefault();
         setModal("verify");
+      } else if (mod && (e.key === "p" || e.key === "P")) {
+        // The visual editor intercepts ⌘P itself; in Bare mode (no editor mounted)
+        // we must intercept here too, or the browser prints the whole app page.
+        if (editorMode === "bare") {
+          e.preventDefault();
+          exportDocumentPDF(content, theme, "normal", true);
+        }
       } else if (e.key === "Escape") {
         setModal(null);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [saveFile, openFile, newFile]);
+  }, [saveFile, openFile, newFile, editorMode, content, theme]);
 
   // Compare versions: pick an OLDER .it, then show what changed (this doc vs it) as
   // a redline. compareVersions emits a tracked-changes .it, so setting it as the
@@ -255,15 +342,38 @@ export default function App() {
           onEditorModeChange={setEditorMode}
           theme={theme}
           onThemeChange={setTheme}
-          onNew={() => newFile(WELCOME)}
+          onNew={newDoc}
+          onNewForm={newForm}
+          onNewTemplate={newTemplate}
           onOpen={openFile}
           onSave={saveFile}
           onCompare={() => compareInputRef.current?.click()}
+          onSaveVersion={saveVersion}
           onModal={setModal}
-          onExportPDF={() => exportDocumentPDF(content, theme)}
+          onExportPDF={() =>
+            exportDocumentPDF(content, theme, "normal", editorMode === "bare")
+          }
           onExportHTML={() => exportDocumentHTML(content, theme)}
           isSealed={trustState.trust.isSealed}
           isTemplate={trustState.isTemplate}
+          isTemplateDoc={isTemplateDoc}
+          isForm={isFormDoc}
+          formView={formView}
+          onFormViewChange={setFormView}
+          templateView={templateView}
+          onTemplateViewChange={setTemplateView}
+          trust={trustState.trust}
+          sealIntact={sealIntact}
+          source={content}
+          onSourceChange={setContent}
+          ribbonMode={ribbonMode}
+          onRibbonModeChange={setRibbonMode}
+          sourcePeek={sourcePeek}
+          onToggleSourcePeek={() => setSourcePeek((v) => !v)}
+          changeDirty={editorDirty}
+          onUndo={() => window.dispatchEvent(new CustomEvent("it-editor-undo"))}
+          onRedo={() => window.dispatchEvent(new CustomEvent("it-editor-redo"))}
+          onResetChanges={() => setContent(baseline)}
           templateVarCount={templateVarCount}
           samples={DEMO_DOCS.map((d) => ({ id: d.id, title: d.title }))}
           onLoadSample={(id) => {
@@ -274,16 +384,21 @@ export default function App() {
 
         <div className="panels" style={{ flex: 1 }}>
           <div className="panel-editor" style={{ flex: 1 }}>
-            {editorMode === "source" ? (
-              <MonacoEditor
-                value={content}
-                onChange={setContent}
-                editorRef={editorRef}
-              />
-            ) : isForm(content) ? (
-              // The visual view of a FORM is the fillable form itself — the
-              // embeddable integration surface (same FormFill the desktop uses).
+            {editorMode === "bare" ? (
+              // The document "as signed" — content + emphasis only, no decoration.
+              <BareView value={content} theme={theme} />
+            ) : isFormDoc && formView === "design" ? (
+              // DESIGN a form — a dedicated VISUAL builder (separate from the main
+              // editor): fields shown as real boxes, edited/reordered/resized in place.
+              <FormDesigner value={content} onChange={setContent} />
+            ) : isFormDoc ? (
+              // FILL a form — the recipient experience (same FormFill the desktop
+              // and embedded hosts use).
               <FormFill value={content} theme={theme} onChange={setContent} />
+            ) : isTemplateDoc && templateView === "preview" ? (
+              // PREVIEW a template — merged with sample data, read-only, exactly as
+              // it will print. Edit mode falls through to the editor.
+              <DocumentView value={templatePreviewSource} theme={theme} />
             ) : hasTrackedChanges(content) ? (
               // A document with pending redlines opens in REVIEW mode: the changes
               // are visible and the panel offers accept/reject. Once all are
@@ -291,13 +406,31 @@ export default function App() {
               <Redline value={content} theme={theme} onChange={setContent} />
             ) : (
               <IntentTextEditor
+                // Remount on a fresh document (open/new/sample/reload) so the
+                // undo history starts empty — no stale steps carried across files.
+                key={filename || "untitled"}
                 value={content}
                 onChange={setContent}
                 theme={theme}
                 onThemeChange={setTheme}
+                // Web app owns theme in its always-visible title bar → hide the
+                // ribbon's duplicate. Embedded/desktop hosts keep it (default true).
+                showThemePicker={false}
+                showTrustBanner={false}
+                showChangeIndicator={false}
+                onChangeState={setEditorDirty}
+                ribbonMode={ribbonMode}
+                onRibbonModeChange={setRibbonMode}
               />
             )}
           </div>
+          {sourcePeek && (
+            <SourcePanel
+              source={content}
+              onChange={setContent}
+              onClose={() => setSourcePeek(false)}
+            />
+          )}
         </div>
 
         <StatusBar
@@ -307,19 +440,10 @@ export default function App() {
           words={docState.words}
           errors={docState.errorCount}
           theme={theme}
-          uiTheme={uiTheme}
-          isUnsaved={isUnsaved}
-          onToggleUiTheme={() =>
-            setUiTheme((t) => (t === "dark" ? "light" : "dark"))
-          }
+          saveState={saveState}
           onErrorClick={() => {
-            if (docState.firstErrorLine && editorRef.current) {
-              editorRef.current.revealLineInCenter(docState.firstErrorLine);
-              editorRef.current.setPosition({
-                lineNumber: docState.firstErrorLine,
-                column: 1,
-              });
-            }
+            // The error is in the source — open the editable source panel to it.
+            if (docState.errorCount > 0) setSourcePeek(true);
           }}
         />
       </div>

@@ -30,11 +30,11 @@ approve: Finance approved | by: James Miller | role: CFO | at: 2026-03-21
 approve: Management sign-off | by: Lisa Park | role: CTO | at: 2026-03-21
 
 // Step 2: Integrity hash seals (tamper-evident)
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2c3d4
-sign: Maria Santos | role: COO, GlobalTech | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2c3d4 | spec: 3
+sign: Maria Santos | role: COO, GlobalTech | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8 | spec: 3
 
 // Step 3: Freeze (seal the document)
-freeze: | status: locked | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2
+freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2 | spec: 3 | status: locked
 
 track: | by: legal@acme.co
 ```
@@ -71,18 +71,18 @@ Add as many `approve:` blocks as your workflow requires. Common chains:
 ### 3. Add digital signatures
 
 ```intenttext
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2c3d4
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2c3d4 | spec: 3
 ```
 
-`sign:` records a SHA-256 hash of the document content at the time of signing. This is machine-verifiable: if anyone changes the content, the hash won't match.
+`sign:` records a SHA-256 hash of the document content at the time of signing (and binds the signer's identity). This is machine-verifiable: if anyone changes the content, the hash won't match.
 
 ### 4. Freeze the document
 
 ```intenttext
-freeze: | status: locked | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2
+freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2 | spec: 3 | status: locked
 ```
 
-`freeze:` seals the document. The hash covers all content above the `history:` boundary, excluding the `sign:`/`freeze:`/`amendment:` lines themselves (`approve:` lines ARE included). After freezing, any edit to the content invalidates the seal.
+`freeze:` seals the document. The hash covers all content above the `history:` boundary — including the signatures and the seal's own metadata — but **excludes** the `sign:`/`freeze:`/`amendment:` payload, **styling** (presentation lines/properties), and **comments** (`approve:` lines ARE included). After freezing, any edit to the content invalidates the seal; restyling does not.
 
 ## Using the CLI
 

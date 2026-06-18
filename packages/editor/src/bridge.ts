@@ -405,6 +405,19 @@ function extractText(node: JSONContent): string {
  * Merge mark-derived style props with existing (non-style) props.
  * Mark props override existing style keys; non-style keys are preserved.
  */
+/** Parse a "key: value | key: value" properties string into an object (used as a
+ *  fallback for itGenericBlock nodes that carry `properties` but no JSON `props`). */
+function propsStringToObject(raw: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  const str = typeof raw === "string" ? raw : "";
+  if (!str) return out;
+  for (const seg of str.split("|")) {
+    const m = seg.match(/^\s*([^:]+):\s*(.*)$/);
+    if (m && m[2].trim() !== "") out[m[1].trim()] = m[2].trim();
+  }
+  return out;
+}
+
 function mergeProps(
   existingRaw: unknown,
   markProps: Record<string, string>,
@@ -869,9 +882,20 @@ export function docToSource(doc: JSONContent): string {
     content.pop();
   }
 
+  // Bare prose merges with an adjacent prose line on re-parse, so consecutive prose
+  // blocks are separated by a blank line (matching core's documentToSource). A header
+  // (title/section/…) is a keyword line and never merges, so it needs no separator.
+  const isProse = (n: JSONContent) =>
+    n.type === "paragraph" || n.type === "itGenericBlock";
   const lines: string[] = [];
+  let prevProse = false;
   for (const node of content) {
-    lines.push(...nodeToLines(node));
+    const nodeLines = nodeToLines(node);
+    if (nodeLines.length === 0) continue; // dropped (e.g. empty paragraph)
+    const prose = isProse(node);
+    if (lines.length > 0 && prevProse && prose) lines.push("");
+    lines.push(...nodeLines);
+    prevProse = prose;
   }
 
   return lines.join("\n");
@@ -903,6 +927,23 @@ function nodeToLines(node: JSONContent): string[] {
 
   const line = nodeToLine(node);
   return line !== null ? [line] : [];
+}
+
+/** Can this prose content be emitted WITHOUT the `text:` keyword and re-parse to the
+ *  same bare text block? Mirrors core source.ts canEmitBare: refuses content the
+ *  parser would otherwise read as a keyword line, bullet, fence, divider, comment,
+ *  or table/pipe row. Empty content stays unemitted (a blank line is a separator). */
+function canEmitBareProse(content: string): boolean {
+  const t = content.trimStart();
+  if (t === "") return false;
+  if (/^[\p{L}_][\p{L}\p{N}_-]*:(\s|$)/u.test(t)) return false; // word: keyword
+  if (/^-\s/.test(t)) return false; // - bullet
+  if (/^\d+\.\s/.test(t)) return false; // 1. ordered
+  if (/^```/.test(t)) return false; // code fence
+  if (/^---\s*$/.test(t)) return false; // divider
+  if (/^\/\//.test(t)) return false; // comment
+  if (/^\|/.test(t)) return false; // table / pipe-property row
+  return true;
 }
 
 function nodeToLine(node: JSONContent): string | null {
@@ -939,7 +980,13 @@ function nodeToLine(node: JSONContent): string | null {
       if (a.spaceBefore) blockProps["space-before"] = String(a.spaceBefore);
       if (a.spaceAfter) blockProps["space-after"] = String(a.spaceAfter);
       if (a.dir) blockProps.dir = String(a.dir);
-      return `text: ${text}${formatProps({ ...blockProps, ...markProps })}`;
+      const props = formatProps({ ...blockProps, ...markProps });
+      // Prose is emitted BARE by default (no `text:` keyword) — `text:` is only used
+      // when the line carries properties or would otherwise re-parse as something
+      // else. An empty paragraph carries no body, so it emits no line (the blank-line
+      // separation in docToSource provides the spacing).
+      if (!props) return canEmitBareProse(text) ? text : null;
+      return `text: ${text}${props}`;
     }
 
     case "itCallout": {
@@ -1001,7 +1048,15 @@ function nodeToLine(node: JSONContent): string | null {
 
     case "itGenericBlock": {
       const kw = node.attrs?.keyword || "text";
-      const merged = mergeProps(node.attrs?.props, markProps);
+      // Prefer JSON props (the parsed path). Fall back to the `properties` string
+      // ("type: text | required: yes") so inserted fields — which set only
+      // `properties` — don't lose their props on serialize.
+      const jsonProps = node.attrs?.props;
+      const raw =
+        jsonProps && jsonProps !== "{}"
+          ? jsonProps
+          : propsStringToObject(node.attrs?.properties);
+      const merged = mergeProps(raw, markProps);
       return `${kw}: ${text}${formatProps(merged)}`;
     }
 

@@ -43,17 +43,23 @@ function makeParsed(source: string) {
 // ═══════════════════════════════════════════════════════════
 
 describe("v2.10 theme system — built-in registry", () => {
-  it("listBuiltinThemes returns all 8 built-in themes", () => {
+  it("listBuiltinThemes returns all built-in themes (incl. dense variants)", () => {
     const names = listBuiltinThemes();
-    expect(names).toContain("corporate");
-    expect(names).toContain("minimal");
-    expect(names).toContain("warm");
-    expect(names).toContain("technical");
-    expect(names).toContain("print");
-    expect(names).toContain("legal");
-    expect(names).toContain("editorial");
-    expect(names).toContain("dark");
-    expect(names.length).toBe(8);
+    for (const t of [
+      "corporate",
+      "minimal",
+      "warm",
+      "technical",
+      "print",
+      "legal",
+      "editorial",
+      "compact",
+      "corporate-dense",
+      "legal-dense",
+    ]) {
+      expect(names).toContain(t);
+    }
+    expect(names.length).toBe(10);
   });
 
   it("getBuiltinTheme returns undefined for unknown theme", () => {
@@ -104,10 +110,12 @@ describe("v2.10 theme system — built-in registry", () => {
     }
   });
 
-  it("dark theme has dark background color", () => {
-    const theme = getBuiltinTheme("dark")!;
-    // Dark theme's background should not be #ffffff
-    expect(theme.colors.background).not.toBe("#ffffff");
+  it("compact theme is dense (small font, tight margin)", () => {
+    const theme = getBuiltinTheme("compact")!;
+    expect(theme.colors.background).toBe("#ffffff");
+    // Compact uses a smaller body size + tighter page margin than the default.
+    expect(parseFloat(theme.fonts.size)).toBeLessThanOrEqual(10);
+    expect(parseFloat(theme.spacing["page-margin"])).toBeLessThan(25);
   });
 
   it("print theme uses only black/white/grey colors", () => {

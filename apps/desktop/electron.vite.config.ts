@@ -24,6 +24,13 @@ export default defineConfig({
   },
   renderer: {
     root: "src/renderer",
+    // Bind the dev server to IPv4 explicitly. Electron/Chromium resolves
+    // `localhost` to ::1 (IPv6) first; if Vite listens only on 127.0.0.1 the
+    // renderer connection is refused and the window stays blank ("never connected
+    // to Vite") even though a browser — which falls back across the dual stack —
+    // loads it fine. Forcing 127.0.0.1 makes ELECTRON_RENDERER_URL match what's
+    // actually listening, so Electron connects.
+    server: { host: "127.0.0.1" },
     plugins: [react()],
     resolve: {
       alias: {

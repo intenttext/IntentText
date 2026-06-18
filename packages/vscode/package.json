@@ -133,7 +133,7 @@
     "publish": "npx vsce publish"
   },
   "dependencies": {
-    "@dotit/core": "workspace:*"
+    "@dotit/core": "^1.21.1"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

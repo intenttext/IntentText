@@ -32,7 +32,9 @@ what prints — 100% WYSIWYG, including pages, headers, and footers. Receipt siz
 
 Edit visually (rich text, tables, totals, trust chips) or switch to **Source** for the
 raw `.it` text with full syntax highlighting and diagnostics — both stay in sync, and a
-visual-editor round-trip never changes your bytes (signed documents stay verifiable).
+visual-editor round-trip never changes your bytes (signed documents stay verifiable). Prose
+serializes **bare** by default — a plain paragraph emits with no `text:` keyword — so the
+source reads like natural writing.
 
 ### Change awareness — you always know what you're saving
 
@@ -48,17 +50,22 @@ Under the hood, saves run through core's [`reconcileEdit`](../guide/byte-preserv
 so unchanged blocks keep their **original bytes** and a sealed document keeps its hash.
 Sealed documents are read-only by default — a second guard on top of source preservation.
 
-### Template mode
+### Documents, forms & templates
 
-Author merge templates for your app or team without leaving the editor:
+**New** offers three document kinds — **Document**, **Form**, and **Template** — each with
+its own two-tab workflow:
 
-- `{{path.to.value}}` placeholders render as **chips** in text, table cells, and totals.
-- The **Template** button (with a live variable-count badge) opens a panel showing every
-  detected variable — click to insert at the cursor.
-- Enter **sample data** (JSON, persisted per file; a skeleton is auto-built from your
-  variables) and produce a **PDF with data** — the exact `parseAndMerge → renderPrint`
-  pipeline your production app runs, so what you test is what ships.
-- Start from the **Invoice Template** sample (Samples menu).
+- **Templates** (`Edit | Preview`): author merge templates without leaving the editor.
+  `{{path.to.value}}` placeholders render as **chips** in text, table cells, and totals; the
+  **Template** button (with a live variable-count badge) lists every detected variable —
+  click to insert at the cursor. Enter **sample data** (JSON, persisted per file; a skeleton
+  is auto-built from your variables) and produce a **PDF with data** — the exact
+  `parseAndMerge → renderPrint` pipeline your production app runs, so what you test is what
+  ships. Start from the **Invoice Template** sample (Samples menu).
+- **Forms** (`Design | Fill`): the **Design** panel is a form builder — add, edit, reorder,
+  and delete `input:` fields (text, choice, date, number, signature, table, attachment, with
+  `required:`, `show-if:`, `compute:`); **Fill** lets a recipient complete it. A complete
+  form (all required fields answered) becomes signable.
 
 ### Page setup and zoom
 
@@ -79,7 +86,15 @@ which apply live on the canvas and identically in print.
 
 The **Trust** panel drives the full lifecycle — track → approve → sign → seal → verify →
 amend — and the document shows styled trust chips (signatures, approvals, frozen banner)
-that print exactly as displayed.
+that print exactly as displayed. A **per-signer trust banner** reports each signer's status
+(signed the current version, or an earlier one), and the integrity-gated band stamps a red
+**"SEAL BROKEN"** banner on a tampered document rather than a clean seal. Restyling a sealed
+document never breaks its seal — only content edits do.
+
+### History
+
+**Save version** snapshots the current document, and **History…** lists those versions so
+you can review or restore an earlier one.
 
 ### Export
 

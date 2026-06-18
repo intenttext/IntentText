@@ -39,7 +39,7 @@
     "code": {
       "background": "code-bg",
       "padding": "0.3em 0.5em",
-      "border-radius": "2px",
+      "border-radius": "0",
       "border": "1px solid",
       "border-color": "border"
     },

@@ -6,6 +6,96 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed — SEAL_SPEC v3: sign content, not styling; cover the whole trust record (`@dotit/core` 1.21.0, `@dotit/editor` 1.15.0)
+
+The trust ruleset advances to **`SEAL_SPEC = 3`** — the seal now covers exactly the right
+things, and signatures are tamper-evident for **who** signed (not just what). Old seals keep
+verifying under their recorded spec forever.
+
+- **Styling is excluded.** Presentation lines (`page:`/`font:`/`style:`) and presentation
+  properties (`align`, `color`, `size`, `bg`, `margin`, …) no longer affect the hash —
+  restyling a sealed document never breaks it ("sign content, not presentation"). Comments
+  (`//`) remain excluded.
+- **The seal covers its own metadata.** Editing a `freeze:` line's `at:`/`status:` (back-dating,
+  re-statusing) now breaks the seal — only its self-referential `hash:` is exempt.
+- **Signatures bind the signer identity.** A `sign:` hash now covers content **+ signer
+  name/role/date**, so editing the signer on a signed (not yet sealed) document breaks *that*
+  signature. New `computeSignatureHash` / `signatureIdentity` / `signatureMatchesContent`.
+- **Per-signer verification.** `verifyDocument()` reports each signer's
+  `signedCurrentVersion` and exposes `spec` + `specOutdated`; the editor banner shows
+  "Signed · N/M" — a signer who signed an earlier version is shown as such, not a blanket
+  "broken" (multi-sign / sign → edit → sign now reads correctly).
+- New trust tiers: **`sealed`** (indigo, distinct from a bare signature) and **`broken`** (red).
+- **Editor:** prose now serializes **bare** (no spurious `text:` keyword; blank-separated,
+  empty paragraphs dropped); a fresh document stays clean.
+
+### Fixed — print/PDF/views can never show a tampered document as certified (`@dotit/core` 1.20.2)
+
+The trust band now has an **integrity gate**: before drawing the certification stamp it
+verifies the document. A sealed/signed doc whose content no longer matches its hash renders
+a loud **RED "SEAL BROKEN" / "SIGNATURE BROKEN"** stamp instead of the clean seal — on
+**every** surface (screen, print, PDF, `renderHTML`), since they all build on `renderTrustBand`.
+Previously a modified document printed a valid-looking seal (a forgery). New `broken` trust
+tier (red). Verified by conformance cases (tampered content, tampered signature line).
+
+### Fixed — merge resolves multi-line prose paragraphs (`@dotit/core` 1.20.2)
+
+`mergeData` now resolves `{{vars}}` in the byte-faithful record of merged paragraphs
+(`_merged`), not just `content`/metadata/`_liftedLines`. A template with consecutive `text:`
+lines now serializes back fully merged — so the result is no longer `isTemplate()` and **can
+be sealed** (before, the tokens survived in `documentToSource` output and blocked sealing).
+
+### Changed — seal-break hardening: the seal covers signatures (`@dotit/core` 1.20.0)
+
+`SEAL_SPEC` is now **2**, introducing a **two-scope hash** so a seal breaks on exactly
+the right changes — once and for all:
+
+- **The seal hash covers content *and* signatures.** Tampering the document body OR any
+  `sign:` line (a signer's name, role, or stored hash) now breaks the seal. Previously a
+  signature change left the seal intact.
+- **Each signature hash covers content only**, so multiple parties still co-sign the same
+  body (signatures don't perturb each other's hashes).
+- **Comments (`//`) never affect any hash** — editing/adding/removing an annotation is
+  trust-neutral. And freeze metadata other than the hash (e.g. `status:`) is inert.
+- Versioned and backward-compatible: v0/v1 seals verify under their original (content-only)
+  rules forever; only **new** seals use v2. A broken (tampered) seal no longer vouches for
+  any signer (`signers[].valid` is conservative). New conformance cases pin all of this.
+
+### Changed — unified trust band: one certification stamp, every page (`@dotit/core` 1.20.0)
+
+`sign:`/`freeze:` no longer render as inline body blocks. The signer + seal now appear in a
+single **trust band** — a quiet, presentation-grade stamp pinned to the **bottom-right**
+corner, out of content flow, repeating on every printed page.
+
+- Bigger, visible hash seal (the Linear-Wave ambient seal) with the signed/sealed caption
+  beside it; subtle card, light opacity.
+- `TRUST_BAND_CSS` + `trustBandPositionCss()` exported from core as the **single source of
+  truth** — `renderHTML`, `renderPrint`, the editor page view, and the WYSIWYG print path
+  all share one visual, so it can never drift. `renderHTML` now shows the band for a trusted
+  doc (opt out with `seal: false`).
+
+### Added — versioned seals: the forever-stable trust guarantee (`@dotit/core` 1.17.0)
+
+Every seal/signature/certification now records the **canonicalization spec version**
+(`spec: 1`) that produced its hash, and verification applies **exactly that version
+forever** — so a future change to the byte rules can never silently break a historical
+seal. This is the critical property for long-term (30–100yr) records, to be in place
+*before* production documents accumulate.
+
+- **`SEAL_SPEC`** (currently `1`) + a frozen, versioned canonicalizer registry. v1 = NFC;
+  v0 = legacy (pre-NFC). Each version is immutable once shipped.
+- `freeze:` / `sign:` / `certify:` lines stamp `| spec: 1`. `computeDocumentHash(source,
+  spec?)` and `hashMatches(source, expected, spec?)` are version-aware.
+- `verifyDocument` (and `@dotit/sign` `verifyCryptoSignatures` / `verifyCertifications`)
+  verify against the **recorded** spec; a pre-versioning seal (no `spec:`) falls back to
+  trying all known versions — fully backward-compatible, retiring the ad-hoc legacy
+  try-both into the registry.
+- The **audit chain** (`prev:` links) is versioned the same way; `verifyAuditChain` accepts
+  a link valid under any known spec.
+- **Conformance pin:** `tests/seal-versioning.test.ts` freezes the v1 golden hash (a change
+  to v1 fails the test on purpose — add a v2, never mutate v1) and is part of the CI
+  byte/trust release-blocker gate.
+
 ### Changed — byte preservation hardened + faithful-recorder parser (`@dotit/core` 1.16.0)
 
 The trust moat made real: a parsed document now round-trips **byte-for-byte** for the

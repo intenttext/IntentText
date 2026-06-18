@@ -152,6 +152,18 @@ function resolveBlock(
     );
   }
 
+  // Resolve the byte-faithful record of a MERGED prose paragraph. The parser
+  // collapses consecutive `text:` lines into one block but keeps the original
+  // per-line sub-blocks in `_merged`; documentToSource re-emits THOSE verbatim.
+  // Without resolving them, a merged template serialized back to source keeps its
+  // {{tokens}} in multi-line paragraphs — so it still reads as isTemplate() and
+  // can't be sealed. Resolve them exactly like content (mirrors _liftedLines).
+  if (newBlock._merged && newBlock._merged.length > 0) {
+    newBlock._merged = newBlock._merged.map((part) =>
+      resolveBlock(part, data, agentName),
+    );
+  }
+
   // Resolve table cells
   if (newBlock.table) {
     newBlock.table = {

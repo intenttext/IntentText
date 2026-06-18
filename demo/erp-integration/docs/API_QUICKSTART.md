@@ -78,3 +78,19 @@ Treat `type`/`code` as the contract; implement fallback/retry for
 3. Call `/render-pdf` for official document generation (server-side, deterministic).
 4. Call `/render-html` for previews, or skip the server entirely with the
    browser-print path in [`intenttext-print.mjs`](../intenttext-print.mjs).
+
+## 5) Sealing the record (separate from rendering)
+
+The PDF is a **view**; the verifiable record is the merged, sealed `.it` source.
+Seal with `@dotit/core`'s `sealDocument(source, { signer, role })` and store that
+string byte-for-byte — `verifyDocument(source)` later detects any tamper.
+
+Under **SEAL_SPEC 3** (the current `@dotit/core`), the hash covers **content only** —
+presentation (`page:`/`font:`/`style:` lines and `theme`/`color`/`size`/… props) is
+excluded, so the `theme` you pass to `/render-pdf` or `/render-html` does **not** affect
+the sealed source's hash. Restyling never breaks a seal.
+
+Sealing is the **integrity** floor; it binds the *claimed* signer but does not by itself
+prove *who*. To prove identity inside the ERP, authenticate the user and fill the
+`sign:` signer from the authenticated session (not a text box), then sign with a bound
+key/attestation — the **Level 0** rung in [INTEGRATION.md](../../../INTEGRATION.md) §2.9b.

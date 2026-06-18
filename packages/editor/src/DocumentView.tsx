@@ -11,7 +11,12 @@
 // content width, and packs them into page-height sheets.
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { parseIntentText, renderPrint } from "@dotit/core";
+import {
+  parseIntentText,
+  renderPrint,
+  renderTrustBand,
+  TRUST_BAND_CSS,
+} from "@dotit/core";
 import { getPageGeometry } from "./page-geometry";
 
 interface Extracted {
@@ -24,10 +29,12 @@ interface Extracted {
 // rescope its `body.it-print` rules to our page-body class — so the document's base
 // typography applies to the page sheets WITHOUT the styles ever touching the host
 // app's <body> (the app body has no it-print class).
-function extractPrint(source: string, theme: string): Extracted {
+function extractPrint(source: string, theme: string, bare: boolean): Extracted {
   let html: string;
   try {
-    html = renderPrint(parseIntentText(source), { theme });
+    // seal:false — suppress core's top-right stamp; we render our own unified
+    // trust BAND in each page's footer margin instead (see trustBandHtml).
+    html = renderPrint(parseIntentText(source), { theme, bare, seal: false });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return { styles: "", body: `<p style="color:#b91c1c">Could not render: ${msg}</p>`, bodyClass: "" };
@@ -48,14 +55,23 @@ export interface DocumentViewProps {
   theme?: string;
   /** Zoom factor (1 = 100%). */
   zoom?: number;
+  /** Render the BARE projection (content + emphasis only, no decoration). */
+  bare?: boolean;
 }
 
-export function DocumentView({ value, theme = "corporate", zoom = 1 }: DocumentViewProps) {
+export function DocumentView({
+  value,
+  theme = "corporate",
+  zoom = 1,
+  bare = false,
+}: DocumentViewProps) {
   const g = useMemo(() => getPageGeometry(value), [value]);
   const { styles, body, bodyClass } = useMemo(
-    () => extractPrint(value, theme),
-    [value, theme],
+    () => extractPrint(value, theme, bare),
+    [value, theme, bare],
   );
+  // Unified trust band (core) — repeated in every page's footer margin (out of flow).
+  const band = useMemo(() => renderTrustBand(value), [value]);
   const contentWidth = Math.max(1, g.width - g.marginLeft - g.marginRight);
   const measureRef = useRef<HTMLDivElement>(null);
   // Fallback before measurement: the whole document on one sheet.
@@ -116,6 +132,9 @@ export function DocumentView({ value, theme = "corporate", zoom = 1 }: DocumentV
   return (
     <div className="docs-view">
       <style dangerouslySetInnerHTML={{ __html: styles }} />
+      {/* Trust band VISUAL from core (single source of truth); the .it-trust-band-host
+          wrapper supplies on-screen positioning (bottom-right of each sheet). */}
+      <style dangerouslySetInnerHTML={{ __html: TRUST_BAND_CSS }} />
       {/* Off-screen measuring column at the exact page content width. */}
       <div
         ref={measureRef}
@@ -147,6 +166,7 @@ export function DocumentView({ value, theme = "corporate", zoom = 1 }: DocumentV
               style={{
                 width: g.width,
                 minHeight: g.autoHeight ? undefined : g.height,
+                position: "relative",
               }}
             >
               <div
@@ -156,6 +176,16 @@ export function DocumentView({ value, theme = "corporate", zoom = 1 }: DocumentV
                 }}
                 dangerouslySetInnerHTML={{ __html: html }}
               />
+              {band && (
+                <div
+                  className="it-trust-band-host"
+                  style={{
+                    right: g.marginRight,
+                    bottom: Math.max(6, g.marginBottom * 0.34),
+                  }}
+                  dangerouslySetInnerHTML={{ __html: band }}
+                />
+              )}
             </div>
           ))}
         </div>

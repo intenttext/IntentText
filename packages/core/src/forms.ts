@@ -53,6 +53,9 @@ export interface FormField {
   showIf?: string;
   /** `compute: expr` — the value is derived (arithmetic over other field keys). */
   compute?: string;
+  /** Layout WIDTH (presentation, e.g. "50%") — two narrow fields share a row.
+   *  Excluded from the trust hash (styling), so it never affects a seal. */
+  width?: string;
 }
 
 const META_FORM = /^\s*meta:\s*(?:\|[^\n]*)?\btype:\s*form\b/im;
@@ -137,6 +140,7 @@ export function extractFormFields(source: string): FormField[] {
         inline: false,
         showIf: props["show-if"] || undefined,
         compute: props.compute || undefined,
+        width: props.width || undefined,
       }),
     );
   }

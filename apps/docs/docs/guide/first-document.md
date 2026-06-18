@@ -101,7 +101,7 @@ Now seal it with the CLI:
 dotit seal invoice.it --signer "Ahmed Al-Rashid" --role "CEO"
 ```
 
-The document is now frozen. Any edit breaks the hash.
+The document is now frozen. Any **content** edit breaks the hash — restyling and comments don't.
 
 ## Verify anytime
 

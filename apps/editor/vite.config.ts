@@ -1,13 +1,23 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
+// npm-only: both @dotit/core and @dotit/editor are consumed from their PUBLISHED
+// packages (no source aliases, no local workspace links — see root .npmrc). Dev
+// and production both use the installed dist, so what runs is what shipped.
+//
+// To resume fast cross-package dev (HMR off package source), set
+// link-workspace-packages=true in .npmrc and add a serve-mode source alias here.
+
+export default defineConfig(() => ({
   plugins: [react()],
-  // @dotit/core ships CommonJS. Pre-bundle it with esbuild and let
-  // @rollup/plugin-commonjs process it so its named exports (e.g.
-  // listBuiltinThemes) resolve in both dev and the production build.
+  resolve: {
+    // One React instance across the app + packages (else hooks break).
+    dedupe: ["react", "react-dom"],
+  },
+  // @dotit/core ships CommonJS; pre-bundle both deps with esbuild and let
+  // @rollup/plugin-commonjs process them so named exports resolve in dev + build.
   optimizeDeps: {
-    include: ["@dotit/core"],
+    include: ["@dotit/core", "@dotit/editor"],
   },
   build: {
     commonjsOptions: {
@@ -25,4 +35,4 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 5000,
   },
-});
+}));

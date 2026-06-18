@@ -20,7 +20,7 @@ import { IntentTextEditor, exportDocumentPDF } from "@dotit/editor";
 import "@dotit/editor/style.css";
 
 export function InvoiceEditor() {
-  const [source, setSource] = useState("title: Invoice INV-001\ntext: Hello");
+  const [source, setSource] = useState("title: Invoice INV-001\n\nHello");
   return (
     <div style={{ height: "100vh" }}>
       <IntentTextEditor value={source} onChange={setSource} theme="corporate" />
@@ -42,7 +42,7 @@ The editor fills its parent — give the wrapper an explicit height.
 | `onThemeChange`   | `(theme: string) => void`         | —             | Called when the user picks a theme in the ribbon. |
 | `readOnly`        | `boolean`                         | `false`       | Force read-only. Sealed documents (`freeze:` block) are read-only automatically. |
 | `showRibbon`      | `boolean`                         | `true`        | Show the formatting ribbon. |
-| `showTrustBanner` | `boolean`                         | `true`        | Show the trust status banner + document properties strip. |
+| `showTrustBanner` | `boolean`                         | `true`        | Show the trust status banner + document properties strip. The banner is multi-sign aware — it shows per-signer status (`Signed · N/M`), flags an older-ruleset seal (`Sealed · older ruleset`), and shows `SEAL BROKEN` when a sealed body is tampered. |
 | `onTrustAction`   | `(a: "seal"\|"sign"\|"verify") => void` | —       | Handle the ribbon's Trust group. The editor only reports intent — wire it to your own dialogs (e.g. core's `sealDocument` / `verifyDocument`). The group is hidden when omitted. |
 
 ## Named exports
@@ -67,7 +67,7 @@ Types: `IntentTextEditorProps`, `TrustAction`, `PrintMode`, `TrustState`, `PageG
 - **Byte-faithful editing (seals never break).** Edits change only what actually changed — every untouched block keeps its exact original bytes (comments, blank lines, spacing, bare prose). Opening and saving a document with no change is byte-identical, so a **sealed body keeps its content hash through the editor** (and sealed documents are read-only on the body anyway). Powered by `@dotit/core`'s `reconcileEdit`.
 - **Templates + merge.** Author templates with `{{variables}}` in the editor (they render as chips); merge real data server-side with `@dotit/core`'s `parseAndMerge` and print with `renderPrint` — or `@dotit/pdf` for real PDF bytes.
 - **PDF from the UI.** Call `exportDocumentPDF(source, theme)` from your own button — it uses the user's browser print dialog and matches the on-screen pages exactly.
-- **Trust flows.** Sealed documents lock automatically. Hook `onTrustAction` to your approval/signature flows; the editor renders `sign:`/`seal:`/`approve:` blocks as proper signature lines and chips.
+- **Trust flows.** Sealed documents lock automatically. Hook `onTrustAction` to your approval/signature flows; the editor renders `sign:`/`seal:`/`approve:` blocks as proper signature lines and chips. The trust banner is multi-sign aware (per-signer `Signed · N/M`; a signer of an earlier version is shown as such, not a blanket "broken"). On the page (and in print/PDF) the editor draws `@dotit/core`'s unified certification band (`renderTrustBand` + `TRUST_BAND_CSS`), so it looks identical on screen and on paper; the band has an integrity gate — it verifies before drawing, so a tampered seal never prints as sealed.
 - **Insert at caret.** Dispatch `window.dispatchEvent(new CustomEvent("it-insert-text", { detail: "{{customer.name}}" }))` to insert text at the cursor (e.g. from your own variable picker).
 - **Styling.** All styles are scoped under `.docs-container`/`.docs-page` and ship in one stylesheet (`@dotit/editor/style.css`); the editor does not depend on host-page CSS resets. One editor instance per page is the supported setup (theme CSS is injected document-wide).
 

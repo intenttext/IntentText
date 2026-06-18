@@ -5,9 +5,8 @@ interface Props {
   words: number;
   errors: number;
   theme: string;
-  uiTheme: "light" | "dark";
-  isUnsaved: boolean;
-  onToggleUiTheme: () => void;
+  /** Live autosave state for the Google-Docs-style "Saving…/Saved" indicator. */
+  saveState: "saving" | "saved";
   onErrorClick: () => void;
 }
 
@@ -18,9 +17,7 @@ export function StatusBar({
   words,
   errors,
   theme,
-  uiTheme,
-  isUnsaved,
-  onToggleUiTheme,
+  saveState,
   onErrorClick,
 }: Props) {
   return (
@@ -65,24 +62,11 @@ export function StatusBar({
       <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
         <span title="Powered by @dotit/core">@dotit/core</span>
         <span>Theme: {theme}</span>
-        <button
-          onClick={onToggleUiTheme}
-          title="Toggle light or dark UI"
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 14,
-            padding: 0,
-            lineHeight: 1,
-            color: "var(--text-muted)",
-          }}
+        <span
+          title="Auto-saved in this browser. File ▸ Download to save a copy to your device."
         >
-          {uiTheme === "dark" ? "☀" : "☾"}
-        </button>
-        <span>
-          {isUnsaved ? (
-            <span style={{ color: "var(--warning)" }}>● Unsaved</span>
+          {saveState === "saving" ? (
+            <span style={{ color: "var(--text-muted)" }}>Saving…</span>
           ) : (
             <span style={{ color: "var(--success)" }}>✓ Saved</span>
           )}

@@ -6,6 +6,8 @@ import { useMemo, useCallback, useRef } from "react";
 import {
   parseIntentText,
   sealDocument,
+  signDocument,
+  appendApproval,
   verifyDocument,
   isTemplate,
 } from "@dotit/core";
@@ -72,41 +74,21 @@ export function useTrustState(
 
   const addApproval = useCallback(
     (by: string, role: string, note?: string) => {
-      const now = new Date().toISOString().split("T")[0];
-      let line = `approve: ${by} | role: ${role} | at: ${now}`;
-      if (note) line += ` | note: ${note}`;
-      const src = contentRef.current;
-      const lines = src.split("\n");
-      let insertAt = lines.length;
-      for (let i = 0; i < lines.length; i++) {
-        const m = lines[i].match(/^(\w[\w-]*)\s*:/);
-        if (m && (m[1] === "history" || m[1] === "freeze")) {
-          insertAt = i;
-          break;
-        }
-      }
-      lines.splice(insertAt, 0, line);
-      setContent(lines.join("\n"));
+      // Hash-CHAINED approval via core — correct format (note as content, by/role
+      // as props) AND a `prev:` link so the approval ORDER is tamper-evident.
+      setContent(
+        appendApproval(contentRef.current, { by, role, note: note || "Approved" }),
+      );
     },
     [setContent],
   );
 
   const addSignature = useCallback(
     (by: string, role: string) => {
-      const now = new Date().toISOString().split("T")[0];
-      const line = `sign: ${by} | role: ${role} | at: ${now}`;
-      const src = contentRef.current;
-      const lines = src.split("\n");
-      let insertAt = lines.length;
-      for (let i = 0; i < lines.length; i++) {
-        const m = lines[i].match(/^(\w[\w-]*)\s*:/);
-        if (m && (m[1] === "history" || m[1] === "freeze")) {
-          insertAt = i;
-          break;
-        }
-      }
-      lines.splice(insertAt, 0, line);
-      setContent(lines.join("\n"));
+      // Sign via core so the line carries the content `hash:` (and spec) — a plain
+      // hand-written `sign:` with no hash would verify as INVALID.
+      const res = signDocument(contentRef.current, { signer: by, role });
+      if (res.success) setContent(res.source);
     },
     [setContent],
   );

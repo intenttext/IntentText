@@ -18,7 +18,7 @@
  */
 
 import { sha256Hex } from "./sha256";
-import { findHistoryBoundaryInSource } from "./trust";
+import { findHistoryBoundaryInSource, SEAL_SPEC } from "./trust";
 
 export type AuditKind = "approve" | "sign" | "freeze" | "amendment" | "revision";
 
@@ -38,19 +38,33 @@ const KIND_PREFIX: Record<string, AuditKind> = {
   "revision:": "revision",
 };
 
+// Versioned normalization for audit-event hashing — mirrors the seal spec (see
+// trust.ts SEAL_SPEC) so a future canonicalization change can never silently break
+// a `prev:` chain. v0 = raw, v1/v2 = NFC. verifyAuditChain accepts a link valid under
+// ANY known version; appendApproval always writes the current (SEAL_SPEC) version.
+// (An audit event is a single line — the seal's v2 body-scope change doesn't apply
+// here — so v2 normalizes identically to v1; chains stay byte-stable across the bump.)
+const AUDIT_NORMALIZE: Record<number, (s: string) => string> = {
+  0: (s) => s,
+  1: (s) => s.normalize("NFC"),
+  2: (s) => s.normalize("NFC"),
+  3: (s) => s.normalize("NFC"),
+};
+const KNOWN_AUDIT_SPECS = Object.keys(AUDIT_NORMALIZE).map(Number);
+
 /** The canonical bytes a `prev:` hash covers: the line WITHOUT its own prev:
- *  segment, trimmed and NFC-normalized (matching the document-hash convention). */
-function canonicalEvent(line: string): string {
-  return line
+ *  segment, trimmed and normalized per the given spec version. */
+function canonicalEvent(line: string, spec: number = SEAL_SPEC): string {
+  const stripped = line
     .replace(/\s*\|\s*prev:\s*[^|]*$/i, "")
     .replace(/\s*\|\s*prev:\s*[^|]*(?=\s*\|)/i, "")
-    .trim()
-    .normalize("NFC");
+    .trim();
+  return (AUDIT_NORMALIZE[spec] ?? AUDIT_NORMALIZE[SEAL_SPEC])(stripped);
 }
 
-/** Hash of an audit event, as referenced by the next link's `prev:`. */
-export function eventHash(line: string): string {
-  return "sha256:" + sha256Hex(canonicalEvent(line));
+/** Hash of an audit event, as referenced by the next link's `prev:` (current spec). */
+export function eventHash(line: string, spec: number = SEAL_SPEC): string {
+  return "sha256:" + sha256Hex(canonicalEvent(line, spec));
 }
 
 /**
@@ -58,7 +72,7 @@ export function eventHash(line: string): string {
  * this strips ALL audit-event lines (approve: included), so appending another
  * approval never moves the anchor — the chain stays verifiable as it grows.
  */
-function auditGenesis(source: string): string {
+function auditGenesis(source: string, spec: number = SEAL_SPEC): string {
   const boundary = findHistoryBoundaryInSource(source);
   const content = boundary === -1 ? source : source.slice(0, boundary);
   const body = content
@@ -74,9 +88,8 @@ function auditGenesis(source: string): string {
       );
     })
     .join("\n")
-    .trim()
-    .normalize("NFC");
-  return "sha256:" + sha256Hex(body);
+    .trim();
+  return "sha256:" + sha256Hex((AUDIT_NORMALIZE[spec] ?? AUDIT_NORMALIZE[SEAL_SPEC])(body));
 }
 
 function readPrev(line: string): string | undefined {
@@ -118,14 +131,18 @@ export interface AuditChainResult {
  */
 export function verifyAuditChain(source: string): AuditChainResult {
   const events = auditTrail(source);
-  const genesis = auditGenesis(source); // body anchor
   let chained = 0;
   for (let i = 0; i < events.length; i++) {
     const prev = events[i].prev;
     if (prev == null) continue; // un-chained legacy link — not a failure
     chained++;
-    const expected = i === 0 ? genesis : eventHash(events[i - 1].line);
-    if (prev !== expected) {
+    // A link is valid if its prev matches the expected hash under ANY known spec
+    // version — so a chain written under v1 keeps verifying even if the default
+    // canonicalization later changes (the version is never silently "today's").
+    const expectedFor = (spec: number) =>
+      i === 0 ? auditGenesis(source, spec) : eventHash(events[i - 1].line, spec);
+    if (!KNOWN_AUDIT_SPECS.some((spec) => prev === expectedFor(spec))) {
+      const expected = expectedFor(SEAL_SPEC);
       return {
         valid: false,
         length: events.length,

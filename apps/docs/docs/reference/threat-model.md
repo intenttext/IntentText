@@ -32,8 +32,11 @@ and [SECURITY.md](https://github.com/intenttext/IntentText/blob/main/SECURITY.md
 
 ### A document tamperer (edits a sealed/signed/certified doc)
 - **Mitigation:** the content hash is recomputed on verification; any change to the body
-  breaks the seal (`modified`), the signature (`invalid`), and any certification (`invalid`).
-  Hashing is NFC-normalized so only *visual* changes count, not encoding noise.
+  breaks the seal, the signature, and any certification, surfacing the `broken` tier.
+  Hashing is NFC-normalized so only *visual* changes count, not encoding noise — and
+  excludes styling/comments, so restyling is *not* tamper. The trust band verifies before
+  it draws (integrity gate): a tampered document renders a red "SEAL BROKEN" stamp, never a
+  clean seal.
 - **Residual:** none for integrity — tampering is always detectable by verification.
 
 ### A signature/certification forger

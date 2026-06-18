@@ -68,9 +68,10 @@ One `.it` file is simultaneously four things:
 - **A print-ready document.** `page:`, `header:`, `footer:`, `watermark:`, themes,
   and templates render to print HTML with running page numbers and multi-page
   tables — browser print dialog or server-side PDF (`@dotit/pdf`).
-- **A cryptographically sealable record.** `seal` computes a SHA-256 hash of the
-  document body and freezes it; `verify` detects any later edit. Tamper-evidence
-  anyone can recompute — no vendor required.
+- **A cryptographically sealable record.** `seal` computes a SHA-256 hash over the
+  document's *content* (presentation is excluded — restyling never breaks a seal)
+  and freezes it; `verify` detects any later edit. Tamper-evidence anyone can
+  recompute — no vendor required.
 
 And it is **Arabic-native**: the registry ships 33 Arabic keyword aliases
 (`عنوان`→title, `مهمة`→task, `توقيع`→sign, …), any Arabic content flips the
@@ -239,11 +240,16 @@ dotit amend contract.it --section "Scope" --was "2% late fee" \
   --now "1.5% late fee" --ref "Amendment #1" --by "Fahad Al-Thani"
 ```
 
-`seal` computes a SHA-256 hash of the document body and appends `sign:` +
-`freeze:` lines carrying it. Any later edit changes the hash and `verify` reports
-it. Amendments are append-only and excluded from the hash, so a frozen contract
-can evolve without breaking its seal. This is honest **tamper-evidence, not PKI** —
-the exact model is documented in the
+`seal` computes a SHA-256 hash over the document's **content** and appends `sign:` +
+`freeze:` lines carrying it. The hash is **versioned** (every seal stamps `spec: 3`,
+verified against that recorded version forever) and excludes presentation — `page:`,
+`font:`, `style:`, and per-line style props — so restyling never breaks a seal
+("sign content, not presentation"). Any content edit, signature swap, or seal-metadata
+change flips the hash and `verify` reports it; a tampered document renders a red
+**SEAL BROKEN** stamp instead of a clean seal. Amendments are append-only and excluded
+from the hash, so a frozen contract can evolve without breaking its seal. This is honest
+**tamper-evidence, not PKI** — proving *who* signed is a layer above the hash (see
+[INTEGRATION.md](INTEGRATION.md)). The exact model is documented in the
 [CLI guide](https://dotit.uts.qa/docs/ecosystem/cli) and
 [SPEC §4](packages/core/SPEC.md).
 
@@ -301,9 +307,9 @@ Embed it all in your app with one component — see **[INTEGRATION.md](INTEGRATI
 
 | Path | Package | What it is |
 | --- | --- | --- |
-| `packages/core` | [`@dotit/core`](https://npmjs.com/package/@dotit/core) `1.12` | The format: parser, renderers, query, trust, **forms, redline/compare, redaction, attachments, math markers**, themes, CLI. Zero dependencies. |
-| `packages/editor` | [`@dotit/editor`](https://npmjs.com/package/@dotit/editor) `1.8` | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`**, ribbon, trust banner, attachment fill, version-compare. |
-| `packages/pdf` | [`@dotit/pdf`](https://npmjs.com/package/@dotit/pdf) `1.1` | Server-side PDFs — merge → seal → PDF; **PDF/A archival**; PAdES-signed PDF. Opt-in. |
+| `packages/core` | [`@dotit/core`](https://npmjs.com/package/@dotit/core) `1.21` | The format: parser, renderers, query, trust (versioned SEAL_SPEC 3), **forms, redline/compare, redaction, attachments, math markers**, themes, CLI. Zero dependencies. |
+| `packages/editor` | [`@dotit/editor`](https://npmjs.com/package/@dotit/editor) `1.15` | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`**, ribbon, trust banner, form builder, document/form/template flow, version history, attachment fill, version-compare. |
+| `packages/pdf` | [`@dotit/pdf`](https://npmjs.com/package/@dotit/pdf) `1.2` | Server-side PDFs — merge → seal → PDF; **PDF/A archival**; PAdES-signed PDF. Opt-in. |
 | `packages/pades` | [`@dotit/pades`](https://npmjs.com/package/@dotit/pades) `1.0` | **PAdES** (Adobe/court-recognized) PDF signatures — X.509/ECDSA + CMS; CSR/CA issuance; timestamps. |
 | `packages/sign` | [`@dotit/sign`](https://npmjs.com/package/@dotit/sign) `1.4` | Ed25519 signatures + UTS certification chain. Offline, self-verifying. |
 | `packages/math` | [`@dotit/math`](https://npmjs.com/package/@dotit/math) `0.1` | Math rendering — dependency-free lite MathML + optional KaTeX. |

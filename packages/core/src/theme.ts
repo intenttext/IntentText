@@ -13,7 +13,9 @@ import technicalJson from "./themes/technical.json";
 import printJson from "./themes/print.json";
 import legalJson from "./themes/legal.json";
 import editorialJson from "./themes/editorial.json";
-import darkJson from "./themes/dark.json";
+import compactJson from "./themes/compact.json";
+import corporateDenseJson from "./themes/corporate-dense.json";
+import legalDenseJson from "./themes/legal-dense.json";
 
 export interface ThemeFonts {
   body: string;
@@ -130,7 +132,7 @@ export function generateThemeCSS(
   css += `.intent-section{margin-top:var(--it-spacing-section-gap);}\n`;
   css += `.intent-note,.intent-prose{margin-bottom:var(--it-spacing-block-gap);}\n`;
   css += `code,.intent-code{font-family:var(--it-font-mono);background:var(--it-color-code-bg);}\n`;
-  css += `.intent-summary{border-left-color:var(--it-color-muted);color:var(--it-color-muted);}\n`;
+  css += `.intent-summary{border-inline-start-color:var(--it-color-muted);color:var(--it-color-muted);}\n`;
   css += `.intent-divider-line{border-color:var(--it-color-border);}\n`;
 
   // Block-level styles from theme
@@ -184,4 +186,6 @@ registerBuiltinTheme(technicalJson as IntentTheme);
 registerBuiltinTheme(printJson as IntentTheme);
 registerBuiltinTheme(legalJson as IntentTheme);
 registerBuiltinTheme(editorialJson as IntentTheme);
-registerBuiltinTheme(darkJson as IntentTheme);
+registerBuiltinTheme(compactJson as IntentTheme);
+registerBuiltinTheme(corporateDenseJson as IntentTheme);
+registerBuiltinTheme(legalDenseJson as IntentTheme);
