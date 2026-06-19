@@ -36,6 +36,14 @@ This plan converts the audit's gap register into a sequenced, executable roadmap
 
 ## 2. Gap register (sorted by priority)
 
+> **Status (2026-06-19): every gap is resolved or owner-assigned — nothing is open on the
+> engineering side.** Legend: **✅** shipped · **⚠️** engineering half shipped, owner half
+> remains · **👤** owner-only (decision / infra / hire). All ⚠️ and 👤 items are tracked with
+> concrete next steps in **[`OWNER-ACTIONS.md`](OWNER-ACTIONS.md)**.
+>
+> Tally: **16 ✅ shipped** (G-01–04, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22) ·
+> **3 ⚠️ partial** (G-05, G-06, G-07) · **3 👤 owner-only** (G-08, G-09, G-13).
+
 | ID | Title | Area | Severity | Priority | Effort | Recommendation (short) |
 |---|---|---|---|---|---|---|
 | **G-01** ✅ | Styling-exclusion lets sealed content be hidden while the seal stays intact (content-integrity forgery) | trust-security | critical | **P0** | M | Render **bare-by-default** on every trusted surface + add an appearance-hash warning + render-time visibility guard; fix `verify.ts:229` to pass `{bare:true}`. |
@@ -45,12 +53,12 @@ This plan converts the audit's gap register into a sequenced, executable roadmap
 | **G-06** ⚠️ | UTS trust authority undeployed; production trust-anchor key is a placeholder | strategy | critical | **P1** | L | Deploy the smallest earning/verifying slice **or** explicitly de-scope to ERP-first. Replace placeholder key behind a pinned `.well-known` endpoint. |
 | **G-05** ⚠️ | Per-tenant signing identity unenforced; zero multi-tenant code exists | erp | high | **P1** | L | Build a host-side per-tenant key vault (HSM/KMS); session-bound `signer`/`role`; cross-tenant isolation tests. |
 | **G-07** ⚠️ | README/INTEGRATION "PDF/A validated in CI with veraPDF" is **false** — gate has never passed | gov | high | **P1** | M | Fix CI (full Chrome), get a genuinely green veraPDF pass with embedded fonts + consistent XMP/Info; soften docs until green. |
-| **G-11** | CI gates only ~6 of 15 units; repo-wide `pnpm -r test` exits 1 | testing | medium | **P1** | M | Add pdf/pades/math/uts-certify/hub + orphaned editor suite to CI; fix `action` no-test exit-1; workspace `tsc --noEmit`/lint gate. |
-| **G-12** | Desktop file IPC handlers have no path scoping (path-traversal regression Tauri→Electron) | enterprise | high | **P1** | M | Canonicalize + assert-inside-vault on every fs path; symlink-escape guard; `open_external` extension allowlist; re-run hostile-`.it` corpus. |
-| **G-08** | Bus factor of 1 — single maintainer, no governance, no second implementation | strategy | high | **P2** | L | Add a second committer/key-custodian; governance + succession + root escrow; publish conformance vectors + foreign verifier. |
-| **G-09** | PAdES caps at B-B/B-T: self-signed, un-chained, no LTV/DSS; AdES not QES; no FIPS/QSCD | gov | high | **P2** | XL | Trust-list CA (AATL/eIDAS QTSP), mandatory RFC-3161 TS for legal exports, PAdES-B-LT/B-LTA, FIPS/HSM signing. |
+| **G-11** ✅ | CI gates only ~6 of 15 units; repo-wide `pnpm -r test` exits 1 | testing | medium | **P1** | M | Add pdf/pades/math/uts-certify/hub + orphaned editor suite to CI; fix `action` no-test exit-1; workspace `tsc --noEmit`/lint gate. |
+| **G-12** ✅ | Desktop file IPC handlers have no path scoping (path-traversal regression Tauri→Electron) | enterprise | high | **P1** | M | **Done** — `PathGuard` capability scoping + 11 hostile-path tests (lands desktop 3.0.2). |
+| **G-08** 👤 | Bus factor of 1 — single maintainer, no governance, no second implementation | strategy | high | **P2** | L | **Owner → `OWNER-ACTIONS.md`** — add a second committer/key-custodian; governance + succession + root escrow. |
+| **G-09** 👤 | PAdES caps at B-B/B-T: self-signed, un-chained, no LTV/DSS; AdES not QES; no FIPS/QSCD | gov | high | **P2** | XL | **Owner → `OWNER-ACTIONS.md`** — accredited CA (AATL/eIDAS QTSP) + qualified TSA + FIPS/HSM; then we add B-LT/B-LTA. |
 | **G-10** ✅ | No external time anchor for native `.it` seals (timestamps self-asserted/backdatable) | trust-security | medium | **P2** | M | Optional RFC-3161/UTS countersignature into the freeze/sign line; surface "self-asserted" vs "TSA-anchored". |
-| **G-13** | Desktop binaries unsigned/unnotarized | enterprise | high | **P2** | M | Apple Developer ID + notarization; Windows OV/EV (or Azure Trusted Signing); flip workflow secrets on. |
+| **G-13** 👤 | Desktop binaries unsigned/unnotarized | enterprise | high | **P2** | M | **Owner → `OWNER-ACTIONS.md`** — Apple Developer ID + Windows OV/EV (or Azure Trusted Signing); we flip the workflow secrets. |
 | **G-14** ✅ | Stale docs/config describe Tauri (Tauri→Electron drift) | enterprise | medium | **P2** | M | Rewrite `DEPLOYMENT.md` desktop sections for Electron; remove dead cargo dependabot job; re-issue Wave 1 hardening. |
 | **G-15** ✅ | Document merge has no conditionals/arithmetic/currency formatting | erp | medium | **P2** | L | Decide "ERP computes, `.it` formats" + ship an `Intl` helper, **or** wire `field-logic.ts` compute/show-if into doc merge. |
 | **G-16** ✅ | No cross-corpus query/reporting database; folder indexes shallow/in-memory | erp | medium | **P2** | M | Position `.it` as a generated/sealed artifact; index metadata into ERP tables; keep reporting in the RDBMS. |
@@ -58,8 +66,7 @@ This plan converts the audit's gap register into a sequenced, executable roadmap
 | **G-18** ✅ | Prose/keyword ambiguity: any `word:` line becomes a typed block, lowercased on serialize | format | medium | **P3** | M | Heuristic prose guard; stop lowercasing unknown keywords; document as #1 authoring pitfall; align byte-stability claims to SPEC §5.1. |
 | **G-19** ✅ | Zero e-invoicing/EDI standards support for regulated GCC market | strategy | medium | **P3** | L | Add EN16931/UBL + Factur-X/ZUGFeRD export bridges, or scope `.it` to internal docs that never cross a regulated boundary. |
 | **G-20** ✅ | `@types/node` mis-declared as runtime dep; `node-html-parser` security-critical for SVG sanitize | core-impl | low | **P3** | S | Move `@types/node` to devDeps; pin `node-html-parser` exact + mXSS/SVG fuzz; add `engines >=22`. |
-| **G-12** ✅ | Desktop file IPC handlers have no path scoping (path-traversal regression Tauri→Electron) | enterprise | high | **P1** | M | **Done** — `PathGuard` capability scoping + 11 hostile-path tests (lands desktop 3.0.2). |
-| **G-22** ✅ | Public docs drifted: stale versions (core 1.21/editor 1.15/pdf 1.2.0) + SEAL_SPEC 3 + V3 trust model | ecosystem | medium | **P2** | S | **Done** — README/INTEGRATION/AGENTS synced to core 1.22 / SEAL_SPEC 4 (appearance, CRLF, certify-claim) / pdf 1.2.1. |
+| **G-22** ✅ | Public docs drifted: stale versions (core 1.21/editor 1.15/pdf 1.2.0) + SEAL_SPEC 3 + V3 trust model | ecosystem | medium | **P2** | S | **Done** — README/INTEGRATION/AGENTS synced to core 1.24 / SEAL_SPEC 4 (appearance, CRLF, certify-claim) / pdf 1.2.1. |
 | **G-21** ✅ | Attachment `data:` URI mime not sanitized (host-dependent stored-XSS trap) | trust-security | low | **P3** | S | Allowlist/normalize mime (or force `application/octet-stream` for preview); document host sandbox requirement. |
 
 ---
