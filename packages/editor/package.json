@@ -82,6 +82,6 @@
     "vitest": "3.2.6",
     "@testing-library/react": "16.1.0",
     "@testing-library/dom": "10.4.0",
-    "happy-dom": "15.11.7"
+    "happy-dom": "20.10.6"
   }
 }
