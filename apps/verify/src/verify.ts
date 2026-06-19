@@ -226,7 +226,12 @@ export function runVerification(source: string): VerifyReport {
   let parseError: string | undefined;
   try {
     const doc = parseIntentText(source);
-    previewHTML = renderPrint(doc);
+    // BARE / "as signed" projection on the trust surface: styling (color, opacity,
+    // size, bg, page/font/style rules) is the layer EXCLUDED from the content hash,
+    // so rendering it here would let a post-seal restyle (opacity:0 / white-on-white)
+    // hide content beside a green "intact" verdict. Bare strips all presentation —
+    // the preview shows exactly what the seal actually covers and can never hide it.
+    previewHTML = renderPrint(doc, { bare: true });
   } catch (e) {
     parseError = (e as Error).message;
   }
