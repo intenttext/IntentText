@@ -42,9 +42,9 @@ This plan converts the audit's gap register into a sequenced, executable roadmap
 | **G-02** ✅ | CRLF / trailing-whitespace silently break otherwise-untampered seals | core-impl | high | **P0** | M | Normalize EOL→LF + strip trailing whitespace inside `hashedBody` as a **new frozen spec v4**; add CRLF/CR/trailing-WS to the property suite; fix CR-only unbounded-prefix bug. |
 | **G-03** ✅ | Trust tier detection is presence-based — UI can show gold CERTIFIED for a forged `certify:` line | trust-security | high | **P0** | M | Default `detectTrustState`/`sealForDocument` to "unverified" unless a crypto-verified tier is passed; audit every surface. |
 | **G-04** ✅ | Shipped Express/Fastify ERP handlers import non-existent `@dotit/pdf-runtime`, call wrong API | erp | high | **P0** | S | Rewrite against real `@dotit/pdf` (`issuePDF`/`issueDocument`/`createPdfRenderer`) or delete. |
-| **G-06** | UTS trust authority undeployed; production trust-anchor key is a placeholder | strategy | critical | **P1** | L | Deploy the smallest earning/verifying slice **or** explicitly de-scope to ERP-first. Replace placeholder key behind a pinned `.well-known` endpoint. |
-| **G-05** | Per-tenant signing identity unenforced; zero multi-tenant code exists | erp | high | **P1** | L | Build a host-side per-tenant key vault (HSM/KMS); session-bound `signer`/`role`; cross-tenant isolation tests. |
-| **G-07** | README/INTEGRATION "PDF/A validated in CI with veraPDF" is **false** — gate has never passed | gov | high | **P1** | M | Fix CI (full Chrome), get a genuinely green veraPDF pass with embedded fonts + consistent XMP/Info; soften docs until green. |
+| **G-06** ⚠️ | UTS trust authority undeployed; production trust-anchor key is a placeholder | strategy | critical | **P1** | L | Deploy the smallest earning/verifying slice **or** explicitly de-scope to ERP-first. Replace placeholder key behind a pinned `.well-known` endpoint. |
+| **G-05** ⚠️ | Per-tenant signing identity unenforced; zero multi-tenant code exists | erp | high | **P1** | L | Build a host-side per-tenant key vault (HSM/KMS); session-bound `signer`/`role`; cross-tenant isolation tests. |
+| **G-07** ⚠️ | README/INTEGRATION "PDF/A validated in CI with veraPDF" is **false** — gate has never passed | gov | high | **P1** | M | Fix CI (full Chrome), get a genuinely green veraPDF pass with embedded fonts + consistent XMP/Info; soften docs until green. |
 | **G-11** | CI gates only ~6 of 15 units; repo-wide `pnpm -r test` exits 1 | testing | medium | **P1** | M | Add pdf/pades/math/uts-certify/hub + orphaned editor suite to CI; fix `action` no-test exit-1; workspace `tsc --noEmit`/lint gate. |
 | **G-12** | Desktop file IPC handlers have no path scoping (path-traversal regression Tauri→Electron) | enterprise | high | **P1** | M | Canonicalize + assert-inside-vault on every fs path; symlink-escape guard; `open_external` extension allowlist; re-run hostile-`.it` corpus. |
 | **G-08** | Bus factor of 1 — single maintainer, no governance, no second implementation | strategy | high | **P2** | L | Add a second committer/key-custodian; governance + succession + root escrow; publish conformance vectors + foreign verifier. |
@@ -151,6 +151,20 @@ All four P0 gaps are implemented in `@dotit/core` and verified; full suite green
 **Not yet done (release step):** bump `@dotit/core` (breaking: `SEAL_SPEC` change) and republish so the desktop/editor/verify apps consume the fix; add a CRLF/appearance case to the property-based byte-preservation gate; surface `appearanceChanged` visibly in the editor banner and verify portal UI (core returns it; the UIs don't render it yet).
 
 ---
+
+#### ⚠️ P1 progress (2026-06-19) — partial, by design
+
+Three P1 gaps were advanced as far as is correct in-repo (the rest needs infra you own or a
+business decision):
+
+| Gap | Done now | Still needs you |
+|---|---|---|
+| **G-05** ⚠️ | `packages/sign/tests/multi-tenant-custody.test.ts` — a `TenantKeyVault` reference + **5 passing PoC tests** that prove the isolation contract with real Ed25519 (distinct per-tenant identity, verify-under-own-key, session-derived signer, unknown-tenant rejected, **cross-tenant forgery demonstrated**). ERP-FIT §4 points integrators at it. | Implement the vault against a real **KMS/HSM** in Jadwal (swap the in-memory map for a key *handle*); add app-side cross-tenant data-isolation tests. |
+| **G-06** ⚠️ | Trust anchor is **env-gated** (`VITE_UTS_TRUSTED_KEY` / `…_ISSUER`); the dev key is an explicit, flagged fallback (`utsTrustConfigured`) so a placeholder can never read as production trust. Deploy-vs-de-scope decision written up in `docs-internal/ROADMAP.md`. | **The business decision**: deploy the UTS earning/verifying slice, or formally de-scope to ERP-first. (Engineering can't make this call.) |
+| **G-07** ⚠️ | `@dotit/pdf` now emits **consistent Info↔XMP** metadata (Producer/CreatorTool/dates), with a test; README/INTEGRATION **softened** from "validated in CI" to "PDF/A-oriented; veraPDF gate run on demand; font embedding pending". | **Font embedding** (serve an `@font-face` web-font subset) + a **green veraPDF CI run** to confirm — neither is verifiable locally. Then republish `@dotit/pdf`. |
+
+The G-05/G-06/G-07 source changes are committed but **not yet released to npm** (`@dotit/pdf`) /
+redeployed (verify portal) beyond this branch — see the deploy note below.
 
 ### P1 — Enterprise-hardening (next 1–2 quarters)
 
