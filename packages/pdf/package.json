@@ -1,6 +1,6 @@
 {
   "name": "@dotit/pdf",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Server-side PDF generation for IntentText (.it) documents — merge, seal, and render real PDF bytes for emailing and archiving. Opt-in companion to @dotit/core.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@dotit/core": "^1.21.1",
+    "@dotit/core": "^1.22.0",
     "pdf-lib": "^1.17.1"
   },
   "peerDependencies": {
