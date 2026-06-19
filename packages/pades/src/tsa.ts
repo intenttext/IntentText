@@ -82,3 +82,65 @@ export function timestampTokenTime(tstDer: Uint8Array): string | undefined {
     return undefined;
   }
 }
+
+export interface TimestampVerification {
+  /** The token's message imprint matches SHA-256(`data`) — it really timestamps it. */
+  valid: boolean;
+  /** The TSA's asserted time (ISO), if the token parsed. */
+  genTime?: string;
+  /** The TSA signer certificate's subject CN, best-effort. */
+  tsa?: string;
+}
+
+/**
+ * Verify that a TimeStampToken actually anchors `data` — i.e. its RFC-3161 message
+ * imprint equals SHA-256(`data`). This is the trust-critical check the request side
+ * can't make: it proves the token is a timestamp OF THIS content (the seal hash),
+ * not some other data. Returns the asserted `genTime` and the TSA name alongside.
+ *
+ * NOTE: this confirms the imprint binding + parses the asserted time; it does NOT by
+ * itself validate the TSA's certificate chain to a trusted root (do that against your
+ * trusted-TSA list / the system trust store for a full eIDAS-grade check).
+ */
+export async function verifyTimestampToken(
+  tstDer: Uint8Array,
+  data: Uint8Array,
+): Promise<TimestampVerification> {
+  try {
+    const ci = new pkijs.ContentInfo({
+      schema: asn1js.fromBER(ab(tstDer)).result,
+    });
+    const sd = new pkijs.SignedData({ schema: ci.content });
+    const tstInfo = new pkijs.TSTInfo({
+      schema: asn1js.fromBER(
+        (sd.encapContentInfo.eContent as asn1js.OctetString).valueBlock.valueHexView,
+      ).result,
+    });
+    const genTime = tstInfo.genTime.toISOString();
+
+    // The token must use SHA-256 and its imprint must equal SHA-256(data).
+    const usesSha256 =
+      tstInfo.messageImprint.hashAlgorithm.algorithmId === SHA256_OID;
+    const digest = new Uint8Array(await subtle.digest("SHA-256", ab(data)));
+    const imprint = new Uint8Array(
+      tstInfo.messageImprint.hashedMessage.valueBlock.valueHexView,
+    );
+    const valid =
+      usesSha256 &&
+      digest.length === imprint.length &&
+      digest.every((b, i) => b === imprint[i]);
+
+    let tsa: string | undefined;
+    try {
+      const cert = sd.certificates?.[0] as pkijs.Certificate | undefined;
+      tsa = cert?.subject.typesAndValues.find((t) => t.type === "2.5.4.3")?.value
+        .valueBlock.value;
+    } catch {
+      /* no/parse-less cert — leave tsa undefined */
+    }
+
+    return { valid, genTime, tsa };
+  } catch {
+    return { valid: false };
+  }
+}

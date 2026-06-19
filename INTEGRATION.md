@@ -408,6 +408,17 @@ boundary:
 | Cross-organization identity | ed25519 key + a shared CA certifying key↔identity | `@dotit/sign` + `certify:` (certified tiers) |
 | Legal / court | qualified PKI (X.509, eIDAS), trusted timestamp | `@dotit/pades` |
 
+**Trusted time (when did this happen?).** A native `.it` seal proves *what* (content
+unchanged), not *when*: the `at:`/`freeze.at` timestamp is **self-asserted** — the signer
+sets it and could backdate it. For non-repudiable time you need a **trusted RFC-3161
+timestamp** (a TSA countersigns "this hash existed at time T"). The supported anchored
+path is the **PAdES export**: `@dotit/pades` `requestTimestampToken(hash, tsaUrl)` embeds a
+qualified timestamp in the exported PDF (PAdES-T, the eIDAS-durable form), and
+`verifyTimestampToken(token, data)` confirms the token actually binds your seal hash
+(+ returns `genTime`/TSA). A native in-`.it` timestamp *line* is intentionally deferred to
+a future spec — adding it to the `freeze:` line would change the sealed bytes — so today:
+**self-asserted time in `.it`, trusted time via the PAdES export.**
+
 **Level 0 — inside the ERP (the rung Jadwal should implement).** V4 alone is *not*
 enough inside the ERP either, because the signer still comes from a text box. The fix
 is to make the ERP — not the user — supply the identity:
