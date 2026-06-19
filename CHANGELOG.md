@@ -6,6 +6,30 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — ERP merge filters, doc-metadata helper, attachment-mime + dep hardening, TSA verify (`@dotit/core` 1.23.0, `@dotit/pades` 1.0.1)
+
+P2/P3 gaps from the assessment (`assessment/`), most ERP-facing:
+
+- **Merge display filters (G-15).** Placeholders take `Intl` filters — `{{amount|currency:QAR}}`,
+  `number[:dp]`, `percent`, `date[:style]`, `upper`/`lower`/`trim` — locale-aware and fail-soft.
+  Philosophy: **the ERP computes, `.it` formats**. Pipe takes no surrounding spaces (` | ` is the
+  reserved property delimiter). See INTEGRATION.md §2.7.
+- **`extractDocumentMetadata(source)` (G-16).** A flat, RDBMS-friendly record
+  (`title/type/status/fields/metrics/sealed/signed/signers/frozenAt/contentHash`) so an ERP indexes
+  `.it` into its own tables and keeps reporting in the database — `.it` is the sealed artifact, not
+  the query store.
+- **Attachment mime sanitized (G-21).** `attachmentDataUri` now passes the mime through a default-deny
+  allowlist (`safePreviewMime`); `text/html` / `image/svg+xml` downgrade to `application/octet-stream`,
+  so a hostile attachment can't render script inline (stored-XSS).
+- **Dependency hardening (G-20).** `@types/node` → devDependencies; `node-html-parser` pinned exact
+  (7.1.0, the SVG/HTML sanitizer); `engines: node >=18`.
+- **`@dotit/pades` `verifyTimestampToken` (G-10).** Confirms an RFC-3161 TimeStampToken's message
+  imprint equals SHA-256(data) — i.e. it really anchors the seal hash — and returns `genTime`/TSA.
+  Native `.it` `at:` remains **self-asserted**; trusted time is the PAdES export (PAdES-T).
+- **Tauri→Electron cleanup (G-14).** Dropped the dead `cargo`/`src-tauri` dependabot job; desktop fs
+  IPC is capability-scoped (G-12). CI now tests pdf/pades/math + the editor package + desktop, and
+  `pnpm -r test` exits 0 (G-11).
+
 ### Security — SEAL_SPEC v4: close the styling-hide forgery, the CRLF seal break, and presence-based CERTIFIED (`@dotit/core` 1.22.0)
 
 Three P0 fixes from the deep security assessment (`assessment/`). Old seals keep verifying under

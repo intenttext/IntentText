@@ -1,6 +1,6 @@
 {
   "name": "@dotit/pades",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "PAdES (PDF Advanced Electronic Signatures) for IntentText — export a sealed .it as a digitally-signed PDF (ECDSA P-256 + X.509 + CMS) that Adobe/readers recognize. The standards bridge on top of @dotit/sign's native Ed25519 trust.",
   "type": "module",
   "main": "dist/index.js",
@@ -15,16 +15,31 @@
   "bin": {
     "dotit-pades": "./cli.mjs"
   },
-  "files": ["dist", "cli.mjs", "README.md"],
+  "files": [
+    "dist",
+    "cli.mjs",
+    "README.md"
+  ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "test": "vitest run",
     "dev": "tsc --watch"
   },
-  "keywords": ["intenttext", "pades", "pdf", "signature", "x509", "ecdsa", "eidas", "trust"],
+  "keywords": [
+    "intenttext",
+    "pades",
+    "pdf",
+    "signature",
+    "x509",
+    "ecdsa",
+    "eidas",
+    "trust"
+  ],
   "author": "UTS",
   "license": "MIT",
-  "publishConfig": { "access": "public" },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@signpdf/placeholder-plain": "^3.2.4",
     "@signpdf/signpdf": "^3.2.4",
