@@ -14,7 +14,7 @@
     "dist:mac": "pnpm run build && electron-builder --mac"
   },
   "dependencies": {
-    "@dotit/core": "^1.21.2",
+    "@dotit/core": "^1.22.0",
     "@dotit/editor": "^1.16.1",
     "@dotit/sign": "^1.4.2",
     "chokidar": "^4.0.1",

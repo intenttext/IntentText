@@ -14,8 +14,8 @@ importers:
   apps/desktop:
     dependencies:
       '@dotit/core':
-        specifier: ^1.21.2
-        version: 1.21.2
+        specifier: ^1.22.0
+        version: 1.22.0
       '@dotit/editor':
         specifier: ^1.16.1
         version: 1.16.1(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -121,8 +121,8 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.6)
       '@dotit/core':
-        specifier: ^1.21.2
-        version: 1.21.2
+        specifier: ^1.22.0
+        version: 1.22.0
       '@dotit/editor':
         specifier: ^1.16.1
         version: 1.16.1(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -207,8 +207,8 @@ importers:
   apps/verify:
     dependencies:
       '@dotit/core':
-        specifier: ^1.21.1
-        version: 1.21.2
+        specifier: ^1.22.0
+        version: 1.22.0
       '@dotit/sign':
         specifier: ^1.4.2
         version: 1.4.2
@@ -1807,6 +1807,10 @@ packages:
 
   '@dotit/core@1.21.2':
     resolution: {integrity: sha512-VKf9ld/NNS70GloRij25/64C/2D7Su+8ge9+Z9I0WiytN7KwUUP2X293cMaV4V1DOqvh8zJQOwusomHrFEnL2A==}
+    hasBin: true
+
+  '@dotit/core@1.22.0':
+    resolution: {integrity: sha512-3HvTsw79rXAh1J3A4cAKD2nd2D5FbiVCRlU0GEHF9NEkHkpVnhTrHYc2gcaJilFQR1JUnWciiqYUvM3gT55FLw==}
     hasBin: true
 
   '@dotit/editor@1.16.1':
@@ -12305,9 +12309,15 @@ snapshots:
       fflate: 0.8.3
       node-html-parser: 7.1.0
 
+  '@dotit/core@1.22.0':
+    dependencies:
+      '@types/node': 20.19.41
+      fflate: 0.8.3
+      node-html-parser: 7.1.0
+
   '@dotit/editor@1.16.1(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
-      '@dotit/core': 1.21.2
+      '@dotit/core': 1.22.0
       '@tiptap/core': 3.23.6(@tiptap/pm@3.23.6)
       '@tiptap/extension-color': 3.23.6(@tiptap/extension-text-style@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6)))
       '@tiptap/extension-font-family': 3.23.6(@tiptap/extension-text-style@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6)))
@@ -12344,7 +12354,7 @@ snapshots:
 
   '@dotit/sign@1.4.2':
     dependencies:
-      '@dotit/core': 1.21.2
+      '@dotit/core': 1.22.0
       '@noble/curves': 1.9.7
 
   '@electron/asar@3.4.1':
