@@ -6,12 +6,44 @@ import {
   addAttachment,
   removeAttachment,
   attachmentDataUri,
+  safePreviewMime,
   isFormComplete,
   isTemplate,
   sealDocument,
   verifyDocument,
   FORM_FIELD_TYPES,
 } from "../src/index";
+
+describe("G-21: attachment preview mime is sanitized (no inline script)", () => {
+  const b64 = Buffer.from("hello").toString("base64");
+  it("downgrades script-capable types to application/octet-stream", () => {
+    for (const m of [
+      "text/html",
+      "image/svg+xml",
+      "application/xhtml+xml",
+      "application/javascript",
+      "text/html; charset=utf-8",
+      "TEXT/HTML",
+    ]) {
+      expect(safePreviewMime(m)).toBe("application/octet-stream");
+    }
+  });
+  it("keeps safe raster/pdf/text types", () => {
+    expect(safePreviewMime("image/png")).toBe("image/png");
+    expect(safePreviewMime("application/pdf")).toBe("application/pdf");
+    expect(safePreviewMime("text/plain")).toBe("text/plain");
+  });
+  it("attachmentDataUri never emits a script-capable data: URI", () => {
+    const uri = attachmentDataUri({
+      key: "x",
+      name: "evil.html",
+      mime: "text/html",
+      data: b64,
+    });
+    expect(uri).toBe(`data:application/octet-stream;base64,${b64}`);
+    expect(uri).not.toContain("text/html");
+  });
+});
 
 const HELLO = Buffer.from("Hello PDF").toString("base64"); // "SGVsbG8gUERG"
 

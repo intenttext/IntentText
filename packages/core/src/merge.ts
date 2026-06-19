@@ -47,6 +47,97 @@ function getSystemVariable(key: string): string | undefined {
   }
 }
 
+/** Coerce a merged value to a number for numeric filters (strips grouping/spaces). */
+function toFilterNumber(v: unknown): number {
+  if (typeof v === "number") return v;
+  return parseFloat(String(v).replace(/[,\s]/g, ""));
+}
+
+/**
+ * Apply ONE display filter to a value. The philosophy is "**the ERP computes, `.it`
+ * formats**": business math (totals, tax, FX) stays in the ERP and arrives in the merge
+ * data; these filters only PRESENT it. All are locale-aware via `Intl` and fail soft
+ * (return the value unchanged on a bad arg / non-number), so a template never breaks.
+ *   currency:CODE[:locale]  →  1234.5 | currency:QAR        → "QAR 1,234.50"
+ *   number[:dp][:locale]    →  1234.5 | number:2           → "1,234.50"
+ *   percent[:locale]        →  0.05   | percent            → "5%"
+ *   date[:style][:locale]   →  2026-07-01 | date:long      → "July 1, 2026"
+ *   upper | lower | trim
+ */
+function applyMergeFilter(v: unknown, name: string, arg: string): unknown {
+  // Empty-segment-safe arg parsing ("".split(":") is [""], not []).
+  const parts = arg.split(":");
+  const part = (i: number, dflt: string) => parts[i] || dflt;
+  switch (name) {
+    case "currency": {
+      const n = toFilterNumber(v);
+      if (!Number.isFinite(n)) return v;
+      try {
+        return new Intl.NumberFormat(part(1, "en-US"), {
+          style: "currency",
+          currency: part(0, "USD").toUpperCase(),
+        }).format(n);
+      } catch {
+        return v;
+      }
+    }
+    case "number": {
+      const n = toFilterNumber(v);
+      if (!Number.isFinite(n)) return v;
+      const dp = parts[0];
+      const opts: Intl.NumberFormatOptions = dp
+        ? { minimumFractionDigits: +dp, maximumFractionDigits: +dp }
+        : {};
+      try {
+        return new Intl.NumberFormat(part(1, "en-US"), opts).format(n);
+      } catch {
+        return v;
+      }
+    }
+    case "percent": {
+      const n = toFilterNumber(v);
+      if (!Number.isFinite(n)) return v;
+      try {
+        return new Intl.NumberFormat(part(0, "en-US"), {
+          style: "percent",
+          maximumFractionDigits: 2,
+        }).format(n);
+      } catch {
+        return v;
+      }
+    }
+    case "date": {
+      const d = new Date(String(v));
+      if (Number.isNaN(d.getTime())) return v;
+      try {
+        return new Intl.DateTimeFormat(part(1, "en-US"), {
+          dateStyle: part(0, "medium") as "full" | "long" | "medium" | "short",
+        }).format(d);
+      } catch {
+        return v;
+      }
+    }
+    case "upper":
+      return String(v).toUpperCase();
+    case "lower":
+      return String(v).toLowerCase();
+    case "trim":
+      return String(v).trim();
+    default:
+      return v; // unknown filter — pass the value through unchanged
+  }
+}
+
+/** Apply a chain of `| filter:arg` segments (after the path) to a resolved value. */
+function applyMergeFilters(value: unknown, filters: string[]): string {
+  let v: unknown = value;
+  for (const f of filters) {
+    const [nameRaw, ...argParts] = f.split(":");
+    v = applyMergeFilter(v, nameRaw.trim().toLowerCase(), argParts.join(":").trim());
+  }
+  return v === undefined || v === null ? "" : String(v);
+}
+
 function resolveString(
   str: string,
   data: Record<string, unknown>,
@@ -56,33 +147,38 @@ function resolveString(
   if (!str.includes("{{")) return { resolved: str, hasUnresolved: false };
 
   let hasUnresolved = false;
-  const resolved = str.replace(/\{\{([^}]+)\}\}/g, (match, rawPath) => {
-    const path = rawPath.trim();
+  const resolved = str.replace(/\{\{([^}]+)\}\}/g, (match, rawExpr) => {
+    // `{{ path | filter:arg | filter2 }}` — the path is the first segment, the rest
+    // are display filters (currency/number/date/…). Plain `{{path}}` is unchanged.
+    const segments = String(rawExpr).split("|");
+    const path = segments[0].trim();
+    const filters = segments.slice(1).map((s) => s.trim()).filter(Boolean);
     // Reject suspiciously long paths
     if (path.length > 200) {
       hasUnresolved = true;
       return match;
     }
 
-    // Runtime variables — leave as-is
+    // Runtime variables — leave as-is (filters don't apply to deferred {{page}} etc.)
     if (RUNTIME_VARIABLES.has(path)) return match;
 
     // System variables
     if (SYSTEM_VARIABLES.has(path)) {
       const sysVal = getSystemVariable(path);
-      if (sysVal !== undefined) return sysVal;
+      if (sysVal !== undefined) return applyMergeFilters(sysVal, filters);
     }
 
     // Agent variable — resolve from metadata
     if (path === "agent") {
-      if (agentName) return agentName;
+      if (agentName) return applyMergeFilters(agentName, filters);
       hasUnresolved = true;
       return match;
     }
 
     // Data lookup (supports dot notation and array indices)
     const value = getByPath(data, path);
-    if (value !== undefined && value !== null) return String(value);
+    if (value !== undefined && value !== null)
+      return applyMergeFilters(value, filters);
 
     // Unresolved data path. In "blank" mode (production printing) render it empty
     // so an invoice never shows a literal `{{customer.phone}}`; in "keep" mode

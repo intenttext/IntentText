@@ -184,8 +184,29 @@ export function removeAttachment(source: string, key: string): string {
     .join("\n");
 }
 
-/** A `data:<mime>;base64,<data>` URI for download/preview, or null if not embedded. */
+/**
+ * Mime types SAFE to render inline from a `data:` URI — raster images, PDF, and plain
+ * text/JSON/CSV. Default-deny: anything else (notably `text/html`, `image/svg+xml`,
+ * `application/xhtml+xml`, script types) is served as `application/octet-stream`, which
+ * a browser DOWNLOADS instead of executing. An attachment carries an attacker-chosen
+ * mime, so without this a `data:text/html` / `data:image/svg+xml` preview is a
+ * host-dependent stored-XSS vector (G-21). Hosts should still render previews sandboxed.
+ */
+const SAFE_PREVIEW_MIME = new Set([
+  "image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp", "image/x-icon",
+  "application/pdf", "text/plain", "text/csv", "application/json",
+]);
+
+/** Normalize an attachment mime to a safe-to-inline type, else octet-stream. */
+export function safePreviewMime(mime: string | undefined): string {
+  const m = (mime || "").trim().toLowerCase().split(";")[0].trim();
+  return SAFE_PREVIEW_MIME.has(m) ? m : "application/octet-stream";
+}
+
+/** A `data:<mime>;base64,<data>` URI for download/preview, or null if not embedded.
+ *  The mime is sanitized (see safePreviewMime) so a hostile attachment can never get a
+ *  script-capable type (html/svg) rendered inline. */
 export function attachmentDataUri(att: Attachment): string | null {
   if (!att.data) return null;
-  return `data:${att.mime};base64,${att.data.replace(/\s+/g, "")}`;
+  return `data:${safePreviewMime(att.mime)};base64,${att.data.replace(/\s+/g, "")}`;
 }

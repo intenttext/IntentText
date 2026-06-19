@@ -191,6 +191,7 @@ export {
   addAttachment,
   removeAttachment,
   attachmentDataUri,
+  safePreviewMime,
   MAX_EMBED_BYTES,
 } from "./attachments";
 export type { Attachment } from "./attachments";
@@ -251,6 +252,7 @@ export { detectHistoryBoundary } from "./trust";
 export {
   buildShallowIndex,
   buildIndexEntry,
+  extractDocumentMetadata,
   checkStaleness,
   updateIndex,
   composeIndexes,
@@ -264,6 +266,7 @@ export type {
   IndexFileEntry,
   IndexBlockEntry,
   ComposedResult,
+  DocumentMetadata,
 } from "./index-builder";
 // v2.10 natural language query
 export { askDocuments, serializeContext } from "./ask";

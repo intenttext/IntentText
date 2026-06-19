@@ -232,6 +232,24 @@ Merge with `parseAndMerge(templateSource, data, { missing: "blank" })` —
 `"keep"` shows the literal marker (authoring aid). **Never hand-interpolate**
 strings into templates; the merge engine handles escaping and row expansion.
 
+**Display filters (the ERP computes, `.it` formats).** A placeholder can carry `Intl`
+display filters — `{{value|filter:arg}}`. Business math (totals, tax, FX) stays in your
+ERP and arrives in the merge data; the filters only *present* it, locale-aware, and fail
+soft (a bad arg or non-number leaves the value unchanged, so a template never breaks):
+
+| Filter | Example | Output |
+| --- | --- | --- |
+| `currency:CODE[:locale]` | `{{totals.due|currency:QAR}}` | `QAR 17,325.00` |
+| `number[:dp][:locale]` | `{{qty|number:2}}` | `1,000.00` |
+| `percent[:locale]` | `{{totals.taxRate|percent}}` | `5%` (value is a fraction, `0.05`) |
+| `date[:style][:locale]` | `{{invoice.date|date:long}}` | `July 1, 2026` |
+| `upper` · `lower` · `trim` | `{{code|upper}}` | `INV-2026` |
+
+Filters compose left-to-right (`{{c|trim|upper}}`). **Syntax note:** write the pipe with
+**no surrounding spaces** (`{{amount|currency:QAR}}`) — a space-pipe-space (` | `) is `.it`'s
+reserved line-level property delimiter, so the parser would split it first. Spaces at the
+braces are fine (`{{ amount|currency:QAR }}`).
+
 ### 2.8 Arabic and bidi
 
 Whole documents can be written in Arabic — 33 registered aliases give Arabic

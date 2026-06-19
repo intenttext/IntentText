@@ -9,6 +9,7 @@
 import { IntentDocument, IntentBlock } from "./types";
 import { flattenBlocks } from "./utils";
 import { effectiveField } from "./defaults";
+import { parseIntentText } from "./parser";
 
 // ── Types ───────────────────────────────────────────────
 
@@ -119,6 +120,82 @@ export function buildIndexEntry(
     modified_at: modifiedAt,
     metadata: meta,
     blocks,
+  };
+}
+
+/**
+ * Flat, RDBMS-friendly metadata for a single `.it` document (G-16).
+ *
+ * The recommended ERP posture is: a `.it` is the **generated/sealed artifact**, and you
+ * index its metadata into your OWN relational tables so reporting stays in the database
+ * you already operate (rather than treating a folder of `.it` files as the query store).
+ * This helper is the bridge — call it when you store/update a document and upsert the
+ * result into your tables (e.g. a `documents` row + a `document_metrics` child table):
+ *
+ *   const m = extractDocumentMetadata(source);
+ *   // m.type, m.status, m.title, m.contentHash, m.sealed, m.signers, m.metrics{...}
+ *
+ * Pure (no I/O), zero-dependency, and stable: the same source yields the same record.
+ */
+export interface DocumentMetadata {
+  title?: string;
+  /** `meta: | type:` — your document class (invoice, contract, …). */
+  type?: string;
+  /** `meta: | domain:` and `meta: | status:` if present. */
+  domain?: string;
+  status?: string;
+  /** Every `meta:` field, flattened to strings (type/status/client/…). */
+  fields: Record<string, string>;
+  /** Each `metric:` block as name → value (e.g. "Total Due" → "17,325 QAR"). */
+  metrics: Record<string, string>;
+  /** Carries a `freeze:` seal. */
+  sealed: boolean;
+  /** Carries at least one `sign:` line. */
+  signed: boolean;
+  signers: Array<{ signer: string; role?: string; at: string }>;
+  /** When the document was sealed, if sealed. */
+  frozenAt?: string;
+  /** The seal/signature content hash — a stable key for dedup / cross-referencing. */
+  contentHash?: string;
+}
+
+export function extractDocumentMetadata(source: string): DocumentMetadata {
+  const doc = parseIntentText(source);
+  const meta = doc.metadata ?? {};
+
+  const fields: Record<string, string> = {};
+  if (meta.meta) {
+    for (const [k, v] of Object.entries(meta.meta)) {
+      if (v !== undefined && v !== null && v !== "") fields[k] = String(v);
+    }
+  }
+
+  const metrics: Record<string, string> = {};
+  for (const b of flattenBlocks(doc.blocks)) {
+    if (b.type === "metric" && b.content) {
+      const val = b.properties?.value;
+      if (val !== undefined && val !== null) metrics[b.content] = String(val);
+    }
+  }
+
+  const signers = (meta.signatures ?? []).map((s) => ({
+    signer: s.signer,
+    role: s.role,
+    at: s.at,
+  }));
+
+  return {
+    title: meta.title,
+    type: fields.type,
+    domain: fields.domain,
+    status: fields.status,
+    fields,
+    metrics,
+    sealed: !!meta.freeze,
+    signed: signers.length > 0,
+    signers,
+    frozenAt: meta.freeze?.at,
+    contentHash: meta.freeze?.hash ?? meta.signatures?.[0]?.hash,
   };
 }
 
