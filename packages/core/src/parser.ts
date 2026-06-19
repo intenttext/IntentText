@@ -718,6 +718,11 @@ function parseLine(
   const keywordMatch = trimmed.match(/^(\p{L}[\p{L}\p{N}-]*):\s*(.*)$/u);
   if (keywordMatch) {
     const keyword = keywordMatch[1].toLowerCase();
+    // Preserve the AS-WRITTEN keyword for unknown (custom/extension) blocks so a
+    // `Note:`/`Ref:` line round-trips with its original case (lowercasing it broke
+    // byte-preservation and surprised authors). The lowercased `keyword` is used only
+    // for registry lookup; the original is what we store + re-emit. (G-18)
+    const originalKeyword = keywordMatch[1];
     const rest = keywordMatch[2];
 
     const isKnown = ctx.keywords.has(keyword);
@@ -742,7 +747,7 @@ function parseLine(
           content: cleanContent,
           originalContent: trimmed,
           inline,
-          properties: { keyword },
+          properties: { keyword: originalKeyword },
         };
       }
 
@@ -750,7 +755,7 @@ function parseLine(
       const customParts = splitPipeMetadata(rest);
       const customContent = unescapeIntentText(customParts[0] || "");
       const customProps: Record<string, string | number> = Object.create(null);
-      customProps["keyword"] = keyword;
+      customProps["keyword"] = originalKeyword;
       for (let i = 1; i < customParts.length; i++) {
         const seg = customParts[i];
         const pm = seg.match(/^([^:]+):\s*(.*)$/);
