@@ -34,7 +34,7 @@ jobs:
     outputs:
       version: ${{ steps.v.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: v
         name: Resolve + verify version
         run: |
@@ -57,7 +57,7 @@ jobs:
         platform: [macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v4
