@@ -101,10 +101,12 @@ The signing API takes a single `privateKey` per call: `signDocumentCrypto(source
 
 1. **A per-tenant key vault** backed by an HSM or cloud KMS — never store raw private keys in a DB column. One key per client company.
 2. **Authenticate-then-lookup:** authenticated session → resolve tenant → fetch that tenant's signing key. `signer` and `role` come from the **session**, never from a user-editable text box (this closes the "type someone else's name and click sign" gap).
-3. **Hard isolation tests:** assert that a request authenticated as Tenant A can never load Tenant B's key, and that one tenant's data is never merged into another's document. *Note: a cross-tenant forgery PoC was asserted in the audit but never actually demonstrated — validate it yourself before you rely on the XL-severity framing, but build the isolation regardless.*
+3. **Hard isolation tests:** assert that a request authenticated as Tenant A can never load Tenant B's key, and that one tenant's data is never merged into another's document.
 4. **Data isolation** (which `.it` belongs to which tenant) is ERP-side, in your existing row-level tenant scoping — the `.it` file does not help here.
 
 Get this wrong and one client company can forge another's signatures. This is the single most important piece of work the integrator owns, and there is no library shortcut.
+
+> **Reference pattern shipped (G-05).** `packages/sign/tests/multi-tenant-custody.test.ts` is the executable reference: a `TenantKeyVault` whose **only** signing entry point is `signFor(session, source)` — the private key is selected by the session's tenant and never exposed (no `getPrivateKey()`), and `signer`/`role` come from the authenticated **session**, never a request body. The five PoC tests now prove the isolation contract with real Ed25519 crypto: each tenant gets a distinct identity; a signature verifies only under its own published key; the signer is session-derived; an unknown tenant cannot sign; and **the cross-tenant forgery IS demonstrated** — re-stamping tenant A's signature with tenant B's key makes `verifyDocumentSignatures` fail (impersonation is caught). Port this shape into Jadwal, swapping the in-memory `#keys` map for your KMS/HSM (the vault holds a key *handle* and signs via the HSM — raw key bytes never enter app memory).
 
 ---
 
