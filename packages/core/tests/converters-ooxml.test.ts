@@ -156,3 +156,36 @@ section: Data
     expect(back).toContain("section: My Section");
   });
 });
+
+describe("OOXML converters — DOCX inline emphasis (G-17)", () => {
+  it("it->docx encodes *bold* / _italic_ / ~strike~ as real runs", () => {
+    const docx = convertIntentTextToDocx(
+      "text: The *bold* and _italic_ and ~struck~ words.",
+    );
+    const xml = strFromU8(unzipSync(docx)["word/document.xml"]);
+    expect(xml).toContain("<w:b/>");
+    expect(xml).toContain("<w:i/>");
+    expect(xml).toContain("<w:strike/>");
+    // the emphasized words are split into their own runs (not one flat run)
+    expect(xml).toContain("<w:t xml:space=\"preserve\">bold</w:t>");
+  });
+
+  it("round-trips bold/italic/strike emphasis through docx and back", () => {
+    const src = "text: A *bold* word, an _italic_ word, a ~struck~ word.";
+    const back = convertDocxToIntentText(convertIntentTextToDocx(src));
+    expect(back).toContain("*bold*");
+    expect(back).toContain("_italic_");
+    expect(back).toContain("~struck~");
+  });
+
+  it("plain text (no marks) stays a single clean run", () => {
+    const xml = strFromU8(
+      unzipSync(convertIntentTextToDocx("text: plain words here"))[
+        "word/document.xml"
+      ],
+    );
+    expect(xml).not.toContain("<w:b/>");
+    expect(xml).not.toContain("<w:strike/>");
+    expect(xml).toContain("plain words here");
+  });
+});

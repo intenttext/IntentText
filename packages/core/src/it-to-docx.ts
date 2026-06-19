@@ -23,12 +23,44 @@ export interface ItToDocxOptions {
   _reserved?: never;
 }
 
-/** Build the runs XML for a paragraph's plain text (split on newlines → breaks). */
+/**
+ * Build the runs XML for a paragraph, honoring `.it` inline emphasis so it survives
+ * the round-trip (G-17): `*bold*` → <w:b/>, `_italic_` → <w:i/>, `~strike~` →
+ * <w:strike/>, `` `code` `` → a monospace run. `bold` forces bold across the whole
+ * paragraph (headings / table-header cells). Marks are treated as non-nesting (as in
+ * `.it`); an unmatched mark stays literal.
+ */
 function runsXml(text: string, bold = false): string {
-  const safe = escapeXml(text);
-  const rPr = bold ? "<w:rPr><w:b/></w:rPr>" : "";
-  // Preserve spaces.
-  return `<w:r>${rPr}<w:t xml:space="preserve">${safe}</w:t></w:r>`;
+  const emit = (
+    s: string,
+    f: { b?: boolean; i?: boolean; strike?: boolean; code?: boolean },
+  ): string => {
+    if (s === "") return "";
+    const props: string[] = [];
+    if (bold || f.b) props.push("<w:b/>");
+    if (f.i) props.push("<w:i/>");
+    if (f.strike) props.push("<w:strike/>");
+    if (f.code) props.push('<w:rFonts w:ascii="Consolas" w:hAnsi="Consolas"/>');
+    const rPr = props.length ? `<w:rPr>${props.join("")}</w:rPr>` : "";
+    return `<w:r>${rPr}<w:t xml:space="preserve">${escapeXml(s)}</w:t></w:r>`;
+  };
+
+  const re = /(\*[^*\n]+\*|_[^_\n]+_|~[^~\n]+~|`[^`\n]+`)/g;
+  let out = "";
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) out += emit(text.slice(last, m.index), {});
+    const tok = m[0];
+    const inner = tok.slice(1, -1);
+    if (tok[0] === "*") out += emit(inner, { b: true });
+    else if (tok[0] === "_") out += emit(inner, { i: true });
+    else if (tok[0] === "~") out += emit(inner, { strike: true });
+    else out += emit(inner, { code: true });
+    last = re.lastIndex;
+  }
+  if (last < text.length) out += emit(text.slice(last), {});
+  return out || emit("", {}) || `<w:r><w:t xml:space="preserve"></w:t></w:r>`;
 }
 
 function paragraphXml(text: string, style?: string, bold = false): string {
@@ -77,6 +109,42 @@ function tableXml(headers: string[], rows: string[][]): string {
   return `<w:tbl>${tblPr}${trXml}</w:tbl>`;
 }
 
+/**
+ * Reconstruct the inline-marker text (`*bold*` / `_italic_` / `~strike~` / `` `code` ``)
+ * from a block's parsed inline nodes, so runsXml can re-encode emphasis as docx runs
+ * (G-17). `block.content` has the marks stripped; the marks live in `block.inline`.
+ * Falls back to plain content when there are no inline nodes.
+ */
+function inlineMarkers(block: IntentBlock): string {
+  const nodes = block.inline;
+  if (!nodes || nodes.length === 0) return block.content || "";
+  let out = "";
+  for (const n of nodes) {
+    const v =
+      (n as { value?: string }).value ??
+      (n as { content?: string }).content ??
+      "";
+    switch (n.type) {
+      case "bold":
+        out += `*${v}*`;
+        break;
+      case "italic":
+        out += `_${v}_`;
+        break;
+      case "strike":
+        out += `~${v}~`;
+        break;
+      case "code":
+        out += `\`${v}\``;
+        break;
+      default:
+        out += v;
+        break;
+    }
+  }
+  return out || block.content || "";
+}
+
 /** Walk the doc tree, emitting body XML in order. */
 function buildBody(doc: IntentDocument): string {
   const body: string[] = [];
@@ -85,22 +153,22 @@ function buildBody(doc: IntentDocument): string {
     for (const block of blocks) {
       switch (block.type) {
         case "title":
-          body.push(paragraphXml(block.content || "", "Title"));
+          body.push(paragraphXml(inlineMarkers(block), "Title"));
           break;
         case "section":
-          body.push(paragraphXml(block.content || "", "Heading1"));
+          body.push(paragraphXml(inlineMarkers(block), "Heading1"));
           break;
         case "sub":
-          body.push(paragraphXml(block.content || "", "Heading2"));
+          body.push(paragraphXml(inlineMarkers(block), "Heading2"));
           break;
         case "summary":
-          body.push(paragraphXml(block.content || "", "Subtitle"));
+          body.push(paragraphXml(inlineMarkers(block), "Subtitle"));
           break;
         case "list-item":
-          body.push(listParagraphXml(block.content || "", false));
+          body.push(listParagraphXml(inlineMarkers(block), false));
           break;
         case "step-item":
-          body.push(listParagraphXml(block.content || "", true));
+          body.push(listParagraphXml(inlineMarkers(block), true));
           break;
         case "table":
           if (block.table)
@@ -134,7 +202,7 @@ function buildBody(doc: IntentDocument): string {
           // metadata / layout — skipped in the document body
           break;
         default: {
-          const content = block.content || "";
+          const content = inlineMarkers(block);
           if (content.trim() !== "") body.push(paragraphXml(content));
           break;
         }

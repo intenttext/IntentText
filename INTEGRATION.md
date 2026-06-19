@@ -1191,10 +1191,11 @@ Binaries: `intenttext-mcp` (stdio), `intenttext-mcp-http` (Streamable HTTP on
 2. **Escaping:** only ` | ` (space-pipe-space) splits properties; `a|b` is
    literal. Write a literal ` | ` as `\|`, a literal backslash as `\\`. The
    serializer re-escapes, so round-trips are a fixpoint.
-3. **CRLF breaks seals.** The hash covers exact bytes, LF-joined. A sealed file
-   re-saved with CRLF (Windows editors, `git config core.autocrlf true`) fails
-   verification. Store the string `sealDocument` returns, untouched; add
-   `*.it text eol=lf` to `.gitattributes`.
+3. **CRLF no longer breaks seals (v4+).** As of `SEAL_SPEC 4` (core 1.22) the hash
+   normalizes line endings (`CRLF`/lone-`CR` → `LF`) and trailing whitespace before
+   hashing, so an `LF`↔`CRLF` re-save (Windows editors, `git autocrlf`) keeps an
+   untampered seal intact. (Pre-v4 seals remain CRLF-fragile under their recorded spec.)
+   `*.it text eol=lf` in `.gitattributes` is still good hygiene.
 4. **`meta:` does not survive `documentToSource`.** `meta:` lines are extracted
    into `doc.metadata` and are not blocks, so parse → serialize drops them. This
    also means `issueDocument`/`issuePDF` (which serialize the merged template
@@ -1240,10 +1241,19 @@ Binaries: `intenttext-mcp` (stdio), `intenttext-mcp-http` (Streamable HTTP on
     presentation (`page:`/`font:`/`style:` lines, color/size/align/etc. props) from the
     hash — theme and layout changes leave `intact` true. It also covers the `freeze:`
     metadata and each signer's identity, so editing `at:`/`status:` or a signer's
-    name/role/date *does* break the seal/signature.
+    name/role/date *does* break the seal/signature. A post-seal restyle that *hides*
+    content (`opacity:0`, white-on-white) keeps `intact` true but trips
+    `verifyDocument().appearanceChanged`, and trust surfaces render **bare** — so hidden
+    content is never silent.
+16. **Office (DOCX/XLSX) conversion is a best-effort bridge, not faithful interop.**
+    `convertIntentTextToDocx`/`convertDocxToIntentText` (and the xlsx pair) cover
+    structure + inline emphasis (`*bold*`/`_italic_`/`~strike~` round-trip as real Word
+    runs; headings ↔ `section:`/`sub:`; tables; lists). They do **not** preserve colors,
+    fonts, inline code, images, comments, or arbitrary Word styling — treat them as
+    import/export convenience, and keep `.it` (or the sealed PDF) as the system of record.
 
 ---
 
-*Generated from the IntentText monorepo at `@dotit/core` 1.22.0 / `@dotit/editor`
+*Generated from the IntentText monorepo at `@dotit/core` 1.23.0 / `@dotit/editor`
 1.16.1 (SEAL_SPEC 4) — every runnable claim executed against the built packages.
 Corrections: open an issue at https://github.com/intenttext/IntentText/issues.*

@@ -59,21 +59,22 @@ function paragraphText(pInner: string): string {
     const rPr = findElements(r.inner, "rPr")[0];
     let bold = false;
     let italic = false;
+    let strike = false;
     if (rPr) {
-      const b = findElements(rPr.inner, "b")[0];
-      if (b && attr(b.open, "val") !== "false" && attr(b.open, "val") !== "0")
-        bold = true;
-      const it = findElements(rPr.inner, "i")[0];
-      if (
-        it &&
-        attr(it.open, "val") !== "false" &&
-        attr(it.open, "val") !== "0"
-      )
-        italic = true;
+      const on = (tag: string): boolean => {
+        const el = findElements(rPr.inner, tag)[0];
+        return !!el && attr(el.open, "val") !== "false" && attr(el.open, "val") !== "0";
+      };
+      bold = on("b");
+      italic = on("i");
+      strike = on("strike");
     }
     let piece = raw;
+    // Map to a .it inline mark (one per run; bold > italic > strike). `.it` marks
+    // don't nest, so a run with multiple is rendered with its dominant mark. (G-17)
     if (bold && piece.trim()) piece = `*${piece.trim()}*`;
     else if (italic && piece.trim()) piece = `_${piece.trim()}_`;
+    else if (strike && piece.trim()) piece = `~${piece.trim()}~`;
     result += piece;
   }
   return result;
