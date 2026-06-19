@@ -1,5 +1,8 @@
 // Copy-paste ERP integration example (Fastify).
-// Provides /render-html, /render-pdf, /replay-html orchestration using core + runtime.
+// Provides /render-html, /render-pdf, /replay-html orchestration using @dotit/core
+// for parse/merge/render, plus the optional puppeteer-backed PDF helper
+// (./intenttext-pdf.server.mjs) for real PDF bytes. Same APIs as erp-service.mjs,
+// just wrapped in Fastify routes. Run `npm i fastify` first.
 
 import Fastify from "fastify";
 import path from "node:path";
@@ -77,17 +80,6 @@ async function loadCore() {
   return loadModule(["@dotit/core", localCore]);
 }
 
-async function loadRuntime() {
-  const localRuntime = path.resolve(
-    process.cwd(),
-    "packages",
-    "pdf-runtime",
-    "dist",
-    "index.js",
-  );
-  return loadModule(["@dotit/pdf-runtime", localRuntime]);
-}
-
 function normalizeHtml(html) {
   return String(html).replace(/\s+/g, " ").replace(/>\s+</g, "><").trim();
 }
@@ -116,7 +108,6 @@ async function applyArtifactMigrations(artifact) {
 }
 
 const core = await loadCore();
-const runtime = await loadRuntime();
 
 app.post("/render-html", async (req, reply) => {
   try {
@@ -164,15 +155,17 @@ app.post("/render-pdf", async (req, reply) => {
         });
     }
 
-    const result = await runtime.createPdf({
-      template,
-      data,
-      pdf: req.body?.pdf,
-    });
+    // Optional dependency: puppeteer (npm i puppeteer). The HTML route works
+    // without it; this route 503s with a typed error when missing. Same helper
+    // and lifecycle as erp-service.mjs.
+    const { renderDocumentPDF } = await import("./intenttext-pdf.server.mjs");
+    const started = Date.now();
+    const pdf = await renderDocumentPDF(template, data, { theme: req.body?.theme });
+    const doc = core.parseAndMerge(template, data);
     return reply.code(200).send({
-      html: result.html,
-      pdfBase64: Buffer.from(result.pdf).toString("base64"),
-      metrics: result.metrics || null,
+      html: core.renderHTML(doc),
+      pdfBase64: Buffer.from(pdf).toString("base64"),
+      metrics: { durationMs: Date.now() - started },
     });
   } catch (error) {
     const e = classifyError(error);
