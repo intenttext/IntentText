@@ -20,7 +20,7 @@ jobs:
 
       - name: Setup pnpm
         # Version comes from package.json "packageManager" — don't double-spec.
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Install
         run: pnpm install
