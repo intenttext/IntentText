@@ -91,3 +91,15 @@ us to do the font-embedding change; the green CI run is yours to trigger/observe
 | **G-08** | hire | Second maintainer + governance + key escrow |
 | **G-05** | KMS/HSM | Build the per-tenant vault on your KMS in Jadwal |
 | **G-07** | CI run | Embed a webfont (ask us) → green veraPDF → republish |
+
+---
+
+## One honest nuance (G-07)
+
+There is one honest nuance: G-07's font-embedding is the only remaining code I could still
+write — but it's unverifiable locally (it only counts as "done" once a veraPDF CI run
+confirms green, and that's your CI). So I scoped it as a joint item. If you want, I'll
+implement it now (bundle an open-font subset into @dotit/pdf) and you trigger the CI run to
+confirm — otherwise it stays parked under G-07 in your file.
+
+Everything else genuinely needs you (a decision, a cert, a CA, a hire, your KMS), not more code.
