@@ -310,7 +310,7 @@ Embed it all in your app with one component — see **[INTEGRATION.md](INTEGRATI
 
 | Path | Package | What it is |
 | --- | --- | --- |
-| `packages/core` | [`@dotit/core`](https://npmjs.com/package/@dotit/core) `1.22` | The format: parser, renderers, query, trust (versioned SEAL_SPEC 4 — appearance hash, CRLF-stable, certify-as-claim), **forms, redline/compare, redaction, attachments, math markers**, themes, CLI. Zero dependencies. |
+| `packages/core` | [`@dotit/core`](https://npmjs.com/package/@dotit/core) `1.24` | The format: parser, renderers, query, template merge (+ Intl filters), trust (versioned SEAL_SPEC 4 — appearance hash, CRLF-stable, certify-as-claim), **forms, redline/compare, redaction, attachments, math markers, EN 16931/UBL e-invoice export**, themes, CLI. Zero dependencies. |
 | `packages/editor` | [`@dotit/editor`](https://npmjs.com/package/@dotit/editor) `1.16` | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`**, ribbon, trust banner, form builder, document/form/template flow, version history, attachment fill, version-compare. |
 | `packages/pdf` | [`@dotit/pdf`](https://npmjs.com/package/@dotit/pdf) `1.2.1` | Server-side PDFs — merge → seal → PDF; **PDF/A-oriented** archival (veraPDF gate); PAdES-signed PDF. Opt-in. |
 | `packages/pades` | [`@dotit/pades`](https://npmjs.com/package/@dotit/pades) `1.0` | **PAdES** (Adobe/court-recognized) PDF signatures — X.509/ECDSA + CMS; CSR/CA issuance; timestamps. |

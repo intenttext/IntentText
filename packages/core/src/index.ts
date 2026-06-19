@@ -268,6 +268,10 @@ export type {
   ComposedResult,
   DocumentMetadata,
 } from "./index-builder";
+
+// E-invoicing (EN 16931 / UBL 2.1 — PEPPOL / ZATCA basis)
+export { buildUBLInvoice, intentToUBL } from "./einvoice";
+export type { UBLInvoiceInput, UBLParty, UBLLine } from "./einvoice";
 // v2.10 natural language query
 export { askDocuments, serializeContext } from "./ask";
 export type { AskOptions } from "./ask";

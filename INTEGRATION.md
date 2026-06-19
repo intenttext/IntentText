@@ -15,7 +15,7 @@ browser are marked.
 
 | Package | Version | What it is | Install |
 | --- | --- | --- | --- |
-| `@dotit/core` | **1.22.0** | Parser, HTML/print renderers, query engine, template merge, trust (versioned **SEAL_SPEC 4** seal/sign/verify — appearance hash, CRLF-stable, certify-as-claim), **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers**, themes, converters, CLI. Zero runtime deps; Node + browser. | `npm i @dotit/core` |
+| `@dotit/core` | **1.24.0** | Parser, HTML/print renderers, query engine, template merge (+ `Intl` display filters), trust (versioned **SEAL_SPEC 4** seal/sign/verify — appearance hash, CRLF-stable, certify-as-claim), **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers, EN 16931/UBL e-invoice export, doc-metadata extraction**, themes, converters, CLI. Zero runtime deps; Node + browser. | `npm i @dotit/core` |
 | `@dotit/editor` | **1.16.1** | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`** (edit/fill/review/view), ribbon, trust banner, form builder, document/form/template flow, version history, attachment fill UI, version-compare, WYSIWYG PDF. Browser-only. | `npm i @dotit/editor` |
 | `@dotit/pdf` | **1.2.1** | Server-side PDF bytes: merge → seal → PDF; **PDF/A-oriented archival** (`toPdfA`; veraPDF gate on demand); tagged (accessible) PDF by default; PAdES-signed PDF (`renderSignedPDF`). Puppeteer is an *optional* peer. | `npm i @dotit/pdf puppeteer` |
 | `@dotit/pades` | **1.0.0** | **PAdES** (Adobe/court-recognized) PDF signatures — ECDSA P-256 + X.509 + CMS; CSR/CA issuance; RFC-3161 timestamps; CLI. | `npm i @dotit/pades` |
@@ -560,6 +560,39 @@ an sRGB OutputIntent/ICC, a stable /ID) and ships an in-repo **veraPDF** gate
 embedding** — serve the body text via an `@font-face` web font so the headless renderer
 embeds a subset (system fonts may not embed). Signing certs can be self-issued
 (`@dotit/pades`) or issued by the UTS X.509 CA (`POST /certify/x509` with a CSR).
+
+### E-invoicing — EN 16931 / UBL 2.1 (PEPPOL · ZATCA basis)
+
+Regulated e-invoicing is a **standards** world, so `.it` doesn't invent a format — it
+**exports** to EN 16931 (the EU semantic standard) in UBL 2.1 syntax, the basis for
+PEPPOL BIS Billing 3.0 and the GCC mandates (Saudi **ZATCA**, etc.). Keep with "the ERP
+computes, this layer formats": pass the figures your ERP already has.
+
+```ts
+import { buildUBLInvoice, intentToUBL } from "@dotit/core";
+
+// Primary, reliable API — structured in, conformant UBL XML out (totals computed):
+const ubl = buildUBLInvoice({
+  id: "INV-2026-0114", issueDate: "2026-06-12", dueDate: "2026-06-26", currency: "QAR",
+  supplier: { name: "Dalil Technology LLC", vatId: "QA12345", country: "QA" },
+  customer: { name: "Acme Corporation", country: "QA" },
+  taxPercent: 5,
+  lines: [
+    { name: "Platform development", quantity: 1, unitPrice: 12000 },
+    { name: "UX design", quantity: 8, unitPrice: 450 },
+  ],
+});  // → <Invoice …> with CustomizationID urn:cen.eu:en16931:2017, consistent totals
+
+// Convenience: best-effort lift from a conventional .it invoice (+ overrides for parties)
+const ubl2 = intentToUBL(invoiceSource, { supplier, customer, taxPercent: 5 });
+```
+
+Scope: the EN 16931 **core** (standard/zero-rated, single VAT category) with consistent
+monetary totals. Country extensions — ZATCA's cryptographic stamp + QR, PEPPOL transport
+& participant IDs, multi-rate tax breakdowns — are layered on top by the regulated-market
+integration, not emitted here. **Prefer `buildUBLInvoice` with explicit data** for
+production; `intentToUBL` extraction is best-effort (parties aren't reliably encodable in
+free-form `.it`).
 
 ### Submit a completed form back
 
@@ -1254,6 +1287,6 @@ Binaries: `intenttext-mcp` (stdio), `intenttext-mcp-http` (Streamable HTTP on
 
 ---
 
-*Generated from the IntentText monorepo at `@dotit/core` 1.23.0 / `@dotit/editor`
+*Generated from the IntentText monorepo at `@dotit/core` 1.24.0 / `@dotit/editor`
 1.16.1 (SEAL_SPEC 4) — every runnable claim executed against the built packages.
 Corrections: open an issue at https://github.com/intenttext/IntentText/issues.*

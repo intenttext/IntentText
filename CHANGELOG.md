@@ -6,6 +6,22 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — E-invoicing (EN 16931/UBL), DOCX emphasis fidelity, custom-keyword case (`@dotit/core` 1.24.0)
+
+The remaining in-repo P2/P3 gaps from the assessment:
+
+- **E-invoicing export (G-19).** `buildUBLInvoice(input)` emits an **EN 16931 / UBL 2.1**
+  invoice (CustomizationID `urn:cen.eu:en16931:2017`) with consistent monetary totals —
+  the basis for PEPPOL BIS 3.0 and the GCC mandates (Saudi ZATCA, etc.). `intentToUBL(source,
+  overrides)` is a best-effort lift from a conventional `.it` invoice. Core (standard/zero-rated,
+  single VAT category); country crypto/QR/transport extensions layer on top. Zero new deps.
+- **DOCX inline-emphasis fidelity (G-17).** `it→docx` now rebuilds `*bold*`/`_italic_`/`~strike~`
+  from inline nodes into real Word runs (was one flat run); `docx→it` detects `<w:strike/>`.
+  Emphasis survives the round-trip. Documented as a best-effort lossy bridge.
+- **Custom keyword case preserved (G-18).** An unknown `Invoice:`/`LedgerCode:` keyword keeps
+  its case on round-trip (was lowercased — a byte-preservation miss); known keywords still
+  canonicalize; queries remain case-insensitive.
+
 ### Added — ERP merge filters, doc-metadata helper, attachment-mime + dep hardening, TSA verify (`@dotit/core` 1.23.0, `@dotit/pades` 1.0.1)
 
 P2/P3 gaps from the assessment (`assessment/`), most ERP-facing:
