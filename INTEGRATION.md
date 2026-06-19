@@ -15,9 +15,9 @@ browser are marked.
 
 | Package | Version | What it is | Install |
 | --- | --- | --- | --- |
-| `@dotit/core` | **1.21.0** | Parser, HTML/print renderers, query engine, template merge, trust (versioned **SEAL_SPEC 3** seal/sign/verify), **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers**, themes, converters, CLI. Zero runtime deps; Node + browser. | `npm i @dotit/core` |
-| `@dotit/editor` | **1.15.0** | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`** (edit/fill/review/view), ribbon, trust banner, form builder, document/form/template flow, version history, attachment fill UI, version-compare, WYSIWYG PDF. Browser-only. | `npm i @dotit/editor` |
-| `@dotit/pdf` | **1.2.0** | Server-side PDF bytes: merge → seal → PDF; **PDF/A archival** (`toPdfA`); tagged (accessible) PDF by default; PAdES-signed PDF (`renderSignedPDF`). Puppeteer is an *optional* peer. | `npm i @dotit/pdf puppeteer` |
+| `@dotit/core` | **1.22.0** | Parser, HTML/print renderers, query engine, template merge, trust (versioned **SEAL_SPEC 4** seal/sign/verify — appearance hash, CRLF-stable, certify-as-claim), **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers**, themes, converters, CLI. Zero runtime deps; Node + browser. | `npm i @dotit/core` |
+| `@dotit/editor` | **1.16.1** | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`** (edit/fill/review/view), ribbon, trust banner, form builder, document/form/template flow, version history, attachment fill UI, version-compare, WYSIWYG PDF. Browser-only. | `npm i @dotit/editor` |
+| `@dotit/pdf` | **1.2.1** | Server-side PDF bytes: merge → seal → PDF; **PDF/A-oriented archival** (`toPdfA`; veraPDF gate on demand); tagged (accessible) PDF by default; PAdES-signed PDF (`renderSignedPDF`). Puppeteer is an *optional* peer. | `npm i @dotit/pdf puppeteer` |
 | `@dotit/pades` | **1.0.0** | **PAdES** (Adobe/court-recognized) PDF signatures — ECDSA P-256 + X.509 + CMS; CSR/CA issuance; RFC-3161 timestamps; CLI. | `npm i @dotit/pades` |
 | `@dotit/sign` | **1.4.1** | Ed25519 signatures (provable *who signed*) + UTS certifications + root→intermediate chain. Offline, self-verifying. | `npm i @dotit/sign` |
 | `@dotit/math` | **0.1.0** | Render core's math placeholders → MathML (dependency-free lite) or full **KaTeX** (optional peer). | `npm i @dotit/math` |
@@ -269,8 +269,8 @@ Lifecycle: `track:` → `approve:` → `sign:` → `freeze:` (seal) → verify �
 ```intenttext
 track: | id: CON-2026-014 | by: Ahmed
 approve: Legal review complete | by: Sara Haddad | role: Counsel | at: 2026-06-01
-sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-12T09:00:00Z | hash: sha256:… | spec: 3
-freeze: | at: 2026-06-12T09:00:00Z | hash: sha256:… | spec: 3 | status: locked
+sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-12T09:00:00Z | hash: sha256:… | spec: 4
+freeze: | at: 2026-06-12T09:00:00Z | hash: sha256:… | spec: 4 | appearance: sha256:… | status: locked
 amendment: Late fee reduced | was: 2% | now: 1.5% | ref: Amendment #1 | by: Fahad | at: 2026-06-20
 history:
 revision: | version: 1.1 | at: 2026-06-13T08:00:00Z | by: Ops | change: archived
@@ -317,7 +317,7 @@ The base seal is **tamper-evidence (integrity)**:
 - It proves the content is byte-identical to what was sealed, and binds the *claimed*
   signer identity. Anyone with any SHA-256 implementation can recompute it — no vendor,
   no key registry.
-- But the `sign:` *name* is a typed claim — anyone can type a name. V3 makes that name
+- But the `sign:` *name* is a typed claim — anyone can type a name. V4 makes that name
   tamper-evident; it does **not** prove **who** typed it. Proving identity is a ladder
   **above** the hash — see §2.9b.
 
@@ -361,27 +361,36 @@ Operational notes:
   its seal. Never edit above `history:` after sealing.
 - Don't invent hashes — only `sealDocument()` computes them.
 
-### 2.9b The identity ladder — V3 is the floor, proving *who* is a layer above it
+### 2.9b The identity ladder — V4 is the floor, proving *who* is a layer above it
 
 This is the single most important thing for an ERP integrator to get right.
-SEAL_SPEC 3 gives you **integrity**: the content and the *claimed* signer name are
+SEAL_SPEC 4 gives you **integrity**: the content and the *claimed* signer name are
 tamper-evident. It does **not** give you **authenticity** — proving *who* really
-signed. Anyone can type "Fahad Al-Thani, Managing Director" into a `sign:` line; V3
+signed. Anyone can type "Fahad Al-Thani, Managing Director" into a `sign:` line; V4
 makes that string tamper-proof, but the string is only a claim. Proving identity
-always needs two things V3 doesn't have on its own: **a secret only that person
+always needs two things V4 doesn't have on its own: **a secret only that person
 controls** (a key) and **a trust anchor** that vouches the key belongs to the identity.
 
-So treat V3 as the **integrity floor** and climb the rung that matches your trust
+**What V4 added over V3 (all shipped in `@dotit/core` 1.22):** (1) every seal records an
+**`appearance:`** hash so a post-seal restyle that hides content (`opacity:0`,
+white-on-white) is flagged (`verifyDocument().appearanceChanged`) and trust surfaces
+render **bare** — *restyling never breaks a seal, but presentation can never hide signed
+content either*; (2) the hash is **CRLF/whitespace-stable**, so an `LF`↔`CRLF` round-trip
+(Windows/git/email) never breaks an untampered seal; (3) a `certify:` line is treated as a
+**claim, not a verdict** — core paints the certified tier only when the caller passes a
+cryptographically verified result, never from presence.
+
+So treat V4 as the **integrity floor** and climb the rung that matches your trust
 boundary:
 
 | Boundary | Mechanism | In the system |
 | --- | --- | --- |
-| Tamper-evidence + bound *claimed* identity | versioned SHA-256 hash | **SEAL_SPEC 3** (done) |
-| Intra-company identity (inside the ERP) | **V3 + the ERP authenticates the user** and signs from the session | **Level 0** — see below |
+| Tamper-evidence + bound *claimed* identity | versioned SHA-256 hash | **SEAL_SPEC 4** (done) |
+| Intra-company identity (inside the ERP) | **V4 + the ERP authenticates the user** and signs from the session | **Level 0** — see below |
 | Cross-organization identity | ed25519 key + a shared CA certifying key↔identity | `@dotit/sign` + `certify:` (certified tiers) |
 | Legal / court | qualified PKI (X.509, eIDAS), trusted timestamp | `@dotit/pades` |
 
-**Level 0 — inside the ERP (the rung Jadwal should implement).** V3 alone is *not*
+**Level 0 — inside the ERP (the rung Jadwal should implement).** V4 alone is *not*
 enough inside the ERP either, because the signer still comes from a text box. The fix
 is to make the ERP — not the user — supply the identity:
 
@@ -396,7 +405,7 @@ is to make the ERP — not the user — supply the identity:
    record, not just a typed name.
 
 **Trust anchor = the ERP.** Anyone who trusts the ERP can now verify, and the "type
-someone else's name and click sign" attack is gone. **V3 (integrity) + ERP
+someone else's name and click sign" attack is gone. **V4 (integrity) + ERP
 authentication + a key/attestation = intra-company identity proof.** Beyond the company
 you climb to certified public keys (`certify:`); for court you bridge to qualified PAdES
 signatures (`@dotit/pades`). The pieces already exist — it is about using the right rung
@@ -421,7 +430,7 @@ result: Done | status: success
 
 ---
 
-## 2.11 The latest capabilities (core 1.21 / editor 1.15)
+## 2.11 The latest capabilities (core 1.22 / editor 1.16)
 
 Everything below is in the published versions in the table above. APIs are from
 `@dotit/core` unless noted.
@@ -1032,7 +1041,7 @@ and deterministic.
 
 ## 4. CLI reference
 
-`npm i -g @dotit/core` installs `dotit` (v1.21.0). One line each — all verified:
+`npm i -g @dotit/core` installs `dotit` (v1.22.0). One line each — all verified:
 
 ```bash
 dotit file.it                          # parse → JSON to stdout
@@ -1193,12 +1202,12 @@ Binaries: `intenttext-mcp` (stdio), `intenttext-mcp-http` (Streamable HTTP on
 13. **Dates are ISO or the query engine can't compare them.** `due<2026-07-01`
     works because values sort lexicographically; `09/03/2026` doesn't. The
     validator warns (`DATE_NOT_ISO`).
-14. **Sealing is tamper-evidence, not identity.** SEAL_SPEC 3 proves *what* the
+14. **Sealing is tamper-evidence, not identity.** SEAL_SPEC 4 proves *what* the
     content was and binds the *claimed* signer — but a typed name is still a claim.
     To prove *who*, climb the identity ladder (§2.9b): inside an ERP, authenticate the
     user and fill the signer from the session (Level 0); cross-org, use `@dotit/sign`
     + `certify:`; for court, qualified PAdES (`@dotit/pades`).
-15. **Restyling never breaks a seal, but editing content does.** SEAL_SPEC 3 excludes
+15. **Restyling never breaks a seal, but editing content does.** SEAL_SPEC 4 excludes
     presentation (`page:`/`font:`/`style:` lines, color/size/align/etc. props) from the
     hash — theme and layout changes leave `intact` true. It also covers the `freeze:`
     metadata and each signer's identity, so editing `at:`/`status:` or a signer's
@@ -1206,6 +1215,6 @@ Binaries: `intenttext-mcp` (stdio), `intenttext-mcp-http` (Streamable HTTP on
 
 ---
 
-*Generated from the IntentText monorepo at `@dotit/core` 1.21.0 / `@dotit/editor`
-1.15.0 (SEAL_SPEC 3) — every runnable claim executed against the built packages.
+*Generated from the IntentText monorepo at `@dotit/core` 1.22.0 / `@dotit/editor`
+1.16.1 (SEAL_SPEC 4) — every runnable claim executed against the built packages.
 Corrections: open an issue at https://github.com/intenttext/IntentText/issues.*

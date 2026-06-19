@@ -132,8 +132,9 @@ red **SEAL BROKEN** stamp, never a clean seal.
   approval *order* is tamper-evident; `verifyAuditChain(source)` reports the first broken link.
 
 **Honest scope** — state this accurately, never overclaim:
-- ✅ Integrity is self-proving (offline, no anchor). SEAL_SPEC 3 is the integrity **floor**:
-  the content and the *claimed* signer are tamper-evident.
+- ✅ Integrity is self-proving (offline, no anchor). SEAL_SPEC 4 is the integrity **floor**:
+  the content and the *claimed* signer are tamper-evident (and a post-seal restyle that
+  hides content is flagged via the `appearance:` hash; the seal is CRLF/whitespace-stable).
 - ⚠️ Authenticity (proving *who*) is a ladder **above** the hash — a typed name is only a claim.
   Inside an ERP: authenticate the user and fill the signer from the session, then sign with a
   bound key/attestation (Level 0). Cross-org: ed25519 + a shared CA `certify:` chain. Court:

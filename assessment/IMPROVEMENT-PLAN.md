@@ -58,6 +58,8 @@ This plan converts the audit's gap register into a sequenced, executable roadmap
 | **G-18** | Prose/keyword ambiguity: any `word:` line becomes a typed block, lowercased on serialize | format | medium | **P3** | M | Heuristic prose guard; stop lowercasing unknown keywords; document as #1 authoring pitfall; align byte-stability claims to SPEC §5.1. |
 | **G-19** | Zero e-invoicing/EDI standards support for regulated GCC market | strategy | medium | **P3** | L | Add EN16931/UBL + Factur-X/ZUGFeRD export bridges, or scope `.it` to internal docs that never cross a regulated boundary. |
 | **G-20** | `@types/node` mis-declared as runtime dep; `node-html-parser` security-critical for SVG sanitize | core-impl | low | **P3** | S | Move `@types/node` to devDeps; pin `node-html-parser` exact + mXSS/SVG fuzz; add `engines >=22`. |
+| **G-12** ✅ | Desktop file IPC handlers have no path scoping (path-traversal regression Tauri→Electron) | enterprise | high | **P1** | M | **Done** — `PathGuard` capability scoping + 11 hostile-path tests (lands desktop 3.0.2). |
+| **G-22** ✅ | Public docs drifted: stale versions (core 1.21/editor 1.15/pdf 1.2.0) + SEAL_SPEC 3 + V3 trust model | ecosystem | medium | **P2** | S | **Done** — README/INTEGRATION/AGENTS synced to core 1.22 / SEAL_SPEC 4 (appearance, CRLF, certify-claim) / pdf 1.2.1. |
 | **G-21** | Attachment `data:` URI mime not sanitized (host-dependent stored-XSS trap) | trust-security | low | **P3** | S | Allowlist/normalize mime (or force `application/octet-stream` for preview); document host sandbox requirement. |
 
 ---
