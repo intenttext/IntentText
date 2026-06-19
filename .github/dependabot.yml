@@ -19,13 +19,6 @@ updates:
       production:
         dependency-type: production
 
-  # Rust crates for the desktop app (Tauri).
-  - package-ecosystem: cargo
-    directory: /apps/desktop/src-tauri
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-
   # GitHub Actions versions.
   - package-ecosystem: github-actions
     directory: /
