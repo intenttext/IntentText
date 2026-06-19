@@ -62,6 +62,9 @@ importers:
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^1.0.0
+        version: 1.6.1(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
 
   apps/docs:
     dependencies:
@@ -463,8 +466,8 @@ importers:
   packages/pdf:
     dependencies:
       '@dotit/core':
-        specifier: ^1.21.1
-        version: 1.21.2
+        specifier: ^1.22.0
+        version: 1.22.0
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1

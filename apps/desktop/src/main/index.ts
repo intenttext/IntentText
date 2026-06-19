@@ -18,8 +18,9 @@ import {
   rename,
   unlink,
 } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import chokidar, { type FSWatcher } from "chokidar";
+import { PathGuard, assertOpenableExternally } from "./path-guard";
 
 const isDev = !app.isPackaged;
 // The .it app icon. Packaged: copied beside the binary via build.extraResources.
@@ -32,6 +33,36 @@ const ICON_PATH = app.isPackaged
   : join(__dirname, "../../resources/icon.png");
 const SETTINGS_PATH = () => join(app.getPath("userData"), "settings.json");
 const IDENTITY_PATH = () => join(app.getPath("userData"), "identity.bin");
+
+// ── Filesystem capability guard (G-12) ───────────────────────────────────────
+// Every renderer-supplied path in the fs handlers below is resolved through this
+// guard, which only allows locations inside folders the user GRANTED (an OS dialog,
+// a file-association open, or the persisted vault registry). A hostile `.it` that
+// XSSes the renderer therefore cannot read/write outside the user's own vaults.
+let _pathGuard: PathGuard | null = null;
+function pathGuard(): PathGuard {
+  if (!_pathGuard) {
+    _pathGuard = new PathGuard({
+      persistPath: join(app.getPath("userData"), "granted-roots.json"),
+      implicitRoots: [tmpdir()], // export/print scratch
+    });
+    // Seed from the app-owned vault registry so existing folders keep working across
+    // restarts. The renderer cannot grant roots itself — this reads the settings file
+    // the main process owns; in-session grants only come from OS dialogs / argv.
+    try {
+      const s = JSON.parse(readFileSync(SETTINGS_PATH(), "utf8"));
+      const vaults = Array.isArray(s?.vaults) ? s.vaults : [];
+      _pathGuard.seed(
+        vaults
+          .map((v: { path?: string }) => v?.path)
+          .filter((p: unknown): p is string => typeof p === "string" && !!p),
+      );
+    } catch {
+      /* no settings yet */
+    }
+  }
+  return _pathGuard;
+}
 const PADES_IDENTITY_PATH = () =>
   join(app.getPath("userData"), "pades-identity.bin");
 
@@ -172,11 +203,16 @@ function openDocWindow(path: string): void {
   docWindows.set(path, w);
 }
 
-// macOS: file opened via Finder / "Open With" / double-click.
+// macOS: file opened via Finder / "Open With" / double-click. A file the OS hands
+// us is a trusted grant — scope fs access to its folder (G-12).
 app.on("open-file", (event, path) => {
   event.preventDefault();
-  if (app.isReady()) openDocWindow(path);
-  else pendingOpen = path;
+  if (app.isReady()) {
+    pathGuard().grantFile(path);
+    openDocWindow(path);
+  } else {
+    pendingOpen = path; // granted in whenReady once app.getPath is available
+  }
 });
 
 // Single instance — focus existing instead of launching a second copy.
@@ -185,7 +221,10 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   app.on("second-instance", (_e, argv) => {
     const file = argv.find((a) => a.endsWith(".it"));
-    if (file) openDocWindow(file);
+    if (file) {
+      pathGuard().grantFile(file); // OS-delivered file → trusted grant
+      openDocWindow(file);
+    }
     else if (mainWindow) {
       mainWindow.show();
       mainWindow.focus();
@@ -195,28 +234,32 @@ if (!app.requestSingleInstanceLock()) {
 
 // ── IPC: generic command router (mirrors Tauri `invoke`) ─────────────────────
 const handlers: Record<string, (args: any, win: BrowserWindow | null) => unknown | Promise<unknown>> = {
-  // — filesystem —
+  // — filesystem — every renderer path is scoped to a granted root (G-12).
   read_file: async ({ path }) => {
-    if (!existsSync(path)) throw new Error(`File not found: ${path}`);
-    return readFile(path, "utf8");
+    const safe = pathGuard().resolveInside(path);
+    return readFile(safe, "utf8");
   },
   write_file: async ({ path, content }) => {
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, content, "utf8");
+    const safe = pathGuard().resolveInside(path, { allowCreate: true });
+    await mkdir(dirname(safe), { recursive: true });
+    await writeFile(safe, content, "utf8");
   },
   write_binary_file: async ({ path, contents }) => {
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, Buffer.from(contents as number[]));
+    const safe = pathGuard().resolveInside(path, { allowCreate: true });
+    await mkdir(dirname(safe), { recursive: true });
+    await writeFile(safe, Buffer.from(contents as number[]));
   },
-  read_binary_file: async ({ path }) => Array.from(await readFile(path)),
+  read_binary_file: async ({ path }) =>
+    Array.from(await readFile(pathGuard().resolveInside(path))),
   list_files: async ({ dir }) => {
-    const entries = await readdir(dir, { withFileTypes: true });
+    const safeDir = pathGuard().resolveInside(dir);
+    const entries = await readdir(safeDir, { withFileTypes: true });
     const out: unknown[] = [];
     for (const e of entries) {
       if (e.name.startsWith(".")) continue;
       const isDir = e.isDirectory();
       if (!isDir && !e.name.endsWith(".it")) continue;
-      const full = join(dir, e.name);
+      const full = join(safeDir, e.name);
       let size = 0;
       let modified = 0;
       try {
@@ -234,7 +277,7 @@ const handlers: Record<string, (args: any, win: BrowserWindow | null) => unknown
     return out;
   },
   file_metadata: async ({ path }) => {
-    const s = await stat(path);
+    const s = await stat(pathGuard().resolveInside(path));
     return {
       size: s.size,
       modified: Math.floor(s.mtimeMs / 1000),
@@ -242,14 +285,19 @@ const handlers: Record<string, (args: any, win: BrowserWindow | null) => unknown
     };
   },
   delete_file: async ({ path }) => {
-    await shell.trashItem(path).catch(async () => unlink(path));
+    const safe = pathGuard().resolveInside(path);
+    await shell.trashItem(safe).catch(async () => unlink(safe));
   },
   rename_file: async ({ from, to }) => {
-    if (existsSync(to)) throw new Error(`Destination already exists: ${to}`);
-    await rename(from, to);
+    const safeFrom = pathGuard().resolveInside(from);
+    const safeTo = pathGuard().resolveInside(to, { allowCreate: true });
+    if (existsSync(safeTo)) throw new Error(`Destination already exists: ${safeTo}`);
+    await rename(safeFrom, safeTo);
   },
   open_external: async ({ path }) => {
-    const err = await shell.openPath(path);
+    const safe = pathGuard().resolveInside(path);
+    assertOpenableExternally(safe); // never open executables/scripts
+    const err = await shell.openPath(safe);
     if (err) throw new Error(err);
   },
 
@@ -258,7 +306,8 @@ const handlers: Record<string, (args: any, win: BrowserWindow | null) => unknown
   // flat array sorted parents-before-children (depth ascending) so the renderer's
   // buildTree() can attach each node to its parent. (The directory *picker* is a
   // separate dialog:open with directory:true — this only lists a known path.)
-  open_folder: async ({ path: root }) => {
+  open_folder: async ({ path: rootArg }) => {
+    const root = pathGuard().resolveInside(rootArg);
     const files: unknown[] = [];
     const walk = async (dir: string, rel: string, depth: number): Promise<void> => {
       let entries;
@@ -365,11 +414,18 @@ ipcMain.handle("dialog:open", async (_e, opts: any) => {
     filters: opts?.filters,
   });
   if (r.canceled) return null;
+  // The OS dialog IS the capability grant: scope fs access to what the user picked.
+  for (const p of r.filePaths) {
+    if (opts?.directory) pathGuard().grantDir(p);
+    else pathGuard().grantFile(p);
+  }
   return opts?.multiple ? r.filePaths : (r.filePaths[0] ?? null);
 });
 ipcMain.handle("dialog:save", async (_e, opts: any) => {
   const r = await dialog.showSaveDialog({ defaultPath: opts?.defaultPath, filters: opts?.filters });
-  return r.canceled ? null : (r.filePath ?? null);
+  if (r.canceled || !r.filePath) return null;
+  pathGuard().grantFile(r.filePath); // user chose this destination → allow writing it
+  return r.filePath;
 });
 ipcMain.handle("dialog:message", async (_e, msg: string, opts: any) => {
   await dialog.showMessageBox({
@@ -662,6 +718,9 @@ app.whenReady().then(() => {
   // Windows/Linux: a .it path may arrive as an argv on cold start.
   const argFile = process.argv.find((a) => a.endsWith(".it"));
   if (argFile) pendingOpen = argFile;
+  // Grant the folder of any OS-delivered cold-start file (argv or an early
+  // macOS open-file that landed before the app was ready) — a trusted grant (G-12).
+  if (pendingOpen) pathGuard().grantFile(pendingOpen);
 
   // macOS dock icon — the .it mark, so the RUNNING app (incl. dev) never shows
   // Electron's default. The packaged .app's Finder icon comes from build.mac.icon.

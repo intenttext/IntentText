@@ -1,7 +1,7 @@
 {
   "name": "intenttext-desktop",
   "private": true,
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Dotit Desktop (Electron) — document app for .it files",
   "main": "out/main/index.js",
   "author": "Dotit Labs",
@@ -11,7 +11,8 @@
     "build": "pnpm run build:deps && electron-vite build",
     "start": "electron-vite preview",
     "dist": "pnpm run build && electron-builder",
-    "dist:mac": "pnpm run build && electron-builder --mac"
+    "dist:mac": "pnpm run build && electron-builder --mac",
+    "test": "vitest run"
   },
   "dependencies": {
     "@dotit/core": "^1.22.0",
@@ -31,7 +32,8 @@
     "electron": "^33.2.0",
     "electron-builder": "^25.1.8",
     "electron-vite": "^5.0.0",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "vitest": "^1.0.0"
   },
   "build": {
     "appId": "qa.uts.dotit",
