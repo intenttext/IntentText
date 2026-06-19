@@ -10,11 +10,17 @@
  *     without it);
  *   • a stable document /ID.
  *
- * The OTHER requirements (all fonts embedded, no transparency/JS/encryption) depend
- * on how the PDF was produced — Chrome's printToPDF embeds fonts and our render path
- * avoids JS/encryption, but COMPLIANCE IS VERIFIED IN CI WITH veraPDF (the reference
- * validator), not asserted here. See .github/workflows/pdfa-verify.yml and the
- * README. Treat the output as "PDF/A-oriented" until veraPDF passes it.
+ * The OTHER requirements depend on how the PDF was PRODUCED, not on this pass:
+ *   • No transparency / JS / encryption — our render path already avoids these.
+ *   • ALL fonts embedded — this is the one KNOWN gap for a green veraPDF run (G-07):
+ *     the default print CSS uses system families (Georgia/Times/…) that Chrome may
+ *     reference WITHOUT embedding on a headless Linux CI box, which PDF/A forbids. The
+ *     fix lives in the render path, not here: serve an `@font-face` web font (a subset
+ *     of an open font like Noto/Liberation) as the body family so Chrome embeds a
+ *     subset. Until that lands AND `.github/workflows/pdfa-verify.yml` is green, treat
+ *     the output as **PDF/A-oriented**, not certified — the docs say exactly that.
+ * This pass DOES guarantee the metadata is internally consistent (Info ↔ XMP), the
+ * OutputIntent/ICC is present, and the /ID exists — the post-processing requirements.
  */
 import {
   PDFDocument,
@@ -42,25 +48,64 @@ export interface PdfAOptions {
   conformance?: PdfAConformance;
   title?: string;
   author?: string;
+  /** Creation/modification instant stamped into BOTH Info and XMP (kept consistent).
+   *  Defaults to the PDF's existing CreationDate, else now. Pass a fixed Date for
+   *  reproducible output. */
+  date?: Date;
 }
 
-function xmpPacket(part: string, conformance: string, title: string, author: string): string {
-  const esc = (s: string) => s.replace(/[<>&]/g, (c) => (c === "<" ? "&lt;" : c === ">" ? "&gt;" : "&amp;"));
+const CREATOR_TOOL = "IntentText (@dotit/pdf)";
+const PRODUCER = "IntentText (@dotit/pdf)";
+
+interface XmpMeta {
+  part: string;
+  conformance: string;
+  title: string;
+  author: string;
+  creatorTool: string;
+  producer: string;
+  /** ISO-8601 (no milliseconds), e.g. "2026-06-19T10:00:00Z". */
+  createDate: string;
+  modifyDate: string;
+}
+
+/**
+ * Build the XMP packet. PDF/A requires the XMP to be CONSISTENT with the document
+ * information dictionary for every shared property — so this emits `xmp:CreatorTool`
+ * (= Info /Creator), `pdf:Producer` (= Info /Producer), and `xmp:CreateDate` /
+ * `xmp:ModifyDate` (= Info /CreationDate, /ModDate) alongside dc:title / dc:creator.
+ * A property present in Info but missing from XMP (or with a different value) is a
+ * veraPDF metadata-consistency failure (G-07).
+ */
+function xmpPacket(m: XmpMeta): string {
+  const esc = (s: string) =>
+    s.replace(/[<>&]/g, (c) => (c === "<" ? "&lt;" : c === ">" ? "&gt;" : "&amp;"));
   return `<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
 <x:xmpmeta xmlns:x="adobe:ns:meta/">
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <rdf:Description rdf:about=""
         xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/"
         xmlns:dc="http://purl.org/dc/elements/1.1/"
-        xmlns:xmp="http://ns.adobe.com/xap/1.0/">
-      <pdfaid:part>${part}</pdfaid:part>
-      <pdfaid:conformance>${conformance}</pdfaid:conformance>
-      <dc:title><rdf:Alt><rdf:li xml:lang="x-default">${esc(title)}</rdf:li></rdf:Alt></dc:title>
-      <dc:creator><rdf:Seq><rdf:li>${esc(author)}</rdf:li></rdf:Seq></dc:creator>
+        xmlns:xmp="http://ns.adobe.com/xap/1.0/"
+        xmlns:pdf="http://ns.adobe.com/pdf/1.3/">
+      <pdfaid:part>${m.part}</pdfaid:part>
+      <pdfaid:conformance>${m.conformance}</pdfaid:conformance>
+      <dc:title><rdf:Alt><rdf:li xml:lang="x-default">${esc(m.title)}</rdf:li></rdf:Alt></dc:title>
+      <dc:creator><rdf:Seq><rdf:li>${esc(m.author)}</rdf:li></rdf:Seq></dc:creator>
+      <xmp:CreatorTool>${esc(m.creatorTool)}</xmp:CreatorTool>
+      <xmp:CreateDate>${m.createDate}</xmp:CreateDate>
+      <xmp:ModifyDate>${m.modifyDate}</xmp:ModifyDate>
+      <xmp:MetadataDate>${m.modifyDate}</xmp:MetadataDate>
+      <pdf:Producer>${esc(m.producer)}</pdf:Producer>
     </rdf:Description>
   </rdf:RDF>
 </x:xmpmeta>
 <?xpacket end="w"?>`;
+}
+
+/** ISO-8601 with no milliseconds (the XMP date form), e.g. 2026-06-19T10:00:00Z. */
+function xmpDate(d: Date): string {
+  return d.toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
 /**
@@ -84,14 +129,27 @@ export async function toPdfA(pdf: Uint8Array, opts: PdfAOptions = {}): Promise<U
   const title = opts.title ?? doc.getTitle() ?? "";
   const author = opts.author ?? doc.getAuthor() ?? "";
 
-  // Keep the document info dictionary consistent with the XMP.
+  // Keep the document info dictionary consistent with the XMP — every shared field
+  // must match in BOTH or veraPDF flags a metadata-consistency error (G-07).
+  const when = opts.date ?? doc.getCreationDate() ?? new Date();
   if (title) doc.setTitle(title);
   if (author) doc.setAuthor(author);
-  doc.setCreator("IntentText (@dotit/pdf)");
-  doc.setProducer("IntentText (@dotit/pdf)");
+  doc.setCreator(CREATOR_TOOL);
+  doc.setProducer(PRODUCER);
+  doc.setCreationDate(when);
+  doc.setModificationDate(when);
 
   // 1. XMP metadata stream (uncompressed, plain XML) referenced from the catalog.
-  const xmp = xmpPacket(part, level, title, author);
+  const xmp = xmpPacket({
+    part,
+    conformance: level,
+    title,
+    author,
+    creatorTool: CREATOR_TOOL,
+    producer: PRODUCER,
+    createDate: xmpDate(when),
+    modifyDate: xmpDate(when),
+  });
   const metaStream = PDFRawStream.of(
     ctx.obj({ Type: "Metadata", Subtype: "XML", Length: xmp.length }),
     new TextEncoder().encode(xmp),

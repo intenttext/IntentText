@@ -55,4 +55,35 @@ describe("PDF/A pass (structure — full compliance is veraPDF's job in CI)", ()
     const idB = (await PDFDocument.load(b)).context.trailerInfo.ID?.toString();
     expect(idA).toBe(idB);
   });
+
+  // G-07: every property shared by the Info dict and XMP must MATCH, or veraPDF flags
+  // a metadata-consistency error. Producer / CreatorTool / dates were previously in
+  // Info but missing from XMP.
+  it("keeps Info and XMP metadata consistent (Producer / CreatorTool / dates / title)", async () => {
+    const when = new Date("2026-06-19T10:00:00Z");
+    const out = await toPdfA(await minimalPdf(), {
+      iccProfile: fakeIcc,
+      title: "Invoice INV-1",
+      author: "Jadwal",
+      date: when,
+    });
+
+    // Info dictionary (via pdf-lib getters)
+    const reloaded = await PDFDocument.load(out, { updateMetadata: false });
+    expect(reloaded.getProducer()).toBe("IntentText (@dotit/pdf)");
+    expect(reloaded.getCreator()).toBe("IntentText (@dotit/pdf)");
+    expect(reloaded.getTitle()).toBe("Invoice INV-1");
+    expect(reloaded.getAuthor()).toBe("Jadwal");
+    expect(reloaded.getCreationDate()?.toISOString()).toBe("2026-06-19T10:00:00.000Z");
+    expect(reloaded.getModificationDate()?.toISOString()).toBe("2026-06-19T10:00:00.000Z");
+
+    // XMP (uncompressed plain XML in the bytes) carries the SAME values
+    const xmp = Buffer.from(out).toString("latin1");
+    expect(xmp).toContain("<pdf:Producer>IntentText (@dotit/pdf)</pdf:Producer>");
+    expect(xmp).toContain("<xmp:CreatorTool>IntentText (@dotit/pdf)</xmp:CreatorTool>");
+    expect(xmp).toContain("<xmp:CreateDate>2026-06-19T10:00:00Z</xmp:CreateDate>");
+    expect(xmp).toContain("<xmp:ModifyDate>2026-06-19T10:00:00Z</xmp:ModifyDate>");
+    expect(xmp).toContain('xmlns:pdf="http://ns.adobe.com/pdf/1.3/"');
+    expect(xmp).toContain("Invoice INV-1"); // dc:title
+  });
 });

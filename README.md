@@ -298,7 +298,8 @@ sealable format:
   two versions into an accept/reject redline.
 - **Redaction** — legally *remove* content with a tamper-evident, provable marker.
 - **Legal signatures & archival** — export a sealed `.it` as a **PAdES** PDF Adobe and
-  courts recognize (`@dotit/pades`), or **PDF/A** for archives (`@dotit/pdf`, veraPDF-gated).
+  courts recognize (`@dotit/pades`), or **PDF/A-oriented** archival PDF (`@dotit/pdf`, with
+  an in-repo veraPDF gate; font embedding is the remaining step for a fully green run).
 - **Math** — `math: E = mc^2` → MathML/KaTeX via `@dotit/math`.
 
 Embed it all in your app with one component — see **[INTEGRATION.md](INTEGRATION.md)**.

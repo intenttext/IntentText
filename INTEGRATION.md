@@ -515,7 +515,12 @@ await renderPDF(src, { pdfA: { iccProfile, conformance: "3B" } });       // arch
 await renderSignedPDF(src, { signer: { certPem, privateKeyPem, tsaUrl } }); // Adobe-recognized signature
 ```
 
-PDF/A compliance is validated in CI with veraPDF. Signing certs can be self-issued
+PDF/A output handles the post-processing requirements (consistent Info↔XMP metadata,
+an sRGB OutputIntent/ICC, a stable /ID) and ships an in-repo **veraPDF** gate
+(`.github/workflows/pdfa-verify.yml`, run on demand). Treat the result as
+**PDF/A-oriented** until that gate is green: the one remaining requirement is **font
+embedding** — serve the body text via an `@font-face` web font so the headless renderer
+embeds a subset (system fonts may not embed). Signing certs can be self-issued
 (`@dotit/pades`) or issued by the UTS X.509 CA (`POST /certify/x509` with a CSR).
 
 ### Submit a completed form back
