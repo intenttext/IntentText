@@ -64,6 +64,30 @@ jobs:
       - name: Test sign
         run: pnpm --filter @dotit/sign test
 
+      # ── PDF / archival / math (build = typecheck; test = behavior) ──────────
+      - name: Build pades
+        run: pnpm --filter @dotit/pades build
+
+      - name: Test pades
+        run: pnpm --filter @dotit/pades test
+
+      - name: Build math
+        run: pnpm --filter @dotit/math build
+
+      - name: Test math
+        run: pnpm --filter @dotit/math test
+
+      - name: Build pdf
+        run: pnpm --filter @dotit/pdf build
+
+      # The pdf suite renders via Puppeteer (tagged PDF / PAdES / print). Chrome is
+      # not auto-downloaded (puppeteer postinstall is disabled), so fetch it here.
+      - name: Install Chrome for Puppeteer (pdf tests)
+        run: npx puppeteer browsers install chrome
+
+      - name: Test pdf
+        run: pnpm --filter @dotit/pdf test
+
       # ── Supported downstream surface (build only — must compile against core) ─
       - name: Build MCP server
         run: pnpm --filter @dotit/mcp build
@@ -79,6 +103,15 @@ jobs:
 
       - name: Editor visual round-trip fidelity
         run: pnpm --filter intenttext-editor roundtrip:check
+
+      # The embeddable editor package's own suite (trust state, ribbon, round-trip) —
+      # 64 tests that previously had no `test` script and never ran in CI.
+      - name: Test editor package
+        run: pnpm --filter @dotit/editor test
+
+      # Desktop main-process unit tests (the fs capability guard — path-traversal).
+      - name: Test desktop (path guard)
+        run: pnpm --filter intenttext-desktop test
 
       # Public trust surface — the verification engine must stay correct + injection-safe.
       - name: Test verify portal

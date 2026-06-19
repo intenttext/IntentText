@@ -23,7 +23,8 @@
   "scripts": {
     "build:core": "pnpm --filter @dotit/core build",
     "build": "pnpm run build:core && rm -rf dist && vite build && tsc -p tsconfig.build.json && cp src/styles.css dist/style.css",
-    "dev": "vite build --watch"
+    "dev": "vite build --watch",
+    "test": "vitest run"
   },
   "keywords": [
     "intenttext",

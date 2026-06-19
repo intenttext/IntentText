@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "bundle": "ncc build src/main.ts -o dist --minify",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@actions/core": "^1.10.0",
