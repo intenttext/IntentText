@@ -49,6 +49,10 @@ const AUDIT_NORMALIZE: Record<number, (s: string) => string> = {
   1: (s) => s.normalize("NFC"),
   2: (s) => s.normalize("NFC"),
   3: (s) => s.normalize("NFC"),
+  // v4 mirrors the seal bump. An audit event is a single normalized line, so the
+  // seal's EOL/trailing-whitespace change is a no-op here — v4 normalizes identically
+  // to v1–v3 (NFC), and chains stay byte-stable across the bump.
+  4: (s) => s.normalize("NFC"),
 };
 const KNOWN_AUDIT_SPECS = Object.keys(AUDIT_NORMALIZE).map(Number);
 

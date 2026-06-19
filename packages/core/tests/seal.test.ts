@@ -143,19 +143,33 @@ describe("detectTrustState", () => {
     expect(s.signed).toBe(true);
   });
 
-  it("certified (green) when a certify line is present", () => {
+  it("G-03: a PRESENT certify line is a claim, NOT a verified tier", () => {
+    // Anyone can paste a certify: line — presence alone must never paint CERTIFIED.
     const src =
       "title: X\n\ncertify: UTS | account: acme | at: 2026-01-01 | hash: sha256:abc | key: ed25519:PUB | sig: SIG\n";
     const s = detectTrustState(src);
+    expect(s.tier).not.toBe("certified");
+    expect(s.tier).toBe("draft"); // no seal/sign either → falls through to draft
+    expect(s.certified).toBe(true); // the CLAIM is still reported…
+    expect(s.certificationVerified).toBe(false); // …but it is unverified
+  });
+
+  it("G-03: certified only when the caller passes a verified certification", () => {
+    const src =
+      "title: X\n\ncertify: UTS | account: acme | at: 2026-01-01 | hash: sha256:abc | key: ed25519:PUB | sig: SIG\n";
+    const s = detectTrustState(src, { certificationVerified: true });
     expect(s.tier).toBe("certified");
-    expect(s.certified).toBe(true);
+    expect(s.certificationVerified).toBe(true);
     expect(s.rootCertified).toBe(false);
   });
 
-  it("root-certified (gold) when the certify line carries an ica: chain", () => {
+  it("G-03: root-certified only with a verified root-chained certification", () => {
     const src =
       "title: X\n\ncertify: UTS | account: acme | at: 2026-01-01 | hash: sha256:abc | key: ed25519:PUB | sig: SIG | ica: TOKEN123\n";
-    const s = detectTrustState(src);
+    // presence of ica: is still just a claim…
+    expect(detectTrustState(src).tier).not.toBe("root-certified");
+    // …verified as root → gold.
+    const s = detectTrustState(src, { certificationVerified: "root" });
     expect(s.tier).toBe("root-certified");
     expect(s.rootCertified).toBe(true);
   });
@@ -166,10 +180,14 @@ describe("sealForDocument", () => {
     const src =
       "title: X\n\ncertify: UTS | account: acme | at: 2026-01-01 | hash: sha256:deadbeef0123456789 | key: ed25519:PUB | sig: SIG\n";
     expect(contentHashOf(src)).toBe("sha256:deadbeef0123456789");
-    const seal = sealForDocument(src);
+    // Hash is read from the trust line regardless of tier; with the certification
+    // VERIFIED the tier is certified (presence alone would not be — see G-03).
+    const seal = sealForDocument(src, { certificationVerified: true });
     expect(seal.tier).toBe("certified");
     expect(seal.hash).toBe("sha256:deadbeef0123456789");
     expect(seal.svg).toContain("<svg");
+    // Without verification the same source is NOT painted certified.
+    expect(sealForDocument(src).tier).not.toBe("certified");
   });
 
   it("falls back to computing the hash for an unsigned draft", () => {

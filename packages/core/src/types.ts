@@ -305,6 +305,9 @@ export interface IntentDocumentMetadata {
     hash: string;
     /** Canonicalization spec version that produced `hash` (1.16.0+). */
     spec?: number;
+    /** Appearance (full-fidelity, content+styling) hash recorded at seal time (v4+),
+     *  so verify can detect post-seal restyling. Absent on pre-v4 seals. */
+    appearance?: string;
     status: "locked";
   };
   /** v2.8.1: Free-form document metadata from meta: blocks. */

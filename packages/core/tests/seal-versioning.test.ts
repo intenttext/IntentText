@@ -34,8 +34,8 @@ const V1_GOLDEN_BODY =
   "title: Service Agreement\ntext: Café au lait — 100% organic.\nmetric: amount | value: 24000 | unit: USD";
 
 describe("seal versioning — the forever-stable guarantee", () => {
-  it("current spec is 3", () => {
-    expect(SEAL_SPEC).toBe(3);
+  it("current spec is 4", () => {
+    expect(SEAL_SPEC).toBe(4);
   });
 
   it("CONFORMANCE PIN: the v1 hash of a fixed body is frozen", () => {
@@ -54,12 +54,12 @@ describe("seal versioning — the forever-stable guarantee", () => {
 
   it("seal + sign stamp the spec version into the lines", () => {
     const sealed = sealDocument(COMPOSED, { signer: "Ahmed", role: "CEO" }).source;
-    expect(sealed).toMatch(/freeze:[^\n]*\|\s*spec:\s*3/);
-    expect(sealed).toMatch(/sign:[^\n]*\|\s*spec:\s*3/);
+    expect(sealed).toMatch(/freeze:[^\n]*\|\s*spec:\s*4/);
+    expect(sealed).toMatch(/sign:[^\n]*\|\s*spec:\s*4/);
     expect(verifyDocument(sealed).intact).toBe(true);
 
     const signed = signDocument(COMPOSED, { signer: "Sarah" }).source;
-    expect(signed).toMatch(/sign:[^\n]*\|\s*spec:\s*3/);
+    expect(signed).toMatch(/sign:[^\n]*\|\s*spec:\s*4/);
   });
 
   it("verification dispatches on the RECORDED version, not today's rules", () => {

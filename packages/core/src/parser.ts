@@ -1168,7 +1168,7 @@ export function parseIntentText(
   // Reset ID counter for deterministic output per parse call
   _resetIdCounter();
 
-  const lines = mergePipeContinuations(fileContent.split(/\r?\n/));
+  const lines = mergePipeContinuations(fileContent.split(/\r\n|\r|\n/));
   if (lines.length > MAX_LINE_COUNT) {
     return {
       version: "1.4",
@@ -1229,7 +1229,9 @@ export function parseIntentText(
   let trackingMeta:
     | { version: string; by: string; active: boolean }
     | undefined;
-  let freezeMeta: { at: string; hash: string; status: "locked" } | undefined;
+  let freezeMeta:
+    | { at: string; hash: string; spec?: number; appearance?: string; status: "locked" }
+    | undefined;
 
   // v2: auto-ID counter for step blocks without explicit id
   let stepAutoIdCounter = 0;
@@ -1787,6 +1789,9 @@ export function parseIntentText(
         ...(block.properties?.spec != null && {
           spec: Number(block.properties.spec),
         }),
+        ...(block.properties?.appearance != null && {
+          appearance: String(block.properties.appearance),
+        }),
         status: "locked",
       };
       // Still emit freeze: as a block for rendering
@@ -2058,7 +2063,7 @@ export function parseIntentTextSafe(
 
   try {
     // Pre-process: truncate long lines
-    const rawLines = source.split(/\r?\n/);
+    const rawLines = source.split(/\r\n|\r|\n/);
     const processedLines: string[] = [];
     const knownKeywords = new Set(KEYWORDS);
 

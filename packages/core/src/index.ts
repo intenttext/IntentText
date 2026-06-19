@@ -123,6 +123,7 @@ export {
   computeDocumentHash,
   computeDocumentHashLegacy,
   computeSignatureHash,
+  computeAppearanceHash,
   signatureIdentity,
   signatureMatchesContent,
   hashMatches,

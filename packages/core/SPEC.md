@@ -163,7 +163,7 @@ PAdES (`@dotit/pades`); see the identity ladder in `INTEGRATION.md`.
 
 Every seal/signature stamps a **`spec:` version** recording WHICH byte-rules produced its
 hash; verification applies exactly that version **forever**, so a future rule change can
-never silently break a historical seal. The current version is **`SEAL_SPEC = 3`**.
+never silently break a historical seal. The current version is **`SEAL_SPEC = 4`**.
 
 Versions (each frozen once shipped — `CANONICALIZERS` in [`src/trust.ts`](src/trust.ts)):
 
@@ -172,7 +172,8 @@ Versions (each frozen once shipped — `CANONICALIZERS` in [`src/trust.ts`](src/
 | v0 | raw bytes (pre-NFC) |
 | v1 | NFC normalization |
 | v2 | NFC; excludes comments; the seal scope covers signatures |
-| **v3** (current) | NFC; **also excludes styling**, covers the seal's own metadata, and **binds the signer identity** |
+| v3 | NFC; **also excludes styling**, covers the seal's own metadata, and **binds the signer identity** |
+| **v4** (current) | v3 **plus** line-ending (`CRLF`/lone-`CR` → `LF`) and per-line trailing-whitespace normalization **before** hashing, so an `LF`↔`CRLF` transform (Windows `git autocrlf`, mixed-OS storage, an email gateway) or a trailing-space re-save can never break an untampered seal. v4 seals also record an **`appearance:`** (full-fidelity) hash (see below). |
 
 **Two scopes.** A hash covers one of two scopes:
 
@@ -201,6 +202,17 @@ Versions (each frozen once shipped — `CANONICALIZERS` in [`src/trust.ts`](src/
    to the content body before hashing, so editing the signer's name/role/date breaks *that*
    signature — even before the document is sealed.
 
+**The appearance hash (v4).** Excluding styling from the content hash means *restyling
+never breaks a seal* — but it also means a post-seal restyle (`opacity: 0`, white-on-white,
+`size: 0`, an injected `style:` line) can hide content while the seal still reads intact.
+To make that **non-silent**, a v4 seal records an `appearance:` hash over the content **as
+styled** (`computeAppearanceHash`). `verifyDocument()` recomputes it: if the content is
+intact but the appearance differs, `intact` stays **true** (the signed content really is
+unchanged) and `appearanceChanged` is set with a warning. Trust surfaces additionally render
+**bare by default** (styling stripped, so hidden content is shown), and the renderer
+neutralizes fully-invisible styling on the styled path too. ("Sign content, not presentation"
+— but never let presentation hide content.)
+
 Determinism for re-implementers: **UTF-8, LF (`\n`) line endings, NFC.** A serialize
 round-trip — `documentToSource(parseIntentText(src))` — preserves the hashed bytes (the
 parser captures comments, blank lines, and prose-merge boundaries as trivia, §5.1), so a
@@ -209,9 +221,9 @@ editor and `documentToSource` emit canonical text). `approve:` is **not** stripp
 approval is part of the body it approves.
 
 **Sealing & verifying.** `signDocument()` inserts `sign: <signer> | role: <role> | at:
-<ISO8601> | hash: <contentHash> | spec: 3`. `sealDocument()` adds (optionally) a `sign:`
-line then `freeze: | at: <ISO8601> | hash: <sealHash> | spec: 3 | status: locked`.
-`verifyDocument()` returns:
+<ISO8601> | hash: <contentHash> | spec: 4`. `sealDocument()` adds (optionally) a `sign:`
+line then `freeze: | at: <ISO8601> | hash: <sealHash> | spec: 4 | appearance: <appearanceHash>
+| status: locked`. `verifyDocument()` returns:
 
 - `intact` — the seal-scope hash matches `freeze.hash` (any content / signature / seal-metadata
   change → `false`).
@@ -220,9 +232,19 @@ line then `freeze: | at: <ISO8601> | hash: <sealHash> | spec: 3 | status: locked
   is reported as such, not as a blanket failure.
 - `spec` / `specOutdated` — the recorded ruleset and whether it predates the current one (an
   older, weaker seal — re-seal to upgrade).
+- `appearanceChanged` (v4+) — content is intact but the styling changed since sealing (a
+  possible hidden-content restyle). `intact` stays `true`; this surfaces the change so it is
+  never silent.
 
 The trust band (`renderTrustBand`) **verifies before it draws**: a tampered document renders
-a red **"SEAL BROKEN"** stamp on every surface (screen, print, PDF) — never a clean seal.
+a red **"SEAL BROKEN"** stamp on every surface (screen, print, PDF) — never a clean seal, and
+trust surfaces render **bare by default** so styling can never hide signed content.
+
+**Authority is verified, not assumed.** A `sign:`/`freeze:` seal is integrity, checkable from
+the bytes alone. A `certify:` line is an *authority* claim that needs the issuer's key — so
+presence of a `certify:` line is a **claim, not a verdict**: `detectTrustState` / `sealForDocument`
+paint the certified/root-certified tier ONLY when the caller passes a cryptographically
+verified result (`@dotit/sign`); otherwise the document shows its locally-verifiable tier.
 
 ## 5. Stability guarantees
 

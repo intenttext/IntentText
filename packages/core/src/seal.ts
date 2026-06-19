@@ -70,14 +70,34 @@ export interface TrustState {
   rootCertified: boolean;
   /** True when this is a template (blueprint) — outside the trust workflow. */
   template: boolean;
+  /**
+   * Whether the certification CLAIM (a `certify:` line) was cryptographically
+   * VERIFIED by the caller (via @dotit/sign) — only then does the tier become
+   * certified/root-certified. False when a certify: line is merely PRESENT: presence
+   * alone is a claim, never a verdict (anyone can paste a `certify:` line). G-03.
+   */
+  certificationVerified: boolean;
 }
 
 /**
  * Determine the trust tier a document CLAIMS, from the trust lines present.
- * Presence-based (no crypto) — for a verified tier, verify with @dotit/sign and
- * pass the result into renderSeal directly.
+ *
+ * Integrity tiers are locally honest: `sealed`/`signed` reflect the presence of a
+ * seal/signature, and renderTrustBand re-checks the seal/signature hash before it
+ * paints (a tampered doc shows BROKEN). But AUTHORITY — a `certify:` line — cannot be
+ * verified from the bytes alone (it needs the issuer's public key), so presence of a
+ * certify: line does NOT, by itself, grant the certified/root-certified tier. The
+ * caller must verify the certification with @dotit/sign and pass
+ * `opts.certificationVerified` (`true`, or `"root"` for a root-chained certification);
+ * otherwise the document falls through to its locally-verifiable tier (sealed/signed/
+ * draft). This closes the forgery where a pasted `certify:` line painted a gold
+ * "CERTIFIED" seal with no key check (G-03). The `certified`/`rootCertified` booleans
+ * still report the CLAIM so a verifying caller can decide what to check.
  */
-export function detectTrustState(source: string): TrustState {
+export function detectTrustState(
+  source: string,
+  opts?: { certificationVerified?: boolean | "root" },
+): TrustState {
   // A template is outside the trust workflow — never a trust tier.
   if (isTemplate(source)) {
     return {
@@ -87,12 +107,13 @@ export function detectTrustState(source: string): TrustState {
       signed: false,
       certified: false,
       rootCertified: false,
+      certificationVerified: false,
       template: true,
     };
   }
   const lines = source.split("\n").map((l) => l.trimStart());
   const certifyLines = lines.filter((l) => l.startsWith("certify:"));
-  const certified = certifyLines.length > 0;
+  const certified = certifyLines.length > 0; // the CLAIM (presence)
   const rootCertified = certifyLines.some((l) => /\bica:\s*\S/.test(l));
   const signed = lines.some(
     (l) =>
@@ -100,12 +121,18 @@ export function detectTrustState(source: string): TrustState {
   );
   const sealed = isSealed(source);
 
+  // Authority is granted ONLY when the caller verified it (crypto), never by presence.
+  const certVerified = opts?.certificationVerified;
+  const showRoot = rootCertified && certVerified === "root";
+  const showCertified =
+    certified && (certVerified === true || certVerified === "root");
+
   let tier: TrustTier;
   let label: string;
-  if (rootCertified) {
+  if (showRoot) {
     tier = "root-certified";
     label = "CERTIFIED";
-  } else if (certified) {
+  } else if (showCertified) {
     tier = "certified";
     label = "CERTIFIED";
   } else if (sealed) {
@@ -121,7 +148,16 @@ export function detectTrustState(source: string): TrustState {
     tier = "draft";
     label = "DRAFT";
   }
-  return { tier, label, sealed, signed, certified, rootCertified, template: false };
+  return {
+    tier,
+    label,
+    sealed,
+    signed,
+    certified,
+    rootCertified,
+    certificationVerified: !!showCertified,
+    template: false,
+  };
 }
 
 // ─── Geometry helpers (deterministic, integer-friendly SVG) ──────────────────
@@ -270,9 +306,19 @@ export interface DocumentSeal {
  */
 export function sealForDocument(
   source: string,
-  opts?: { size?: number; text?: boolean; tier?: TrustTier },
+  opts?: {
+    size?: number;
+    text?: boolean;
+    tier?: TrustTier;
+    /** Pass the result of a crypto certification check (@dotit/sign) so a verified
+     *  certify: line can show the certified/root-certified tier; omitted ⇒ a present
+     *  certify: line is treated as an unverified CLAIM (never gold by presence). */
+    certificationVerified?: boolean | "root";
+  },
 ): DocumentSeal {
-  const state = detectTrustState(source);
+  const state = detectTrustState(source, {
+    certificationVerified: opts?.certificationVerified,
+  });
   const tier = opts?.tier ?? state.tier;
   const hash = contentHashOf(source);
   const svg = renderSeal({

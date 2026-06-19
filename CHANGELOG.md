@@ -6,6 +6,38 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Security — SEAL_SPEC v4: close the styling-hide forgery, the CRLF seal break, and presence-based CERTIFIED (`@dotit/core` 1.22.0)
+
+Three P0 fixes from the deep security assessment (`assessment/`). Old seals keep verifying under
+their recorded spec forever — v0–v3 canonicalizers are untouched; v4 only governs new seals.
+
+- **Sealed content can no longer be hidden silently (G-01).** Excluding styling from the hash
+  let an attacker restyle a *sealed* clause to `opacity: 0` / white-on-white / `size: 0` (or inject
+  a `style:` line) so it rendered **blank** while `verifyDocument()` still reported `intact`. Now:
+  (1) every v4 seal records an **`appearance:`** (full-fidelity, content-as-styled) hash, and
+  `verifyDocument()` returns **`appearanceChanged`** + a warning when the styling changed since
+  sealing (content stays `intact` — the signed bytes are unchanged — but the restyle is never
+  silent); (2) trust surfaces render **bare by default** (the verify portal preview now passes
+  `{ bare: true }`), so hidden content is shown as signed; (3) the renderer **neutralizes
+  fully-invisible styling** (`opacity < 0.1`, `color == bg`, `size: 0`) on the styled path too.
+  New `computeAppearanceHash`. "Sign content, not presentation — but never let presentation hide content."
+- **CRLF / trailing whitespace no longer break an untampered seal (G-02).** The hash split on
+  `\n` only, so an `LF`↔`CRLF` transform (Windows `git autocrlf`, mixed-OS storage, an email
+  gateway) or a trailing-space re-save flipped a clean document to `intact: false`. **`SEAL_SPEC`
+  is now 4:** `hashedBody` normalizes line endings (`CRLF`/lone-`CR` → `LF`) and strips per-line
+  trailing whitespace **before** hashing. The parser also splits on `/\r\n|\r|\n/` so a CR-only
+  file no longer corrupts via unbounded `text:` prefixing. `CANONICALIZERS[4]` + `AUDIT_NORMALIZE[4]` added.
+- **A pasted `certify:` line no longer paints a gold CERTIFIED seal (G-03).** Authority is not
+  locally verifiable, so presence of a `certify:` line is now a **claim, not a verdict**:
+  `detectTrustState`/`sealForDocument` grant the certified/root-certified tier ONLY when the caller
+  passes a crypto-verified result (`{ certificationVerified: true | "root" }`); otherwise core shows
+  the locally-verifiable `sealed`/`signed` tier. New `TrustState.certificationVerified`. `renderTrustBand`
+  (print/PDF/editor) is fixed accordingly.
+
+Also: the example `demo/erp-integration/erp-{express,fastify}-handlers.mjs` are rewritten against the
+real `@dotit/pdf` flow (they imported a non-existent `@dotit/pdf-runtime` and threw on startup — G-04).
+17 new adversarial tests (`packages/core/tests/seal-hardening.test.ts`); full suite green at 1178 tests.
+
 ### Changed — SEAL_SPEC v3: sign content, not styling; cover the whole trust record (`@dotit/core` 1.21.0, `@dotit/editor` 1.15.0)
 
 The trust ruleset advances to **`SEAL_SPEC = 3`** — the seal now covers exactly the right

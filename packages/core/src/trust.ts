@@ -89,18 +89,31 @@ function hashedBody(
   source: string,
   spec: number = SEAL_SPEC,
   scope: HashScope = "content",
+  opts: { includeStyling?: boolean } = {},
 ): string {
   const boundary = findHistoryBoundaryInSource(source);
   const content = boundary === -1 ? source : source.slice(0, boundary);
-  const lines = content.split("\n");
 
   if (spec >= 3) {
+    // v4+ FIRST normalizes line endings (CRLF / lone CR → LF) and strips per-line
+    // trailing whitespace, so an LF↔CRLF transform (Windows git autocrlf, mixed-OS
+    // storage, an email gateway) or a trailing-space re-save can never break an
+    // UNTAMPERED seal. v3 is FROZEN — it splits on "\n" only and keeps any stray
+    // "\r", so this normalization applies for spec ≥ 4 ONLY; a historical v3 seal
+    // keeps verifying under exactly its recorded rules.
+    const norm = spec >= 4 ? content.replace(/\r\n?/g, "\n") : content;
+    const lines = norm.split("\n");
+    // `includeStyling` is the APPEARANCE projection: keep presentation lines/props
+    // so the full-fidelity (content + styling) hash can detect post-seal restyling.
+    const includeStyling = !!opts.includeStyling;
     const out: string[] = [];
-    for (const line of lines) {
+    for (const rawLine of lines) {
+      const line = spec >= 4 ? rawLine.replace(/[ \t]+$/, "") : rawLine;
       const t = line.trimStart();
       if (t.startsWith("//")) continue; // comments never affect the hash
       const kw = leadKeyword(t);
-      if (PRESENTATION_LINE_KEYWORDS.has(kw)) continue; // styling line — excluded
+      // styling line — excluded from the content hash, KEPT for the appearance hash
+      if (!includeStyling && PRESENTATION_LINE_KEYWORDS.has(kw)) continue;
       if (kw === "freeze") {
         // The seal covers its own metadata (minus the hash it carries); content
         // scope (a signature) never includes the freeze.
@@ -113,11 +126,13 @@ function hashedBody(
         out.push(line); // seal scope: the whole signature line (identity + hash)
         continue;
       }
-      out.push(stripPresentationProps(line)); // content line — drop styling props
+      // content line — drop styling props for the content hash, keep them for appearance
+      out.push(includeStyling ? line : stripPresentationProps(line));
     }
     return out.join("\n").trim();
   }
 
+  const lines = content.split("\n");
   const bodyLines =
     spec >= 2
       ? lines.filter((line) => {
@@ -153,7 +168,7 @@ function hashedBody(
  * the new version to CANONICALIZERS, extend hashedBody's spec branch, and pin a
  * conformance vector for it. NEVER mutate a shipped entry.
  */
-export const SEAL_SPEC = 3;
+export const SEAL_SPEC = 4;
 
 /**
  * Versioned canonicalizers: spec version → how the hashed body is normalized before
@@ -167,12 +182,19 @@ export const SEAL_SPEC = 3;
  *        freeze line's own metadata; signatures bind the signer identity (see
  *        computeSignatureHash). The canon is NFC throughout — the bump is about WHAT
  *        is hashed, not how.
+ *   v4 — NFC; ALSO normalizes line endings (CRLF / lone CR → LF) and strips per-line
+ *        trailing whitespace BEFORE hashing (in hashedBody), so an LF↔CRLF transform
+ *        or a trailing-space re-save never breaks an untampered seal. New seals also
+ *        record an `appearance:` (full-fidelity) hash so post-seal restyling is
+ *        detectable (computeAppearanceHash). Same NFC canon — the change is in WHAT
+ *        bytes reach the hash, not the normalize step itself.
  */
 const CANONICALIZERS: Record<number, (body: string) => string> = {
   0: (body) => body,
   1: (body) => body.normalize("NFC"),
   2: (body) => body.normalize("NFC"),
   3: (body) => body.normalize("NFC"),
+  4: (body) => body.normalize("NFC"),
 };
 
 /**
@@ -219,6 +241,32 @@ export function computeSignatureHash(
   return (
     "sha256:" +
     sha256Hex(canon(hashedBody(source, spec, "content")) + " sig:" + identity)
+  );
+}
+
+/**
+ * Compute the APPEARANCE (full-fidelity) hash: a SHA-256 over the content AS STYLED —
+ * the same content body as the signature hash, but WITH the presentation that the
+ * content hash deliberately drops (page:/font:/style: lines and presentation props
+ * like color/opacity/size/bg). Recorded in the seal's `appearance:` field at freeze
+ * time so verifyDocument can detect when a sealed document's STYLING changed after
+ * sealing while its content stayed intact — the signal that defeats "hidden content"
+ * tampering (e.g. setting a clause to opacity:0 / color:#ffffff so it renders blank).
+ *
+ * A restyle keeps `intact` TRUE (the signed content is unchanged) but trips
+ * `appearanceChanged`, so a presentation change is never SILENT. Like the content
+ * hash it is content-scope (trust lines excluded) and v4+-normalized (EOL/whitespace).
+ */
+export function computeAppearanceHash(
+  source: string,
+  spec: number = SEAL_SPEC,
+): string {
+  const canon = CANONICALIZERS[spec] ?? CANONICALIZERS[SEAL_SPEC];
+  return (
+    "sha256:" +
+    sha256Hex(
+      canon(hashedBody(source, spec, "content", { includeStyling: true })),
+    )
   );
 }
 
@@ -635,11 +683,18 @@ export function sealDocument(source: string, options: SealOptions): SealResult {
   // sign line AND a placeholder (empty-hash) freeze line in place: hashedBody's seal
   // scope strips the freeze hash value, so the empty placeholder and the final filled
   // hash produce identical bytes — no circularity, yet at/status tampering breaks it.
-  const freezePlaceholder = `freeze: | at: ${at} | hash:  | spec: ${SEAL_SPEC} | status: locked\n`;
+  // Appearance (full-fidelity) hash over the content AS STYLED, recorded so verify
+  // can detect post-seal restyling (the "hidden content" defense — e.g. a clause set
+  // to opacity:0 after sealing). Computed over the body being sealed; content scope
+  // ignores the sign/freeze lines either way, so it is stable across the seal append.
+  // It is itself protected: the freeze line is in the seal-scope hash (only its own
+  // `hash:` is blanked), so editing the recorded appearance value breaks the seal.
+  const appearanceHash = computeAppearanceHash(source, SEAL_SPEC);
+  const freezePlaceholder = `freeze: | at: ${at} | hash:  | spec: ${SEAL_SPEC} | appearance: ${appearanceHash} | status: locked\n`;
   const sealInput =
     before + (needsNewline ? "\n" : "") + signLine + freezePlaceholder + after;
   const sealHash = computeDocumentHash(sealInput, SEAL_SPEC, "seal");
-  const freezeLine = `freeze: | at: ${at} | hash: ${sealHash} | spec: ${SEAL_SPEC} | status: locked\n`;
+  const freezeLine = `freeze: | at: ${at} | hash: ${sealHash} | spec: ${SEAL_SPEC} | appearance: ${appearanceHash} | status: locked\n`;
 
   const updated =
     before + (needsNewline ? "\n" : "") + signLine + freezeLine + after;
@@ -672,6 +727,15 @@ export interface VerifyResult {
    * without breaking the seal). Re-seal to upgrade. True only when `intact`.
    */
   specOutdated?: boolean;
+  /**
+   * The seal recorded an `appearance:` (full-fidelity) hash (v4+) and the document's
+   * current STYLING no longer matches it: the signed CONTENT is intact, but the
+   * presentation changed since sealing — a possible "hidden content" tamper (e.g. a
+   * clause restyled to opacity:0 / white-on-white after the seal). `intact` stays
+   * true (content is unchanged); this surfaces the styling change so it is not silent.
+   * `undefined` for pre-v4 seals that recorded no appearance hash.
+   */
+  appearanceChanged?: boolean;
 }
 
 /**
@@ -726,6 +790,25 @@ export function verifyDocument(source: string): VerifyResult {
   // so an outdated seal never reads as fully trusted.
   const specOutdated = intact && freezeSpec != null && freezeSpec < SEAL_SPEC;
 
+  // v4+ seals record an appearance (full-fidelity) hash. If the content is intact but
+  // the styling no longer matches what was sealed, the document was RESTYLED after
+  // sealing — content-preserving, but a possible "hidden content" tamper. Surface it
+  // (without flipping `intact`, since the signed content is genuinely unchanged).
+  const expectedAppearance = (
+    doc.metadata.freeze as { appearance?: string }
+  ).appearance;
+  const appearanceChanged =
+    expectedAppearance != null
+      ? computeAppearanceHash(source, freezeSpec ?? SEAL_SPEC) !==
+        expectedAppearance
+      : undefined;
+
+  const warning = specOutdated
+    ? `Sealed under ruleset v${freezeSpec}, which does not protect signatures. Re-seal to upgrade to v${SEAL_SPEC}.`
+    : intact && appearanceChanged
+      ? "Content is intact, but the document's appearance (styling) changed since sealing — verify nothing is visually hidden."
+      : undefined;
+
   return {
     intact,
     frozen: true,
@@ -735,9 +818,8 @@ export function verifyDocument(source: string): VerifyResult {
     expectedHash,
     spec: freezeSpec,
     specOutdated: specOutdated || undefined,
+    appearanceChanged: appearanceChanged || undefined,
     error: intact ? undefined : "Document has been modified since sealing.",
-    warning: specOutdated
-      ? `Sealed under ruleset v${freezeSpec}, which does not protect signatures. Re-seal to upgrade to v${SEAL_SPEC}.`
-      : undefined,
+    warning,
   };
 }
