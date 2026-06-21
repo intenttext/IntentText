@@ -11,21 +11,25 @@ Verify portal: https://verify.uts.qa (UTS certification service: api.uts.qa)
 
 ## 0. The `@dotit/*` toolchain (one ecosystem)
 
-  @dotit/core   1.5.0  Parser, HTML/print renderers, query engine, template merge,
-                       trust (seal/verify), themes, lossless text↔JSON, DB-safe
-                       storage helpers, converters (Markdown/HTML + XLSX/DOCX both
-                       directions: `dotit convert in.xlsx out.it`, `dotit convert
-                       in.it out.docx`, …), and the `dotit` CLI. Pure-JS; Node +
-                       browser.                          npm i @dotit/core
-  @dotit/sign   1.2.0  Ed25519 signatures (provable "who signed") + UTS certifications
+  @dotit/core   1.24.1 Parser, HTML/print renderers, query engine, template merge (+ Intl
+                       display filters {{amount|currency:QAR}}), trust — versioned
+                       SEAL_SPEC 4 (seal/sign/verify; appearance hash, CRLF-stable,
+                       certify-as-claim), themes, lossless text↔JSON, DB-safe storage,
+                       converters (Markdown/HTML + XLSX/DOCX both ways), doc-metadata
+                       extraction, EN 16931/UBL e-invoice export, and the `dotit` CLI.
+                       Zero deps; Node + browser.         npm i @dotit/core
+  @dotit/sign   1.4.3  Ed25519 signatures (provable "who signed") + UTS certifications
                        (verified org identity). Offline, self-verifying.  npm i @dotit/sign
-  @dotit/pdf    1.0.1  Server PDF bytes: merge → seal → real PDF in one call (issuePDF).
-                       Puppeteer optional peer.          npm i @dotit/pdf
-  @dotit/mcp    1.1.0  MCP server — exposes IntentText as an agent tool surface
+  @dotit/pdf    1.2.2  Server PDF bytes: merge → seal → real PDF in one call (issuePDF);
+                       PDF/A-oriented archival; PAdES-signed PDF. Puppeteer optional peer.
+                                                          npm i @dotit/pdf
+  @dotit/pades  1.0.1  PAdES (Adobe/court-recognized) PDF signatures — X.509/CMS +
+                       RFC-3161 trusted timestamps.       npm i @dotit/pades
+  @dotit/mcp    1.1.2  MCP server — exposes IntentText as an agent tool surface
                        (parse/render/merge/query/validate/seal/verify/sign tools)
                        over stdio + HTTP.                npx @dotit/mcp
-  @dotit/editor 1.2.x  Embeddable React WYSIWYG editor — Word-like pages, ribbon,
-                       trust banner, WYSIWYG PDF export. Browser-only.  npm i @dotit/editor
+  @dotit/editor 1.16.3 Embeddable React WYSIWYG editor — Word-like pages, ribbon,
+                       trust stamp, WYSIWYG PDF export. Browser-only.  npm i @dotit/editor
 
 Everything is built on the SAME parser/hash, so a doc authored anywhere verifies everywhere.
 
