@@ -18,8 +18,8 @@ importers:
         specifier: ^1.24.1
         version: 1.24.1
       '@dotit/editor':
-        specifier: ^1.16.2
-        version: 1.16.2(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        specifier: ^1.16.3
+        version: 1.16.3(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@dotit/pades':
         specifier: ^1.0.1
         version: 1.0.1(pdfkit@0.10.0)
@@ -128,8 +128,8 @@ importers:
         specifier: ^1.24.1
         version: 1.24.1
       '@dotit/editor':
-        specifier: ^1.16.2
-        version: 1.16.2(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        specifier: ^1.16.3
+        version: 1.16.3(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.15
@@ -1818,8 +1818,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@dotit/editor@1.16.2':
-    resolution: {integrity: sha512-8hMp5nJVuSevy6V11xelHe/U1xieYfBCrqlEO2Hz3KFm7TasvXf4acjspcM4fhre3xAf+C1zvsU8/cIqg7Y/yg==}
+  '@dotit/editor@1.16.3':
+    resolution: {integrity: sha512-t8C+/97bp9zZI2TpFIWNj1ooewdMtBq7hTMBKYDcYkekKXtuoNzctm/mNblp2dHxThxqT/Go2j7K5jOM2FAkeg==}
     peerDependencies:
       react: '>=18'
       react-dom: '>=18'
@@ -12327,7 +12327,7 @@ snapshots:
       fflate: 0.8.3
       node-html-parser: 7.1.0
 
-  '@dotit/editor@1.16.2(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+  '@dotit/editor@1.16.3(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
       '@dotit/core': 1.24.1
       '@tiptap/core': 3.23.6(@tiptap/pm@3.23.6)
