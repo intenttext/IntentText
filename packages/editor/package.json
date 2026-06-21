@@ -1,6 +1,6 @@
 {
   "name": "@dotit/editor",
-  "version": "1.16.1",
+  "version": "1.16.2",
   "description": "Embeddable WYSIWYG visual editor for IntentText (.it) documents — Word-like pages, ribbon, trust banner, and WYSIWYG PDF/HTML export. Drop it into any React app (ERPs, portals, back offices).",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -54,7 +54,7 @@
     "react-dom": ">=18"
   },
   "dependencies": {
-    "@dotit/core": "^1.21.2",
+    "@dotit/core": "^1.24.1",
     "@tiptap/core": "^3.20.1",
     "@tiptap/extension-color": "^3.20.1",
     "@tiptap/extension-font-family": "^3.20.1",

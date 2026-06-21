@@ -1,6 +1,6 @@
 {
   "name": "@dotit/sign",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Ed25519 cryptographic signatures for IntentText (.it) documents — provable 'who signed', self-verifying and offline. The opt-in identity layer on top of @dotit/core's integrity seal.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -37,7 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@dotit/core": "^1.21.1",
+    "@dotit/core": "^1.24.1",
     "@noble/curves": "^1.8.1"
   },
   "devDependencies": {

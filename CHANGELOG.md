@@ -6,6 +6,16 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed — synchronized release: every `@dotit/*` package on core 1.24.1
+
+All packages bumped to depend on `@dotit/core` `^1.24.1` and republished, verified to
+build + test against the latest core (the lockfile had been pinning 1.21.x):
+`@dotit/sign` 1.4.3 · `@dotit/pdf` 1.2.2 · `@dotit/editor` 1.16.2 · `@dotit/mcp` 1.1.2.
+Apps + the VS Code extension rebuilt clean against the new set: editor app (64 editor
+tests green incl. trust/template/forms), verify portal, desktop (build + 11 path-guard
+tests), and `intenttext` 1.6.1. The editor's trust test no longer pins `spec: 3`
+(tracks core's current SEAL_SPEC).
+
 ### Fixed — `page: numbering` round-trip idempotency (`@dotit/core` 1.24.1)
 
 A new corpus round-trip test (`tests/roundtrip-corpus.test.ts`, over **every** shipped `.it`

@@ -36,8 +36,9 @@ describe("editor trust flow → core-verifiable", () => {
     expect(ahmed?.valid).toBe(true);
     // The approval is hash-chained.
     expect(verifyAuditChain(s).valid).toBe(true);
-    // And the sealed line carries the current spec version.
-    expect(s).toMatch(/freeze:[^\n]*\|\s*spec:\s*3/);
+    // And the sealed line carries a spec version (don't pin the number — it tracks
+    // @dotit/core's current SEAL_SPEC, which advances over time).
+    expect(s).toMatch(/freeze:[^\n]*\|\s*spec:\s*\d+/);
   });
 
   it("a hand-built sign: WITHOUT a hash verifies as INVALID (why we route via core)", () => {
