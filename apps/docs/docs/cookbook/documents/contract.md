@@ -60,8 +60,8 @@ section: Signatures
 approve: Legal review complete | by: Sarah Chen | role: General Counsel | at: 2026-03-20
 approve: Finance approved | by: James Miller | role: CFO | at: 2026-03-21
 
-sign: Ahmed Al-Rashid | role: CEO, Acme Corp | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2c3d4 | spec: 3
-sign: Maria Santos | role: COO, GlobalTech | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8 | spec: 3
+sign: Ahmed Al-Rashid | role: CEO, Acme Corp | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2c3d4 | spec: 4
+sign: Maria Santos | role: COO, GlobalTech | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8 | spec: 4
 
 // Physical signature lines for the printed version
 signline: Ahmed Al-Rashid | role: CEO, Acme Corp | label: Provider Signature
@@ -70,7 +70,7 @@ signline: | label: Date | width: 30%
 signline: Maria Santos | role: COO, GlobalTech | label: Client Signature
 signline: | label: Date | width: 30%
 
-freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2 | spec: 3 | status: locked
+freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2 | spec: 4 | status: locked
 
 track: | by: legal@acme.co
 ```
@@ -84,7 +84,7 @@ track: | by: legal@acme.co
 5. **Approvals** — `approve:` records who reviewed and when. Multiple approvals are standard: legal, finance, management.
 6. **Digital signatures** — `sign:` with content hashes. Machine-verifiable.
 7. **Physical signatures** — `signline:` creates lines on the printed page for wet-ink signatures.
-8. **Freeze** — `freeze:` seals the document (`spec: 3`). Any content edit invalidates the hash; restyling, re-theming, and comments do not.
+8. **Freeze** — `freeze:` seals the document (`spec: 4`). Any content edit invalidates the hash; restyling, re-theming, and comments do not.
 
 ## Arabic services contract (عقد)
 

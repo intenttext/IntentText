@@ -50,7 +50,7 @@ Multiple approvals are common — legal, finance, management, compliance.
 Integrity hash seal (tamper-evident record):
 
 ```intenttext
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4... | spec: 3
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4... | spec: 4
 ```
 
 `sign:` is tamper-evident — it records the signer's name, role, timestamp, a SHA-256 hash of the document content at the time of signing, and the `spec:` ruleset that produced it. The hash **binds the signer's identity**, so editing the content _or_ the named signer makes the stored hash no longer match, and verification reports the discrepancy. This is integrity sealing, not cryptographic non-repudiation (there are no private keys or PKI — anyone can type a name; proving _who_ is Layer 2 below).
@@ -60,7 +60,7 @@ sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2
 Seal the document:
 
 ```intenttext
-freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8... | spec: 3 | status: locked
+freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8... | spec: 4 | status: locked
 ```
 
 After `freeze:`, the document is sealed. Any edit to the **content** changes the hash and breaks the seal. **Restyling is free** — changing the theme, fonts, colors, page size, or layout never breaks a seal (presentation is excluded from the hash), and so are comments (`//`). The seal also covers its own metadata, so editing the `freeze:` line's `at:`/`status:` breaks it too.
@@ -221,7 +221,7 @@ signline: Ahmed Al-Rashid | role: CEO | org: Acme Corp | date-line: Date
 
 The hash is **reproducible by anyone** — there is no secret. Given the source file and
 any SHA-256 implementation, you can recompute it and confirm a seal yourself. The current
-ruleset is **`spec: 3`** (`SEAL_SPEC = 3`). The algorithm runs on the **raw source text**,
+ruleset is **`spec: 4`** (`SEAL_SPEC = 3`). The algorithm runs on the **raw source text**,
 in order:
 
 1. **Cut at the `history:` boundary.** Only the content _above_ `history:` is hashed, so

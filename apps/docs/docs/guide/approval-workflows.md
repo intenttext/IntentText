@@ -200,8 +200,8 @@ require: legal | optional: yes
 
 approve: Reviewed | by: Sarah Chen | role: manager | at: 2026-03-20 | prev: sha256:…
 approve: Budget confirmed | by: James Miller | role: finance | at: 2026-03-21 | prev: sha256:…
-sign: James Miller | role: finance | at: 2026-03-21T16:00:00Z | hash: sha256:… | spec: 3
-freeze: | at: 2026-03-21T16:01:00Z | hash: sha256:… | spec: 3 | status: locked
+sign: James Miller | role: finance | at: 2026-03-21T16:00:00Z | hash: sha256:… | spec: 4
+freeze: | at: 2026-03-21T16:01:00Z | hash: sha256:… | spec: 4 | status: locked
 ```
 
 ```typescript

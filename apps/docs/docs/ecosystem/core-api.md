@@ -370,14 +370,14 @@ collectDocumentStyles(doc);
 
 The trust hash is **versioned**: every `sign:`/`freeze:` line stamps a `spec:` version
 (current `SEAL_SPEC = 3`), and verification applies exactly that version forever, so a
-future byte-rule change can never silently break a historical seal. `spec: 3` excludes
+future byte-rule change can never silently break a historical seal. `spec: 4` excludes
 **styling** (presentation lines/properties) and **comments** from the hash, covers the
 seal's own metadata, and binds each signer's identity. See [SPEC §4](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md).
 
 ### `sealDocument(source, options)`
 
 Seal a document: appends a `sign:` line (optional) and a `freeze:` line carrying the
-SHA-256 seal hash and `spec: 3`. Returns the updated source — store it exactly as returned
+SHA-256 seal hash and `spec: 4`. Returns the updated source — store it exactly as returned
 (the hash covers the exact bytes).
 
 ```typescript

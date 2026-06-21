@@ -10,7 +10,7 @@ and **certifications** are computed and verified. It is the contract that indepe
 implementations (and enterprise/legal reviewers) can rely on. It complements the
 [keyword reference](./index.md); here we specify only the trust layer.
 
-> **Status:** `SEAL_SPEC = 3` (matches `@dotit/core` ≥ 1.21.0 and `@dotit/sign` ≥ 1.4.1).
+> **Status:** `SEAL_SPEC = 4` (matches `@dotit/core` ≥ 1.22.0 and `@dotit/sign` ≥ 1.4.1).
 > Every seal/signature **stamps the `spec:` version** that produced its hash, and a
 > verifier applies exactly that version forever, so a rule change can never silently break
 > a historical seal — see [Versioning & backward compatibility](#9-versioning--backward-compatibility).
@@ -45,7 +45,7 @@ The following keywords are **trust lines** and receive special treatment by the 
 
 ## 2. Content hash (canonicalization)
 
-Hashing is **versioned**. The current ruleset is **`spec: 3`** (`SEAL_SPEC = 3`); each
+Hashing is **versioned**. The current ruleset is **`spec: 4`** (`SEAL_SPEC = 4`); each
 shipped version is frozen forever (`CANONICALIZERS` in `trust.ts`):
 
 | spec | rules |
@@ -53,7 +53,8 @@ shipped version is frozen forever (`CANONICALIZERS` in `trust.ts`):
 | v0 | raw bytes (pre-NFC) |
 | v1 | NFC normalization |
 | v2 | NFC; excludes comments; the seal scope covers signatures |
-| **v3** (current) | NFC; **also excludes styling**, covers the seal's own metadata, and **binds the signer identity** |
+| v3 | NFC; **also excludes styling**, covers the seal's own metadata, and **binds the signer identity** |
+| **v4** (current) | v3 **plus** line-ending (`CRLF`/lone-`CR` → `LF`) + trailing-whitespace normalization before hashing (an `LF`↔`CRLF` re-save never breaks a seal); new seals also record an **`appearance:`** full-fidelity hash so a post-seal restyle that *hides* content is flagged (`appearanceChanged`) |
 
 There are **two scopes**. A hash covers one of them:
 
@@ -63,7 +64,7 @@ There are **two scopes**. A hash covers one of them:
   `freeze:` line's own metadata**, so tampering the body, *a signature*, or *the seal
   metadata* all break it.
 
-The **v3 hash** (`computeDocumentHash` / `computeSignatureHash`) is computed as follows:
+The **v4 hash** (`computeDocumentHash` / `computeSignatureHash`) is computed as follows:
 
 1. Take the **body** (text before the history boundary; the whole document if there is no
    boundary).
@@ -138,11 +139,11 @@ sign: NAME | role: ROLE | at: ISO8601 | hash: sha256:… | key: ed25519:PUBKEY |
 ### 4.2 On-record signature (no key)
 
 ```
-sign: NAME | role: ROLE | at: DATE | hash: sha256:… | spec: 3
+sign: NAME | role: ROLE | at: DATE | hash: sha256:… | spec: 4
 ```
 
 A `sign:` line **without** `key:`+`sig:` is an **integrity-only on-record claim**. Under
-`spec: 3` its `hash:` is the **content** scope and **binds the signer identity** (the
+`spec: 4` its `hash:` is the **content** scope and **binds the signer identity** (the
 `NAME | ROLE | DATE`), so editing either the content *or* the named signer breaks that
 signature — even before the document is sealed. It is still **not** cryptographic proof of
 *who* signed (anyone can type a name) and MUST NOT be presented as verified identity;
@@ -154,7 +155,7 @@ certification).
 ### 5.1 Seal (`freeze:`)
 
 ```
-freeze: | at: ISO8601 | hash: sha256:… | spec: 3 | status: locked
+freeze: | at: ISO8601 | hash: sha256:… | spec: 4 | status: locked
 ```
 
 The document is **sealed**. It is **intact** iff the current **seal-scope** hash (Section 2,
@@ -270,13 +271,13 @@ failed layer.
 Every seal/signature **stamps the `spec:` version** that produced its hash, and a verifier
 applies exactly that version forever (`CANONICALIZERS`), so a future rule change can never
 silently break a historical seal. Older specs stay valid: a seal stamped `spec: 1` or `2`
-is verified under v1/v2 rules and reported as `specOutdated` (re-seal to upgrade to v3).
+is verified under v1/v2 rules and reported as `specOutdated` (re-seal to upgrade to v4).
 
 For legacy documents written **before** versioning (no `spec:` field): `@dotit/core` < 1.9.0
 hashed without NFC, so a verifier MUST also accept the **legacy** (pre-NFC) hash. The
 reference implementation exposes `computeDocumentHashLegacy()` / `hashMatches()`, and
 verification succeeds if **any** recognized version's hash matches. New documents always
-carry `spec: 3`.
+carry `spec: 4`.
 
 ## 10. Implementation notes
 

@@ -162,7 +162,7 @@ dotit seal acme-cloud-services.it --signer "Fahad Al-Thani" --role "Managing Dir
 
 What `seal` actually does, in order:
 
-1. **Computes the document hash** under the current ruleset (`spec: 3`). It takes
+1. **Computes the document hash** under the current ruleset (`spec: 4`). It takes
    the raw source text, cuts it at the `history:` boundary line if one exists (the
    audit log below it is never hashed), **drops comments** (`//` lines) and
    **styling** (presentation lines `page:`/`font:`/`style:` and presentation
@@ -177,8 +177,8 @@ What `seal` actually does, in order:
    stamped with the `spec:` ruleset that produced its hash:
 
    ```intenttext
-   sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-12T16:42:23.608Z | hash: sha256:53cdd027… | spec: 3
-   freeze: | at: 2026-06-12T16:42:23.608Z | hash: sha256:53cdd027… | spec: 3 | status: locked
+   sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-12T16:42:23.608Z | hash: sha256:53cdd027… | spec: 4
+   freeze: | at: 2026-06-12T16:42:23.608Z | hash: sha256:53cdd027… | spec: 4 | status: locked
    ```
 
 3. **Writes the file in place.** Nothing else changes — sealing never reformats

@@ -22,8 +22,8 @@ dotit seal contract.it --signer "Ahmed Al-Rashid" --role "CEO"
 This adds to the document:
 
 ```intenttext
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22T15:00:00Z | hash: sha256:a1b2c3d4e5f6a7b8 | spec: 3
-freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:a1b2c3d4e5f6a7b8 | spec: 3 | status: locked
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22T15:00:00Z | hash: sha256:a1b2c3d4e5f6a7b8 | spec: 4
+freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:a1b2c3d4e5f6a7b8 | spec: 4 | status: locked
 ```
 
 ### Verify
@@ -53,7 +53,7 @@ Output when tampered:
 ## What the hash covers
 
 The hash is computed from **document content above the history boundary**, excluding trust
-metadata, comments, and presentation. The current ruleset is `spec: 3`. It covers:
+metadata, comments, and presentation. The current ruleset is `spec: 4`. It covers:
 
 - `title:`, `summary:`, `meta:` blocks
 - All section content
@@ -93,9 +93,9 @@ dotit seal contract.it --signer "Maria Santos" --role "COO, GlobalTech"
 After both:
 
 ```intenttext
-sign: Ahmed Al-Rashid | role: CEO, Acme Corp | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2c3d4 | spec: 3
-sign: Maria Santos | role: COO, GlobalTech | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8 | spec: 3
-freeze: | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8 | spec: 3 | status: locked
+sign: Ahmed Al-Rashid | role: CEO, Acme Corp | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2c3d4 | spec: 4
+sign: Maria Santos | role: COO, GlobalTech | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8 | spec: 4
+freeze: | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8 | spec: 4 | status: locked
 ```
 
 ## Verification in code

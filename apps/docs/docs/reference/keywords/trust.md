@@ -110,7 +110,7 @@ sign: signer name | role: title | at: timestamp | hash: algorithm:value | spec: 
 ### Examples
 
 ```intenttext
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4e5f6 | spec: 3
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4e5f6 | spec: 4
 sign: James Miller | role: CFO | at: 2026-03-06T15:00:00Z
 ```
 
@@ -172,7 +172,7 @@ freeze: | at: timestamp | hash: algorithm:value | spec: version | status: locked
 ### Examples
 
 ```intenttext
-freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8 | spec: 3 | status: locked
+freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8 | spec: 4 | status: locked
 ```
 
 ### Notes
@@ -322,8 +322,8 @@ text: Full contract terms...
 
 track: | version: 1.0 | by: Ahmed Al-Rashid
 approve: Legal review complete | by: Sarah Chen | role: General Counsel | at: 2026-03-05
-sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4 | spec: 3
-freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8 | spec: 3 | status: locked
+sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-06T14:32:00Z | hash: sha256:a1b2c3d4 | spec: 4
+freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8 | spec: 4 | status: locked
 ```
 
 ---
