@@ -969,11 +969,15 @@ function parseLine(
       if (properties.leading) properties.leading = Number(properties.leading);
     }
 
-    // v2.5: page blocks coerce numeric columns, handle boolean numbering
+    // v2.5: page blocks coerce numeric columns, handle boolean numbering.
+    // Accept BOTH the authored `true` AND the serialized `1` as on (and `1`/`0`
+    // numbers) so the coercion is IDEMPOTENT — `numbering: true` serializes to
+    // `numbering: 1`, which must re-parse to 1, not flip to 0 (round-trip bug).
     if (resolvedType === "page") {
       if (properties.columns) properties.columns = Number(properties.columns);
       if (properties.numbering !== undefined) {
-        properties.numbering = properties.numbering === "true" ? 1 : 0;
+        const n = properties.numbering;
+        properties.numbering = n === "true" || n === "1" || n === 1 ? 1 : 0;
       }
     }
 

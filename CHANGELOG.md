@@ -6,6 +6,14 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Fixed — `page: numbering` round-trip idempotency (`@dotit/core` 1.24.1)
+
+A new corpus round-trip test (`tests/roundtrip-corpus.test.ts`, over **every** shipped `.it`
+incl. `examples/templates/`) caught a real bug: `page: | … | numbering: true` serialized to
+`numbering: 1`, which re-parsed to `0` (the coercion accepted `"true"` but not the serialized
+`"1"`) — breaking `documentToSource` idempotency. The coercion now accepts `true`/`1` as on,
+so the round-trip is a fixpoint. Full core suite at **1284 tests**.
+
 ### Added — E-invoicing (EN 16931/UBL), DOCX emphasis fidelity, custom-keyword case (`@dotit/core` 1.24.0)
 
 The remaining in-repo P2/P3 gaps from the assessment:
