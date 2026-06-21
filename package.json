@@ -45,7 +45,8 @@
   "packageManager": "pnpm@9.0.0",
   "pnpm": {
     "overrides": {
-      "esbuild": "0.28.0"
+      "esbuild": "0.28.0",
+      "@vitejs/plugin-react": "5.2.0"
     },
     "onlyBuiltDependencies": [
       "electron",
