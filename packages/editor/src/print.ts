@@ -51,6 +51,11 @@ function buildWysiwygPrint(content: string, printMode: string): string | null {
   clone
     .querySelectorAll('.it-doc-comment, [data-it-type="comment"]')
     .forEach((e) => e.remove());
+  // The inline sign:/freeze: rows are redundant with the seal stamp (trust band) —
+  // strip them from print so only the stamp certifies the document.
+  clone
+    .querySelectorAll('[data-trust="sign"], [data-trust="seal"], [data-trust="freeze"]')
+    .forEach((e) => e.remove());
   const bodyHtml = clone.innerHTML;
 
   // Copy the page's stylesheets (the bundled editor CSS + injected theme) verbatim.

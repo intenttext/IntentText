@@ -653,6 +653,25 @@ export const ITTrust = Node.create({
     const { keyword, content, props } = parseTrustLine(
       String(node.attrs.raw || ""),
     );
+    // The seal STAMP (the trust band in the page corner) already states signed +
+    // sealed status, so the inline sign:/freeze: rows are redundant — hide them in
+    // the editor canvas AND in print (print clones the canvas). The node stays in the
+    // document model so the sign:/freeze: SOURCE line — and the hash — round-trip
+    // unchanged; it is only not displayed. approve:/amendment: stay visible (they are
+    // distinct workflow records the stamp doesn't show). Matches core's renderer,
+    // which already returns nothing for sign:/freeze:.
+    if (keyword === "sign" || keyword === "seal" || keyword === "freeze") {
+      return [
+        "div",
+        mergeAttributes(HTMLAttributes, {
+          "data-it-trust": "",
+          "data-trust": keyword,
+          class: `it-doc-trust it-doc-trust--${keyword} it-doc-trust--hidden`,
+          style: "display: none",
+          "aria-hidden": "true",
+        }),
+      ];
+    }
     const role = props.role || props.title || "";
     const date = (props.at || props.date || props.time || "").slice(0, 10);
     const parts: (string | (string | object)[])[] = [];

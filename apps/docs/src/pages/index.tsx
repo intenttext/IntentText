@@ -596,6 +596,96 @@ function ArabicPaper() {
   );
 }
 
+/* ── Hero invoice — a live, sealed .it rendered to the page (the stamp certifies
+ *    it; no inline sign/seal rows — the seal STAMP is enough). ───────────────── */
+
+const HERO_SEAL_HASH =
+  "sha256:19fba2465dc18e7a3b0c4f59d2e81a6c7740bb913fce25a08d6f1b23ce40a9d7";
+
+function HeroInvoice(): React.ReactElement {
+  const stamp = renderSeal({
+    hash: HERO_SEAL_HASH,
+    tier: "certified",
+    size: 96,
+    text: false,
+  });
+  return (
+    <div className={styles.invoiceDoc}>
+      <div className={styles.invHead}>
+        <div>
+          <div className={styles.invTitle}>Invoice INV-2026-042</div>
+          <div className={styles.invParties}>Horizon Consulting → Acme Corp</div>
+        </div>
+        <div className={styles.invDate}>2026-06-01</div>
+      </div>
+
+      <div className={styles.invLabel}>Bill To</div>
+      <div className={styles.invBillTo}>
+        <strong>Acme Corp</strong>
+        <span>accounts@acme.com</span>
+      </div>
+
+      <div className={styles.invLabel}>Line Items</div>
+      <table className={styles.invTable}>
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Qty</th>
+            <th>Unit</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Strategy consulting — May 2026</td>
+            <td>40</td>
+            <td>150.00</td>
+            <td>6,000.00</td>
+          </tr>
+          <tr>
+            <td>Systems integration</td>
+            <td>12</td>
+            <td>175.00</td>
+            <td>2,100.00</td>
+          </tr>
+          <tr>
+            <td>Compliance review</td>
+            <td>1</td>
+            <td>405.00</td>
+            <td>405.00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className={styles.invMetric}>
+        <span>Subtotal</span>
+        <span>8,505.00 USD</span>
+      </div>
+      <div className={styles.invMetric}>
+        <span>Tax (5%)</span>
+        <span>425.25 USD</span>
+      </div>
+      <div className={styles.invMetricTotal}>
+        <span>Total Due</span>
+        <span>8,930.25 USD</span>
+      </div>
+
+      {/* The trust STAMP — the single mark that certifies the document. */}
+      <div className={styles.invStamp}>
+        <span
+          className={styles.invStampSeal}
+          dangerouslySetInnerHTML={{ __html: stamp }}
+        />
+        <span className={styles.invStampCap}>
+          <span>Signed Layla Hassan · Finance Director</span>
+          <span>Sealed 1 Jun 2026</span>
+          <span className={styles.invStampHash}>19fba2465d…</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /* ── Page ─────────────────────────────────────────────────────────────── */
 
 export default function Home(): React.ReactElement {
@@ -658,14 +748,7 @@ export default function Home(): React.ReactElement {
             </div>
             <div className={styles.heroVisual} aria-hidden="false">
               <div className={styles.heroPaper}>
-                <img
-                  src={useBaseUrl("/img/hero-document.png")}
-                  alt="A sealed invoice rendered from a single .it file — corporate theme with line items, totals, a payment deadline, an approval, a verified signature, and a tamper-evident seal hash"
-                  width={760}
-                  height={995}
-                  loading="lazy"
-                  decoding="async"
-                />
+                <HeroInvoice />
               </div>
               <span className={styles.heroPaperTag}>
                 <Lock size={13} /> sealed invoice.it — real renderer output

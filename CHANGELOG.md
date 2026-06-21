@@ -6,6 +6,16 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed — the seal STAMP is the only trust mark shown (`@dotit/editor` 1.16.3)
+
+The inline `sign:` / `freeze:` rows ("SIGNED", "SEALED DOCUMENT …hash") no longer render
+in the editor canvas **or** in print — the ambient-seal **stamp** (trust band, page corner)
+already states signed + sealed status, so the rows were redundant. The trust lines stay in
+the document model/source (hash + serialization unchanged); they're just not displayed.
+`approve:` / `amendment:` still render (distinct workflow records). Matches core's renderer,
+which already emits nothing for `sign:`/`freeze:`. Docs landing hero is now a live sealed
+invoice ending in the real stamp (no inline rows), on a tinted backdrop.
+
 ### Changed — synchronized release: every `@dotit/*` package on core 1.24.1
 
 All packages bumped to depend on `@dotit/core` `^1.24.1` and republished, verified to

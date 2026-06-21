@@ -68,6 +68,148 @@
 .heroPaperTag svg {
   color: var(--ifm-color-primary);
 }
+
+/* Soft tinted glow behind the paper so the white document pops (less "too white"). */
+.heroVisual::before {
+  content: "";
+  position: absolute;
+  inset: -8% -4% 4%;
+  background: radial-gradient(
+    58% 52% at 52% 40%,
+    rgba(79, 70, 229, 0.24),
+    rgba(37, 111, 237, 0.1) 46%,
+    transparent 72%
+  );
+  filter: blur(6px);
+  z-index: 0;
+  pointer-events: none;
+}
+.heroPaper {
+  position: relative;
+  z-index: 1;
+}
+
+/* Live sealed-invoice card (replaces the static hero PNG) */
+.invoiceDoc {
+  background: #ffffff;
+  color: #0f172a;
+  padding: 26px 28px 22px;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+.invHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.invTitle {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.invParties {
+  color: #64748b;
+  font-size: 11px;
+  font-style: italic;
+  margin-top: 2px;
+}
+.invDate {
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.invLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 16px 0 6px;
+}
+.invBillTo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.invBillTo span {
+  color: #64748b;
+}
+.invTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2px;
+}
+.invTable th {
+  text-align: left;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  padding: 0 0 5px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.invTable th:not(:first-child),
+.invTable td:not(:first-child) {
+  text-align: right;
+  white-space: nowrap;
+}
+.invTable td {
+  padding: 5px 0;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  font-variant-numeric: tabular-nums;
+}
+.invMetric,
+.invMetricTotal {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-variant-numeric: tabular-nums;
+}
+.invMetric {
+  color: #64748b;
+}
+.invMetricTotal {
+  font-weight: 800;
+  font-size: 13px;
+  color: #0f172a;
+  border-top: 2px solid #0f172a;
+  margin-top: 4px;
+  padding-top: 8px;
+}
+.invStamp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 24px;
+}
+.invStampSeal {
+  width: 62px;
+  height: 62px;
+}
+.invStampSeal svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.invStampCap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-size: 9px;
+  color: #94a3b8;
+  text-align: center;
+}
+.invStampHash {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color: #c58a1a;
+  letter-spacing: 0.04em;
+}
 /* Left-align the hero CTAs/install when in the two-column layout */
 .heroCopy .installRow,
 .heroCopy .heroButtons {
