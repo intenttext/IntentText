@@ -329,7 +329,7 @@
       }
     },
     "keyword-content": {
-      "match": "^(quote|image|link|ref|embed|code|columns|headers|row|def|define|term|glossary|figure|fig|diagram|chart|contact|person|party|input|output|attach)(:)\\s*(.*)",
+      "match": "^(quote|image|link|ref|embed|code|columns|headers|row|def|define|term|glossary|figure|fig|contact|person|party|input|output|attach)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "support.type.content.intenttext"

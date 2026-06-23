@@ -743,12 +743,12 @@ describe("v2.11 additional alias coverage", () => {
     expect(firstBlock("change: we lowered the price").type).toBe("custom");
   });
 
-  it("diagram: alias resolves to figure:", () => {
-    expect(ALIASES["diagram"]).toBe("figure");
-  });
-
-  it("chart: alias resolves to figure:", () => {
-    expect(ALIASES["chart"]).toBe("figure");
+  // T-07: figure's synonyms (diagram/chart/illustration/visual) were pruned; only the
+  // short `fig` alias remains, the rest pass through as custom blocks.
+  it("diagram/chart are NO LONGER figure aliases; fig still is", () => {
+    expect(ALIASES["diagram"]).toBeUndefined();
+    expect(ALIASES["chart"]).toBeUndefined();
+    expect(ALIASES["fig"]).toBe("figure");
   });
 
   it("signature-line: alias resolves to signline:", () => {

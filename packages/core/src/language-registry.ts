@@ -672,7 +672,6 @@ const TIER_OVERRIDES: Record<string, KeywordTier> = {
   // Universally useful — promoted into the everyday core set.
   task: "core",
   done: "core",
-  divider: "core",
   // Reclassified to the profile they actually belong to.
   context: "agent",
   toc: "print",
@@ -741,12 +740,9 @@ export const EXTENSION_NS_MAP: Record<string, string> = Object.fromEntries(
  */
 export const EXTENSION_LEGACY_ALIASES: Record<string, string> = {
   // Former aliases of extension keywords — resolve to the extension keyword
-  // figure aliases
+  // figure alias (T-07: synonyms diagram/chart/illustration/visual pruned — one short
+  // form is enough; the pruned words pass through as `custom` blocks if written)
   fig: "figure",
-  diagram: "figure",
-  chart: "figure",
-  illustration: "figure",
-  visual: "figure",
   // Arabic aliases (localized keywords; round-trip preserves the written form)
   "مهلة": "deadline",
   "جهة": "contact",
@@ -766,16 +762,18 @@ export const EXTENSION_LEGACY_ALIASES: Record<string, string> = {
   see: "ref",
   related: "ref",
   xref: "ref",
-  // deadline aliases
+  // deadline aliases (T-07: prose-collision `by` dropped)
   due: "deadline",
   milestone: "deadline",
-  by: "deadline",
   "due-date": "deadline",
   // signline aliases
   "signature-line": "signline",
   "sign-here": "signline",
   // signal aliases
   emit: "signal",
+  // `status` stays for now: it has agentic test coverage (`status:` emits a signal).
+  // It IS prose-colliding (status: is also a common property key), so demoting it is
+  // bundled into the owner-confirmed alias pass (T-07 remainder), not this unambiguous one.
   status: "signal",
   // assert aliases
   expect: "assert",
