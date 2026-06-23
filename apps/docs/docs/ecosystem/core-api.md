@@ -369,7 +369,7 @@ collectDocumentStyles(doc);
 ## Trust
 
 The trust hash is **versioned**: every `sign:`/`freeze:` line stamps a `spec:` version
-(current `SEAL_SPEC = 3`), and verification applies exactly that version forever, so a
+(current `SEAL_SPEC = 4`), and verification applies exactly that version forever, so a
 future byte-rule change can never silently break a historical seal. `spec: 4` excludes
 **styling** (presentation lines/properties) and **comments** from the hash, covers the
 seal's own metadata, and binds each signer's identity. See [SPEC §4](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md).
@@ -1049,7 +1049,7 @@ interface IntentDocumentMetadata {
 
 ### `BlockType`
 
-Union type covering all 38 canonical keywords plus extension namespace blocks.
+Union type covering all 41 canonical keywords plus extension namespace blocks.
 
 **Canonical (38 total):**
 
@@ -1104,7 +1104,7 @@ Record mapping alias keywords to their canonical types. Includes callout aliases
 
 ### `KEYWORDS`
 
-Array of all recognized keyword strings — 38 canonical keywords plus their registered aliases.
+Array of all recognized keyword strings — 41 canonical keywords plus their registered aliases.
 
 
 ## Server-side PDFs — `@dotit/pdf`

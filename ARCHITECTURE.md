@@ -30,8 +30,8 @@ registry; CI fails on drift.
 
 | Package | Ver | Role | Deps |
 | --- | --- | --- | --- |
-| `packages/core` | 1.12 | The language: parser, merge, query, render, trust, **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers, hub-submit client**. The only grammar implementation. | **zero** |
-| `packages/editor` | 1.8 | Embeddable React editor: `IntentTextWorkbench` (edit/fill/review/view), ribbon, trust banner. Imports `@dotit/core` (external). Browser-only. | react |
+| `packages/core` | 1.24 | The language: parser, merge, query, render, trust, **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers, EN 16931/UBL e-invoice export, doc-metadata extraction, hub-submit client**. The only grammar implementation. | **zero** |
+| `packages/editor` | 1.16 | Embeddable React editor: `IntentTextWorkbench` (edit/fill/review/view), ribbon, trust banner. Imports `@dotit/core` (external). Browser-only. | react |
 | `packages/sign` | 1.4 | Ed25519 signatures + UTS certification (root→intermediate chain). | — |
 | `packages/pades` | 1.0 | PAdES PDF signatures: ECDSA P-256 + X.509 + CMS; CSR/CA issuance; RFC-3161 timestamps. | pkijs, @signpdf |
 | `packages/pdf` | 1.1 | Server-side PDF + PDF/A (`toPdfA`) + PAdES-signed PDF. | core, pdf-lib; puppeteer/pades peers |

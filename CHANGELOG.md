@@ -6,6 +6,27 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed — format freeze prep (`@dotit/core`; see `assessment/FORMAT-REVIEW.md`)
+
+- **Reserved `route`, `require`, `certify`** as canonical keywords (previously parsed as
+  `custom`). The reserved canonical set is now **41** (13 core); a CI assertion pins the count.
+- **Closed the `change`→`amendment` seal hole (T-01):** dropped the `change` and `amend`
+  English aliases of `amendment`. A trust keyword excluded from the content hash
+  (`amendment`/`certify`) may now alias only **non-ASCII localized terms** (e.g. Arabic
+  `تعديل`), enforced by a guard test — so no ordinary sentence can resolve into a hash-
+  excluded trust line and vanish from a seal.
+- **`headers` is now the canonical table keyword** (`columns` → compat-only alias); matches
+  the serializer's existing output, round-trip byte-stable.
+- **`input`/`output`** promoted from the experimental `x-exp` namespace to the stable
+  **`x-form`** namespace (metadata-only; bare keywords and block types unchanged).
+- **Optional `// it-format: 1.0` version stamp** → `document.version` (a hash-excluded
+  comment); the feature level inferred from blocks moves to `document.detectedFeatureLevel`.
+- **Approval routing renders** as a live approval-route panel (`route:`/`require:`);
+  `certify:` is consolidated into the trust band like `sign:`/`freeze:`.
+- **Docs reconciled** to one accurate story — **13 core / 41 reserved**, SEAL_SPEC 4:
+  removed stale 37/38 counts and `SEAL_SPEC = 3` references and the false "seal hashes exact
+  bytes" claim across README/AGENTS/SPEC/INTEGRATION/the docs site/llms.txt.
+
 ### Changed — the seal STAMP is the only trust mark shown (`@dotit/editor` 1.16.3)
 
 The inline `sign:` / `freeze:` rows ("SIGNED", "SEALED DOCUMENT …hash") no longer render

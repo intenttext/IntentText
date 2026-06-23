@@ -2,6 +2,8 @@
 
 *Prepared 2026-06-19 for the project owner. Scope: the `.it` format, the `@dotit/*` engine and ecosystem, and the specific path of embedding `.it` inside an ERP (Jadwal). Every claim below is grounded in code review and executed verification, not docs.*
 
+> **⚠️ Dated 2026-06-19 — pre-freeze analysis; some findings are superseded.** The format-freeze work landed 2026-06-23: **SEAL_SPEC is now 4** (the styling-exclusion forgery G-01 and CRLF G-02 are resolved — appearance hash + line-ending normalization shipped), **EN 16931 / UBL e-invoice export shipped** (`einvoice.ts`, 1.24.0), and the reserved set is **41** (13 core). For the current format-design verdict see [`FORMAT-REVIEW.md`](./FORMAT-REVIEW.md) and [`FORMAT-ROADMAP.md`](./FORMAT-ROADMAP.md). Where a claim below says SEAL_SPEC 3, "EN16931 zero support", or treats G-01/G-02 as open, this banner is authoritative.
+
 ---
 
 ## 1. Executive verdict — "Does it have legs?"
@@ -45,7 +47,7 @@ But three independently-confirmed facts dominate the verdict:
 | Rich layout & Office interop | DOCX / OOXML | `.it`'s OOXML export is ~237 LOC of hand-rolled "minimal" XML; round-trip is lossy. |
 | Fixed-fidelity distribution | PDF | Universal readers; `.it` must *export to PDF* to be recognized anywhere. |
 | Query power & tooling | JSON / YAML / SQLite | Mature query engines; `.it` query is intra-document only (see §5). |
-| **Regulated invoicing** | **EN16931 / UBL / Factur-X / PEPPOL / ZATCA** | **`.it` has zero support — confirmed by grep across the whole repo.** |
+| **Regulated invoicing** | **EN16931 / UBL / Factur-X / PEPPOL / ZATCA** | **Partial: EN 16931 / UBL export shipped (`einvoice.ts`, 1.24.0); Factur-X / PEPPOL / ZATCA profiles deferred.** |
 
 The honest wedge is the **intersection** (semantic + queryable + sealable + restyle-safe + RTL plain text), which is real but niche. The README's four-things-at-once "go-to format" framing risks being a jack-of-all-trades.
 

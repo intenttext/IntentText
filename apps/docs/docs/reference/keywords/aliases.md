@@ -168,7 +168,7 @@ Secondary callout aliases:
 | `approve:`   | `اعتماد:`                     |
 | `sign:`      | `توقيع:`, `sig:`              |
 | `freeze:`    | `تجميد:`, `lock:`             |
-| `amendment:` | `تعديل:`, `amend:`, `change:` |
+| `amendment:` | `تعديل:` |
 
 ### Layout
 

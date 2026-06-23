@@ -65,7 +65,7 @@ task: Send invoice | owner: Finance | due: 2026-07-01
 
 ## 3. The complete keyword set
 
-**38 canonical keywords**, by category. Use these first.
+**41 canonical keywords**, by category. Use these first.
 
 | Category | Keywords |
 | --- | --- |
@@ -74,8 +74,8 @@ task: Send invoice | owner: Finance | due: 2026-07-01
 | **Content** | `text:` `info:` `quote:` `cite:` `code:` `image:` `link:` |
 | **Tasks** | `task:` `done:` `ask:` |
 | **Data** | `columns:` `row:` `metric:` |
-| **Agent/workflow** | `step:` `decision:` `gate:` `trigger:` `result:` `policy:` `audit:` |
-| **Trust** | `track:` `approve:` `sign:` `freeze:` `amendment:` |
+| **Agent/workflow** | `step:` `decision:` `gate:` `trigger:` `result:` `policy:` `audit:` `route:` `require:` |
+| **Trust** | `track:` `approve:` `sign:` `freeze:` `certify:` `amendment:` |
 | **Layout (print/PDF)** | `page:` `header:` `footer:` `watermark:` `style:` `break:` |
 
 **Structural / machine-managed:** `history:` (boundary — everything below is managed
@@ -90,8 +90,9 @@ set `loop:` `parallel:` `retry:` `wait:` `handoff:` `call:` `checkpoint:` `error
 (`عنوان:`→`title`, `مهمة:`→`task`, `صف:`→`row`, `توقيع:`→`sign`, …) and shorthands (`todo:`→`task`,
 `note:`→`text`). Callout shorthands: `warning:` `danger:` `tip:` `success:` = `info: | type: …`.
 
-**In-file approval policy** (parse as preserved custom blocks, not core keywords):
-`route: sequential|parallel` and `require: <role> | when: <cond> | optional: yes`.
+**In-file approval policy** (reserved keywords since 4.4 — `workflowState()` derives live
+state and the renderer draws an approval-route panel): `route: sequential|parallel` and
+`require: <role> | when: <cond> | optional: yes`, fulfilled by `approve:` lines.
 
 ---
 
@@ -108,8 +109,10 @@ Trust is three opt-in layers, each verifiable **offline, forever**, with nothing
 **What gets hashed** (you must respect this when generating sealed docs): the **content**
 above the `history:` boundary, NFC-normalized, joined with `\n`, trimmed, UTF-8, LF line
 endings → `sha256:` + hex. The hash is **versioned** — every `sign:`/`freeze:` stamps a
-`spec:` (current = **`SEAL_SPEC = 3`**), and verification uses the *recorded* spec forever,
-so old seals never silently break. Under v3 the hash **excludes**:
+`spec:` (current = **`SEAL_SPEC = 4`**), and verification uses the *recorded* spec forever,
+so old seals never silently break. v4 also normalizes line endings (CRLF→LF) and trailing
+whitespace and records an `appearance:` hash (a post-seal restyle that hides content is
+flagged). Under v4 the content hash **excludes**:
 - **Comments** (`//` lines) and **styling** — whole presentation lines (`page:`/`font:`/`style:`)
   and presentation props (`color`, `size`, `align`, `bg`, `leading`, `margin`, `theme`, …).
   **Restyling never breaks a seal** ("sign content, not presentation").
@@ -208,8 +211,10 @@ no code. See [`apps/docs/docs/ecosystem/mcp-server.md`](apps/docs/docs/ecosystem
 
 ## 6. The hard rules — byte preservation (do not violate)
 
-The seal is a hash of the **exact bytes**. Reformatting breaks it even when nothing visible
-changed. Therefore:
+The seal hashes the document's **content**, normalized: SEAL_SPEC 4 tolerates CRLF and
+trailing-whitespace changes (and excludes styling), so those don't break it — but **any
+content change does**. Still, preserve the author's exact bytes and don't auto-reformat, so
+you never risk an unintended *content* change. Therefore:
 
 1. **Never auto-format / reorder / re-indent / canonicalize an existing `.it` file.** Preserve
    the author's bytes exactly.
