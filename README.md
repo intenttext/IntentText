@@ -314,14 +314,14 @@ A read-only yes/no a producer can gate on. Unknown keywords are **not** errors �
 
 | Package | Version | What it is |
 | --- | --- | --- |
-| [`@dotit/core`](https://npmjs.com/package/@dotit/core) | **1.25** | The format: parser, renderers (HTML + print/PDF), query, template merge, trust (SEAL_SPEC 4), conformance, typed values, **forms, redline/compare, redaction, attachments, math markers, EN 16931/UBL e-invoice export**, converters, themes, CLI. **Zero dependencies.** |
-| [`@dotit/editor`](https://npmjs.com/package/@dotit/editor) | **1.16** | Embeddable React editor — all modes in one `<IntentTextWorkbench>`, ribbon, trust banner, form builder, version history, attachments, version-compare. |
-| [`@dotit/pdf`](https://npmjs.com/package/@dotit/pdf) | **1.2** | Server-side PDFs — merge → seal → PDF; PDF/A-oriented archival; PAdES-signed PDF. Opt-in. |
+| [`@dotit/core`](https://npmjs.com/package/@dotit/core) | **2.0** | The format: parser, renderers (HTML + print/PDF), query, template merge, trust (SEAL_SPEC 4), conformance, typed values, **forms, redline/compare, redaction, attachments, math markers, EN 16931/UBL e-invoice export**, converters, themes, CLI. **Zero dependencies.** |
+| [`@dotit/editor`](https://npmjs.com/package/@dotit/editor) | **2.0** | Embeddable React editor — all modes in one `<IntentTextWorkbench>`, ribbon, trust banner, form builder, version history, attachments, version-compare. |
+| [`@dotit/pdf`](https://npmjs.com/package/@dotit/pdf) | **2.0** | Server-side PDFs — merge → seal → PDF; PDF/A-oriented archival; PAdES-signed PDF. Opt-in. |
 | [`@dotit/pades`](https://npmjs.com/package/@dotit/pades) | **1.0** | **PAdES** (Adobe/court-recognized) PDF signatures — X.509/ECDSA + CMS; CSR/CA issuance; timestamps. |
-| [`@dotit/sign`](https://npmjs.com/package/@dotit/sign) | **1.4** | Ed25519 signatures + UTS certification chain. Offline, self-verifying. |
+| [`@dotit/sign`](https://npmjs.com/package/@dotit/sign) | **2.0** | Ed25519 signatures + UTS certification chain. Offline, self-verifying. |
 | [`@dotit/math`](https://npmjs.com/package/@dotit/math) | **0.1** | Math rendering — dependency-free MathML + optional KaTeX. |
-| [`@dotit/mcp`](https://npmjs.com/package/@dotit/mcp) | **1.1** | MCP server — agents read, write, query, and seal `.it`. |
-| `packages/vscode` | **1.6** | VS Code extension: highlighting, snippets, diagnostics, hovers, completion. |
+| [`@dotit/mcp`](https://npmjs.com/package/@dotit/mcp) | **2.0** | MCP server — agents read, write, query, and seal `.it`. |
+| `packages/vscode` | **2.0** | VS Code extension: highlighting, snippets, diagnostics, hovers, completion. |
 | `apps/` | — | Web editor, Electron desktop app, docs site, verify portal, hub. |
 
 The TypeScript core is the single canonical implementation of the grammar (see

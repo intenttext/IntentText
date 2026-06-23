@@ -37,10 +37,10 @@ court (PAdES) or an archive (PDF/A).
 
 | Tool                       | Description                                          |
 | -------------------------- | ---------------------------------------------------- |
-| [Core Library](./core-api) | `@dotit/core` **1.25** — parse, render, query, merge, trust (versioned seal `spec: 4`), forms, approval routing + audit chain, redline/version-compare, redaction, attachments, conformance, e-invoice (UBL), math markers, convert |
-| `@dotit/pdf` **1.2**       | Server-side PDFs — merge → seal → PDF; **PDF/A** archival; PAdES-signed PDF; opt-in |
+| [Core Library](./core-api) | `@dotit/core` **2.0** — parse, render, query, merge, trust (versioned seal `spec: 4`), forms, approval routing + audit chain, redline/version-compare, redaction, attachments, conformance, e-invoice (UBL), math markers, convert |
+| `@dotit/pdf` **2.0**       | Server-side PDFs — merge → seal → PDF; **PDF/A** archival; PAdES-signed PDF; opt-in |
 | `@dotit/pades` **1.0**     | **PAdES** (Adobe/court-recognized) PDF signatures — X.509/ECDSA + CMS; CSR/CA issuance |
-| `@dotit/sign` **1.4**      | Ed25519 signatures + UTS certification chain |
+| `@dotit/sign` **2.0**      | Ed25519 signatures + UTS certification chain |
 | `@dotit/math` **0.1**      | Math rendering — dependency-free lite MathML + optional KaTeX |
 | [CLI](./cli)               | Command-line tool for every operation                |
 
@@ -49,7 +49,7 @@ court (PAdES) or an archive (PDF/A).
 | Tool                                    | Description                                               |
 | --------------------------------------- | --------------------------------------------------------- |
 | [VS Code Extension](./vscode-extension) | Syntax highlighting, snippets, hover docs, trust commands |
-| [Editor](./editor)                      | `@dotit/editor` **1.16** — Word-like WYSIWYG **and** an embeddable React component: `<IntentTextEditor>` plus the `<IntentTextWorkbench>` mode wrapper (edit / fill / review / view / auto), New ▸ Document/Form/Template, form builder, per-signer trust banner, approval-route panel, version history, attachment fill, version-compare, print/PDF |
+| [Editor](./editor)                      | `@dotit/editor` **2.0** — Word-like WYSIWYG **and** an embeddable React component: `<IntentTextEditor>` plus the `<IntentTextWorkbench>` mode wrapper (edit / fill / review / view / auto), New ▸ Document/Form/Template, form builder, per-signer trust banner, approval-route panel, version history, attachment fill, version-compare, print/PDF |
 
 ## Distribution
 

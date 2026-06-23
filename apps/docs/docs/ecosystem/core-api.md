@@ -11,7 +11,7 @@ TypeScript/JavaScript API reference for `@dotit/core`.
 npm install @dotit/core
 ```
 
-Current version: **1.25.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
+Current version: **2.0.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
 
 ## Parser
 
@@ -1328,7 +1328,7 @@ for batch runs. Full guide: [ERP / App Integration](./erp-integration).
 `@dotit/core`'s `sign:`/`freeze:` seals are integrity hashes (they prove the content is
 unchanged, not *who* signed). For real **cryptographic identity** — Ed25519 signatures that
 verify offline from the bytes alone, plus an authority **certification** chain — add the
-opt-in `@dotit/sign` (current **1.4.4**).
+opt-in `@dotit/sign` (current **2.0.0**).
 
 ```bash
 npm i @dotit/sign

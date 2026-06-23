@@ -249,4 +249,4 @@ All tools return clear error text (with `isError`) on bad input rather than cras
 
 ## Source
 
-Repository: [intenttext-mcp](https://github.com/intenttext/intenttext-mcp) · npm: [`@dotit/mcp`](https://www.npmjs.com/package/@dotit/mcp) (1.1.3 — formerly `@intenttext/mcp`, now deprecated with a pointer)
+Repository: [intenttext-mcp](https://github.com/intenttext/intenttext-mcp) · npm: [`@dotit/mcp`](https://www.npmjs.com/package/@dotit/mcp) (2.0.0 — formerly `@intenttext/mcp`, now deprecated with a pointer)
