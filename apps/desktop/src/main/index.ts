@@ -117,7 +117,11 @@ function createWindow(file?: string): BrowserWindow {
       paintWhenInitiallyHidden: true,
     },
   });
-  if (file) windowFiles.set(win.webContents.id, file);
+  // Capture the webContents id NOW — it cannot be read from the "closed" handler,
+  // where the window and its webContents are already destroyed (accessing
+  // win.webContents there throws "Object has been destroyed").
+  const wcId = win.webContents.id;
+  if (file) windowFiles.set(wcId, file);
   // Security: the renderer is a local app shell — never let it navigate away or
   // spawn arbitrary child windows. External links go to the OS browser instead.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -161,7 +165,7 @@ function createWindow(file?: string): BrowserWindow {
   }
 
   win.on("closed", () => {
-    windowFiles.delete(win.webContents.id);
+    windowFiles.delete(wcId);
     for (const [p, w] of docWindows) if (w === win) docWindows.delete(p);
     if (win === mainWindow) mainWindow = null;
   });
