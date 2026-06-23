@@ -1,0 +1,118 @@
+// it-format: 1.0
+title: Project Memory — Atlas Billing Agent
+summary: Persistent working memory for the Atlas autonomous billing assistant
+meta: | type: memory | agent: atlas-billing | owner: Platform Team | updated: 2026-06-24 | theme: technical | tags: memory, billing, agent
+
+text: This file is the agent's long-lived memory. It is read at the start of every run and amended (never silently rewritten) as the agent learns. Each block carries a scope: (how broadly it applies) and a confidence: (0.0–1.0, how sure the agent is). Low-confidence beliefs are revisited; high-confidence ones are treated as settled.
+
+section: 1. Mission & Operating Context
+
+text: Atlas reconciles customer subscriptions against the billing ledger, drafts invoices, flags anomalies, and routes anything over a threshold to a human. It runs hourly and after every webhook from the payments provider.
+
+context: Production tenant is Acme Cloud (region eu-central-1); a separate sandbox tenant exists for dry-runs. | scope: deployment | confidence: 1.0
+context: The agent has read-only access to the ledger and write access only to a drafts table; nothing is posted to the customer-facing ledger without a human gate. | scope: deployment | confidence: 1.0
+
+objective: Keep unreconciled line items under 0.5% of monthly volume. | scope: mission | confidence: 0.9 | horizon: ongoing
+objective: Reduce manual invoice corrections to fewer than 10 per month. | scope: mission | confidence: 0.7 | horizon: 2026-Q3
+
+section: 2. Stable Beliefs About the System
+
+text: These are facts the agent has confirmed across many runs. They change rarely; when one is contradicted, lower its confidence and open a question in §7 rather than deleting it.
+
+belief: The payments provider settles in batches at 02:00 UTC, so amounts before then are provisional. | scope: billing | confidence: 0.95 | source: observed across 60+ runs
+belief: Customer IDs prefixed with "trial-" never carry a payment method and must be skipped during dunning. | scope: billing | confidence: 0.9 | source: support ticket ST-4412
+belief: Proration on mid-cycle upgrades is computed by the provider, not by us — we must not re-derive it. | scope: billing | confidence: 0.85 | source: reconciliation diffs
+belief: Refunds older than 90 days require a manual credit note; the API rejects them silently with a 200. | scope: billing | confidence: 0.6 | source: single incident, needs corroboration
+
+repo-fact: Billing logic lives in services/billing/reconcile.ts; the ledger schema is in db/migrations. | scope: codebase | confidence: 1.0
+repo-fact: Currency amounts are stored as integer minor units (cents/dirhams), never floats. | scope: codebase | confidence: 1.0
+repo-fact: The drafts table is append-only; corrections are new rows with a supersedes column, not updates. | scope: codebase | confidence: 0.95
+
+section: 3. Conventions The Agent Must Follow
+
+text: House rules learned from prior corrections. Violating one of these is the most common cause of a human rejecting a draft.
+
+convention: Money is recorded as bare magnitude in value: and ISO-4217 in unit: — never inline a currency symbol into the number. | scope: output | confidence: 1.0
+convention: All timestamps emitted by the agent use ISO 8601 with an explicit Z offset. | scope: output | confidence: 1.0
+convention: When unsure between two customers with similar names, never guess — emit an open question and stop. | scope: behavior | confidence: 1.0
+convention: Draft invoices are written but never sealed by the agent; sealing is a human action after the gate. | scope: behavior | confidence: 1.0
+
+preference: Prefer one invoice per billing period per customer over many small invoices. | scope: output | confidence: 0.8 | set-by: Finance Lead
+preference: Round displayed totals for humans but keep full minor-unit precision in the data. | scope: output | confidence: 0.9 | set-by: Finance Lead
+preference: Address customers by registered legal name in invoices, not their display handle. | scope: output | confidence: 0.85 | set-by: Legal
+
+section: 4. Key Entities & Stakeholders
+
+text: People and systems the agent interacts with. Contact cards use the reserved contact: keyword; richer domain facts use custom blocks.
+
+contact: Finance Lead — Mariam Haddad | email: mariam.haddad@acme.example | role: approver
+contact: Payments Provider Support | email: support@payrail.example | role: vendor
+
+entity: PayRail | kind: payments-provider | scope: integration | confidence: 1.0 | api: v3 | sandbox: yes
+entity: Acme Cloud ledger | kind: system-of-record | scope: integration | confidence: 1.0 | access: read-only
+stakeholder: Mariam Haddad | interest: accuracy over speed | escalation: yes | scope: governance | confidence: 0.9
+
+section: 5. Working Metrics (last run snapshot)
+
+text: Carried forward run-to-run so the agent can detect drift. Updated by amendment after each run; not authoritative against the ledger.
+
+metric: Unreconciled rate | value: 0.31 | unit: percent | target: 0.5 | trend: down | period: 2026-06
+metric: Drafts awaiting human gate | value: 7 | trend: flat | period: 2026-06-24
+metric: Largest pending draft | value: 184500 | unit: QAR | period: 2026-06-24
+metric: Mean time to human approval | value: 3.2 | unit: hours | trend: down | target: 4
+
+text: Total value currently held in draft, awaiting the human gate, this period. | end: 412,800 QAR
+
+section: 6. Lessons Learned (from corrections)
+
+text: When a human overrides the agent, the why is recorded here so the same mistake is not repeated.
+
+lesson: Do not auto-apply a credit before confirming the original charge actually settled — provisional reversals double-counted twice in May. | scope: billing | confidence: 0.9 | learned: 2026-05-30 | corrected-by: Mariam Haddad
+lesson: Trial accounts that later add a card keep the "trial-" prefix; key off the payment-method flag, not the ID prefix, when deciding to bill. | scope: billing | confidence: 0.8 | learned: 2026-06-11
+lesson: Multi-currency customers must be reconciled per-currency; mixing them inflated the unreconciled rate by ~4x in one run. | scope: billing | confidence: 0.85 | learned: 2026-06-02
+
+assumption: PayRail batch timing (02:00 UTC) is stable; if a settlement looks late, suspect a provider incident before suspecting our code. | scope: billing | confidence: 0.6 | revisit: 2026-09-01
+
+section: 7. Open Questions
+
+text: Things the agent does not yet know and should resolve before raising its confidence on related beliefs.
+
+openq: Does PayRail expose a webhook for late/retried settlements, or must we poll? | scope: integration | confidence: 0.3 | blocks: belief on refund handling
+openq: What is the correct treatment of a partial refund on a multi-line invoice — per-line or whole-invoice? | scope: billing | confidence: 0.4
+openq: Is there an SLA on human approval we should encode as an escalation timer? | scope: governance | confidence: 0.5
+
+watch: Refund-older-than-90-days behavior — only seen once; raise confidence on the §2 belief only after a second confirmed case. | scope: billing | confidence: 0.6
+watch: Provider API v4 migration announced for Q4 — re-validate all integration beliefs when it lands. | scope: integration | confidence: 0.7 | due: 2026-10-01
+
+section: 8. Standing Decisions
+
+text: Design choices that are settled. Recorded so the agent does not relitigate them every run.
+
+decided: The human gate is mandatory for any single draft over 100,000 QAR — never auto-approve, regardless of confidence. | scope: governance | confidence: 1.0 | by: Finance Lead | at: 2026-05-15
+decided: The agent writes memory amendments in append-only fashion; it never edits a sealed prior memory snapshot. | scope: governance | confidence: 1.0 | by: Platform Team | at: 2026-04-02
+decided: When two beliefs conflict, the one with the more recent, higher-confidence source wins, and the loser is downgraded — not deleted. | scope: reasoning | confidence: 0.9 | by: Platform Team | at: 2026-04-02
+
+section: 9. Run Checklist
+
+text: The agent walks this ordered list at the start of every run.
+
+1. Reload this memory file and reconcile beliefs against the latest ledger snapshot.
+2. Skip any customer flagged trial with no payment method (§3, §6).
+3. Reconcile each currency separately (§6 lesson).
+4. Draft invoices for the closed period; write to the drafts table only.
+5. Route any draft over the threshold to the human gate (§8).
+6. Record corrections as new lessons and adjust confidence (§6).
+
+task: Confirm refund-over-90-days behavior with PayRail support | owner: Atlas | due: 2026-07-05 | priority: medium
+task: Encode human-approval SLA once §7 question is answered | owner: Platform Team | due: 2026-07-31 | priority: low
+done: Migrated draft writes to append-only supersedes model | at: 2026-04-10
+done: Added per-currency reconciliation pass | at: 2026-06-03
+
+section: 10. Governance & Sign-off
+
+text: This memory snapshot is reviewed monthly. Sign-offs below are pre-seal approvals; the file is sealed by a human after review (the agent never seals its own memory).
+
+info: This document is intentionally left pre-seal. To lock a reviewed snapshot, a human runs sealDocument() — the agent must not invent a freeze:/hash:. | type: warning
+
+approve: Memory snapshot reviewed for the June cycle | by: Mariam Haddad | role: Finance Lead | at: 2026-06-24
+approve: Operating context and access scopes confirmed | by: Platform Team | role: Engineering | at: 2026-06-24

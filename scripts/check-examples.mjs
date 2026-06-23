@@ -16,12 +16,18 @@ import {
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+// examples/test/ is a generated swarm sandbox (LLM-authored corpus for testing
+// llms.txt teachability) — NOT curated shipped examples. Its own harness validates
+// it; it intentionally exercises the open vocabulary (UNKNOWN_KEYWORD by design).
+const SKIP_DIRS = new Set([join(root, "examples", "test")]);
+
 const files = [];
 function walk(d) {
   for (const name of readdirSync(d)) {
     const p = join(d, name);
-    if (statSync(p).isDirectory()) walk(p);
-    else if (name.endsWith(".it")) files.push(p);
+    if (statSync(p).isDirectory()) {
+      if (!SKIP_DIRS.has(p)) walk(p);
+    } else if (name.endsWith(".it")) files.push(p);
   }
 }
 // Scan shipped example + demo docs — both are user-facing and must stay clean.

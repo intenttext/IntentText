@@ -1,0 +1,129 @@
+// it-format: 1.0
+page: | size: A4 | orientation: landscape | margin: 16mm
+header: Northwind Logistics — Operations KPI Dashboard (CONFIDENTIAL)
+footer: OPS-DASH-2026-W25 · Generated 2026-06-24 · Page {{page}} of {{pages}}
+
+title: Operations KPI Dashboard — June 2026
+summary: Northwind Logistics W.L.L. · Reporting period 2026-06-01 → 2026-06-21 · vs. May 2026 baseline
+meta: | type: dashboard | ref: OPS-DASH-2026-W25 | period: 2026-06 | owner: Operations Excellence | prepared-by: Layla Hassan | prepared-for: Executive Committee | theme: corporate
+
+toc:
+
+info: Targets are monthly unless a period: is shown on the card. Trend compares the current period to the prior month. Figures are provisional until month-end close (2026-07-03). | type: info
+
+section: 1. Financial Performance
+text: Revenue and margin health for the freight, warehousing, and last-mile lines of business.
+
+sub: 1.1 Revenue & Margin
+metric: Total Revenue | value: 4820000 | unit: QAR | target: 4500000 | trend: up | period: MTD
+metric: Gross Margin | value: 31.4 | unit: % | target: 30 | trend: up | period: MTD
+metric: EBITDA | value: 962000 | unit: QAR | target: 900000 | trend: up | period: MTD
+metric: Operating Cost per Shipment | value: 38.6 | unit: QAR | target: 40 | trend: down | period: MTD
+metric: Cash Collected | value: 4115000 | unit: QAR | trend: up | period: MTD
+
+sub: 1.2 Receivables
+metric: Days Sales Outstanding | value: 42 | unit: days | target: 38 | trend: up | period: rolling 90d
+metric: Overdue Invoices | value: 27 | unit: count | target: 15 | trend: up | period: MTD
+metric: Overdue Amount | value: 318500 | unit: QAR | target: 200000 | trend: up | period: MTD
+alert: DSO and overdue balance are both above target. | severity: medium | owner: Finance Ops | action: escalate top-5 accounts to collections
+info: Collections war-room scheduled to clear the overdue backlog before quarter close. | type: warning
+
+section: 2. Service Quality & SLA
+text: Customer-facing performance against contractual service levels across all lanes.
+
+sub: 2.1 Delivery Performance
+metric: On-Time Delivery | value: 94.2 | unit: % | target: 96 | trend: down | period: MTD
+metric: First-Attempt Delivery | value: 88.5 | unit: % | target: 90 | trend: flat | period: MTD
+metric: Average Transit Time | value: 2.3 | unit: days | target: 2.5 | trend: down | period: MTD
+metric: Shipments Delivered | value: 124870 | unit: count | trend: up | period: MTD
+
+sub: 2.2 SLA Compliance
+sla: Priority freight delivery | target: 24h | priority: P1 | attainment: 97.1% | breaches: 41
+sla: Standard parcel delivery | target: 48h | priority: P2 | attainment: 93.8% | breaches: 612
+sla: Cold-chain temperature integrity | target: 99.5% | priority: P1 | attainment: 99.7% | breaches: 3
+metric: SLA Credits Issued | value: 26400 | unit: QAR | target: 20000 | trend: up | period: MTD
+
+sub: 2.3 Customer Experience
+metric: Net Promoter Score | value: 52 | unit: score | target: 50 | trend: up | period: Q2
+metric: CSAT | value: 91.0 | unit: % | target: 90 | trend: flat | period: MTD
+metric: Customer Complaints | value: 318 | unit: count | target: 350 | trend: down | period: MTD
+metric: Complaint Resolution Time | value: 6.8 | unit: hours | target: 8 | trend: down | period: MTD
+
+section: 3. Warehouse & Inventory
+text: Distribution-center throughput, accuracy, and stock health across the three regional hubs.
+
+sub: 3.1 Throughput
+metric: Order Fulfilment Rate | value: 98.6 | unit: % | target: 98 | trend: up | period: MTD
+metric: Picking Accuracy | value: 99.4 | unit: % | target: 99.5 | trend: flat | period: MTD
+metric: Units Shipped | value: 1842300 | unit: count | trend: up | period: MTD
+metric: Dock-to-Stock Time | value: 4.1 | unit: hours | target: 4 | trend: up | period: MTD
+
+sub: 3.2 Inventory Health
+metric: Inventory Accuracy | value: 99.1 | unit: % | target: 99 | trend: flat | period: cycle-count
+metric: Stockout Rate | value: 1.8 | unit: % | target: 2 | trend: down | period: MTD
+metric: Inventory Carrying Value | value: 28600000 | unit: QAR | trend: flat | period: end-of-period
+metric: Inventory Turns | value: 11.2 | unit: turns | target: 12 | trend: up | period: rolling 12m
+metric: Shrinkage | value: 0.4 | unit: % | target: 0.5 | trend: down | period: MTD
+
+sub: 3.3 Per-Hub Snapshot
+| Hub | Throughput (units) | Fulfilment % | Accuracy % | Labor Cost (QAR) |
+| Doha Industrial | 842,100 | 98.9 | 99.5 | 412,000 |
+| Al Wakra | 561,400 | 98.4 | 99.2 | 287,500 |
+| Mesaieed | 438,800 | 98.1 | 99.0 | 221,300 |
+| Total | 1,842,300 | 98.6 | 99.1 | 920,800 |
+
+section: 4. Fleet & Last-Mile
+text: Vehicle utilization, cost, and sustainability metrics for the owned and contracted fleet.
+
+sub: 4.1 Utilization & Cost
+metric: Fleet Utilization | value: 82.4 | unit: % | target: 85 | trend: up | period: MTD
+metric: Cost per Kilometre | value: 1.42 | unit: QAR | target: 1.5 | trend: down | period: MTD
+metric: Fuel Spend | value: 614000 | unit: QAR | target: 600000 | trend: up | period: MTD
+metric: Vehicles in Service | value: 214 | unit: count | trend: flat | period: snapshot
+metric: Idle Time | value: 11.6 | unit: % | target: 10 | trend: up | period: MTD
+
+sub: 4.2 Safety & Sustainability
+metric: Accident Rate | value: 0.8 | unit: per 100k km | target: 1 | trend: down | period: rolling 90d
+metric: CO₂ per Shipment | value: 1.9 | unit: kg | target: 2.2 | trend: down | period: MTD
+metric: EV Fleet Share | value: 18.5 | unit: % | target: 20 | trend: up | period: snapshot
+incident: Minor collision, no injuries — Al Wakra lane | severity: low | date: 2026-06-11 | status: closed | owner: HSE
+incident: Refrigeration failure on cold-chain unit CC-07 | severity: medium | date: 2026-06-17 | status: under review | owner: Fleet Maintenance
+
+section: 5. Workforce
+text: Headcount, productivity, and engagement across operations teams.
+
+metric: Active Headcount | value: 1486 | unit: count | trend: up | period: snapshot
+metric: Productivity (units/labor-hr) | value: 64.3 | unit: units | target: 62 | trend: up | period: MTD
+metric: Overtime Hours | value: 9420 | unit: hours | target: 8000 | trend: up | period: MTD
+metric: Absenteeism | value: 3.2 | unit: % | target: 3 | trend: up | period: MTD
+metric: Voluntary Attrition | value: 1.4 | unit: % | target: 2 | trend: down | period: MTD
+metric: Open Requisitions | value: 38 | unit: count | trend: flat | period: snapshot
+metric: Training Hours Completed | value: 2160 | unit: hours | target: 2000 | trend: up | period: MTD
+
+section: 6. Improvement Initiatives
+text: Active operational-excellence initiatives and their measurable impact this period.
+
+initiative: Route optimization rollout (Phase 2) | owner: Network Planning | status: on track | impact: -4.1% cost per km | due: 2026-08-15
+initiative: Warehouse slotting redesign — Doha Industrial | owner: WMS Team | status: at risk | impact: +2.3% picking throughput | due: 2026-07-20
+initiative: EV last-mile expansion (40 vans) | owner: Fleet Strategy | status: on track | impact: -310t CO₂ annualized | due: 2026-09-30
+initiative: Collections automation | owner: Finance Ops | status: on track | impact: -6 days DSO target | due: 2026-07-31
+
+risk: Slotting redesign slipping behind picking-accuracy target | severity: medium | mitigation: add contractor crew for cutover weekend | owner: WMS Team
+risk: Fuel cost variance vs. budget | severity: low | mitigation: lock Q3 fuel hedge | owner: Procurement
+
+section: 7. Period Summary
+text: Overall operations scorecard for the period 2026-06-01 → 2026-06-21.
+
+metric: KPIs On or Above Target | value: 19 | unit: count | period: MTD
+metric: KPIs Below Target | value: 11 | unit: count | period: MTD
+metric: Composite Ops Score | value: 87 | unit: score | target: 85 | trend: up | period: MTD
+text: Headline takeaway | end: Revenue, margin, and warehouse throughput are ahead of plan; receivables, on-time delivery, and overtime need management attention before month-end close.
+
+info: Drill-down detail and historical trend lines are maintained in the Operations data lake; this dashboard is the executive summary view. | type: tip
+
+section: 8. Sign-off
+text: This dashboard is reviewed and approved for circulation to the Executive Committee. It remains provisional until the financial close on 2026-07-03.
+
+approve: Data validated against source systems | by: Layla Hassan | role: Operations Excellence | at: 2026-06-24
+approve: Financial figures reconciled (provisional) | by: Omar Faraj | role: Finance | at: 2026-06-24
+approve: Cleared for ExCo circulation | by: Noura Al-Suwaidi | role: COO | at: 2026-06-24

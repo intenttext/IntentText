@@ -1,0 +1,122 @@
+// it-format: 1.0
+
+page: | size: A4 | margin: 22mm
+header: Meridian Logistics W.L.L. — INTERNAL · Information Security
+footer: ISP-2026-001 · Information Security Policy · Page {{page}} of {{pages}}
+watermark: CONTROLLED COPY | opacity: 0.08
+
+title: Information Security Policy
+summary: Enterprise-wide policy governing the confidentiality, integrity, and availability of information assets.
+meta: | type: policy | ref: ISP-2026-001 | classification: Internal | version: 3.0 | theme: corporate | owner: Chief Information Security Officer | prepared-by: Information Security Office | effective: 2026-07-01 | review: 2027-07-01
+
+toc:
+
+section: 1. Purpose
+text: This policy establishes the framework by which Meridian Logistics W.L.L. (the "Company") protects the confidentiality, integrity, and availability of its information assets. It applies a risk-based approach aligned with recognized international standards and applicable law.
+text: The policy is mandatory for all personnel and is the parent document for the supporting standards, procedures, and guidelines referenced herein.
+
+section: 2. Scope
+text: This policy applies to all employees, contractors, consultants, temporary staff, and third parties who access, process, store, or transmit Company information or use Company information systems, regardless of location or device.
+text: It covers all information assets in any form — electronic, physical, or verbal — across the full lifecycle from creation to disposal.
+info: Exceptions to this policy require documented risk acceptance approved by the CISO and are reviewed at least annually. | type: warning
+
+section: 3. Normative References
+text: This policy is established with reference to, and is intended to operate in conformance with, the following standards and regulations.
+cite: ISO/IEC 27001:2022 | title: Information security management systems — Requirements | clauses: 4-10
+cite: ISO/IEC 27002:2022 | title: Information security controls | section: 5-8
+cite: ISO/IEC 27005:2022 | title: Guidance on managing information security risks
+cite: NIST SP 800-53 Rev. 5 | title: Security and Privacy Controls for Information Systems and Organizations
+cite: Qatar Law No. 13 of 2016 | title: Protecting Personal Data Privacy (PDPPL)
+cite: GDPR (EU) 2016/679 | title: General Data Protection Regulation | scope: EU data subjects
+
+section: 4. Definitions
+def: Information Asset | meaning: Any data, system, service, or component that has value to the Company and warrants protection.
+def: Confidentiality | meaning: The property that information is not made available or disclosed to unauthorized individuals, entities, or processes.
+def: Integrity | meaning: The property of accuracy and completeness of information and processing methods.
+def: Availability | meaning: The property of being accessible and usable on demand by an authorized entity.
+def: Personal Data | meaning: Any information relating to an identified or identifiable natural person, as defined under PDPPL and GDPR.
+def: Information Security Incident | meaning: A single or series of unwanted or unexpected events that have a significant probability of compromising business operations or threatening information security.
+def: Risk Owner | meaning: The person or entity with the accountability and authority to manage an identified risk.
+
+section: 5. Roles and Responsibilities
+sub: 5.1 Governance Bodies
+contact: Information Security Steering Committee | role: Governance | mandate: Approves policy, accepts residual risk, oversees the ISMS
+contact: Chief Information Security Officer | role: CISO | email: ciso@meridian-logistics.qa | mandate: Owns and maintains this policy
+contact: Data Protection Officer | role: DPO | email: dpo@meridian-logistics.qa | mandate: PDPPL and GDPR compliance oversight
+
+sub: 5.2 Responsibilities
+- The CISO is accountable for the establishment, operation, and continual improvement of the Information Security Management System (ISMS).
+- Asset Owners are responsible for classifying their information and approving access.
+- All personnel are responsible for complying with this policy and reporting suspected incidents without delay.
+- Internal Audit independently assesses the effectiveness of controls.
+
+section: 6. Information Classification
+text: All information assets shall be classified according to their sensitivity and the impact of unauthorized disclosure, modification, or loss.
+| Level | Label | Description | Handling |
+| 1 | Public | Approved for public release | No restriction |
+| 2 | Internal | Default for business information | Need-to-know within the Company |
+| 3 | Confidential | Sensitive business or personal data | Encrypted at rest and in transit |
+| 4 | Restricted | Severe impact if disclosed | Strict access list; logged access |
+control: Classification labelling | id: AC-CLASS-01 | standard: ISO/IEC 27002:2022 5.12 | requirement: Every asset is labelled at creation and re-evaluated on material change.
+
+section: 7. Control Objectives
+text: The Company implements controls commensurate with assessed risk. The following control objectives are mandatory and are operationalized through supporting standards.
+
+sub: 7.1 Access Control
+control: Least privilege | id: AC-01 | standard: ISO/IEC 27001:2022 A.8.2 | requirement: Access is granted on a least-privilege, need-to-know basis and reviewed quarterly. | owner: IT Operations
+control: Multi-factor authentication | id: AC-02 | standard: NIST SP 800-53 IA-2 | requirement: MFA is enforced for all remote and privileged access. | owner: IT Operations
+control: Privileged access management | id: AC-03 | standard: ISO/IEC 27002:2022 8.2 | requirement: Privileged sessions are brokered, time-bound, and recorded. | owner: IT Operations
+
+sub: 7.2 Cryptography
+control: Encryption in transit | id: CR-01 | standard: ISO/IEC 27002:2022 8.24 | requirement: All external data transmission uses TLS 1.2 or higher. | owner: Infrastructure
+control: Encryption at rest | id: CR-02 | standard: NIST SP 800-53 SC-28 | requirement: Confidential and Restricted data is encrypted with AES-256 at rest. | owner: Infrastructure
+control: Key management | id: CR-03 | standard: ISO/IEC 27002:2022 8.24 | requirement: Cryptographic keys are managed in an approved key management service with rotation at least every 365 days. | owner: Infrastructure
+
+sub: 7.3 Operations and Logging
+control: Centralized logging | id: OP-01 | standard: ISO/IEC 27001:2022 A.8.15 | requirement: Security-relevant events are logged centrally and retained for at least 365 days. | owner: SOC
+control: Vulnerability management | id: OP-02 | standard: NIST SP 800-53 RA-5 | requirement: Critical vulnerabilities are remediated within 14 days of confirmed disclosure. | owner: SOC
+control: Backup and recovery | id: OP-03 | standard: ISO/IEC 27002:2022 8.13 | requirement: Backups follow a 3-2-1 strategy and recovery is tested at least every 180 days. | owner: Infrastructure
+
+section: 8. Risk Management
+text: The Company operates a continual risk management process aligned with ISO/IEC 27005:2022. Risks are identified, analyzed, evaluated, and treated; residual risk is formally accepted by the appropriate Risk Owner.
+risk: Ransomware compromise of operational systems | id: R-01 | severity: high | likelihood: medium | owner: CISO | mitigation: Segmentation, immutable backups, EDR, tested recovery
+risk: Unauthorized disclosure of personal data | id: R-02 | severity: high | likelihood: medium | owner: DPO | mitigation: Encryption, access control, DLP, vendor due diligence
+risk: Insider misuse of privileged access | id: R-03 | severity: medium | likelihood: low | owner: CISO | mitigation: PAM, session recording, segregation of duties
+risk: Third-party / supply-chain breach | id: R-04 | severity: high | likelihood: medium | owner: Procurement | mitigation: Contractual controls, security assessment, monitoring
+metric: Risk appetite — maximum tolerated annualized loss | value: 500000 | unit: QAR | target: 500000
+metric: Open high-severity risks (current) | value: 4 | trend: down | period: Q2 2026
+
+section: 9. Incident Management
+text: All suspected or confirmed information security incidents shall be reported to the Security Operations Center immediately and managed under the Incident Response Procedure.
+obligation: Report a suspected incident to the SOC | owner: All personnel | by: Immediately upon detection
+obligation: Triage and classify a reported incident | owner: SOC | by: Within 1 hour of report
+obligation: Notify the DPO of any personal-data breach | owner: SOC | by: Within 24 hours of confirmation
+deadline: Regulatory notification of a reportable personal-data breach | date: 2026-07-01 | consequence: Notify the supervisory authority within 72 hours of becoming aware, per PDPPL and GDPR Art. 33
+sla: Containment of a confirmed critical incident | target: 4h | priority: P1
+sla: Eradication and recovery of a confirmed critical incident | target: 24h | priority: P1
+
+section: 10. Third-Party and Supply-Chain Security
+text: Third parties that process Company or personal data shall be subject to security due diligence proportionate to the risk and bound by contractual security and confidentiality obligations.
+obligation: Complete a security assessment before onboarding a processor | owner: Procurement | by: Prior to contract execution
+clause: Right to audit | scope: All data processors | requirement: The Company reserves the right to audit a processor's controls upon reasonable notice. | standard: ISO/IEC 27002:2022 5.22
+clause: Sub-processor approval | scope: All data processors | requirement: Engagement of sub-processors requires prior written approval and flow-down of equivalent obligations.
+
+section: 11. Compliance, Monitoring, and Audit
+text: Compliance with this policy is monitored continuously and assessed independently. Non-compliance may result in disciplinary action up to and including termination, and may be reported to authorities where legally required.
+control: Internal audit cycle | id: GV-01 | standard: ISO/IEC 27001:2022 9.2 | requirement: The ISMS is internally audited at least every 12 months. | owner: Internal Audit
+control: Management review | id: GV-02 | standard: ISO/IEC 27001:2022 9.3 | requirement: Top management reviews ISMS performance at least every 12 months. | owner: Steering Committee
+metric: Target control coverage of applicable Annex A controls | value: 100 | unit: % | target: 100 | period: Annual
+audit: Surveillance audit — ISO/IEC 27001:2022 recertification | by: External Certification Body | at: 2026-09-15 | scope: Full ISMS
+
+section: 12. Policy Governance
+text: This policy is reviewed at least annually, or upon significant change to the business, technology, threat landscape, or regulatory environment.
+deadline: Next scheduled policy review | date: 2027-07-01 | consequence: Policy lapses from controlled status if review is not completed
+quote: Security is a process, not a product. | by: Bruce Schneier
+
+section: 13. Approval and Sign-Off
+text: This policy is approved by the named authorities below and becomes effective on 2026-07-01. It remains in force until superseded or withdrawn.
+approve: Reviewed for legal and regulatory alignment | by: Layla Al-Mansoori | role: General Counsel | at: 2026-06-22
+approve: Reviewed for data protection compliance | by: Omar Khalil | role: Data Protection Officer | at: 2026-06-22
+approve: Approved as ISMS policy owner | by: Yousef Al-Hajri | role: Chief Information Security Officer | at: 2026-06-23
+approve: Endorsed by the Information Security Steering Committee | by: Hessa Al-Kuwari | role: Chair, Steering Committee | at: 2026-06-24
+info: This document is pending seal. Once approved, it will be sealed (freeze:) and cryptographically signed by the CISO. | type: info

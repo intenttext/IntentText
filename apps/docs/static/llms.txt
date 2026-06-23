@@ -103,7 +103,7 @@ COMMON x-doc EXTENSION BLOCKS (everyday, but NOT among the 41 — namespaced, se
   def:      Definition/glossary term.                def: Force Majeure | meaning: Events beyond control
   contact:  Person/org card.                         contact: Acme LLC | email: a@b.c | vat: VAT-300
   deadline: Dated obligation.                        deadline: Payment due | date: 2026-03-20 | consequence: late fee
-  ref:      Cross-document reference.                ref: QT-104 | to: quotations/qt-104.it
+  ref:      Cross-document reference (target in file: or url:, NOT to:).  ref: QT-104 | file: quotations/qt-104.it
 
 CONTRACT (trust) tier (9):
   cite:     Citation / authority reference.          cite: ISO 27001:2022 | section: A.9
@@ -155,7 +155,8 @@ Examples:
   contact: Acme Gulf Trading WLL | email: ops@acme.qa | role: Client
   deadline: First invoice due | date: 2026-07-01 | consequence: 2% late fee
   def: Force Majeure | meaning: events beyond a party's reasonable control
-  ref: ./policy.it | rel: supersedes
+  ref: Prior policy | file: ./policy.it | rel: supersedes            (ref TARGET goes in file: or url:, NOT to:)
+  figure: Chart 1 | src: figures/q2-trend.svg | caption: Q2 revenue trend   (numbered captioned figure — src: is REQUIRED; not an alias for image:)
   attach: cr | name: cr.pdf | mime: application/pdf | sha256: … | data: <base64>   (the file rides INSIDE the doc and is covered by the seal)
 
 ## 2c. Custom keywords — the OPEN VOCABULARY (a first-class feature — use it freely)

@@ -1,0 +1,113 @@
+// it-format: 1.0
+
+page: | size: A4 | margin: 20mm
+header: Al-Diwan Procurement — Vendor Onboarding
+footer: Form VND-ONB-2026 · Page {{page}} of {{pages}}
+
+title: Vendor Onboarding Form
+summary: Supplier registration and due-diligence intake — Procurement & Compliance
+meta: | type: form | ref: VND-ONB-2026 | author: Procurement Office | prepared-by: Al-Diwan Contracting W.L.L. | theme: corporate | revision: 3 | status: draft
+
+text: Complete every required field before submitting. A completed form is reviewed by Procurement and Compliance and, once all required approvals are recorded, becomes a signable supplier record. Required fields are marked. Some fields appear only when an earlier answer makes them relevant.
+
+info: Trade-licence, tax-registration, and bank-letter attachments must be legible PDF scans no larger than 10 MB each. | type: info
+
+section: 1. Company Identification
+
+input: Legal company name | key: company_name | type: text | required: yes | placeholder: As shown on the trade licence
+input: Trading / brand name | key: trading_name | type: text | required: no
+input: Country of registration | key: country | type: select | options: QA, SA, AE, KW, BH, OM, Other | required: yes
+input: Commercial registration (CR) number | key: cr_number | type: text | required: yes
+input: Year established | key: established_year | type: number | required: yes | min: 1900 | max: 2026
+input: Company website | key: website | type: text | required: no | placeholder: https://
+
+def: CR number | meaning: The Commercial Registration number issued by the company's home-country registrar.
+
+section: 2. Tax & Regulatory
+
+input: Is the vendor VAT/GST registered? | key: vat_registered | type: select | options: Yes, No | required: yes
+input: VAT / Tax registration number | key: vat_number | type: text | required: yes | show-if: vat_registered == Yes
+input: VAT rate applied (%) | key: vat_rate | type: number | required: no | show-if: vat_registered == Yes
+input: Country of tax residence | key: tax_residence | type: text | required: yes
+input: Date of last regulatory filing | key: last_filing_date | type: date | required: no
+
+obligation: Maintain a valid trade licence and tax registration for the full term of any awarded contract. | owner: Vendor | by: 2026-12-31
+
+section: 3. Primary Contact
+
+input: Contact full name | key: contact_name | type: text | required: yes
+input: Job title | key: contact_title | type: text | required: yes
+input: Contact email | key: contact_email | type: text | required: yes | placeholder: name@company.com
+input: Contact phone | key: contact_phone | type: text | required: yes | placeholder: +974 ...
+input: Preferred contact language | key: contact_language | type: select | options: English, Arabic | required: no
+
+contact: Procurement Office — Al-Diwan Contracting W.L.L. | email: procurement@aldiwan.qa | role: Form owner
+
+section: 4. Goods & Services Offered
+
+input: Primary supply category | key: category | type: select | options: Construction Materials, MEP Equipment, IT & Telecom, Professional Services, Facilities & Maintenance, Logistics, Other | required: yes
+input: Short description of products / services | key: offering | type: text | required: yes
+input: Standard delivery lead time (days) | key: lead_time_days | type: number | required: yes
+input: Geographic coverage | key: coverage | type: select | options: Doha only, Qatar nationwide, GCC, International | required: no
+
+sla: Standard response to a purchase enquiry | target: 2 business days | priority: P2
+
+section: 5. Commercial Terms
+
+input: Quoting currency | key: currency | type: select | options: QAR, USD, EUR, SAR, AED | required: yes
+input: Requested payment terms | key: payment_terms | type: select | options: Net 15, Net 30, Net 45, Net 60, Advance | required: yes
+input: Indicative annual supply value | key: annual_value | type: number | required: no | unit: QAR
+input: Early-settlement discount offered (%) | key: settlement_discount_pct | type: number | required: no
+input: Estimated annual saving from early settlement | key: settlement_saving | type: number | compute: annual_value * settlement_discount_pct / 100 | unit: QAR
+
+metric: Indicative annual supply value | value: 0 | unit: QAR
+metric: Estimated early-settlement saving | value: 0 | unit: QAR
+
+risk: New vendor with no prior trading history | severity: medium | mitigation: Require references and a 90-day performance review
+
+section: 6. Banking & Remittance
+
+input: Bank name | key: bank_name | type: text | required: yes
+input: Account holder name | key: account_holder | type: text | required: yes
+input: IBAN | key: iban | type: text | required: yes
+input: SWIFT / BIC | key: swift | type: text | required: yes
+input: Account currency | key: account_currency | type: select | options: QAR, USD, EUR, SAR, AED | required: yes
+
+warranty: All banking details supplied are accurate and the named account is controlled by the vendor. | owner: Vendor | period: term of registration
+
+section: 7. Compliance & Declarations
+
+input: Has the vendor any conflict of interest with Al-Diwan staff? | key: conflict_of_interest | type: select | options: Yes, No | required: yes
+input: Describe the conflict of interest | key: conflict_detail | type: text | required: yes | show-if: conflict_of_interest == Yes
+input: Vendor agrees to the Supplier Code of Conduct | key: code_of_conduct | type: select | options: Yes, No | required: yes
+input: Vendor confirms anti-bribery & sanctions compliance | key: compliance_confirmed | type: select | options: Yes, No | required: yes
+
+cite: Al-Diwan Supplier Code of Conduct v2 | section: 4 (Anti-Bribery)
+
+section: 8. Supporting Documents
+
+input: Trade licence / CR certificate (PDF) | key: doc_trade_licence | type: attachment | required: yes
+input: Tax / VAT registration certificate (PDF) | key: doc_tax_cert | type: attachment | required: no | show-if: vat_registered == Yes
+input: Bank account confirmation letter (PDF) | key: doc_bank_letter | type: attachment | required: yes
+input: Company profile / capability statement (PDF) | key: doc_profile | type: attachment | required: no
+
+deadline: Onboarding documents due | date: 2026-08-15 | consequence: Application returned as incomplete
+
+section: 9. Internal Review & Approval
+
+text: This block is completed by Al-Diwan staff after the vendor submits. Approvals below are recorded sign-offs; the document is sealed only once all required reviews are present.
+
+route: sequential
+require: procurement
+require: compliance
+require: finance | when: annual_value > 500000
+
+approve: Procurement intake reviewed — pending vendor submission | by: Procurement Office | role: procurement | at: 2026-06-24
+
+text: Compliance and Finance sign-offs are added after submission and screening. Once recorded, seal the form with sealDocument() — do not edit content above the history boundary afterwards.
+
+section: 10. For Office Use
+
+task: Run sanctions & beneficial-ownership screening on submitted vendor | owner: Compliance | due: 2026-07-05 | priority: high
+task: Verify bank details by independent call-back | owner: Finance | due: 2026-07-07 | priority: high
+task: Create vendor master record in ERP on full approval | owner: Procurement | due: 2026-07-10 | priority: medium

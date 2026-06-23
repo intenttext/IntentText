@@ -1,0 +1,106 @@
+// it-format: 1.0
+
+page: | size: A4 | margin: 20mm
+header: Acme Gulf Trading W.L.L. — Automated Refund Resolution
+footer: WF-REFUND-2026-031 · Page {{page}} of {{pages}}
+
+title: Refund Resolution Agent
+summary: Autonomous triage and disbursement workflow for customer refund requests
+meta: | type: agent-workflow | ref: WF-REFUND-2026-031 | owner: Customer Operations | model: claude-opus-4-8 | runtime: @dotit/mcp | dir: ltr
+
+section: 1. Purpose & Scope
+
+text: This workflow receives an inbound refund request, validates the order and the customer's eligibility, classifies the dispute, and either auto-approves a small refund or escalates a high-value or high-risk case to a human agent. Every tool call and branch is recorded so the disbursement decision is fully reconstructable.
+
+scope: Direct-to-consumer orders settled in QAR | excludes: B2B contract invoices, chargebacks already filed with the card network
+sla: First automated response | target: 5m | priority: P2
+sla: Full resolution (auto path) | target: 30m | priority: P2
+sla: Full resolution (escalated path) | target: 1 business day | priority: P2
+
+section: 2. Triggers
+
+trigger: Refund request received | event: ticket.refund_requested | source: support-inbox | channel: email, web-form
+trigger: Replay of a stuck case | event: workflow.manual_replay | source: ops-console | by: Ops Lead
+
+context: order | source: orders-service | fields: order_id, total, currency, placed_at, fulfilment_status
+context: customer | source: crm | fields: customer_id, lifetime_value, prior_refunds_90d, risk_band
+context: payment | source: payments-ledger | fields: payment_id, method, captured_at, settled
+
+ask: Order reference number | key: order_id | required: yes
+ask: Reason for the refund | key: reason | required: yes
+ask: Refund amount requested | key: requested_amount | required: yes
+
+section: 3. Policy
+
+policy: Auto-approve threshold | rule: refund <= 750 QAR AND risk_band != high | otherwise: escalate
+policy: Customer must own the order | rule: order.customer_id == customer.customer_id | otherwise: reject
+policy: Window | rule: order placed within 30 days | otherwise: escalate
+policy: Disbursement currency | rule: refund issued in the original capture currency only
+policy: Maximum prior refunds | rule: prior_refunds_90d < 3 | otherwise: escalate
+
+metric: Auto-approve ceiling | value: 750 | unit: QAR
+metric: Refund window | value: 30 | unit: days
+
+section: 4. Steps
+
+step: Load order, customer and payment context | tool: context.fetch | id: s1 | input: order_id | output: order, customer, payment | retry: 2 | timeout: 15s
+step: Verify the requester owns this order | tool: identity.match | id: s2 | input: customer, order | output: ownership_ok
+step: Confirm the payment was captured and settled | tool: payments.verify | id: s3 | input: payment | output: refundable_amount
+step: Classify the dispute reason | tool: classify.reason | id: s4 | input: reason | output: category, confidence | model: claude-opus-4-8
+step: Score fraud / abuse risk | tool: risk.score | id: s5 | input: customer, order, category | output: risk_band, risk_reasons
+step: Issue the refund to the original payment method | tool: payments.refund | id: s6 | input: payment, requested_amount | output: refund_id, disbursed_at | idempotency-key: WF-REFUND-2026-031
+step: Notify the customer of approval and ETA | tool: notify.email | id: s7 | input: customer, refund_id | template: refund-approved
+step: Open a human escalation case with full context | tool: case.escalate | id: s8 | input: order, customer, risk_reasons | queue: refunds-l2
+step: Notify the customer that the case is under review | tool: notify.email | id: s9 | input: customer | template: refund-under-review
+step: Decline the request and explain why | tool: notify.email | id: s10 | input: customer, decline_reason | template: refund-declined
+
+section: 5. Decisions & Routing
+
+decision: Does the requester own this order? | if: ownership_ok == true | then: s3 | else: s10
+decision: Is the payment refundable? | if: refundable_amount >= requested_amount | then: s4 | else: s8
+decision: Auto-approvable refund? | if: requested_amount <= 750 AND risk_band != high | then: s6 | else: g1
+
+text: The "else" branch of the auto-approve decision routes to the human gate g1 (section 6) rather than directly to a step, because a high-value or high-risk refund must not be disbursed without sign-off.
+
+handoff: From agent to human reviewer | when: decision escalates | to: refunds-l2 | carries: order, customer, risk_reasons, refundable_amount
+
+section: 6. Human Gate
+
+gate: Senior agent approves the escalated refund | id: g1 | approver: Refunds Team Lead | on-approve: s6 | on-reject: s10 | sla: 1 business day
+text: The gate pauses execution. On approval the workflow resumes at step s6 (issue refund); on rejection it resumes at step s10 (decline with reason). The reviewer sees the full risk reasons gathered at step s5.
+
+route: sequential
+require: refunds-lead | when: requested_amount > 750
+approve: Escalated refund reviewed and authorised | by: Layla Mansour | role: refunds-lead | at: 2026-06-23T11:40:00Z
+
+section: 7. Results
+
+result: Refund disbursed | status: success | on: s6 -> s7 | emits: refund.completed
+result: Case escalated to human review | status: pending | on: g1 | emits: refund.escalated
+result: Refund declined | status: rejected | on: s10 | emits: refund.declined
+
+section: 8. Error Handling
+
+error: Context fetch failed after retries | from: s1 | action: escalate | to: s8
+error: Refund API returned a transient failure | from: s6 | action: retry | max: 3 | then: escalate
+error: Classification confidence below 0.6 | from: s4 | action: escalate | to: s8
+
+info: A failed disbursement never silently closes a case — it always routes to a human (s8). | type: warning
+
+section: 9. Audit
+
+audit: Workflow definition versioned | ref: WF-REFUND-2026-031 | by: Customer Operations | at: 2026-06-20T09:00:00Z
+audit: Every step records tool, input digest, output digest and timestamp into the hash-chained trail
+audit: Branch decisions are recorded with the evaluated condition so the chosen path is reconstructable
+audit: Human gate outcomes (approve/reject) are appended via appendApproval and verified with verifyAuditChain
+
+cite: ISO/IEC 27001:2022 | section: A.8.16 (monitoring activities)
+cite: PCI DSS v4.0 | section: 10 (log and monitor all access)
+
+section: 10. Governance Sign-off
+
+approve: Workflow logic reviewed | by: Omar Haddad | role: Engineering Lead | at: 2026-06-20T14:15:00Z
+approve: Refund policy and thresholds approved | by: Noora Al-Kuwari | role: Finance | at: 2026-06-21T10:05:00Z
+approve: Data handling and audit trail reviewed | by: Sara Idris | role: Counsel | at: 2026-06-22T16:30:00Z
+
+text: This document is pre-seal. Sealing (sealDocument) and cryptographic signing (@dotit/sign) are applied at release time; no hashes or signatures are hand-written here.
