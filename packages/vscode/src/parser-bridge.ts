@@ -2,6 +2,7 @@ import {
   parseIntentText,
   parseIntentTextSafe,
   renderHTML,
+  renderPrint,
   validateDocumentSemantic,
 } from "@dotit/core";
 import type {
@@ -15,6 +16,7 @@ export {
   parseIntentText,
   parseIntentTextSafe,
   renderHTML,
+  renderPrint,
   validateDocumentSemantic,
 };
 export type {

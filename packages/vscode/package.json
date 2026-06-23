@@ -56,9 +56,9 @@
     "commands": [
       {
         "command": "intenttext.preview",
-        "title": "IntentText: Open Preview",
+        "title": "IntentText Preview",
         "icon": "$(open-preview)",
-        "tooltip": "Open IntentText Preview"
+        "tooltip": "IntentText Preview"
       },
       {
         "command": "intenttext.previewToSide",
@@ -96,10 +96,10 @@
     "menus": {
       "editor/title": [
         {
-          "command": "intenttext.previewToSide",
+          "command": "intenttext.preview",
           "when": "editorLangId == intenttext",
           "group": "navigation",
-          "tooltip": "Open IntentText Preview to the Side"
+          "tooltip": "IntentText Preview"
         }
       ],
       "editor/context": [
@@ -107,21 +107,6 @@
           "command": "intenttext.preview",
           "when": "resourceExtname == .it || editorLangId == intenttext",
           "group": "intenttext@1"
-        },
-        {
-          "command": "intenttext.previewToSide",
-          "when": "resourceExtname == .it || editorLangId == intenttext",
-          "group": "intenttext@2"
-        },
-        {
-          "command": "intenttext.seal",
-          "when": "resourceExtname == .it || editorLangId == intenttext",
-          "group": "intenttext@3"
-        },
-        {
-          "command": "intenttext.verify",
-          "when": "resourceExtname == .it || editorLangId == intenttext",
-          "group": "intenttext@4"
         }
       ]
     }
