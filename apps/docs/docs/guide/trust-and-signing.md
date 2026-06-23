@@ -221,7 +221,7 @@ signline: Ahmed Al-Rashid | role: CEO | org: Acme Corp | date-line: Date
 
 The hash is **reproducible by anyone** — there is no secret. Given the source file and
 any SHA-256 implementation, you can recompute it and confirm a seal yourself. The current
-ruleset is **`spec: 4`** (`SEAL_SPEC = 3`). The algorithm runs on the **raw source text**,
+ruleset is **`spec: 4`** (`SEAL_SPEC = 4`). The algorithm runs on the **raw source text**,
 in order:
 
 1. **Cut at the `history:` boundary.** Only the content _above_ `history:` is hashed, so

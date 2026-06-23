@@ -166,6 +166,25 @@
           }
         },
         {
+          "match": "^(certify)(:)\\s*(.*)",
+          "captures": {
+            "1": {
+              "name": "markup.bold.trust.certify.intenttext"
+            },
+            "2": {
+              "name": "punctuation.separator.intenttext"
+            },
+            "3": {
+              "name": "string.unquoted.content.intenttext",
+              "patterns": [
+                {
+                  "include": "#template-variable"
+                }
+              ]
+            }
+          }
+        },
+        {
           "match": "^(revision)(:)\\s*(.*)",
           "captures": {
             "1": {
@@ -180,7 +199,7 @@
           }
         },
         {
-          "match": "^(amendment|amend|change)(:)\\s*(.*)",
+          "match": "^(amendment)(:)\\s*(.*)",
           "captures": {
             "1": {
               "name": "markup.bold.trust.amendment.intenttext"
@@ -253,7 +272,7 @@
       }
     },
     "keyword-agentic": {
-      "match": "^(step|decision|trigger|loop|checkpoint|audit|error|import|export|progress|context|result|handoff|wait|parallel|retry|gate|call|emit|signal|memory|prompt|tool|assert|secret|policy)(:)\\s*(.*)",
+      "match": "^(step|decision|trigger|loop|checkpoint|audit|error|import|export|progress|context|result|handoff|wait|parallel|retry|gate|call|emit|signal|memory|prompt|tool|assert|secret|policy|route|require)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "entity.name.function.agentic.intenttext"
@@ -310,7 +329,7 @@
       }
     },
     "keyword-content": {
-      "match": "^(quote|image|link|ref|embed|code|columns|headers|row|def|define|term|glossary|figure|fig|diagram|chart|contact|person|party|input|output)(:)\\s*(.*)",
+      "match": "^(quote|image|link|ref|embed|code|columns|headers|row|def|define|term|glossary|figure|fig|contact|person|party|input|output|attach)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "support.type.content.intenttext"

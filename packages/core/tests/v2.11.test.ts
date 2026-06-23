@@ -381,12 +381,12 @@ describe("v2.11 amendment: — changes to frozen documents", () => {
     expect(amendments.length).toBe(2);
   });
 
-  it("amend: alias resolves to amendment:", () => {
-    expect(ALIASES["amend"]).toBe("amendment");
-    const b = firstBlock(
-      "amend: Test Change | section: A | now: B | ref: 1 | by: X | at: 2026-01-01",
-    );
-    expect(b.type).toBe("amendment");
+  // FORMAT-REVIEW T-01: `amend` was dropped as an amendment alias too — a hash-
+  // excluded trust keyword must not alias any English word. `amend:` is now a plain
+  // custom block, not a (hash-excluded) amendment.
+  it("amend: is NO LONGER an amendment alias", () => {
+    expect(ALIASES["amend"]).toBeUndefined();
+    expect(firstBlock("amend: Test Change | section: A").type).toBe("custom");
   });
 
   it("query type=amendment returns all amendments", () => {
@@ -733,16 +733,22 @@ describe("v2.11 additional alias coverage", () => {
     expect(b.type).toBe("metric");
   });
 
-  it("change: alias resolves to amendment:", () => {
-    expect(ALIASES["change"]).toBe("amendment");
+  // FORMAT-REVIEW T-01: `change` was REMOVED as an amendment alias — it is a
+  // common prose word, and amendment lines are excluded from the sealed content
+  // hash, so `change: …` used to vanish from the hash silently. A `change:` line
+  // is now ordinary content (a custom block), not a hash-excluded amendment.
+  // See tests/trust-alias-hole.test.ts for the seal regression.
+  it("change: is NO LONGER an amendment alias (T-01 seal hole)", () => {
+    expect(ALIASES["change"]).toBeUndefined();
+    expect(firstBlock("change: we lowered the price").type).toBe("custom");
   });
 
-  it("diagram: alias resolves to figure:", () => {
-    expect(ALIASES["diagram"]).toBe("figure");
-  });
-
-  it("chart: alias resolves to figure:", () => {
-    expect(ALIASES["chart"]).toBe("figure");
+  // T-07: figure's synonyms (diagram/chart/illustration/visual) were pruned; only the
+  // short `fig` alias remains, the rest pass through as custom blocks.
+  it("diagram/chart are NO LONGER figure aliases; fig still is", () => {
+    expect(ALIASES["diagram"]).toBeUndefined();
+    expect(ALIASES["chart"]).toBeUndefined();
+    expect(ALIASES["fig"]).toBe("figure");
   });
 
   it("signature-line: alias resolves to signline:", () => {

@@ -19,7 +19,7 @@ trail. No second system to keep in sync.
 
 | Capability | What it is | Docs |
 | --- | --- | --- |
-| **Keyword model** | 38 canonical keywords give every line a purpose; tiered core / agent / contract / data / print | [Concepts](./concepts) · [Keywords](../reference/keywords/index.md) |
+| **Keyword model** | 41 canonical keywords give every line a purpose; tiered core / agent / contract / data / print | [Concepts](./concepts) · [Keywords](../reference/keywords/index.md) |
 | **Bare prose** | `text:` is optional — write natural prose, reach for keywords only when a line needs meaning | [Bare prose](../reference/keywords/content#bare-prose--text-is-optional) |
 | **Aliases** | `todo:` → `task:`, plus 33 Arabic aliases (`عنوان:`, `مهمة:`) that round-trip as written | [Aliases](../reference/keywords/aliases) |
 | **Custom keywords** | Any `word: …` line you invent parses as a typed `custom` block — never an error | [Concepts §2](./concepts) |

@@ -74,7 +74,7 @@ export type BlockType =
   | "divider"
   | "text"
   | "info"
-  | "columns"
+  | "headers"
   | "row"
   | "table"
   | "extension"
@@ -125,7 +125,11 @@ export type BlockType =
   | "approve"
   | "sign"
   | "freeze"
+  | "certify"
   | "revision"
+  // v4.4 approval routing (FORMAT-REVIEW T-02)
+  | "route"
+  | "require"
   // v2.12 history boundary keyword
   | "history"
   // v2.8.1 document metadata block type
@@ -154,6 +158,7 @@ export type BlockType =
   | "signline"
   | "contact"
   | "deadline"
+  | "attach"
   // v2.13 new keywords
   | "assert"
   | "secret"
@@ -324,7 +329,13 @@ export interface PrintLayout {
 }
 
 export interface IntentDocument {
+  /** The format version the document CLAIMS to conform to. Set from an optional
+   *  `// it-format: <version>` header comment (FORMAT-REVIEW T-04); when absent it
+   *  falls back to `detectedFeatureLevel`, so existing consumers always get a value. */
   version?: string;
+  /** The feature level INFERRED from the blocks/metadata actually used (e.g. "2.12"
+   *  when `history:` is present). Always set by the parser; independent of the stamp. */
+  detectedFeatureLevel?: string;
   blocks: IntentBlock[];
   metadata?: IntentDocumentMetadata;
   diagnostics?: Diagnostic[];

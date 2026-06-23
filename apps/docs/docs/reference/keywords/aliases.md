@@ -88,16 +88,9 @@ warning: Aliases are supported across all categories.
 | `tip:`     | `info: ... \| type: tip`     |
 | `success:` | `info: ... \| type: success` |
 
-Secondary callout aliases:
-
-| Alias          | Resolves to              |
-| -------------- | ------------------------ |
-| `alert:`       | `info: \| type: warning` |
-| `caution:`     | `info: \| type: warning` |
-| `hint:`        | `info: \| type: tip`     |
-| `advice:`      | `info: \| type: tip`     |
-| `critical:`    | `info: \| type: danger`  |
-| `destructive:` | `info: \| type: danger`  |
+Older synonyms still parse for back-compat but are **not promoted** — prefer the four
+primary forms above: `alert`/`caution` → warning, `hint`/`advice` → tip,
+`critical`/`destructive` → danger.
 
 ---
 
@@ -168,7 +161,7 @@ Secondary callout aliases:
 | `approve:`   | `اعتماد:`                     |
 | `sign:`      | `توقيع:`, `sig:`              |
 | `freeze:`    | `تجميد:`, `lock:`             |
-| `amendment:` | `تعديل:`, `amend:`, `change:` |
+| `amendment:` | `تعديل:` |
 
 ### Layout
 

@@ -26,8 +26,9 @@ that matches wins:
 1. **Code fence** — ` ``` ` opens/closes a verbatim `code` block. Lines inside are
    literal (keywords are not interpreted).
 2. **Blank line** — terminates (flushes) the current block.
-3. **Continuation** — a line indented by 2+ spaces or a tab appends to the current
-   block's content.
+3. **Continuation** — consecutive plain prose lines merge into a single paragraph
+   block; the original per-line breaks are preserved as trivia, so the lines re-emit
+   unchanged on serialize. (Leading indentation is not significant to classification.)
 4. **Divider / table / list shorthand** — `---` is a `divider`; `|`-delimited rows
    form `table`; `- ` bullets form list items.
 5. **Keyword line** — `keyword: content | key: value | key: value`. The keyword
@@ -36,6 +37,11 @@ that matches wins:
 6. **Custom keyword** — a `word: ...` line whose `word` is **not** a reserved
    keyword is preserved verbatim as `type: "custom"` with `keyword` retained.
 7. **Implicit text** — any remaining non-empty line becomes a `text` block.
+
+**Document-metadata lifting.** `meta:`, `track:`, `agent:`, `model:`, and `context:`
+lines that appear **before the first `section:`** are lifted into document metadata (and
+re-emitted in their original position on serialize, so round-trips stay byte-stable); the
+same keyword **after** a section is an ordinary block.
 
 ### Two-sided rows (`end:`) and paragraph spacing
 
@@ -63,7 +69,7 @@ prose), write it as explicit text: `text: total: 50`.
 Keywords and property keys are **Unicode words** (`\p{L}` letters, then letters/
 digits/`-`/`_`) — Arabic, Chinese, or any-script domain keywords parse as typed
 `custom` blocks exactly like ASCII ones (`مصروف: كراسي | فئة: أثاث` is a queryable
-`custom` block with keyword `مصروف`). The 38 canonical keywords themselves remain
+`custom` block with keyword `مصروف`). The 41 canonical keywords themselves remain
 English; **Arabic aliases ship in the registry** (e.g. عنوان→title, مهمة→task,
 صف→row, توقيع→sign), so an Arabic document gets full canonical semantics — one
 query (`type:task`) matches tasks across languages. Aliases are emitted AS WRITTEN
@@ -75,6 +81,30 @@ documents keep their hash.
 like `09/03/2026` are ambiguous and break date-range queries; the semantic validator
 flags them (`DATE_NOT_ISO`, warning). Template placeholders are exempt.
 
+**Money & quantities.** A `metric:`'s `value:` holds the **bare magnitude** — no thousands
+separators and no currency symbol — and `unit:` holds the currency (an ISO-4217 code like
+`QAR`/`USD`) or the unit (`%`, `years`, `points`): `metric: Total Due | value: 17325 | unit:
+QAR`. This is the arithmetic-friendly form the e-invoice export (`buildUBLInvoice`) consumes.
+
+**Temporal & actor keys (by role).** Use `at:` for an event/approval/signature timestamp,
+`due:` for a future deadline, and `date:`/`issued:`/`expires:` for labelled dates (all ISO
+8601). For *who*: `owner:` names the party **responsible** for a task; `by:` names the actor
+who **performed** a recorded action (`approve:`/`sign:`/`amendment:`). Distinct roles, not synonyms.
+
+**Conditions & computed values.** Two property values carry a tiny, `eval`-free expression
+language (`field-logic.ts`):
+
+- `show-if:` (on `input:` fields) and `when:` (on `require:`) hold **one comparison**,
+  `key <op> value` — operators `=` `==` `!=` `>` `<` `>=` `<=` (`=` is loose for `==`).
+  The compare is **numeric** when both sides parse as numbers (thousands separators
+  stripped), otherwise string. There is **no** `&&` / `||` / `!` and no grouping — a single
+  comparison only.
+- `compute:` (on `input:` fields) holds **arithmetic** over field keys and numbers: `+ - * /`
+  with `( )` grouping (`compute: qty * price`); a non-numeric operand evaluates to `0`.
+
+Both run on a hand-written recursive-descent parser — never `eval`/`Function`. The operator
+set is additive-only after the freeze (operators may be added, never removed or redefined).
+
 ### Properties
 
 After the content, ` | key: value` segments attach as `properties`:
@@ -82,6 +112,11 @@ After the content, ` | key: value` segments attach as `properties`:
 ```
 task: Ship auth | owner: Ada | priority: high | due: 2026-03-08
 ```
+
+A keyword may carry **only** properties with empty content — put the first ` | ` right after
+the colon: `freeze: | at: … | status: locked`, `page: | size: A4`, `toc: | depth: 2`. The
+` | ` (space-pipe-space) delimiter is line-level; an inline styled span instead uses `;`
+(below), because ` | ` can never appear inside a line.
 
 ### Inline marks
 
@@ -121,9 +156,16 @@ the reserved surface can stay small without losing extensibility.
 | --- | --- | --- |
 | **core** (13) | `title` `summary` `meta` `section` `sub` `text` `info` `quote` `code` `image` `link` `task` `done` | Everyday documents: notes, READMEs, plans |
 | **agent** | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` | AI / workflow documents |
-| **contract** | `sign` `approve` `freeze` `track` `revision` `amendment` `history` `cite` | Signed, frozen, auditable documents |
+| **contract** | `sign` `approve` `freeze` `certify` `track` `revision` `amendment` `route` `require` `history` `cite` | Signed, frozen, auditable documents |
 | **data** | `columns` `row` `metric` | Structured tabular / metric data |
 | **print** | `page` `header` `footer` `watermark` `break` `toc` | Print / PDF layout |
+
+> **Callouts.** `info:` is the canonical callout block; the everyday authoring forms
+> `note:` `tip:` `warning:` `danger:` `success:` are aliases that set the callout
+> *variant*. Write the variant you mean — they all resolve to a styled `info` callout.
+>
+> **Approval routing.** `route:`/`require:` declare a document's in-file approval policy
+> and `certify:` records an authority certification; all three are reserved (4.4). See §4.
 
 ### Page setup (`page:`)
 
@@ -284,6 +326,23 @@ prefix. After that single canonicalizing pass, text ↔ JSON round-trip exactly 
 byte for text, deep-equal for JSON). The guarantee is **canonical-form + information
 losslessness**, not preservation of every incidental keystroke.
 
+### 5.2 Format version stamp (optional)
+
+A document MAY declare the grammar version it targets with a single comment in the
+leading header:
+
+```
+// it-format: 1.0
+title: …
+```
+
+It is a **comment**, so it is excluded from every seal hash and round-trips as trivia —
+adding or changing it never breaks a seal. The parser exposes it as `document.version`;
+the feature level inferred from the blocks actually used is `document.detectedFeatureLevel`
+(when no stamp is present, `version` mirrors it). The stamp is advisory self-description
+for long-term archives — never required, and never a top-level keyword, so it cannot
+collide with content. Only the header comment block is honored (never body or code).
+
 ## 6. Indexing & folder query
 
 Documents are made queryable across a folder tree by a per-folder, shallow `.it-index`
@@ -294,5 +353,28 @@ indexes explicitly; the index is kept fresh by lazy self-healing on query. Full 
 ## 7. Governance
 
 Changing the keyword contract means editing `LANGUAGE_REGISTRY` and nothing else by
-hand. The CI gates (`keywords:check`, `parity:check`) fail the build if the
-`BlockType` union or the VSCode grammar drift from the registry.
+hand. The CI gates (`keywords:check`, `parity:check`, `docs:check`) fail the build if the
+`BlockType` union or the VSCode grammar drift from the registry, or if any public doc
+states a keyword count or `SEAL_SPEC` value that contradicts the code.
+
+## 8. Conformance
+
+A **conformant** `.it` document is valid UTF-8 (NFC, LF) that parses with no error-level
+diagnostics. Unknown keywords are **not** errors — they pass through as `custom` blocks
+(the open-keyword guarantee), so using domain vocabulary never makes a document
+non-conformant. Two levels:
+
+- **lax** (default) — no error-level issues (e.g. no unterminated code fence, no table
+  row without a header).
+- **strict** — no errors **and** no warnings (e.g. every date is ISO 8601, no missing
+  recommended properties). The level a publisher certifies for a spotless document.
+
+The reference checker ships in `@dotit/core`, is **read-only** (it never rewrites the
+document), and layers the parser's structural diagnostics over `validateDocumentSemantic`:
+
+```
+checkConformance(source, { level: "strict" })
+  → { conformant, level, errors, warnings, issues }
+```
+
+Producers gate on `conformant`; tooling surfaces `issues`.

@@ -7,23 +7,23 @@ title: Data Keywords
 
 Three keywords for structured data — tables, rows, and quantitative metrics.
 
-## `columns:`
+## `headers:`
 
 **Category:** Data
-**Aliases:** `أعمدة:`, `headers:`
+**Aliases:** `أعمدة:`, `columns:`
 
-Table column definitions — declares column names for the following `row:` blocks.
+Table header row — declares the column labels for the following `row:` blocks.
 
 ### Syntax
 
 ```
-columns: Col1 | Col2 | Col3
+headers: Col1 | Col2 | Col3
 ```
 
 ### Examples
 
 ```intenttext
-columns: Department | Budget | Spent | Remaining
+headers: Department | Budget | Spent | Remaining
 row: Engineering | USD 500,000 | USD 320,000 | USD 180,000
 row: Marketing | USD 200,000 | USD 175,000 | USD 25,000
 row: Operations | USD 150,000 | USD 98,000 | USD 52,000
@@ -31,7 +31,8 @@ row: Operations | USD 150,000 | USD 98,000 | USD 52,000
 
 ### Notes
 
-- `columns:` declares the headers; `row:` provides the data
+- `headers:` declares the column labels; `row:` provides the data
+- `columns:` is a compat alias for `headers:` — both parse identically
 - Tables can also be written using Markdown pipe syntax (see below)
 
 ---
@@ -41,7 +42,7 @@ row: Operations | USD 150,000 | USD 98,000 | USD 52,000
 **Category:** Data
 **Aliases:** `صف:`
 
-Table data row — pipe-separated cell values. Must follow a `columns:` declaration.
+Table data row — pipe-separated cell values. Must follow a `headers:` declaration.
 
 ### Syntax
 
@@ -52,7 +53,7 @@ row: Cell1 | Cell2 | Cell3
 ### Examples
 
 ```intenttext
-columns: Name | Role | Email
+headers: Name | Role | Email
 row: Ahmed Al-Rashid | CEO | ahmed@acme.com
 row: Sarah Chen | General Counsel | sarah@acme.com
 ```
@@ -125,13 +126,13 @@ metric: Subtotal | value: 24000 | unit: USD
 
 ## Extension keywords
 
-Experimental I/O blocks are available in the `x-exp:` namespace.
+Typed I/O parameter blocks live in the **stable** `x-form:` namespace; `assert` / `secret` remain experimental (`x-exp:`).
 
-| Extension       | Purpose                                      |
-| --------------- | -------------------------------------------- |
-| `x-exp: input`  | Declare a workflow input parameter           |
-| `x-exp: output` | Declare a workflow output parameter          |
-| `x-exp: assert` | Testable assertion — evaluable by CI         |
-| `x-exp: secret` | Secret or credential reference (always redacted) |
+| Extension        | Purpose                                          |
+| ---------------- | ------------------------------------------------ |
+| `x-form: input`  | Declare a typed input / form-field parameter     |
+| `x-form: output` | Declare a typed output parameter                 |
+| `x-exp: assert`  | Testable assertion — evaluable by CI             |
+| `x-exp: secret`  | Secret or credential reference (always redacted) |
 
 See the extensions overview in [Keywords →](./index.md#extension-keywords) for full syntax.

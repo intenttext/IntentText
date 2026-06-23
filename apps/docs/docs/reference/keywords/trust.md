@@ -105,7 +105,7 @@ sign: signer name | role: title | at: timestamp | hash: algorithm:value | spec: 
 | `role`   | string | no       | Signer's role                                        |
 | `at`     | string | no       | Signing timestamp (ISO 8601)                         |
 | `hash`   | string | no       | Content hash at time of signing                      |
-| `spec`   | number | no       | Seal ruleset version that produced the hash (current `3`) |
+| `spec`   | number | no       | Seal ruleset version that produced the hash (current `4`) |
 
 ### Examples
 
@@ -167,7 +167,7 @@ freeze: | at: timestamp | hash: algorithm:value | spec: version | status: locked
 | `status` | string | `locked`                                             |
 | `at`     | string | Sealing timestamp (ISO 8601)                         |
 | `hash`   | string | Seal hash (content + signatures + seal metadata)     |
-| `spec`   | number | Seal ruleset version that produced the hash (current `3`) |
+| `spec`   | number | Seal ruleset version that produced the hash (current `4`) |
 
 ### Examples
 
@@ -187,7 +187,7 @@ freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8 | spec: 4 | status: l
 ## `amendment:`
 
 **Category:** Trust
-**Aliases:** `تعديل:`, `amend:`, `change:`
+**Aliases:** `تعديل:`
 
 Formal change to a frozen document. Preserves the original seal while recording what was changed, where, who authorized it, and when.
 

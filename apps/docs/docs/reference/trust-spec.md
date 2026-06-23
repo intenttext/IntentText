@@ -196,9 +196,10 @@ stored externally (`@dotit/core` ≥ 1.14.0).
   **role** (or name), with optional `when:` (a single comparison evaluated against
   the document's own `metric:`/`meta:` values, per the form-field evaluator) and
   optional `optional: yes`.
-- `route:`/`require:` are **not reserved keywords**; they parse as preserved
-  `custom` blocks (the unknown-keyword guarantee), so a routed document round-trips
-  byte-for-byte and keeps its content hash.
+- `route:`/`require:` are **reserved keywords** (since 4.4); they round-trip
+  byte-for-byte and stay inside the hashed body, so a routed document keeps its
+  content hash. (Documents authored before 4.4 parsed them as `custom` blocks;
+  those still resolve via a back-compat path.)
 
 ### 6.2 Derived state (`workflowState`)
 

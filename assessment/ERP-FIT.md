@@ -1,8 +1,8 @@
-I have all the evidence I need to synthesize this deliverable. The task is to write the complete ERP-FIT.md decision memo. I'll write it directly as my final message.
-
 # ERP-FIT.md — Embedding IntentText as the Document Layer in Jadwal
 
 *Decision memo for the technical founder. Date: 2026-06-19. Scope: using `@dotit/core` and siblings as the internal document/print/seal engine inside your ERP. This is deliberately narrow — it does **not** evaluate selling `.it` as a standalone format or pursuing government adoption, both of which fail for unrelated strategic reasons.*
+
+> **⚠️ Dated 2026-06-19 — pre-freeze memo.** As of 2026-06-23 the four P0 gates this memo treats as open are **resolved** in code: G-01 (appearance hash + bare-by-default render), G-02 (SEAL_SPEC 4 CRLF/whitespace normalization), G-03 (authority verified, not presence-painted), G-04 (ERP handlers rewritten). EN 16931/UBL export shipped (1.24.0). See [`FORMAT-REVIEW.md`](./FORMAT-REVIEW.md).
 
 ---
 

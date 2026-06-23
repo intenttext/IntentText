@@ -48,6 +48,9 @@ jobs:
       - name: Example files clean (no deprecations / unknown keywords)
         run: node scripts/check-examples.mjs
 
+      - name: Documentation accuracy gate (keyword count / SEAL_SPEC literals never drift)
+        run: node scripts/check-doc-accuracy.cjs
+
       - name: Emit core package size report
         run: node packages/core/scripts/report-package-size.cjs > core-package-size.json
 

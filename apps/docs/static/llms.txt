@@ -56,7 +56,7 @@ Every non-empty line is: `keyword: content | prop: value | prop: value`
   is a typed, queryable block. Dates stay ISO (2026-03-09) regardless of language.
 - `x-ns:` prefixed keywords are namespaced extensions (e.g. `x-layout: divider`).
 
-## 2. The 38 canonical keywords, by tier
+## 2. The 41 canonical keywords, by tier
 
 CORE (a plain document needs only these):
   title:    Document title (one per doc).            title: Service Agreement
@@ -84,7 +84,7 @@ DATA tier:
   metric:   KPI or document total.                   metric: Total Due | value: 17,325 QAR
             Plain metric renders as a label→value total row (invoice style); with
             ANY ONE of target:/trend:/period: it renders as a KPI card.
-  columns:, row:  Tabular data alternative.
+  headers:, row:  Tabular data (columns: is a compat alias for headers:).
   def:      Definition/glossary term.                def: Force Majeure | meaning: Events beyond control
   contact:  Person/org card.                         contact: Acme LLC | email: a@b.c | vat: VAT-300
   deadline: Dated obligation.                        deadline: Payment due | date: 2026-03-20 | consequence: late fee
@@ -222,8 +222,9 @@ Lifecycle: track → approve → sign → freeze (seal) → [crypto sign] → [c
 HOW AN AGENT VERIFIES: never hand-compute or invent a hash/sig. Call verifyDocument()
 (integrity), verifyCryptoSignatures() (identity), verifyCertifications() (authority), or
 GET verify.uts.qa for the public report. Only the libs/service compute valid hashes.
-CRITICAL: store sealed source EXACTLY as returned (no trimming/CRLF conversion — the hash
-covers exact bytes). Never edit above history: after sealing; use amendment: instead.
+CRITICAL: store sealed source as returned. SEAL_SPEC 4 tolerates CRLF / trailing-whitespace
+normalization and excludes styling, but ANY content change breaks the hash. Never edit
+above history: after sealing; use amendment: instead.
 
 STORING .it IN A DATABASE: a .it file is just a UTF-8 string — store it in any TEXT/blob
 column, string in, string out. To guarantee a DB layer (encoding, trimming, CRLF) can't

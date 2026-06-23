@@ -90,13 +90,13 @@ keyword: content | prop: value | prop: value
 - Keywords and property keys are Unicode words: Arabic (or any-script) domain
   keywords work exactly like ASCII ones. `x-ns:` prefixes are namespaced extensions.
 
-### 2.2 The 38 canonical keywords, by tier
+### 2.2 The reserved keywords — 13 core + opt-in profiles (41 total), by tier
 
 | Tier | Keywords | Use for |
 | --- | --- | --- |
 | **core** | `title` `summary` `meta` `section` `sub` `text` `info` `quote` `code` `image` `link` `task` `done` | Everyday documents |
-| **data** | `columns` `row` `metric` | Tables, KPIs, invoice totals |
-| **contract** | `track` `approve` `sign` `freeze` `amendment` `cite` | Signed, sealed, auditable documents |
+| **data** | `headers` `row` `metric` | Tables, KPIs, invoice totals |
+| **contract** | `track` `approve` `sign` `freeze` `certify` `amendment` `route` `require` `cite` | Signed, sealed, auditable + routed-approval documents |
 | **agent** | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` | AI / workflow documents |
 | **print** | `page` `header` `footer` `watermark` `style` `break` `toc` | Print & PDF layout |
 
@@ -133,7 +133,7 @@ metric: Total Due | value: 3,000 QAR
 Notes: `info:` takes `type: tip|info|warning|danger|success`. A plain `metric:`
 renders as a label→value total row (invoice style); add `target:`/`trend:`/`period:`
 and it becomes a KPI card. Tables can also be written as
-`columns: Item | Qty | Price` + `row: Chairs | 12 | 250 QAR`.
+`headers: Item | Qty | Price` + `row: Chairs | 12 | 250 QAR`.
 
 ### 2.3 Dates
 
@@ -297,10 +297,13 @@ revision: | version: 1.1 | at: 2026-06-13T08:00:00Z | by: Ops | change: archived
 **The hash is versioned.** Every `sign:`/`freeze:` line stamps a `spec:` version
 recording *which* byte-rules produced its hash; verification applies exactly that
 version **forever**, so a future rule change can never silently break a historical
-seal. The current version is **`SEAL_SPEC = 3`**.
+seal. The current version is **`SEAL_SPEC = 4`**.
 
-The document hash is **SHA-256 over the raw source above the `history:` boundary**,
-with these exclusions:
+The document hash is **SHA-256 over the raw source above the `history:` boundary**. v4
+first normalizes line endings (CRLF / lone CR → LF) and strips per-line trailing
+whitespace, so an `LF`↔`CRLF` round-trip or a trailing-space re-save never breaks an
+untampered seal; v4 seals also record an `appearance:` hash so a post-seal restyle that
+*hides* content is flagged on verify. Exclusions:
 
 - **Comments** (`//` lines) are dropped.
 - **Styling is excluded** — whole presentation lines (`page:`, `font:`, `style:`) and

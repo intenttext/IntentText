@@ -37,6 +37,8 @@ export {
 } from "./parser";
 export { renderHTML } from "./renderer";
 export { validateDocumentSemantic } from "./validate";
+export { checkConformance } from "./conformance";
+export type { ConformanceLevel, ConformanceReport } from "./conformance";
 export { documentToSource, blockToSource } from "./source";
 export {
   effectiveProperties,
@@ -94,7 +96,7 @@ export type { WorkflowStep, WorkflowGraph } from "./workflow";
 // In-file approval routing (derived, never stored) — the document carries its
 // own workflow; workflowState() derives pending/next/complete from route:/require:
 // + approve: lines, so the file is the single source of truth.
-export { workflowState, extractRoute } from "./workflow-state";
+export { workflowState, deriveWorkflowState, extractRoute } from "./workflow-state";
 export type {
   WorkflowState,
   ApprovalRoute,

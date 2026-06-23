@@ -261,6 +261,22 @@ sup.it-fn-ref a{color:#111;text-decoration:none;border-bottom:1px solid #999;}
 .it-approval__what{font-size:0.9rem;font-weight:600;color:#111;margin-inline-start:8px;}
 .it-approval__who{font-size:0.9rem;color:#555;margin-inline-start:8px;}
 .it-approval__date{font-size:0.8rem;color:#777;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:end;}
+/* Approval route — the in-file workflow policy + its DERIVED live state (T-02) */
+.it-approval-route{margin:14px 0;padding:10px 14px;border:1px solid #e3e3e3;border-radius:8px;background:#fafafa;}
+.it-approval-route__head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
+.it-approval-route__title{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#444;}
+.it-approval-route__order{font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.05em;}
+.it-approval-route__status{margin-inline-start:auto;font-size:0.72rem;font-weight:700;color:#b26a00;}
+.it-approval-route[data-complete="true"] .it-approval-route__status{color:#2e7d32;}
+.it-approval-route__list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;}
+.it-approval-route__item{display:flex;align-items:baseline;gap:8px;font-size:0.9rem;color:#333;}
+.it-approval-route__marker{width:1.1em;text-align:center;color:#999;}
+.it-approval-route__item.is-approved .it-approval-route__marker{color:#2e7d32;}
+.it-approval-route__item.is-next .it-approval-route__marker{color:#b26a00;}
+.it-approval-route__item.is-next .it-approval-route__who{font-weight:600;}
+.it-approval-route__item.is-inactive{color:#aaa;}
+.it-approval-route__tag{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;color:#888;border:1px solid #ddd;border-radius:4px;padding:0 5px;}
+.it-approval-route__item.is-next .it-approval-route__tag{color:#b26a00;border-color:#e0c089;}
 /* Signature — name first, then role · date, then a signature rule below it
    (modern receipt-style: you read the name, the line confirms it). The badge
    sits at the line end. */
