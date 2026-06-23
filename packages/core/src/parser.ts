@@ -787,8 +787,7 @@ function parseLine(
     // صف → row) keep `|` as the cell separator, not property metadata.
     const tableResolved = (ALIASES[keyword] ?? keyword) as string;
     if (
-      keyword === "headers" ||
-      tableResolved === "columns" ||
+      tableResolved === "headers" ||
       tableResolved === "row"
     ) {
       content = rest;
@@ -1663,8 +1662,8 @@ export function parseIntentText(
       }
     }
 
-    // Table grouping: columns starts a table, rows are appended.
-    if (block.type === "columns") {
+    // Table grouping: a headers block starts a table, rows are appended.
+    if (block.type === "headers") {
       flushPendingTable();
       pendingTable = {
         headers: splitTableRow(block.originalContent || block.content),
@@ -1971,22 +1970,48 @@ export function parseIntentText(
       lines[historyBoundaryIdx].trim().startsWith("history:")) ||
     allBlocks.some((b) => b.type === "history");
 
+  // The feature level INFERRED from what the document actually uses.
+  const detectedFeatureLevel = hasV212Content
+    ? "2.12"
+    : allBlocks.some((b) => V211_BLOCK_TYPES.has(b.type))
+      ? "2.11"
+      : hasTrustContent
+        ? "2.8"
+        : hasDocgenContent
+          ? "2.5"
+          : hasV22Content
+            ? "2.2"
+            : hasV21Content
+              ? "2.1"
+              : hasAgenticContent
+                ? "2.0"
+                : "1.4";
+
+  // T-04: an OPTIONAL `// it-format: <version>` comment in the leading header
+  // declares the grammar version the file claims to conform to. It is a comment, so
+  // it never enters the seal hash and round-trips as trivia. Honored ONLY in the
+  // top-of-file comment block (never inside body or code). When absent, `version`
+  // falls back to the detected feature level — unchanged behavior for old consumers.
+  const formatStamp = ((): string | undefined => {
+    for (const raw of lines) {
+      const t = raw.trim();
+      if (t === "") continue;
+      if (t.startsWith("//")) {
+        const m = t.match(/^\/\/\s*it-format:\s*(\S+)/i);
+        if (m) return m[1];
+        continue;
+      }
+      break; // first real line — the stamp must live in the header comment block
+    }
+    return undefined;
+  })();
+
   const document: IntentDocument = {
-    version: hasV212Content
-      ? "2.12"
-      : allBlocks.some((b) => V211_BLOCK_TYPES.has(b.type))
-        ? "2.11"
-        : hasTrustContent
-          ? "2.8"
-          : hasDocgenContent
-            ? "2.5"
-            : hasV22Content
-              ? "2.2"
-              : hasV21Content
-                ? "2.1"
-                : hasAgenticContent
-                  ? "2.0"
-                  : "1.4",
+    // The version the document claims (the stamp) or, absent a stamp, the detected
+    // level. detectedFeatureLevel is surfaced only WHEN a stamp is present (so you
+    // can compare claim vs reality); without a stamp, `version` already is it.
+    version: formatStamp ?? detectedFeatureLevel,
+    ...(formatStamp != null && { detectedFeatureLevel }),
     blocks,
     metadata,
     diagnostics: diagnostics.length > 0 ? diagnostics : undefined,

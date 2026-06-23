@@ -63,7 +63,7 @@ prose), write it as explicit text: `text: total: 50`.
 Keywords and property keys are **Unicode words** (`\p{L}` letters, then letters/
 digits/`-`/`_`) — Arabic, Chinese, or any-script domain keywords parse as typed
 `custom` blocks exactly like ASCII ones (`مصروف: كراسي | فئة: أثاث` is a queryable
-`custom` block with keyword `مصروف`). The 38 canonical keywords themselves remain
+`custom` block with keyword `مصروف`). The 41 canonical keywords themselves remain
 English; **Arabic aliases ship in the registry** (e.g. عنوان→title, مهمة→task,
 صف→row, توقيع→sign), so an Arabic document gets full canonical semantics — one
 query (`type:task`) matches tasks across languages. Aliases are emitted AS WRITTEN
@@ -121,9 +121,16 @@ the reserved surface can stay small without losing extensibility.
 | --- | --- | --- |
 | **core** (13) | `title` `summary` `meta` `section` `sub` `text` `info` `quote` `code` `image` `link` `task` `done` | Everyday documents: notes, READMEs, plans |
 | **agent** | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` | AI / workflow documents |
-| **contract** | `sign` `approve` `freeze` `track` `revision` `amendment` `history` `cite` | Signed, frozen, auditable documents |
+| **contract** | `sign` `approve` `freeze` `certify` `track` `revision` `amendment` `route` `require` `history` `cite` | Signed, frozen, auditable documents |
 | **data** | `columns` `row` `metric` | Structured tabular / metric data |
 | **print** | `page` `header` `footer` `watermark` `break` `toc` | Print / PDF layout |
+
+> **Callouts.** `info:` is the canonical callout block; the everyday authoring forms
+> `note:` `tip:` `warning:` `danger:` `success:` are aliases that set the callout
+> *variant*. Write the variant you mean — they all resolve to a styled `info` callout.
+>
+> **Approval routing.** `route:`/`require:` declare a document's in-file approval policy
+> and `certify:` records an authority certification; all three are reserved (4.4). See §4.
 
 ### Page setup (`page:`)
 
@@ -283,6 +290,23 @@ becomes the canonical `headers:`/`row:` form, and bare prose gains its implicit 
 prefix. After that single canonicalizing pass, text ↔ JSON round-trip exactly (byte-for-
 byte for text, deep-equal for JSON). The guarantee is **canonical-form + information
 losslessness**, not preservation of every incidental keystroke.
+
+### 5.2 Format version stamp (optional)
+
+A document MAY declare the grammar version it targets with a single comment in the
+leading header:
+
+```
+// it-format: 1.0
+title: …
+```
+
+It is a **comment**, so it is excluded from every seal hash and round-trips as trivia —
+adding or changing it never breaks a seal. The parser exposes it as `document.version`;
+the feature level inferred from the blocks actually used is `document.detectedFeatureLevel`
+(when no stamp is present, `version` mirrors it). The stamp is advisory self-description
+for long-term archives — never required, and never a top-level keyword, so it cannot
+collide with content. Only the header comment block is honored (never body or code).
 
 ## 6. Indexing & folder query
 

@@ -6,13 +6,15 @@ const { execSync } = require("node:child_process");
 // 1.5.0 (XLSX/DOCX converters); core has since legitimately grown through the
 // PDF/Word-parity features — forms, trust workflow, redline, version compare,
 // redaction, math, mergeThreeWay, attachments — and at 1.16.0 the faithful-recorder
-// `defaults.ts` module (read-time defaults). Current real size: packed ~126 KB,
-// unpacked ~583 KB, 101 entries. Limits sit just above so the guard still catches
-// FUTURE accidental bloat. Bump deliberately when real features grow the surface;
-// never to wave through an accidental dependency or stray src file.
+// `defaults.ts` module (read-time defaults). Nudged again at 4.4 for the FORMAT-REVIEW
+// freeze work: reserving route/require/certify, the rendered approval-route panel
+// (+ its CSS), and the optional format-version stamp. Limits sit just above real size
+// so the guard still catches FUTURE accidental bloat. Bump deliberately when real
+// features grow the surface; never to wave through an accidental dependency or stray
+// src file.
 const LIMITS = {
-  packedBytes: 135000,
-  unpackedBytes: 630000,
+  packedBytes: 138000,
+  unpackedBytes: 635000,
   entryCount: 105,
 };
 

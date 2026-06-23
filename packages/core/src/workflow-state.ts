@@ -22,9 +22,10 @@
  * Conditional requirements (`when:`) are evaluated against the document's own
  * values (metric:/meta:) on the same safe, no-`eval` evaluator forms use.
  *
- * `route:`/`require:` are interpreted here; the parser preserves them verbatim as
- * `custom` blocks (unknown-keyword guarantee), so they round-trip byte-for-byte
- * and a sealed document keeps its hash.
+ * `route:`/`require:` are reserved keywords (block types "route"/"require", since
+ * 4.4) read here; they round-trip byte-for-byte and stay inside the hashed body, so
+ * a sealed document keeps its hash. (Documents authored before they were reserved
+ * parsed them as `custom` blocks; the fallback in `isKw` below still resolves those.)
  */
 
 import { parseIntentText } from "./parser";
@@ -74,8 +75,10 @@ const norm = (s: unknown): string =>
 
 /** Extract the `route:`/`require:` policy from a document (custom blocks). */
 export function extractRoute(doc: IntentDocument): ApprovalRoute | null {
+  // route:/require: are reserved block types (4.4+). The `custom` arm is a
+  // back-compat fallback for documents authored before they were reserved.
   const isKw = (b: IntentBlock, kw: string) =>
-    b.type === "custom" && norm(b.properties?.keyword) === kw;
+    b.type === kw || (b.type === "custom" && norm(b.properties?.keyword) === kw);
 
   // Flatten so route:/require: are found wherever they sit (incl. under sections).
   const all = flattenBlocks(doc.blocks);
@@ -130,8 +133,7 @@ function isActive(req: RequiredApprover, values: Record<string, string>): boolea
  * Derive the live approval state of a document from its `route:`/`require:`
  * policy and its `approve:` lines. Pure: re-deriving always matches the file.
  */
-export function workflowState(source: string): WorkflowState {
-  const doc = parseIntentText(source);
+export function deriveWorkflowState(doc: IntentDocument): WorkflowState {
   const route = extractRoute(doc);
 
   if (!route) {
@@ -176,4 +178,13 @@ export function workflowState(source: string): WorkflowState {
     next: route.order === "sequential" ? (pending[0] ?? null) : null,
     complete: pending.length === 0,
   };
+}
+
+/**
+ * Derive the live approval state from raw `.it` source. Pure: re-deriving always
+ * matches the file. Thin wrapper over deriveWorkflowState() for callers that hold
+ * source rather than a parsed document.
+ */
+export function workflowState(source: string): WorkflowState {
+  return deriveWorkflowState(parseIntentText(source));
 }

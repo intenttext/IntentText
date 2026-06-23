@@ -9,6 +9,7 @@ import {
   type TrustTier,
 } from "./seal";
 import { documentToSource } from "./source";
+import { deriveWorkflowState, WorkflowState } from "./workflow-state";
 
 export interface RenderOptions {
   /** Theme name (built-in) or IntentTheme object */
@@ -1418,6 +1419,17 @@ function renderBlock(block: IntentBlock): string {
     case "freeze":
       return "";
 
+    // certify: — an authority record, consolidated into the trust band like
+    // sign:/freeze: (FORMAT-REVIEW T-02). Never rendered inline.
+    case "certify":
+      return "";
+
+    // route:/require: — the approval policy renders ONCE as the approval-route
+    // panel (renderApprovalRoute, injected by renderBlocks), not as raw lines.
+    case "route":
+    case "require":
+      return "";
+
     case "revision":
       // Should never appear above the history boundary — render as muted if somehow present
       return "";
@@ -1667,6 +1679,7 @@ function collectFootnotes(blocks: IntentBlock[]): IntentBlock[] {
 function renderBlocks(
   blocks: IntentBlock[],
   allBlocks?: IntentBlock[],
+  routeCtx?: { panel: string; injected: { v: boolean } },
 ): string {
   const topBlocks = allBlocks || blocks;
   let html = "";
@@ -1674,6 +1687,17 @@ function renderBlocks(
 
   while (i < blocks.length) {
     const block = blocks[i];
+
+    // Approval-route panel: inject ONCE, at the first route:/require: block in
+    // document order (the blocks themselves render nothing — see renderBlock).
+    if (
+      routeCtx &&
+      !routeCtx.injected.v &&
+      (block.type === "route" || block.type === "require")
+    ) {
+      html += routeCtx.panel;
+      routeCtx.injected.v = true;
+    }
 
     // TOC block — generate from all sections in the document
     if (block.type === "toc") {
@@ -1738,13 +1762,69 @@ function renderBlocks(
       block.children &&
       block.children.length > 0
     ) {
-      html += renderBlocks(block.children, topBlocks);
+      html += renderBlocks(block.children, topBlocks, routeCtx);
     }
 
     i++;
   }
 
   return html;
+}
+
+/** Build the approval-route panel context for a document, or undefined when it
+ *  declares no route:/require: policy. The panel is injected once by renderBlocks
+ *  at the first route:/require: block; the blocks themselves render nothing. */
+function buildRouteCtx(
+  document: IntentDocument,
+): { panel: string; injected: { v: boolean } } | undefined {
+  const state = deriveWorkflowState(document);
+  if (!state.hasRoute) return undefined;
+  return { panel: renderApprovalRoute(state), injected: { v: false } };
+}
+
+/** Render the in-file approval route + its DERIVED live state (approved / next /
+ *  pending) as a single panel. State comes from deriveWorkflowState, so it always
+ *  matches the file — nothing is stored. */
+function renderApprovalRoute(state: WorkflowState): string {
+  const fulfilled = new Set(state.fulfilled);
+  const pending = new Set(state.pending);
+  const items = state.required
+    .map((req) => {
+      const who = escapeHtml(req.match || "approver");
+      let cls: string;
+      let marker: string;
+      let tag = "";
+      if (fulfilled.has(req.match)) {
+        cls = "is-approved";
+        marker = "✓"; // ✓
+      } else if (pending.has(req.match)) {
+        if (state.next === req.match) {
+          cls = "is-next";
+          marker = "▶"; // ▶
+          tag = "next";
+        } else {
+          cls = "is-pending";
+          marker = "○"; // ○
+        }
+      } else if (req.optional) {
+        cls = "is-optional";
+        marker = "○";
+        tag = "optional";
+      } else {
+        // Required but not currently active (its when: condition is false).
+        cls = "is-inactive";
+        marker = "—"; // —
+        tag = req.when ? `when ${escapeHtml(req.when)}` : "not required";
+      }
+      const tagHtml = tag
+        ? ` <span class="it-approval-route__tag">${tag}</span>`
+        : "";
+      return `<li class="it-approval-route__item ${cls}"><span class="it-approval-route__marker" aria-hidden="true">${marker}</span><span class="it-approval-route__who">${who}</span>${tagHtml}</li>`;
+    })
+    .join("");
+  const status = state.complete ? "Complete" : "In progress";
+  const order = escapeHtml(state.order);
+  return `<section class="it-approval-route" data-order="${order}" data-complete="${state.complete}"><header class="it-approval-route__head"><span class="it-approval-route__title">Approval route</span><span class="it-approval-route__order">${order}</span><span class="it-approval-route__status">${status}</span></header><ol class="it-approval-route__list">${items}</ol></section>`;
 }
 
 // Main HTML renderer function
@@ -1757,7 +1837,7 @@ export function renderHTML(
   const prevBare = BARE_RENDER;
   BARE_RENDER = !!options?.bare;
   try {
-  const bodyHtml = renderBlocks(document.blocks);
+  const bodyHtml = renderBlocks(document.blocks, undefined, buildRouteCtx(document));
 
   // Collect and render footnotes at bottom
   const footnotes = collectFootnotes(document.blocks);
@@ -1875,7 +1955,7 @@ export function renderPrint(
   const prevBare = BARE_RENDER;
   BARE_RENDER = !!options?.bare;
   try {
-  const bodyHtml = renderBlocks(doc.blocks);
+  const bodyHtml = renderBlocks(doc.blocks, undefined, buildRouteCtx(doc));
 
   // Collect and render footnotes at bottom
   const footnotes = collectFootnotes(doc.blocks);

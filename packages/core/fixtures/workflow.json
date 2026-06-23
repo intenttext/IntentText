@@ -15,64 +15,54 @@
     },
     {
       "id": "id",
-      "type": "custom",
+      "type": "route",
       "content": "sequential",
-      "originalContent": "route: sequential",
+      "originalContent": "sequential",
       "inline": [
         {
           "type": "text",
           "value": "sequential"
         }
-      ],
-      "properties": {
-        "keyword": "route"
-      }
+      ]
     },
     {
       "id": "id",
-      "type": "custom",
+      "type": "require",
       "content": "manager",
-      "originalContent": "require: manager",
+      "originalContent": "manager",
       "inline": [
         {
           "type": "text",
           "value": "manager"
         }
-      ],
-      "properties": {
-        "keyword": "require"
-      }
+      ]
     },
     {
       "id": "id",
-      "type": "custom",
+      "type": "require",
       "content": "finance",
-      "originalContent": "require: finance | when: amount > 100000",
+      "originalContent": "finance",
+      "properties": {
+        "when": "amount > 100000"
+      },
       "inline": [
         {
           "type": "text",
           "value": "finance"
         }
-      ],
-      "properties": {
-        "keyword": "require",
-        "when": "amount > 100000"
-      }
+      ]
     },
     {
       "id": "id",
-      "type": "custom",
+      "type": "require",
       "content": "legal",
-      "originalContent": "require: legal",
+      "originalContent": "legal",
       "inline": [
         {
           "type": "text",
           "value": "legal"
         }
-      ],
-      "properties": {
-        "keyword": "require"
-      }
+      ]
     },
     {
       "id": "id",

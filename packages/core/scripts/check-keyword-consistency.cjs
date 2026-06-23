@@ -115,6 +115,25 @@ for (const lit of blockTypeLiterals) {
   }
 }
 
+// Rule 4: the published canonical keyword count is EXACTLY 38 (FORMAT-REVIEW T-06).
+// The source-of-truth count must never silently drift from what the docs/marketing
+// state. Bump this number here — and in every doc/comment that states it — in the
+// SAME commit that changes the canonical set. That is the point of the gate.
+const EXPECTED_CANONICAL_COUNT = 41;
+const actualCount = canonicalKeywords.size;
+if (actualCount !== EXPECTED_CANONICAL_COUNT) {
+  failures.push(
+    `Canonical keyword count is ${actualCount}, expected ${EXPECTED_CANONICAL_COUNT}. ` +
+      `If intentional, update EXPECTED_CANONICAL_COUNT here AND every doc/comment that ` +
+      `states the count (registry header, SPEC.md, AGENTS.md, keywords/index.md).`,
+  );
+}
+if (typeof core.KEYWORD_COUNT === "number" && core.KEYWORD_COUNT !== actualCount) {
+  failures.push(
+    `KEYWORD_COUNT (${core.KEYWORD_COUNT}) disagrees with CANONICAL_KEYWORDS.length (${actualCount}).`,
+  );
+}
+
 // ── 4. Report ────────────────────────────────────────────────────────────────
 
 if (failures.length > 0) {

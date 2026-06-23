@@ -4,7 +4,7 @@
  * Single source of truth for the IntentText keyword contract.
  * KEYWORDS array, BlockType union, and ALIASES map are all derived from this.
  *
- * v2.14: Canonical keyword set frozen at 37 keywords (38 since `style` joined in 4.3).
+ * v2.14: frozen at 37; 38 since `style` (4.3); 41 since route/require/certify (4.4).
  * Everything else is an alias, internal type, or extension block.
  */
 
@@ -64,7 +64,7 @@ export interface ExtensionEntry {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// THE 37 CANONICAL KEYWORDS
+// THE 41 CANONICAL KEYWORDS
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
@@ -262,12 +262,15 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
 
   // ── Data (3) ────────────────────────────────────────────────────────────
   {
-    canonical: "columns",
+    // T-10: `headers` is the canonical table-header keyword — it is what the
+    // serializer already emits (source.ts) and what authors expect; `columns`
+    // (zero real adoption) is demoted to a compat-only alias. Both still parse.
+    canonical: "headers",
     category: "data",
     since: "1.0",
     status: "stable",
-    description: "Table column definitions (declares headers for following row: blocks)",
-    aliases: [{ alias: "أعمدة", status: "alias" }, { alias: "headers", status: "compat-only" }],
+    description: "Table header row — column labels for the following row: blocks",
+    aliases: [{ alias: "أعمدة", status: "alias" }, { alias: "columns", status: "compat-only" }],
   },
   {
     canonical: "row",
@@ -354,7 +357,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     aliases: [{ alias: "log", status: "alias" }],
   },
 
-  // ── Trust (5) ───────────────────────────────────────────────────────────
+  // ── Trust (6) ───────────────────────────────────────────────────────────
   {
     canonical: "track",
     category: "trust",
@@ -393,10 +396,45 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.11",
     status: "stable",
     description: "Formal change to frozen document",
-    aliases: [{ alias: "تعديل", status: "alias" }, 
-      { alias: "amend", status: "alias" },
-      { alias: "change", status: "alias" },
-    ],
+    // SECURITY (FORMAT-REVIEW T-01): a hash-excluded trust keyword must have NO
+    // ASCII-word alias. `amendment` and `certify` are dropped from the content hash
+    // (trust.ts), and leadKeyword resolves aliases BEFORE that exclusion — so any
+    // English-word alias (`change`, `amend`, …) would let an ordinary sentence
+    // resolve into a trust keyword and silently vanish from a seal. Only the
+    // deliberate localized term (Arabic تعديل, the formal equivalent) remains.
+    aliases: [{ alias: "تعديل", status: "alias" }],
+  },
+  {
+    canonical: "certify",
+    category: "trust",
+    since: "4.4",
+    status: "stable",
+    description:
+      "Authority certification record — an issuer attests to the content, verified ABOVE the hash with the issuer's key. Presence alone is a CLAIM, never a verdict (anyone can paste a certify: line).",
+    aliases: [],
+  },
+
+  // ── Approval routing (2) ──────────────────────────────────────────────────
+  // route:/require: declare a document's in-file approval policy; workflowState()
+  // derives live state from them and the approve: lines. Reserved (FORMAT-REVIEW
+  // T-02) so the keywords the workflow engine actually reads are honest in the
+  // registry instead of being parsed as generic custom blocks.
+  {
+    canonical: "route",
+    category: "agent",
+    since: "4.4",
+    status: "stable",
+    description: "Approval routing order for the document: sequential (default) or parallel",
+    aliases: [],
+  },
+  {
+    canonical: "require",
+    category: "agent",
+    since: "4.4",
+    status: "stable",
+    description:
+      "Declares a required approver (optionally conditional via when:) in the document's approval route",
+    aliases: [],
   },
 
   // ── Layout (5) ──────────────────────────────────────────────────────────
@@ -452,7 +490,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
 
   // ═══════════════════════════════════════════════════════════════════════
   // INTERNAL / NON-CANONICAL ENTRIES
-  // These are NOT in the 37 canonical keywords but remain in the registry
+  // These are NOT in the 41 canonical keywords but remain in the registry
   // for backward compatibility. They are never shown in docs or completions.
   // ═══════════════════════════════════════════════════════════════════════
 
@@ -537,19 +575,26 @@ export const EXTENSION_REGISTRY: ExtensionEntry[] = [
   // ── Experimental extensions (x-exp) ─────────────────────────────────────
   { keyword: "assert", namespace: "exp", xForm: "x-exp: assert", since: "2.13", description: "Testable assertion — evaluable by agents and CI" },
   { keyword: "secret", namespace: "exp", xForm: "x-exp: secret", since: "2.13", description: "Secret or credential reference — never rendered" },
-  { keyword: "input", namespace: "exp", xForm: "x-exp: input", since: "1.3", description: "Declared input parameter for templates and workflows" },
-  { keyword: "output", namespace: "exp", xForm: "x-exp: output", since: "1.3", description: "Declared output parameter for templates and workflows" },
+
+  // ── Form / parameter extensions (x-form) ────────────────────────────────
+  // input/output are the typed-parameter primitive for templates, fillable forms,
+  // and agent tool manifests. Promoted out of the experimental (x-exp) namespace
+  // to a STABLE namespace (FORMAT-REVIEW T-03) so adopters can build on them — the
+  // bare `input:`/`output:` keywords and their block types are UNCHANGED, so this
+  // is a stability/classification signal only (no grammar or byte-level change).
+  { keyword: "input", namespace: "form", xForm: "x-form: input", since: "1.3", description: "Declared input parameter for templates, forms, and workflows" },
+  { keyword: "output", namespace: "form", xForm: "x-form: output", since: "1.3", description: "Declared output parameter for templates, forms, and workflows" },
 ];
 
 // ── Derived helpers ─────────────────────────────────────────────────────────
 
-/** All canonical keyword names (stable entries only — exactly 37). */
+/** All canonical keyword names (stable entries only — exactly 41). */
 export const CANONICAL_KEYWORDS: string[] = LANGUAGE_REGISTRY.filter(
   (k) => k.status === "stable",
 ).map((k) => k.canonical);
 
-/** Total canonical keyword count — 38 (37 at the v2.14 freeze + `style`). */
-export const KEYWORD_COUNT = CANONICAL_KEYWORDS.length; // 38
+/** Total canonical keyword count — 41 (38 at the 4.3 line + route/require/certify in 4.4). */
+export const KEYWORD_COUNT = CANONICAL_KEYWORDS.length; // 41
 
 /** Total extension keyword count. */
 export const EXTENSION_COUNT = EXTENSION_REGISTRY.length;
@@ -592,7 +637,7 @@ export const COMPAT_KEYWORDS: string[] = LANGUAGE_REGISTRY.filter(
   (k) => k.status === "compat-only",
 ).map((k) => k.canonical);
 
-/** Keywords stable enough to show in editor hints and completion (37 canonical). */
+/** Keywords stable enough to show in editor hints and completion (41 canonical). */
 export const PUBLIC_KEYWORDS: KeywordDefinition[] = LANGUAGE_REGISTRY.filter(
   (k) => k.status === "stable",
 );
@@ -631,6 +676,10 @@ const TIER_OVERRIDES: Record<string, KeywordTier> = {
   context: "agent",
   toc: "print",
   cite: "contract",
+  // Approval routing pairs with approvals/signatures → the contract profile,
+  // though the keywords are categorized as agent (workflow) primitives.
+  route: "contract",
+  require: "contract",
 };
 
 /** Resolve the tier of a single keyword definition. */

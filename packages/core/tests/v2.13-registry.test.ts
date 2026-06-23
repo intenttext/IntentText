@@ -98,7 +98,7 @@ describe("v2.13 Language registry — canonical renames", () => {
     expect(doc.blocks[0].type).toBe("signal");
   });
 
-  it("headers: resolves to columns block type", () => {
+  it("headers: is the canonical table-header keyword", () => {
     const doc = parseIntentText(
       "headers: Name | Age | City\nrow: Alice | 30 | NYC",
     );
@@ -107,7 +107,7 @@ describe("v2.13 Language registry — canonical renames", () => {
     expect(doc.blocks[0].table?.headers).toEqual(["Name", "Age", "City"]);
   });
 
-  it("columns: works as the canonical form", () => {
+  it("columns: still works as a compat alias for headers", () => {
     const doc = parseIntentText("columns: Name | Age\nrow: Alice | 30");
     expect(doc.blocks[0].type).toBe("table");
     expect(doc.blocks[0].table?.headers).toEqual(["Name", "Age"]);
