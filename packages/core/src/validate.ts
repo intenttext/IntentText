@@ -56,6 +56,35 @@ export function validateDocumentSemantic(
     }
   }
 
+  // ── Prose-pipe footgun (T-20): a ` | key: value` segment inside prose is parsed
+  // as a PROPERTY. On a prose block, a property whose key is not a known presentation/
+  // layout key is very likely swallowed literal text — warn (escape a literal pipe as
+  // `\|`). Lint only; it never changes parsing, so it cannot affect a seal.
+  const PROSE_TYPES = new Set(["text", "body-text", "quote"]);
+  const PROSE_PROP_ALLOW = new Set([
+    // presentation / layout
+    "color", "size", "family", "align", "bg", "indent", "leading", "space-before",
+    "space-after", "opacity", "border", "valign", "theme", "margin", "margins",
+    "orientation", "width", "height", "end", "dir", "id", "class", "lang", "weight",
+    "style", "case",
+    // legitimate prose / quote metadata (attribution, captions, dates)
+    "by", "author", "source", "cite", "role", "at", "caption", "title", "name",
+    "date", "due", "time",
+  ]);
+  for (const block of allBlocks) {
+    if (!PROSE_TYPES.has(block.type) || !block.properties) continue;
+    for (const key of Object.keys(block.properties)) {
+      if (key === "keyword" || PROSE_PROP_ALLOW.has(key)) continue;
+      issues.push({
+        blockId: block.id,
+        blockType: block.type,
+        type: "warning",
+        code: "PROSE_PIPE_SUSPECT",
+        message: `'| ${key}: …' on a ${block.type} line was parsed as a property; if you meant literal text, escape the pipe as '\\|'`,
+      });
+    }
+  }
+
   // Build a set of all known step IDs (explicit id: property or auto-assigned)
   const stepIds = new Set<string>();
   const seenExplicitIds = new Map<string, IntentBlock>();
