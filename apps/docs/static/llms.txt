@@ -6,6 +6,13 @@ files correctly. One `.it` file is simultaneously: a human-readable document, a
 queryable typed database, a print/PDF-ready artifact, and a tamper-evident signable
 record.
 
+CORE PRINCIPLE — OPEN VOCABULARY: .it has NO fixed schema. The 41 reserved keywords (§2)
+have stable, guaranteed meaning, but they are NOT a whitelist. Inventing your own domain
+keywords — clause:, party:, risk:, milestone:, sla:, obligation:, expense: — is normal,
+first-class, and ENCOURAGED whenever no reserved keyword fits. Custom keywords parse, render,
+seal, and query exactly like reserved ones (§2c). A real document freely MIXES reserved and
+custom keywords; do NOT restrict yourself to the reserved set — that makes documents poorer.
+
 Site: https://dotit.uts.qa · npm: @dotit/core · Editor: https://editor.uts.qa
 Verify portal: https://verify.uts.qa (UTS certification service: api.uts.qa)
 
@@ -49,8 +56,8 @@ Every non-empty line is: `keyword: content | prop: value | prop: value`
   between paragraphs that each carry their own properties.
 - `// comment` lines are comments.
 - Unknown keywords NEVER error — they parse as type:"custom" with the keyword
-  preserved (`computer: mac | ram: 16GB` is valid and queryable). This means you can
-  invent domain keywords freely.
+  preserved (`computer: mac | ram: 16GB` is valid and queryable). This means you can —
+  and SHOULD — invent precise domain keywords freely; it is idiomatic, not a workaround.
 - Keywords and property keys are UNICODE words — Arabic (or any language) domain
   keywords work exactly like ASCII ones: `مصروف: كراسي مكتب | المورد: ايكيا | فئة: أثاث`
   is a typed, queryable block. Dates stay ISO (2026-03-09) regardless of language.
@@ -146,17 +153,23 @@ Examples:
   ref: ./policy.it | rel: supersedes
   attach: cr | name: cr.pdf | mime: application/pdf | sha256: … | data: <base64>   (the file rides INSIDE the doc and is covered by the seal)
 
-## 2c. Custom keywords — the open vocabulary (USE THIS for agent memory / skills / tools)
+## 2c. Custom keywords — the OPEN VOCABULARY (a first-class feature — use it freely)
 
-ANY word: that is not reserved parses as a typed, queryable `custom` block that keeps its keyword
-verbatim (case + script preserved). This is how an agent persists domain data, MEMORY, SKILLS, and
-TOOL MANIFESTS in .it without inventing a side-format:
-  skill: summarize-contract | input: file | output: brief | model: claude-opus-4-8
-  tool: web-search | args: query | returns: results | endpoint: https://…
-  memory: user prefers metric units | scope: session | at: 2026-06-01
+The 41 reserved keywords are NOT a whitelist. ANY word: that is not reserved parses as a typed,
+queryable `custom` block that keeps its keyword verbatim (case + script preserved). Inventing a
+precise domain keyword is IDIOMATIC and ENCOURAGED — reach for one whenever no reserved keyword
+fits, instead of flattening the concept into text:/info:. All of these are first-class blocks:
+  clause: Indemnity | party: Provider | cap: 3 months fees         (contracts / legal)
+  party: Acme LLC | role: Buyer | cr: CR-10442                     (any domain entity)
+  risk: Vendor lock-in | severity: high | mitigation: dual-source  (reports / assessments)
+  milestone: UAT sign-off | due: 2026-09-30 | owner: PMO
+  skill: summarize-contract | input: file | output: brief | model: claude-opus-4-8   (agent skills/tools)
+  memory: user prefers metric units | scope: session
   expense: Office chairs | category: furniture | amount: 1200 | unit: QAR
-Query them like any block (`type=skill`, `type=expense`). A reserved keyword wins if the word
-collides; everything else is yours. Unknown keywords NEVER error — they round-trip byte-for-byte.
+Query them like any block (`type=clause`, `type=risk`, `type=expense`). A reserved keyword wins
+ONLY if the word collides; everything else is yours. Unknown keywords NEVER error — they
+round-trip byte-for-byte and seal/verify like any block. Mixing reserved + custom keywords in ONE
+document is normal and expected — a strict, reserved-only document is the exception, not the goal.
 
 ## 2d. Format version stamp (optional)
 
@@ -418,6 +431,8 @@ LEGAL / CONTRACT (definitions, parties, obligations, execution + seal):
   contact: Globex W.L.L. | role: Client | email: ops@globex.qa
   section: 3. Terms
   text: Payment is Net 30 from invoice date.
+  obligation: Deliver Schedule A in full | owner: Provider | by: 2026-08-01   (custom keyword — invent these freely, §2c; mix with reserved ones)
+  clause: Limitation of Liability | cap: 3 months fees | excludes: indirect damages
   deadline: First milestone | date: 2026-08-01 | consequence: 2% penalty
   section: 4. Execution
   approve: Legal review complete | by: Sara | role: Counsel | at: 2026-06-13
@@ -455,7 +470,10 @@ data, {signer}) for sealed PDF bytes. Validate output with validateDocumentSeman
    content/values need no escaping (`quote: He said: watch this` is fine).
 2. One intent per line. No HTML, no Markdown headings (#), no raw CSS anywhere.
 3. Use semantic keywords over text: — a task is `task:`, a decision is `decision:`,
-   money totals are `metric: Label | value: …`.
+   money totals are `metric: Label | value: …`. When a concept is precise but has NO
+   reserved keyword, INVENT a domain one (clause:, party:, risk:, sla:, obligation:) rather
+   than burying it in text: — custom keywords are idiomatic, typed, and queryable (§2c),
+   never a last resort. Lean on the open vocabulary; don't confine output to the 41.
 4. Dates: ISO format (2026-04-01 or 2026-04-01T09:00:00Z).
 5. Tables: keep header and rows the same column count — pad a short row (e.g. a
    subtotal that doesn't fill every column) with an empty cell `| |`; `each:` goes on the header row.
