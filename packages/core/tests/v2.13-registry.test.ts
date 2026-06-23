@@ -56,30 +56,33 @@ describe("v2.13 Language registry — new block types", () => {
     expect(doc.blocks[0].properties?.scope).toBe("session");
   });
 
-  it("parses danger: as a callout block type", () => {
-    const doc = parseIntentText("danger: This will delete all data");
+  it("parses a danger callout via info: + type: property", () => {
+    const doc = parseIntentText(
+      "info: This will delete all data | type: danger",
+    );
     expect(doc.blocks[0].type).toBe("info");
     expect(doc.blocks[0].properties?.type).toBe("danger");
     expect(doc.blocks[0].content).toBe("This will delete all data");
   });
 
-  it("critical: alias resolves to danger block type", () => {
+  it("critical: no longer aliases danger — resolves to a custom block", () => {
     const doc = parseIntentText("critical: Irreversible operation");
-    expect(doc.blocks[0].type).toBe("info");
-    expect(doc.blocks[0].properties?.type).toBe("danger");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("critical");
   });
 
-  it("destructive: alias resolves to danger block type", () => {
+  it("destructive: no longer aliases danger — resolves to a custom block", () => {
     const doc = parseIntentText("destructive: Drops the table");
-    expect(doc.blocks[0].type).toBe("info");
-    expect(doc.blocks[0].properties?.type).toBe("danger");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("destructive");
   });
 });
 
 describe("v2.13 Language registry — canonical renames", () => {
-  it("note: resolves to text block type", () => {
+  it("note: no longer aliases text — resolves to a custom block", () => {
     const doc = parseIntentText("note: Hello world");
-    expect(doc.blocks[0].type).toBe("text");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("note");
     expect(doc.blocks[0].content).toBe("Hello world");
   });
 
@@ -88,14 +91,16 @@ describe("v2.13 Language registry — canonical renames", () => {
     expect(doc.blocks[0].type).toBe("text");
   });
 
-  it("emit: resolves to signal block type", () => {
+  it("emit: no longer aliases signal — resolves to a custom block", () => {
     const doc = parseIntentText("emit: pipeline_complete");
-    expect(doc.blocks[0].type).toBe("signal");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("emit");
   });
 
-  it("status: resolves to signal block type", () => {
+  it("status: no longer aliases signal — resolves to a custom block", () => {
     const doc = parseIntentText("status: pipeline_complete");
-    expect(doc.blocks[0].type).toBe("signal");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("status");
   });
 
   it("headers: is the canonical table-header keyword", () => {
@@ -107,10 +112,10 @@ describe("v2.13 Language registry — canonical renames", () => {
     expect(doc.blocks[0].table?.headers).toEqual(["Name", "Age", "City"]);
   });
 
-  it("columns: still works as a compat alias for headers", () => {
+  it("columns: no longer aliases headers — resolves to a custom block", () => {
     const doc = parseIntentText("columns: Name | Age\nrow: Alice | 30");
-    expect(doc.blocks[0].type).toBe("table");
-    expect(doc.blocks[0].table?.headers).toEqual(["Name", "Age"]);
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("columns");
   });
 
   it("done: parses to its own done block type, not task", () => {
@@ -187,8 +192,8 @@ describe("v2.13 Language registry — renderer", () => {
     expect(html).toContain("it-memory-scope");
   });
 
-  it("renders danger: as a callout with expected classes", () => {
-    const doc = parseIntentText("danger: Do not delete");
+  it("renders a danger callout (info: + type: danger) with expected classes", () => {
+    const doc = parseIntentText("info: Do not delete | type: danger");
     const html = renderHTML(doc);
     expect(html).toContain("it-danger");
     expect(html).toContain("it-callout");
@@ -235,14 +240,16 @@ describe("v2.13 assert: keyword", () => {
     expect(doc.blocks[0].properties?.severity).toBe("warning");
   });
 
-  it("expect: alias resolves to assert", () => {
+  it("expect: no longer aliases assert — resolves to a custom block", () => {
     const doc = parseIntentText("expect: All tests pass | severity: error");
-    expect(doc.blocks[0].type).toBe("assert");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("expect");
   });
 
-  it("verify: alias resolves to assert", () => {
+  it("verify: no longer aliases assert — resolves to a custom block", () => {
     const doc = parseIntentText("verify: No PII in output");
-    expect(doc.blocks[0].type).toBe("assert");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("verify");
   });
 
   it("renders assert: block with expected classes", () => {
@@ -284,14 +291,16 @@ describe("v2.13 secret: keyword", () => {
     expect(doc.blocks[0].properties?.vault).toBe("aws/secretsmanager/prod/db");
   });
 
-  it("credential: alias resolves to secret", () => {
+  it("credential: no longer aliases secret — resolves to a custom block", () => {
     const doc = parseIntentText("credential: API_KEY | env: OPENAI_KEY");
-    expect(doc.blocks[0].type).toBe("secret");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("credential");
   });
 
-  it("token: alias resolves to secret", () => {
+  it("token: no longer aliases secret — resolves to a custom block", () => {
     const doc = parseIntentText("token: GITHUB_TOKEN");
-    expect(doc.blocks[0].type).toBe("secret");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("token");
   });
 
   it("renders secret: as redacted — never shows content", () => {

@@ -1,11 +1,13 @@
 /**
- * IntentText Language Registry — v2.14 Keyword Freeze
+ * IntentText Language Registry — Keyword Freeze
  *
  * Single source of truth for the IntentText keyword contract.
- * KEYWORDS array, BlockType union, and ALIASES map are all derived from this.
+ * KEYWORDS array, BlockType union, and the localized-keyword map derive from this.
  *
- * v2.14: frozen at 37; 38 since `style` (4.3); 41 since route/require/certify (4.4).
- * Everything else is an alias, internal type, or extension block.
+ * 41 canonical keywords (frozen at 37; 38 since `style` 4.3; 41 since route/require/certify 4.4).
+ * NO convenience aliases: the only non-canonical resolutions are Arabic LOCALIZED keyword names
+ * (عنوان→title …) — first-class and collision-free. EVERY other unreserved word resolves to a
+ * `custom` block (the open vocabulary). Everything else is an internal type or extension block.
  */
 
 export type KeywordCategory =
@@ -21,7 +23,7 @@ export type KeywordCategory =
  * Lifecycle status of a keyword.
  *
  * stable      — canonical, user-facing, documented in reference
- * alias       — input-only shorthand that resolves to a canonical keyword
+ * alias       — localized (Arabic) keyword name that resolves to a canonical keyword
  * deprecated  — will be removed in a future major version; emit warning
  * compat-only — kept for back-compat; never show in docs or completion hints
  * boundary    — structural marker that produces no block output (e.g. history:)
@@ -75,7 +77,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Unique document title — renders as H1",
-    aliases: [{ alias: "عنوان", status: "alias" }, { alias: "h1", status: "compat-only" }],
+    aliases: [{ alias: "عنوان", status: "alias" }],
   },
   {
     canonical: "summary",
@@ -83,7 +85,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Short document description",
-    aliases: [{ alias: "ملخص", status: "alias" }, { alias: "abstract", status: "alias" }],
+    aliases: [{ alias: "ملخص", status: "alias" }],
   },
   {
     canonical: "meta",
@@ -109,11 +111,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Major heading / context boundary — renders as H2",
-    aliases: [{ alias: "قسم", status: "alias" }, 
-      { alias: "heading", status: "alias" },
-      { alias: "chapter", status: "alias" },
-      { alias: "h2", status: "compat-only" },
-    ],
+    aliases: [{ alias: "قسم", status: "alias" }],
   },
   {
     canonical: "sub",
@@ -121,11 +119,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Sub-section — renders as H3",
-    aliases: [{ alias: "فرعي", status: "alias" }, 
-      { alias: "subheading", status: "alias" },
-      { alias: "h3", status: "compat-only" },
-      { alias: "subsection", status: "compat-only" },
-    ],
+    aliases: [{ alias: "فرعي", status: "alias" }],
   },
   {
     canonical: "toc",
@@ -142,36 +136,16 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     category: "content",
     since: "1.0",
     status: "stable",
-    description: "Body paragraph (note: is alias)",
-    aliases: [{ alias: "نص", status: "alias" }, 
-      { alias: "note", status: "alias" },
-      { alias: "body", status: "alias" },
-      { alias: "content", status: "alias" },
-      { alias: "paragraph", status: "alias" },
-      { alias: "p", status: "compat-only" },
-    ],
+    description: "Body paragraph",
+    aliases: [{ alias: "نص", status: "alias" }],
   },
   {
     canonical: "info",
     category: "content",
     since: "1.0",
     status: "stable",
-    description: "Callout block (warning/danger/tip/success are aliases with type injection)",
-    // T-07: warning/danger/tip/success are the primary visible callout forms; the
-    // redundant synonyms are demoted to compat-only — they still parse and still inject
-    // their variant (via CALLOUT_ALIAS_MAP), just hidden from docs/completion.
-    aliases: [{ alias: "تنبيه", status: "alias" },
-      { alias: "warning", status: "alias" },
-      { alias: "danger", status: "alias" },
-      { alias: "tip", status: "alias" },
-      { alias: "success", status: "alias" },
-      { alias: "alert", status: "compat-only" },
-      { alias: "caution", status: "compat-only" },
-      { alias: "critical", status: "compat-only" },
-      { alias: "destructive", status: "compat-only" },
-      { alias: "hint", status: "compat-only" },
-      { alias: "advice", status: "compat-only" },
-    ],
+    description: "Callout block — set the variant with type: tip|info|warning|danger|success",
+    aliases: [{ alias: "تنبيه", status: "alias" }],
   },
   {
     canonical: "quote",
@@ -179,11 +153,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Attributed block quotation",
-    aliases: [{ alias: "اقتباس", status: "alias" }, 
-      { alias: "blockquote", status: "alias" },
-      { alias: "excerpt", status: "alias" },
-      { alias: "pullquote", status: "alias" },
-    ],
+    aliases: [{ alias: "اقتباس", status: "alias" }],
   },
   {
     canonical: "cite",
@@ -191,11 +161,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Bibliographic citation (author, date, url) — NOT same as quote",
-    aliases: [{ alias: "استشهاد", status: "alias" }, 
-      { alias: "citation", status: "alias" },
-      { alias: "source", status: "alias" },
-      { alias: "reference", status: "alias" },
-    ],
+    aliases: [{ alias: "استشهاد", status: "alias" }],
   },
   {
     canonical: "code",
@@ -203,7 +169,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Code block with optional language for syntax highlighting",
-    aliases: [{ alias: "شيفرة", status: "alias" }, { alias: "snippet", status: "alias" }],
+    aliases: [{ alias: "شيفرة", status: "alias" }],
   },
   {
     canonical: "image",
@@ -211,11 +177,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Image with optional caption",
-    aliases: [{ alias: "صورة", status: "alias" }, 
-      { alias: "img", status: "alias" },
-      { alias: "photo", status: "alias" },
-      { alias: "picture", status: "alias" },
-    ],
+    aliases: [{ alias: "صورة", status: "alias" }],
   },
   {
     canonical: "link",
@@ -223,10 +185,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Hyperlink to an external resource",
-    aliases: [{ alias: "رابط", status: "alias" }, 
-      { alias: "url", status: "alias" },
-      { alias: "href", status: "alias" },
-    ],
+    aliases: [{ alias: "رابط", status: "alias" }],
   },
 
   // ── Tasks (3) ───────────────────────────────────────────────────────────
@@ -236,12 +195,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Actionable item with owner and due date",
-    aliases: [{ alias: "مهمة", status: "alias" }, 
-      { alias: "check", status: "alias" },
-      { alias: "todo", status: "alias" },
-      { alias: "action", status: "alias" },
-      { alias: "item", status: "alias" },
-    ],
+    aliases: [{ alias: "مهمة", status: "alias" }],
   },
   {
     canonical: "done",
@@ -249,10 +203,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.0",
     status: "stable",
     description: "Completed item — the resolved state of a task: block",
-    aliases: [{ alias: "منجز", status: "alias" }, 
-      { alias: "completed", status: "compat-only" },
-      { alias: "finished", status: "compat-only" },
-    ],
+    aliases: [{ alias: "منجز", status: "alias" }],
   },
   {
     canonical: "ask",
@@ -260,20 +211,20 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Open question requiring a response",
-    aliases: [{ alias: "question", status: "compat-only" }],
+    aliases: [],
   },
 
   // ── Data (3) ────────────────────────────────────────────────────────────
   {
-    // T-10: `headers` is the canonical table-header keyword — it is what the
-    // serializer already emits (source.ts) and what authors expect; `columns`
-    // (zero real adoption) is demoted to a compat-only alias. Both still parse.
+    // `headers` is the canonical table-header keyword (what the serializer emits and
+    // what authors expect). `columns:` is no longer an alias — it now resolves to a
+    // `custom` block like any other unreserved word.
     canonical: "headers",
     category: "data",
     since: "1.0",
     status: "stable",
     description: "Table header row — column labels for the following row: blocks",
-    aliases: [{ alias: "أعمدة", status: "alias" }, { alias: "columns", status: "compat-only" }],
+    aliases: [{ alias: "أعمدة", status: "alias" }],
   },
   {
     canonical: "row",
@@ -289,12 +240,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.11",
     status: "stable",
     description: "Named measurement with value",
-    aliases: [{ alias: "مؤشر", status: "alias" }, 
-      { alias: "kpi", status: "alias" },
-      { alias: "measure", status: "alias" },
-      { alias: "indicator", status: "alias" },
-      { alias: "stat", status: "compat-only" },
-    ],
+    aliases: [{ alias: "مؤشر", status: "alias" }],
   },
 
   // ── Agentic Workflow (7) ────────────────────────────────────────────────
@@ -304,7 +250,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.0",
     status: "stable",
     description: "Execute a tool or action",
-    aliases: [{ alias: "run", status: "alias" }],
+    aliases: [],
   },
   {
     canonical: "decision",
@@ -312,7 +258,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.0",
     status: "stable",
     description: "Conditional branch",
-    aliases: [{ alias: "if", status: "alias" }],
+    aliases: [],
   },
   {
     canonical: "gate",
@@ -328,7 +274,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.0",
     status: "stable",
     description: "Workflow entry point",
-    aliases: [{ alias: "on", status: "alias" }],
+    aliases: [],
   },
   {
     canonical: "result",
@@ -344,12 +290,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.7",
     status: "stable",
     description: "Standing behavioural rule",
-    aliases: [
-      { alias: "rule", status: "alias" },
-      { alias: "constraint", status: "alias" },
-      { alias: "guard", status: "alias" },
-      { alias: "requirement", status: "alias" },
-    ],
+    aliases: [],
   },
   {
     canonical: "audit",
@@ -357,7 +298,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.0",
     status: "stable",
     description: "Immutable execution record",
-    aliases: [{ alias: "log", status: "alias" }],
+    aliases: [],
   },
 
   // ── Trust (6) ───────────────────────────────────────────────────────────
@@ -383,7 +324,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.8",
     status: "stable",
     description: "Signature / attestation record",
-    aliases: [{ alias: "توقيع", status: "alias" }, { alias: "sig", status: "alias" }],
+    aliases: [{ alias: "توقيع", status: "alias" }],
   },
   {
     canonical: "freeze",
@@ -391,7 +332,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.8",
     status: "stable",
     description: "Lock document against changes",
-    aliases: [{ alias: "تجميد", status: "alias" }, { alias: "lock", status: "alias" }],
+    aliases: [{ alias: "تجميد", status: "alias" }],
   },
   {
     canonical: "amendment",
@@ -511,10 +452,7 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "2.12",
     status: "compat-only",
     description: "Internal: visible horizontal rule — users write --- directly",
-    aliases: [
-      { alias: "hr", status: "alias" },
-      { alias: "separator", status: "alias" },
-    ],
+    aliases: [],
   },
   {
     canonical: "revision",
@@ -710,22 +648,11 @@ export const KEYWORD_TIERS: Record<KeywordTier, string[]> = (() => {
 export const CORE_KEYWORDS: string[] = KEYWORD_TIERS.core;
 
 /**
- * Callout alias → callout variant type.
- * When these aliases resolve to 'info', the parser injects properties.type
- * with the variant name so the renderer can distinguish callout styles.
+ * Callout variant map (legacy). Callout variants are now set explicitly via the
+ * `type:` property (`info: … | type: warning`) — there are NO callout-keyword
+ * aliases. Kept as an empty map so existing importers keep working.
  */
-export const CALLOUT_ALIAS_MAP: Record<string, string> = {
-  warning: "warning",
-  alert: "warning",
-  caution: "warning",
-  danger: "danger",
-  critical: "danger",
-  destructive: "danger",
-  tip: "tip",
-  hint: "tip",
-  advice: "tip",
-  success: "success",
-};
+export const CALLOUT_ALIAS_MAP: Record<string, string> = {};
 
 /** Set of all extension bare keywords (for parser recognition). */
 export const EXTENSION_KEYWORDS: Set<string> = new Set(
@@ -742,46 +669,14 @@ export const EXTENSION_NS_MAP: Record<string, string> = Object.fromEntries(
  * These are former aliases of keywords that are now extensions.
  */
 export const EXTENSION_LEGACY_ALIASES: Record<string, string> = {
-  // Former aliases of extension keywords — resolve to the extension keyword
-  // figure alias (T-07: synonyms diagram/chart/illustration/visual pruned — one short
-  // form is enough; the pruned words pass through as `custom` blocks if written)
-  fig: "figure",
-  // Arabic aliases (localized keywords; round-trip preserves the written form)
+  // Localized (Arabic) names for extension keywords — they resolve to the extension
+  // keyword and round-trip preserving the written form. There are NO Latin aliases:
+  // every unreserved, non-localized word resolves to a `custom` block, so the open
+  // vocabulary can never silently collide with a hidden synonym (party, milestone,
+  // due, term, status, … are now ordinary custom keywords).
   "مهلة": "deadline",
   "جهة": "contact",
   "تواصل": "contact",
   "تعريف": "def",
   "مرجع": "ref",
-  // def aliases
-  define: "def",
-  term: "def",
-  glossary: "def",
-  // contact aliases
-  person: "contact",
-  party: "contact",
-  entity: "contact",
-  // ref aliases
-  references: "ref",
-  see: "ref",
-  related: "ref",
-  xref: "ref",
-  // deadline aliases (T-07: prose-collision `by` dropped)
-  due: "deadline",
-  milestone: "deadline",
-  "due-date": "deadline",
-  // signline aliases
-  "signature-line": "signline",
-  "sign-here": "signline",
-  // signal aliases
-  emit: "signal",
-  // `status` stays for now: it has agentic test coverage (`status:` emits a signal).
-  // It IS prose-colliding (status: is also a common property key), so demoting it is
-  // bundled into the owner-confirmed alias pass (T-07 remainder), not this unambiguous one.
-  status: "signal",
-  // assert aliases
-  expect: "assert",
-  verify: "assert",
-  // secret aliases
-  credential: "secret",
-  token: "secret",
 };

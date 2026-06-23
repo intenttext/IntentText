@@ -12,7 +12,7 @@ toc: | depth: 2 | title: Contents
 
 break:
 
-note: {{chapter.number}} | align: center
+text: {{chapter.number}} | align: center
 
 title: {{chapter.title}}
 
@@ -22,29 +22,29 @@ byline: {{book.author}} | date: {{book.year}} | publication: {{book.publisher}}
 
 ---
 
-note: {{chapter.openingParagraph}} | align: justify
+text: {{chapter.openingParagraph}} | align: justify
 
-note: {{chapter.body1}} | align: justify
+text: {{chapter.body1}} | align: justify
 
-note: {{chapter.body2}} | align: justify
+text: {{chapter.body2}} | align: justify
 
 sub: {{chapter.subheading1}}
 
-note: {{chapter.body3}} | align: justify
+text: {{chapter.body3}} | align: justify
 
-note: {{chapter.body4}} | align: justify
+text: {{chapter.body4}} | align: justify
 
 quote: {{chapter.pullquote}} | by: {{chapter.pullquoteSource}}
 
-note: {{chapter.body5}}[^1] | align: justify
+text: {{chapter.body5}}[^1] | align: justify
 
-note: {{chapter.body6}} | align: justify
+text: {{chapter.body6}} | align: justify
 
-note: {{chapter.closingParagraph}} | align: justify
+text: {{chapter.closingParagraph}} | align: justify
 
 ---
 
-note: ✦ ✦ ✦ | align: center
+text: ✦ ✦ ✦ | align: center
 
 footnote: 1 | text: {{chapter.footnote1}}
 footnote: 2 | text: {{chapter.footnote2}}

@@ -24,7 +24,7 @@ section: 3. Service Levels
 section: 4. Term & Termination
 text: This Agreement runs for an initial term of twelve (12) months and renews
   annually unless either party gives sixty (60) days' written notice.
-warning: Early termination without cause incurs the remaining term's license fees.
+info: Early termination without cause incurs the remaining term's license fees. | type: warning
 
 section: 5. Confidentiality
 text: Each party shall protect the other's Confidential Information with no less than
@@ -34,4 +34,4 @@ section: 6. Signatures
 approve: Legal review complete | by: Sara Hassan | role: Legal Counsel | at: 2026-03-28
 sign: Ahmed Al-Rashid | role: CEO, Dalil Technology LLC | at: 2026-04-01T09:00:00Z
 sign: Acme Corporation | role: Authorized Signatory | at: 2026-04-01T11:20:00Z
-freeze: | at: 2026-06-23T19:12:57.445Z | hash: sha256:fc87988a8a25ff96e54b4ac87f5921f749e318f02ebe28853644d1e5419d9865 | spec: 4 | appearance: sha256:8cacf1122ed35ba029e0bc3ae2670bba4d6f341f616543b5b58478fc9f1c444a | status: locked
+freeze: | at: 2026-06-23T22:08:11.290Z | hash: sha256:36558dc4ea4d41bd4fbbc89cd121e498815af485949ab656f3ab71880d823dd0 | spec: 4 | appearance: sha256:4ac6858fc4709e0de53c0be3d17c9a43be62c14d76e6942ea1a91d890b426895 | status: locked

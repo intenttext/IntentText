@@ -54,7 +54,7 @@ describe("meta: keyword", () => {
 
   it("meta: is invisible in HTML renderer output", () => {
     const doc = parseIntentText(
-      "title: My Doc\nmeta: | author: Ahmed\n\nsection: Intro\nnote: Hello\n",
+      "title: My Doc\nmeta: | author: Ahmed\n\nsection: Intro\ntext: Hello\n",
     );
     const html = renderHTML(doc);
     expect(html).not.toContain("Ahmed");
@@ -90,7 +90,7 @@ describe("meta: keyword", () => {
 
   it("no META_AFTER_SECTION warning when meta: is in header", () => {
     const doc = parseIntentText(
-      "title: My Doc\nmeta: | author: Ahmed\n\nsection: Body\nnote: Hello\n",
+      "title: My Doc\nmeta: | author: Ahmed\n\nsection: Body\ntext: Hello\n",
     );
     const result = validateDocumentSemantic(doc);
     const metaWarnings = result.issues.filter(
@@ -101,7 +101,7 @@ describe("meta: keyword", () => {
 
   it("documentToSource round-trips meta: correctly", () => {
     const source =
-      "title: My Doc\nmeta: | author: Ahmed | lang: en\n\nsection: Body\nnote: Hello";
+      "title: My Doc\nmeta: | author: Ahmed | lang: en\n\nsection: Body\ntext: Hello";
     const doc = parseIntentText(source);
     // meta: is consumed as metadata, not as a block, so documentToSource
     // won't have it unless we reconstruct. Just verify metadata.meta is set.
@@ -251,12 +251,12 @@ describe("each: dynamic table rows", () => {
 
   it("full invoice template renders correctly end-to-end", () => {
     const source = `title: Invoice {{invoice.number}}
-note: Bill To: {{client.name}}
+text: Bill To: {{client.name}}
 
 | Description | Qty | Total | each: items |
 | {{item.description}} | {{item.qty}} | {{item.total}} |
 
-note: **Total: {{totals.due}}**`;
+text: **Total: {{totals.due}}**`;
 
     const data = {
       invoice: { number: "INV-2026-042" },
@@ -304,69 +304,91 @@ describe("alias system", () => {
     expect(Object.keys(ALIASES).length).toBeGreaterThan(10);
   });
 
-  it("text: parses identically to note:", () => {
-    const docAlias = parseIntentText("text: Hello world");
-    const docCanonical = parseIntentText("note: Hello world");
-    expect(docAlias.blocks[0].type).toBe(docCanonical.blocks[0].type);
-    expect(docAlias.blocks[0].type).toBe("text");
-    expect(docAlias.blocks[0].content).toBe(docCanonical.blocks[0].content);
+  it("note: no longer aliases text: — it resolves to a custom block", () => {
+    const docCanonical = parseIntentText("text: Hello world");
+    expect(docCanonical.blocks[0].type).toBe("text");
+
+    const docFormerAlias = parseIntentText("note: Hello world");
+    expect(docFormerAlias.blocks[0].type).toBe("custom");
+    expect(docFormerAlias.blocks[0].properties?.keyword).toBe("note");
+    // Content is still carried through on the custom block.
+    expect(docFormerAlias.blocks[0].content).toBe("Hello world");
   });
 
-  it("h2: parses identically to section:", () => {
-    const docAlias = parseIntentText("h2: Introduction");
+  it("h2: no longer aliases section: — it resolves to a custom block", () => {
     const docCanonical = parseIntentText("section: Introduction");
-    expect(docAlias.blocks[0].type).toBe("section");
-    expect(docAlias.blocks[0].content).toBe(docCanonical.blocks[0].content);
+    expect(docCanonical.blocks[0].type).toBe("section");
+
+    const docFormerAlias = parseIntentText("h2: Introduction");
+    expect(docFormerAlias.blocks[0].type).toBe("custom");
+    expect(docFormerAlias.blocks[0].properties?.keyword).toBe("h2");
+    expect(docFormerAlias.blocks[0].content).toBe(docCanonical.blocks[0].content);
   });
 
-  it("todo: parses identically to task:", () => {
-    const docAlias = parseIntentText("todo: Write docs | owner: Ahmed");
+  it("todo: no longer aliases task: — it resolves to a custom block", () => {
     const docCanonical = parseIntentText("task: Write docs | owner: Ahmed");
-    expect(docAlias.blocks[0].type).toBe("task");
-    expect(docAlias.blocks[0].content).toBe(docCanonical.blocks[0].content);
-    expect(docAlias.blocks[0].properties?.owner).toBe("Ahmed");
+    expect(docCanonical.blocks[0].type).toBe("task");
+
+    const docFormerAlias = parseIntentText("todo: Write docs | owner: Ahmed");
+    expect(docFormerAlias.blocks[0].type).toBe("custom");
+    expect(docFormerAlias.blocks[0].properties?.keyword).toBe("todo");
+    expect(docFormerAlias.blocks[0].content).toBe(docCanonical.blocks[0].content);
+    // Other properties are still parsed onto the custom block.
+    expect(docFormerAlias.blocks[0].properties?.owner).toBe("Ahmed");
   });
 
-  it("log: parses identically to audit:", () => {
-    const docAlias = parseIntentText("log: System started");
+  it("log: no longer aliases audit: — it resolves to a custom block", () => {
     const docCanonical = parseIntentText("audit: System started");
-    expect(docAlias.blocks[0].type).toBe("audit");
-    expect(docAlias.blocks[0].content).toBe(docCanonical.blocks[0].content);
+    expect(docCanonical.blocks[0].type).toBe("audit");
+
+    const docFormerAlias = parseIntentText("log: System started");
+    expect(docFormerAlias.blocks[0].type).toBe("custom");
+    expect(docFormerAlias.blocks[0].properties?.keyword).toBe("log");
+    expect(docFormerAlias.blocks[0].content).toBe(docCanonical.blocks[0].content);
   });
 
-  it("lock: parses identically to freeze:", () => {
-    const docAlias = parseIntentText(
-      "lock: | at: 2026-01-01 | hash: sha256:abc123",
-    );
+  it("lock: no longer aliases freeze: — it resolves to a custom block", () => {
     const docCanonical = parseIntentText(
       "freeze: | at: 2026-01-01 | hash: sha256:abc123",
     );
-    expect(docAlias.blocks[0].type).toBe("freeze");
-    expect(docAlias.blocks[0].properties?.hash).toBe(
+    expect(docCanonical.blocks[0].type).toBe("freeze");
+
+    const docFormerAlias = parseIntentText(
+      "lock: | at: 2026-01-01 | hash: sha256:abc123",
+    );
+    expect(docFormerAlias.blocks[0].type).toBe("custom");
+    expect(docFormerAlias.blocks[0].properties?.keyword).toBe("lock");
+    // Properties are still parsed onto the custom block.
+    expect(docFormerAlias.blocks[0].properties?.hash).toBe(
       docCanonical.blocks[0].properties?.hash,
     );
   });
 
-  it("rule: parses identically to policy:", () => {
-    const docAlias = parseIntentText("rule: No PII in logs | action: block");
+  it("rule: no longer aliases policy: — it resolves to a custom block", () => {
     const docCanonical = parseIntentText(
       "policy: No PII in logs | action: block",
     );
-    expect(docAlias.blocks[0].type).toBe("policy");
-    expect(docAlias.blocks[0].content).toBe(docCanonical.blocks[0].content);
-    expect(docAlias.blocks[0].properties?.action).toBe("block");
+    expect(docCanonical.blocks[0].type).toBe("policy");
+
+    const docFormerAlias = parseIntentText("rule: No PII in logs | action: block");
+    expect(docFormerAlias.blocks[0].type).toBe("custom");
+    expect(docFormerAlias.blocks[0].properties?.keyword).toBe("rule");
+    expect(docFormerAlias.blocks[0].content).toBe(docCanonical.blocks[0].content);
+    expect(docFormerAlias.blocks[0].properties?.action).toBe("block");
   });
 
-  it("constraint: parses identically to policy:", () => {
+  it("constraint: no longer aliases policy: — it resolves to a custom block", () => {
     const doc = parseIntentText("constraint: Max 5 retries | action: warn");
-    expect(doc.blocks[0].type).toBe("policy");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("constraint");
     expect(doc.blocks[0].content).toBe("Max 5 retries");
   });
 
-  it("RULE: (uppercase) resolves correctly to policy:", () => {
+  it("RULE: (uppercase) no longer resolves to policy: — it is a custom block", () => {
     const doc = parseIntentText("RULE: Uppercase test | action: block");
-    // Parser lowercases the keyword before alias lookup
-    expect(doc.blocks[0].type).toBe("policy");
+    // The former rule→policy alias is gone, so even uppercased it stays custom.
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("RULE");
   });
 
   it("documentToSource of aliased block outputs canonical keyword", () => {
@@ -376,9 +398,9 @@ describe("alias system", () => {
     expect(source).toContain("text:");
   });
 
-  it("round-trip: parse with alias → source → parse again produces same result", () => {
+  it("round-trip: parse → source → parse again produces same result", () => {
     const doc1 = parseIntentText(
-      "h2: Intro\ntodo: Do this | owner: Ahmed\nrule: Be safe | action: warn",
+      "section: Intro\ntask: Do this | owner: Ahmed\npolicy: Be safe | action: warn",
     );
     const source = documentToSource(doc1);
     const doc2 = parseIntentText(source);
@@ -398,25 +420,44 @@ describe("alias system", () => {
     expect(tasks1.length).toBe(tasks2.length);
   });
 
-  it("completed: and finished: resolve to done (task with status: done)", () => {
+  it("completed: and finished: no longer alias done: — they are custom blocks", () => {
+    // Canonical done: still carries status: done.
+    const canonical = parseIntentText("done: Task A");
+    expect(canonical.blocks[0].type).toBe("done");
+    expect(effectiveField(canonical.blocks[0], "status")).toBe("done");
+
     const doc1 = parseIntentText("completed: Task A");
-    expect(doc1.blocks[0].type).toBe("done");
-    expect(effectiveField(doc1.blocks[0], "status")).toBe("done");
+    expect(doc1.blocks[0].type).toBe("custom");
+    expect(doc1.blocks[0].properties?.keyword).toBe("completed");
 
     const doc2 = parseIntentText("finished: Task B");
-    expect(doc2.blocks[0].type).toBe("done");
-    expect(effectiveField(doc2.blocks[0], "status")).toBe("done");
+    expect(doc2.blocks[0].type).toBe("custom");
+    expect(doc2.blocks[0].properties?.keyword).toBe("finished");
   });
 
-  it("run: resolves to step: with pending status", () => {
+  it("run: no longer aliases step: — it is a custom block", () => {
+    // Canonical step: still carries the pending status.
+    const canonical = parseIntentText("step: Execute query");
+    expect(canonical.blocks[0].type).toBe("step");
+    expect(effectiveField(canonical.blocks[0], "status")).toBe("pending");
+
     const doc = parseIntentText("run: Execute query");
-    expect(doc.blocks[0].type).toBe("step");
-    expect(effectiveField(doc.blocks[0], "status")).toBe("pending");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("run");
   });
 
-  it("if: resolves to decision:", () => {
+  it("if: no longer aliases decision: — it is a custom block", () => {
+    // Canonical decision: still parses its branch properties.
+    const canonical = parseIntentText(
+      "decision: Is valid? | then: proceed | else: abort",
+    );
+    expect(canonical.blocks[0].type).toBe("decision");
+    expect(canonical.blocks[0].properties?.then).toBe("proceed");
+
     const doc = parseIntentText("if: Is valid? | then: proceed | else: abort");
-    expect(doc.blocks[0].type).toBe("decision");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("if");
+    // Properties are still parsed onto the custom block.
     expect(doc.blocks[0].properties?.then).toBe("proceed");
   });
 });
@@ -427,38 +468,38 @@ describe("alias system", () => {
 
 describe("style properties", () => {
   it("color: red produces style attribute in HTML output", () => {
-    const doc = parseIntentText("note: Warning text | color: red");
+    const doc = parseIntentText("text: Warning text | color: red");
     const html = renderHTML(doc);
     expect(html).toContain('style="color: red"');
   });
 
   it("align: center produces text-align style", () => {
-    const doc = parseIntentText("note: Centered | align: center");
+    const doc = parseIntentText("text: Centered | align: center");
     const html = renderHTML(doc);
     // align produces both class and inline style
     expect(html).toContain("text-align: center");
   });
 
   it("bg: yellow produces background-color in HTML output", () => {
-    const doc = parseIntentText("note: Highlight | bg: yellow");
+    const doc = parseIntentText("text: Highlight | bg: yellow");
     const html = renderHTML(doc);
     expect(html).toContain("background-color: yellow");
   });
 
   it("italic: true produces font-style: italic in HTML output", () => {
-    const doc = parseIntentText("note: Aside | italic: true");
+    const doc = parseIntentText("text: Aside | italic: true");
     const html = renderHTML(doc);
     expect(html).toContain("font-style: italic");
   });
 
   it("border: true produces border: 1px solid currentColor", () => {
-    const doc = parseIntentText("note: Boxed | border: true");
+    const doc = parseIntentText("text: Boxed | border: true");
     const html = renderHTML(doc);
     expect(html).toContain("border: 1px solid currentColor");
   });
 
   it("unknown style property is ignored — no crash, no output", () => {
-    const doc = parseIntentText("note: Test | foo: bar");
+    const doc = parseIntentText("text: Test | foo: bar");
     const html = renderHTML(doc);
     // The style attribute should not contain 'foo'
     expect(html).not.toMatch(/style="[^"]*foo/);
@@ -467,7 +508,7 @@ describe("style properties", () => {
 
   it("multiple style properties combine into single style attribute", () => {
     const doc = parseIntentText(
-      "note: Styled | color: blue | bg: #f0f0f0 | weight: bold",
+      "text: Styled | color: blue | bg: #f0f0f0 | weight: bold",
     );
     const html = renderHTML(doc);
     expect(html).toContain("color: blue");
@@ -481,11 +522,11 @@ describe("style properties", () => {
   });
 
   it("style properties do not affect parser output — only renderer", () => {
-    const doc = parseIntentText("note: Test | color: red | bg: yellow");
+    const doc = parseIntentText("text: Test | color: red | bg: yellow");
     // Parser stores them as regular properties
     expect(doc.blocks[0].properties?.color).toBe("red");
     expect(doc.blocks[0].properties?.bg).toBe("yellow");
-    // Type is still text (formerly note)
+    // Type is text (style props don't change the block type)
     expect(doc.blocks[0].type).toBe("text");
   });
 });

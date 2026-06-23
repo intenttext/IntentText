@@ -53,12 +53,12 @@ describe("v2.12 history: keyword — history boundary", () => {
     const src = `title: Agreement
 track: | version: 1.0 | by: A
 
-note: Content
+text: Content
 
 history:
 
 // registry
-abc12 | note | | Content`;
+abc12 | text | | Content`;
     const doc = parseIntentText(src, { includeHistorySection: true });
     expect(doc.history).toBeDefined();
     expect(doc.history!.registry).toBeDefined();
@@ -66,12 +66,12 @@ abc12 | note | | Content`;
 
   it("history: produces no block output", () => {
     const src = `title: Test
-note: Hello
+text: Hello
 
 history:
 
 // registry
-abc12 | note | | Hello`;
+abc12 | text | | Hello`;
     const doc = parse(src);
     const historyBlocks = doc.blocks.filter((b) => b.type === "history");
     expect(historyBlocks).toHaveLength(0);
@@ -79,12 +79,12 @@ abc12 | note | | Hello`;
 
   it("history: is in Trust keyword set", () => {
     const src = `title: Test
-note: Hello
+text: Hello
 
 history:
 
 // registry
-abc12 | note | | Hello`;
+abc12 | text | | Hello`;
     const doc = parse(src);
     // Version should be 2.12 because history: keyword present
     expect(doc.version).toBe("2.12");
@@ -93,7 +93,7 @@ abc12 | note | | Hello`;
   it("detectHistoryBoundary finds history: keyword", () => {
     const lines = [
       "title: Test",
-      "note: Content",
+      "text: Content",
       "",
       "history:",
       "",
@@ -104,7 +104,7 @@ abc12 | note | | Hello`;
   });
 
   it("detectHistoryBoundary returns -1 when no boundary", () => {
-    const lines = ["title: Test", "note: Content"];
+    const lines = ["title: Test", "text: Content"];
     const idx = detectHistoryBoundary(lines);
     expect(idx).toBe(-1);
   });
@@ -113,15 +113,15 @@ abc12 | note | | Hello`;
     const src = `title: Agreement
 track: | version: 1.0 | by: A
 
-note: Content
+text: Content
 
 history:
 
 // registry
-abc12 | note | | Content
+abc12 | text | | Content
 
 // revisions
-revision: | version: 1.0 | at: 2026-01-01T00:00:00Z | by: A | change: added | id: abc12 | block: note | now: Content`;
+revision: | version: 1.0 | at: 2026-01-01T00:00:00Z | by: A | change: added | id: abc12 | block: text | now: Content`;
     const doc = parseIntentText(src, { includeHistorySection: true });
     const result = validateDocumentSemantic(doc);
     const issues = result.issues.filter(
@@ -140,7 +140,7 @@ describe("v2.12 legacy history boundary — backward compat", () => {
   it("legacy --- + // history pattern still detected", () => {
     const lines = [
       "title: Test",
-      "note: Content",
+      "text: Content",
       "",
       "---",
       "// history",
@@ -155,16 +155,16 @@ describe("v2.12 legacy history boundary — backward compat", () => {
     const src = `title: Agreement
 track: | version: 1.0 | by: A
 
-note: Content
+text: Content
 
 ---
 // history
 
 // registry
-abc12 | note | | Content
+abc12 | text | | Content
 
 // revisions
-revision: | version: 1.0 | at: 2026-01-01T00:00:00Z | by: A | change: added | id: abc12 | block: note | now: Content`;
+revision: | version: 1.0 | at: 2026-01-01T00:00:00Z | by: A | change: added | id: abc12 | block: text | now: Content`;
     const doc = parse(src);
     const legacyWarning = doc.diagnostics?.find(
       (d) => d.code === "LEGACY_HISTORY_BOUNDARY",
@@ -180,20 +180,20 @@ revision: | version: 1.0 | at: 2026-01-01T00:00:00Z | by: A | change: added | id
 
 describe("v2.12 --- as visible divider", () => {
   it("--- renders as <hr> divider in HTML", () => {
-    const output = html("note: Above\n---\nnote: Below");
+    const output = html("text: Above\n---\ntext: Below");
     expect(output).toContain("<hr");
     expect(output).toContain("it-divider");
   });
 
   it("--- parsed as divider block", () => {
-    const b = blocks("note: Above\n---\nnote: Below");
+    const b = blocks("text: Above\n---\ntext: Below");
     const dividerBlock = b.find((block) => block.type === "divider");
     expect(dividerBlock).toBeDefined();
     expect(dividerBlock!.type).toBe("divider");
   });
 
   it("--- renders in print output", () => {
-    const output = print("note: Above\n---\nnote: Below");
+    const output = print("text: Above\n---\ntext: Below");
     expect(output).toContain("<hr");
   });
 });
@@ -235,20 +235,22 @@ describe("v2.12 divider: keyword with styles", () => {
 });
 
 // ═══════════════════════════════════════════════════════════
-//  hr: and separator: aliases (2 tests)
+//  hr: and separator: — former aliases now resolve to custom (2 tests)
 // ═══════════════════════════════════════════════════════════
 
-describe("v2.12 divider aliases — hr: and separator:", () => {
-  it("hr: alias resolves to divider", () => {
-    expect(ALIASES["hr"]).toBe("divider");
+describe("v2.12 divider former aliases — hr: and separator: are now custom", () => {
+  it("hr: is no longer an alias and resolves to a custom block", () => {
+    expect(ALIASES["hr"]).toBeUndefined();
     const b = firstBlock("hr:");
-    expect(b.type).toBe("divider");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("hr");
   });
 
-  it("separator: alias resolves to divider", () => {
-    expect(ALIASES["separator"]).toBe("divider");
+  it("separator: is no longer an alias and resolves to a custom block", () => {
+    expect(ALIASES["separator"]).toBeUndefined();
     const b = firstBlock("separator:");
-    expect(b.type).toBe("divider");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("separator");
   });
 });
 
@@ -258,14 +260,14 @@ describe("v2.12 divider aliases — hr: and separator:", () => {
 
 describe("v2.12 break: — web invisible, print page-break", () => {
   it("break: is invisible in web output", () => {
-    const output = html("note: Above\nbreak:\nnote: Below");
+    const output = html("text: Above\nbreak:\ntext: Below");
     expect(output).toContain("it-page-break");
     expect(output).toContain('aria-hidden="true"');
     expect(output).toContain("display:none");
   });
 
   it("break: has page-break CSS in print output", () => {
-    const output = print("note: Above\nbreak:\nnote: Below");
+    const output = print("text: Above\nbreak:\ntext: Below");
     expect(output).toContain("page-break");
   });
 });
@@ -279,12 +281,12 @@ describe("v2.12 seal writes history: keyword", () => {
     const src = `title: Agreement
 track: | version: 1.0 | by: A
 
-note: Payment within 30 days.
+text: Payment within 30 days.
 
 history:
 
 // registry
-abc12 | note | | Payment within 30 days.`;
+abc12 | text | | Payment within 30 days.`;
     const result = sealDocument(src, { signer: "A" });
     expect(result.source).toContain("history:");
     // freeze: should appear before history:
@@ -303,15 +305,15 @@ describe("v2.12 updateHistory writes history: keyword", () => {
     const prev = `title: Agreement
 track: | version: 1.0 | by: A
 
-note: Payment within 30 days.
+text: Payment within 30 days.
 
 history:
 
 // registry
-abc12 | note | | Payment within 30 days.
+abc12 | text | | Payment within 30 days.
 
 // revisions
-revision: | version: 1.0 | at: 2026-01-01T00:00:00Z | by: A | change: added | id: abc12 | block: note | now: Payment within 30 days.`;
+revision: | version: 1.0 | at: 2026-01-01T00:00:00Z | by: A | change: added | id: abc12 | block: text | now: Payment within 30 days.`;
     const curr = prev.replace(
       "Payment within 30 days.",
       "Payment within 15 days.",

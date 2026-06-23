@@ -8,7 +8,7 @@ describe("IntentText v1.3 - Accessibility Improvements", () => {
 This is implicit body text.
 It needs no keyword prefix.
 
-note: This is a note`;
+text: This is a note`;
 
       const doc = parseIntentText(input);
 
@@ -23,7 +23,7 @@ note: This is a note`;
 
   describe("Inline links", () => {
     it("should parse [text](url) as inline links", () => {
-      const input = `note: Visit [our docs](https://docs.com) for more info.`;
+      const input = `text: Visit [our docs](https://docs.com) for more info.`;
 
       const doc = parseIntentText(input);
 
@@ -45,7 +45,7 @@ note: This is a note`;
     });
 
     it("should handle multiple inline links", () => {
-      const input = `note: See [docs](https://docs.com) and [api](https://api.com).`;
+      const input = `text: See [docs](https://docs.com) and [api](https://api.com).`;
 
       const doc = parseIntentText(input);
 
@@ -138,7 +138,7 @@ section: Tasks
 [x] Initial draft @ahmed
 [ ] Get feedback from [stakeholders](https://team.com)
 
-note: Check our [documentation](https://docs.com) for details.`;
+text: Check our [documentation](https://docs.com) for details.`;
 
       const doc = parseIntentText(input);
 

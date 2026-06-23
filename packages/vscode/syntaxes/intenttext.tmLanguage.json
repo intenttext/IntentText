@@ -253,7 +253,7 @@
       }
     },
     "keyword-section": {
-      "match": "^(section|sub|subsection|deadline|due|milestone|due-date)(:)\\s*(.*)",
+      "match": "^(section|sub|deadline)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "keyword.control.section.intenttext"
@@ -272,7 +272,7 @@
       }
     },
     "keyword-agentic": {
-      "match": "^(step|decision|trigger|loop|checkpoint|audit|error|import|export|progress|context|result|handoff|wait|parallel|retry|gate|call|emit|signal|memory|prompt|tool|assert|secret|policy|route|require)(:)\\s*(.*)",
+      "match": "^(step|decision|trigger|loop|checkpoint|audit|error|import|export|progress|context|result|handoff|wait|parallel|retry|gate|call|signal|memory|prompt|tool|assert|secret|policy|route|require)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "entity.name.function.agentic.intenttext"
@@ -291,7 +291,7 @@
       }
     },
     "keyword-callout": {
-      "match": "^(text|note|info|warning|danger|tip|success|cite)(:)\\s*(.*)",
+      "match": "^(text|info|cite)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "markup.italic.callout.intenttext"
@@ -310,7 +310,7 @@
       }
     },
     "keyword-task": {
-      "match": "^(task|done|ask|question)(:)\\s*(.*)",
+      "match": "^(task|done|ask)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "variable.other.task.intenttext"
@@ -329,7 +329,7 @@
       }
     },
     "keyword-content": {
-      "match": "^(quote|image|link|ref|embed|code|columns|headers|row|def|define|term|glossary|figure|fig|contact|person|party|input|output|attach)(:)\\s*(.*)",
+      "match": "^(quote|image|link|ref|embed|code|headers|row|def|figure|contact|input|output|attach)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "support.type.content.intenttext"
@@ -348,7 +348,7 @@
       }
     },
     "keyword-docgen": {
-      "match": "^(font|page|break|byline|epigraph|caption|footnote|toc|dedication|header|footer|watermark|style|signline|signature-line|sign-here|sig)(:)\\s*(.*)",
+      "match": "^(font|page|break|byline|epigraph|caption|footnote|toc|dedication|header|footer|watermark|style|signline)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "storage.type.docgen.intenttext"
@@ -367,7 +367,7 @@
       }
     },
     "keyword-metadata": {
-      "match": "^(agent|model|status|metric|kpi|measure|stat|meta)(:)\\s*(.*)",
+      "match": "^(agent|model|metric|meta)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "constant.language.metadata.intenttext"

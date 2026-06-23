@@ -171,8 +171,8 @@ task: Database migration | owner: Ahmed | due: Sunday
 done: Secure the domain name | time: 09:00 AM
 
 section: Security Questions
-question: Who has the _Master Key_ for the server room?
-note: Surveillance footage is saved at \`\`\`/logs/cam1\`\`\`.
+ask: Who has the _Master Key_ for the server room?
+text: Surveillance footage is saved at \`\`\`/logs/cam1\`\`\`.
 
 section: Setup Script
 \`\`\`
@@ -241,7 +241,7 @@ image: *Launch Banner* | src: assets/banner.png | caption: Project Dalil launch 
   });
 
   it("should parse inline code using triple backticks", () => {
-    const input = "note: Path is ```/tmp/file```.";
+    const input = "text: Path is ```/tmp/file```.";
     const result = parseIntentText(input);
 
     expect(result.blocks).toHaveLength(1);
@@ -251,7 +251,7 @@ image: *Launch Banner* | src: assets/banner.png | caption: Project Dalil launch 
   });
 
   it("should parse single backticks as inline label", () => {
-    const input = "note: Label is `mono` text.";
+    const input = "text: Label is `mono` text.";
     const result = parseIntentText(input);
 
     expect(result.blocks).toHaveLength(1);
@@ -274,7 +274,7 @@ New paragraph starts`;
   });
 
   it("should parse highlight, inline note, mentions, and tags", () => {
-    const input = "note: ^important^ [[draft]] by @sara in #news";
+    const input = "text: ^important^ [[draft]] by @sara in #news";
     const result = parseIntentText(input);
     const inline = result.blocks[0].inline || [];
 
@@ -311,14 +311,14 @@ New paragraph starts`;
   });
 
   it("should parse inline quote emphasis with ==text==", () => {
-    const result = parseIntentText("note: ==Urgent quote== for editor");
+    const result = parseIntentText("text: ==Urgent quote== for editor");
     const inline = result.blocks[0].inline || [];
     expect(inline.some((n) => n.type === "inline-quote")).toBe(true);
   });
 
   it("should parse shorthand links using [[label|url]]", () => {
     const result = parseIntentText(
-      "note: Open [[web-to-it|https://editor.uts.qa/]] now",
+      "text: Open [[web-to-it|https://editor.uts.qa/]] now",
     );
     const inline = result.blocks[0].inline || [];
     const linkNode = inline.find((n) => n.type === "link") as
@@ -330,7 +330,7 @@ New paragraph starts`;
 
   it("should parse date shorthand tokens", () => {
     const result = parseIntentText(
-      "note: publish @today and review @tomorrow before @2026-03-10",
+      "text: publish @today and review @tomorrow before @2026-03-10",
     );
     const inline = result.blocks[0].inline || [];
     const dateNodes = inline.filter((n) => n.type === "date");
@@ -377,7 +377,7 @@ line 2`;
   });
 
   it("should support escaped pipes in content without splitting metadata", () => {
-    const input = "note: A \\| B | owner: John";
+    const input = "text: A \\| B | owner: John";
     const result = parseIntentText(input);
 
     expect(result.blocks).toHaveLength(1);
@@ -420,7 +420,7 @@ line 2`;
   });
 
   it("should support escaped backslashes", () => {
-    const input = "note: C:\\\\Temp\\\\File";
+    const input = "text: C:\\\\Temp\\\\File";
     const result = parseIntentText(input);
 
     expect(result.blocks).toHaveLength(1);

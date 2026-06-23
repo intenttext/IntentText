@@ -22,7 +22,7 @@ describe("HTML Renderer", () => {
   });
 
   it("should render single-backtick as inline label badge", () => {
-    const input = "note: label is `mono` text";
+    const input = "text: label is `mono` text";
     const parsed = parseIntentText(input);
     const html = renderHTML(parsed);
 
@@ -30,7 +30,7 @@ describe("HTML Renderer", () => {
   });
 
   it("should apply optional text alignment via align property", () => {
-    const input = "note: Center this line | align: center";
+    const input = "text: Center this line | align: center";
     const parsed = parseIntentText(input);
     const html = renderHTML(parsed);
 
@@ -39,7 +39,7 @@ describe("HTML Renderer", () => {
 
   it("should render inline quote, date shorthand, and shorthand link", () => {
     const input =
-      "note: ==Quote== by @sara on @today via [[portal|https://example.com]]";
+      "text: ==Quote== by @sara on @today via [[portal|https://example.com]]";
     const parsed = parseIntentText(input);
     const html = renderHTML(parsed);
 
@@ -103,12 +103,16 @@ row: Ahmed | 30 | Dubai`;
     expect(html).toContain("Who has the key?");
   });
 
-  it("should render question: as an alias for ask:", () => {
+  it("should resolve question: to a custom block (no longer an alias for ask:)", () => {
     const input = "question: Who owns this?";
     const parsed = parseIntentText(input);
     const html = renderHTML(parsed);
 
-    expect(html).toContain('class="intent-ask"');
+    // The former `question:` alias was eliminated: it now resolves to a
+    // custom block (keyword preserved), NOT to ask:.
+    expect(parsed.blocks[0].type).toBe("custom");
+    expect(parsed.blocks[0].properties?.keyword).toBe("question");
+    expect(html).not.toContain('class="intent-ask"');
     expect(html).toContain("Who owns this?");
   });
 
@@ -140,7 +144,7 @@ row: Ahmed | 30 | Dubai`;
   });
 
   it("should escape HTML to prevent script injection", () => {
-    const input = "note: <script>alert('xss')</script>";
+    const input = "text: <script>alert('xss')</script>";
     const parsed = parseIntentText(input);
     const html = renderHTML(parsed);
 
@@ -157,7 +161,7 @@ row: Ahmed | 30 | Dubai`;
   });
 
   it("should sanitize unsafe URLs in inline links", () => {
-    const input = "note: See [click here](javascript:alert(1)) for details";
+    const input = "text: See [click here](javascript:alert(1)) for details";
     const parsed = parseIntentText(input);
     const html = renderHTML(parsed);
 
@@ -168,7 +172,7 @@ row: Ahmed | 30 | Dubai`;
   it("should render section children (tasks, notes) inside the section", () => {
     const input = `section: Work
 task: Fix bug | owner: Ali | due: Monday
-note: Remember to test`;
+text: Remember to test`;
 
     const parsed = parseIntentText(input);
     const html = renderHTML(parsed);

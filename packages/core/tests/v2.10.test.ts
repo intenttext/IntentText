@@ -317,7 +317,7 @@ describe("v2.10 index builder — buildIndexEntry", () => {
 
   it("indexes content blocks with type and content", () => {
     const { doc, source } = makeParsed(
-      "title: Test\nsection: Overview\nnote: Hello world",
+      "title: Test\nsection: Overview\ntext: Hello world",
     );
     const entry = buildIndexEntry(doc, source, "2025-01-01T00:00:00Z");
     const titles = entry.blocks.filter((b) => b.type === "title");
@@ -331,7 +331,7 @@ describe("v2.10 index builder — buildIndexEntry", () => {
 
   it("assigns section context to blocks", () => {
     const { doc, source } = makeParsed(
-      "section: Overview\nnote: Note under overview\nsection: Details\nnote: Note under details",
+      "section: Overview\ntext: Note under overview\nsection: Details\ntext: Note under details",
     );
     const entry = buildIndexEntry(doc, source, "2025-01-01T00:00:00Z");
     const notes = entry.blocks.filter((b) => b.type === "text");

@@ -13,7 +13,7 @@ import { diffDocuments } from "../src/diff";
 
 describe("parseIntentTextSafe", () => {
   it("returns ParseResult with empty warnings on valid input", () => {
-    const result = parseIntentTextSafe("title: Hello\nnote: World");
+    const result = parseIntentTextSafe("title: Hello\ntext: World");
     expect(result.document.blocks.length).toBeGreaterThan(0);
     expect(result.warnings).toEqual([]);
     expect(result.errors).toEqual([]);
@@ -44,7 +44,7 @@ describe("parseIntentTextSafe", () => {
   });
 
   it("truncates lines over maxLineLength and adds LINE_TRUNCATED warning", () => {
-    const longLine = "note: " + "x".repeat(200);
+    const longLine = "text: " + "x".repeat(200);
     const result = parseIntentTextSafe(longLine, { maxLineLength: 50 });
     expect(result.warnings).toHaveLength(1);
     expect(result.warnings[0].code).toBe("LINE_TRUNCATED");
@@ -64,7 +64,7 @@ describe("parseIntentTextSafe", () => {
 
   it("unknown keyword with 'skip' option: line skipped, warning added", () => {
     const result = parseIntentTextSafe(
-      "title: Hello\nbanana: Skip me\nnote: Keep me",
+      "title: Hello\nbanana: Skip me\ntext: Keep me",
       { unknownKeyword: "skip" },
     );
     expect(result.warnings.some((w) => w.code === "UNKNOWN_KEYWORD")).toBe(
@@ -90,7 +90,7 @@ describe("parseIntentTextSafe", () => {
   });
 
   it("respects maxBlocks limit, adds MAX_BLOCKS_REACHED warning", () => {
-    // Use section: blocks — they don't merge (unlike note:/text: which merge
+    // Use section: blocks — they don't merge (unlike text: which merges
     // consecutive lines into one block).
     const source = Array.from(
       { length: 20 },
@@ -123,7 +123,7 @@ describe("parseIntentTextSafe", () => {
 
 describe("documentToSource", () => {
   it("round-trips a simple document", () => {
-    const source = "title: My Document\nnote: Hello world";
+    const source = "title: My Document\ntext: Hello world";
     const doc = parseIntentText(source);
     const roundTripped = parseIntentText(documentToSource(doc));
     expect(roundTripped.blocks.map((b) => b.type)).toEqual(
@@ -140,11 +140,11 @@ describe("documentToSource", () => {
       "summary: Summary text",
       "section: Section One",
       "sub: Sub heading",
-      "note: A note",
+      "text: A note",
       "info: Info block",
-      "warning: Be careful",
-      "tip: A tip",
-      "success: All good",
+      "info: Be careful | type: warning",
+      "info: A tip | type: tip",
+      "info: All good | type: success",
       "ask: A question?",
       "quote: Famous words | by: Author",
       "image: Alt text | at: /photo.jpg",
@@ -185,7 +185,7 @@ describe("documentToSource", () => {
   });
 
   it("round-trips divider correctly", () => {
-    const source = "title: Doc\n---\nnote: After divider";
+    const source = "title: Doc\n---\ntext: After divider";
     const doc = parseIntentText(source);
     const output = documentToSource(doc);
     expect(output).toContain("---");
@@ -194,14 +194,14 @@ describe("documentToSource", () => {
   });
 
   it("round-trips break correctly", () => {
-    const source = "note: Before\nbreak:\nnote: After";
+    const source = "text: Before\nbreak:\ntext: After";
     const doc = parseIntentText(source);
     const output = documentToSource(doc);
     expect(output).toContain("break:");
   });
 
   it("preserves inline formatting via originalContent", () => {
-    const source = "note: This is *bold* and _italic_";
+    const source = "text: This is *bold* and _italic_";
     const doc = parseIntentText(source);
     const output = documentToSource(doc);
     expect(output).toContain("*bold*");
@@ -267,7 +267,7 @@ describe("documentToSource", () => {
 describe("validateDocumentSemantic", () => {
   it("valid document with no issues returns valid: true, empty issues", () => {
     const doc = parseIntentText(
-      "title: Valid Doc\nsection: Intro\nnote: Content here",
+      "title: Valid Doc\nsection: Intro\ntext: Content here",
     );
     const result = validateDocumentSemantic(doc);
     expect(result.valid).toBe(true);
@@ -369,7 +369,7 @@ describe("validateDocumentSemantic", () => {
   });
 
   it("document with no title returns DOCUMENT_NO_TITLE info", () => {
-    const doc = parseIntentText("note: Just a note");
+    const doc = parseIntentText("text: Just a note");
     const result = validateDocumentSemantic(doc);
     expect(result.issues.some((i) => i.code === "DOCUMENT_NO_TITLE")).toBe(
       true,
@@ -377,7 +377,7 @@ describe("validateDocumentSemantic", () => {
   });
 
   it("template with {{variables}} returns TEMPLATE_HAS_UNRESOLVED info", () => {
-    const doc = parseIntentText("title: {{docTitle}}\nnote: Hello {{name}}");
+    const doc = parseIntentText("title: {{docTitle}}\ntext: Hello {{name}}");
     const result = validateDocumentSemantic(doc);
     expect(
       result.issues.some((i) => i.code === "TEMPLATE_HAS_UNRESOLVED"),
@@ -409,7 +409,7 @@ describe("validateDocumentSemantic", () => {
   });
 
   it("context variables are not flagged as unresolved", () => {
-    const doc = parseIntentText("context: name=World\nnote: Hello {{name}}");
+    const doc = parseIntentText("context: name=World\ntext: Hello {{name}}");
     const result = validateDocumentSemantic(doc);
     const unresolvedName = result.issues.filter(
       (i) => i.code === "UNRESOLVED_VARIABLE" && i.message.includes("name"),
@@ -432,7 +432,7 @@ describe("queryDocument", () => {
     "step: Deploy to prod | tool: kubernetes",
     "section: Action Items",
     "task: Write tests | owner: Ahmed | priority: 1",
-    "note: Remember to update docs",
+    "text: Remember to update docs",
   ].join("\n");
 
   const doc = parseIntentText(source);
@@ -538,7 +538,7 @@ describe("queryDocument", () => {
 
 describe("diffDocuments", () => {
   it("identical documents: all unchanged", () => {
-    const doc = parseIntentText("title: Same\nnote: Unchanged");
+    const doc = parseIntentText("title: Same\ntext: Unchanged");
     const diff = diffDocuments(doc, doc);
     expect(diff.unchanged.length).toBe(2);
     expect(diff.added).toEqual([]);
@@ -549,14 +549,14 @@ describe("diffDocuments", () => {
 
   it("one block added", () => {
     const before = parseIntentText("title: Doc");
-    const after = parseIntentText("title: Doc\nnote: New block");
+    const after = parseIntentText("title: Doc\ntext: New block");
     const diff = diffDocuments(before, after);
     expect(diff.added.length).toBe(1);
     expect(diff.added[0].type).toBe("text");
   });
 
   it("one block removed", () => {
-    const before = parseIntentText("title: Doc\nnote: Will be removed");
+    const before = parseIntentText("title: Doc\ntext: Will be removed");
     const after = parseIntentText("title: Doc");
     const diff = diffDocuments(before, after);
     expect(diff.removed.length).toBe(1);
@@ -565,10 +565,10 @@ describe("diffDocuments", () => {
 
   it("content change: appears in modified with contentChanged: true", () => {
     const before = parseIntentText(
-      "note: The original text content here in this block",
+      "text: The original text content here in this block",
     );
     const after = parseIntentText(
-      "note: The original text content here in that block",
+      "text: The original text content here in that block",
     );
     const diff = diffDocuments(before, after);
     expect(diff.modified.length).toBe(1);
@@ -589,8 +589,8 @@ describe("diffDocuments", () => {
   });
 
   it("summary string is correctly formatted", () => {
-    const before = parseIntentText("title: Doc\nnote: Old");
-    const after = parseIntentText("title: Doc\nnote: New");
+    const before = parseIntentText("title: Doc\ntext: Old");
+    const after = parseIntentText("title: Doc\ntext: New");
     const diff = diffDocuments(before, after);
     expect(diff.summary).toMatch(/\d+ (added|removed|modified|unchanged)/);
   });
@@ -609,7 +609,7 @@ describe("diffDocuments", () => {
   });
 
   it("type change detected as modified with typeChanged: true", () => {
-    const before = parseIntentText("note: Convert this to info");
+    const before = parseIntentText("text: Convert this to info");
     const after = parseIntentText("info: Convert this to info");
     const diff = diffDocuments(before, after);
     // Same content, different type — should be modified
@@ -619,10 +619,10 @@ describe("diffDocuments", () => {
 
   it("multiple changes tracked correctly", () => {
     const before = parseIntentText(
-      "title: Doc\nnote: Keep\nwarning: Remove me\ntask: Change | owner: A",
+      "title: Doc\ntext: Keep\ninfo: Remove me | type: warning\ntask: Change | owner: A",
     );
     const after = parseIntentText(
-      "title: Doc\nnote: Keep\ninfo: Added\ntask: Change | owner: B",
+      "title: Doc\ntext: Keep\ninfo: Added\ntask: Change | owner: B",
     );
     const diff = diffDocuments(before, after);
     expect(diff.added.length).toBeGreaterThanOrEqual(1);

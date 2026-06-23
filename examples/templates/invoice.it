@@ -9,17 +9,17 @@ title: Invoice
 
 ---
 
-note: **{{seller.name}}** | align: left
-note: {{seller.address}}
-note: {{seller.email}} · {{seller.phone}}
-note: VAT: {{seller.vat}}
+text: **{{seller.name}}** | align: left
+text: {{seller.address}}
+text: {{seller.email}} · {{seller.phone}}
+text: VAT: {{seller.vat}}
 
 ---
 
-note: **Bill To**
-note: {{client.name}}
-note: {{client.address}}
-note: {{client.email}}
+text: **Bill To**
+text: {{client.name}}
+text: {{client.address}}
+text: {{client.email}}
 
 ---
 
@@ -37,19 +37,19 @@ section: Items
 
 ---
 
-note: Subtotal: {{totals.subtotal}} | align: right
-note: Tax ({{totals.taxRate}}%): {{totals.tax}} | align: right
-note: **Total Due: {{totals.due}} {{totals.currency}}** | align: right
+text: Subtotal: {{totals.subtotal}} | align: right
+text: Tax ({{totals.taxRate}}%): {{totals.tax}} | align: right
+text: **Total Due: {{totals.due}} {{totals.currency}}** | align: right
 
 ---
 
 section: Payment Details
 
-note: Bank: {{payment.bank}}
-note: Account: {{payment.account}}
-note: IBAN: {{payment.iban}}
-note: Reference: {{invoice.number}}
+text: Bank: {{payment.bank}}
+text: Account: {{payment.account}}
+text: IBAN: {{payment.iban}}
+text: Reference: {{invoice.number}}
 
 info: Payment due by {{invoice.dueDate}}. Late payments subject to {{invoice.lateRate}}% monthly interest.
 
-note: Thank you for your business. | align: center
+text: Thank you for your business. | align: center

@@ -12,6 +12,10 @@ keywords — clause:, risk:, obligation:, sla:, warranty:, expense: — is norma
 first-class, and ENCOURAGED whenever no reserved keyword fits. Custom keywords parse, render,
 seal, and query exactly like reserved ones (§2c). A real document freely MIXES reserved and
 custom keywords; do NOT restrict yourself to the reserved set — that makes documents poorer.
+ZERO ALIASES: the ONLY reserved words are the 41 canonical keywords (§2), their Arabic localized
+names (§12), and the namespaced extension keywords (§2b). There are NO synonym aliases — so
+party:, milestone:, status:, note:, item:, requirement:, due:, rule:, kpi: and any other word
+you invent resolve RELIABLY to your own custom block, never silently reinterpreted as something else.
 
 Site: https://dotit.uts.qa · npm: @dotit/core · Editor: https://editor.uts.qa
 Verify portal: https://verify.uts.qa (UTS certification service: api.uts.qa)
@@ -92,7 +96,8 @@ DATA tier (3):
             ANY ONE of target:/trend:/period: it renders as a KPI card. MONEY: put the
             bare magnitude in value: and the ISO-4217 code in unit: (queryable, typed);
             the inline "17,325 QAR" form also parses but is less machine-friendly.
-  headers:, row:  Tabular data (headers: is canonical; columns: is a compat alias).
+  headers:, row:  Tabular data. `headers:` is the table-header keyword (`columns:` is NOT
+            reserved anymore — it resolves to a custom block; write `headers:`).
 
 COMMON x-doc EXTENSION BLOCKS (everyday, but NOT among the 41 — namespaced, see §2b):
   def:      Definition/glossary term.                def: Force Majeure | meaning: Events beyond control
@@ -168,12 +173,13 @@ fits, instead of flattening the concept into text:/info:. All of these are first
   expense: Office chairs | category: furniture | amount: 1200 | unit: QAR
 Query a custom keyword by NAME — `keyword=clause` — NOT `type=clause`: every custom block's `type`
 is literally `custom` (the word lives in properties.keyword), so `type=custom` matches them ALL and
-`keyword=clause` matches one kind. IMPORTANT — a reserved keyword or alias WINS when the word
-collides, and some natural words are already taken: party→contact, milestone→deadline (use date:,
-not due:), rule→policy; decision/policy/step/audit are canonical; memory/tool/signal are x-agent.
-Pick a different word if you want a distinct custom block. Everything else is yours: unknown
-keywords NEVER error, round-trip byte-for-byte, and seal/verify like any block — mixing reserved +
-custom in ONE document is normal.
+`keyword=clause` matches one kind. NO ALIAS COLLISIONS: there are no synonym aliases, so a word is
+custom UNLESS it is one of the 41 canonical (§2), an Arabic localized name (§12), or a namespaced
+extension keyword (§2b: def, contact, deadline, ref, signline, attach, figure, byline, input, …).
+That means party:, milestone:, rule:, status:, note:, item:, due:, kpi: are all ordinary custom
+blocks — never silently reinterpreted. Everything you invent is yours: unknown keywords NEVER
+error, round-trip byte-for-byte, and seal/verify like any block — mixing reserved + custom in ONE
+document is normal.
 
 ## 2d. Format version stamp (optional)
 
@@ -512,8 +518,8 @@ TWO-SIDED ROWS + SPACING (1.1):
   text-bearing block, or document-wide: `style: text | leading: 1.9`.
 - RTL: any Arabic content makes the document RTL automatically; all layout
   mirrors via CSS logical properties. Write Arabic documents naturally.
-ARABIC KEYWORDS (33 aliases — write whole documents in Arabic; keywords
-round-trip AS WRITTEN, so Arabic files stay Arabic and sealed hashes hold):
+ARABIC KEYWORDS (33 first-class localized keyword names — NOT aliases; write whole documents in
+Arabic; keywords round-trip AS WRITTEN, so Arabic files stay Arabic and sealed hashes hold):
   عنوان=title  ملخص=summary  بيانات=meta  قسم=section  فرعي=sub  نص=text
   تنبيه=info  اقتباس=quote  استشهاد=cite  شيفرة=code  صورة=image  رابط=link
   مهمة=task  منجز=done  أعمدة=columns  صف=row  مؤشر=metric  تتبع=track

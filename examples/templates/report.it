@@ -6,7 +6,7 @@ page: | size: A4 | margins: 25mm | header: {{report.organisation}} | footer: {{r
 
 title: {{report.title}}
 
-note: **Prepared by:** {{report.author}} · **Date:** {{report.date}} · **Version:** {{report.version}}
+text: **Prepared by:** {{report.author}} · **Date:** {{report.date}} · **Version:** {{report.version}}
 
 summary: {{report.executiveSummary}}
 
@@ -14,26 +14,26 @@ summary: {{report.executiveSummary}}
 
 section: 1. Introduction
 
-note: {{report.introduction}}
+text: {{report.introduction}}
 
 section: 2. Background
 
-note: {{report.background}}
+text: {{report.background}}
 
 section: 3. Findings
 
 sub: 3.1 {{report.finding1.title}}
-note: {{report.finding1.body}}
+text: {{report.finding1.body}}
 
 sub: 3.2 {{report.finding2.title}}
-note: {{report.finding2.body}}
+text: {{report.finding2.body}}
 
 sub: 3.3 {{report.finding3.title}}
-note: {{report.finding3.body}}
+text: {{report.finding3.body}}
 
 section: 4. Analysis
 
-note: {{report.analysis}}
+text: {{report.analysis}}
 
 quote: {{report.keyQuote}} | by: {{report.keyQuoteSource}}
 
@@ -46,11 +46,11 @@ task: {{report.rec4}} | priority: low
 
 section: 6. Conclusion
 
-note: {{report.conclusion}}
+text: {{report.conclusion}}
 
 ---
 
 section: Appendix
 
-note: {{report.appendixTitle}}
-note: {{report.appendixContent}}
+text: {{report.appendixTitle}}
+text: {{report.appendixContent}}

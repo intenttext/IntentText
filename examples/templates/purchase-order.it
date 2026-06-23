@@ -11,16 +11,16 @@ title: Purchase Order
 
 ---
 
-note: **From (Buyer)**
-note: {{buyer.company}}
-note: {{buyer.department}}
-note: {{buyer.address}}
-note: Contact: {{buyer.contact}} · {{buyer.email}}
+text: **From (Buyer)**
+text: {{buyer.company}}
+text: {{buyer.department}}
+text: {{buyer.address}}
+text: Contact: {{buyer.contact}} · {{buyer.email}}
 
-note: **To (Supplier)**
-note: {{supplier.name}}
-note: {{supplier.address}}
-note: Contact: {{supplier.contact}} · {{supplier.email}}
+text: **To (Supplier)**
+text: {{supplier.name}}
+text: {{supplier.address}}
+text: Contact: {{supplier.contact}} · {{supplier.email}}
 
 ---
 
@@ -33,19 +33,19 @@ section: Ordered Items
 
 ---
 
-note: Subtotal: {{totals.subtotal}} | align: right
-note: Shipping: {{totals.shipping}} | align: right
-note: **Order Total: {{totals.grand}} {{totals.currency}}** | align: right
+text: Subtotal: {{totals.subtotal}} | align: right
+text: Shipping: {{totals.shipping}} | align: right
+text: **Order Total: {{totals.grand}} {{totals.currency}}** | align: right
 
 ---
 
 section: Terms & Conditions
 
-note: Delivery Terms: {{po.deliveryTerms}}
-note: Payment Terms: {{po.paymentTerms}}
-note: Ship To: {{po.shipTo}}
+text: Delivery Terms: {{po.deliveryTerms}}
+text: Payment Terms: {{po.paymentTerms}}
+text: Ship To: {{po.shipTo}}
 
-warning: This PO is subject to the terms agreed in Contract {{po.contractRef}}. All deliveries must include this PO number.
+info: This PO is subject to the terms agreed in Contract {{po.contractRef}}. All deliveries must include this PO number. | type: warning
 
 ---
 
@@ -54,4 +54,4 @@ section: Authorisation
 | Prepared By        | Approved By          | Date            |
 | {{auth.preparedBy}} | {{auth.approvedBy}} | {{auth.date}}   |
 
-note: Authorised Signature: _________________________ | align: right
+text: Authorised Signature: _________________________ | align: right

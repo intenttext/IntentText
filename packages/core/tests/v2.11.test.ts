@@ -101,12 +101,13 @@ describe("v2.11 ref: — cross-document reference", () => {
     expect(issues[0].type).toBe("warning");
   });
 
-  it("references: alias resolves to ref:", () => {
-    expect(ALIASES["references"]).toBe("ref");
+  it("references: is NO LONGER a ref alias (now a custom block)", () => {
+    expect(ALIASES["references"]).toBeUndefined();
     const b = firstBlock(
       "references: See Also | file: ./other.it | rel: related",
     );
-    expect(b.type).toBe("ref");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("references");
   });
 
   it("query type=ref returns all document references", () => {
@@ -163,10 +164,11 @@ describe("v2.11 def: — definitions and glossary terms", () => {
     expect(output).toContain("def");
   });
 
-  it("define: alias resolves to def:", () => {
-    expect(ALIASES["define"]).toBe("def");
+  it("define: is NO LONGER a def alias (now a custom block)", () => {
+    expect(ALIASES["define"]).toBeUndefined();
     const b = firstBlock("define: Term | meaning: Definition text");
-    expect(b.type).toBe("def");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("define");
   });
 
   it("query type=def returns all definitions", () => {
@@ -264,10 +266,11 @@ describe("v2.11 metric: — measurable values", () => {
     expect(output).toContain("30");
   });
 
-  it("kpi: alias resolves to metric:", () => {
-    expect(ALIASES["kpi"]).toBe("metric");
+  it("kpi: is NO LONGER a metric alias (now a custom block)", () => {
+    expect(ALIASES["kpi"]).toBeUndefined();
     const b = firstBlock("kpi: Conversion Rate | value: 3.2 | unit: %");
-    expect(b.type).toBe("metric");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("kpi");
   });
 
   it("query type=metric returns all metrics with values", () => {
@@ -464,10 +467,11 @@ describe("v2.11 figure: — document figures", () => {
     expect(b.properties?.num).toBe("5");
   });
 
-  it("fig: alias resolves to figure:", () => {
-    expect(ALIASES["fig"]).toBe("figure");
+  it("fig: is NO LONGER a figure alias (now a custom block)", () => {
+    expect(ALIASES["fig"]).toBeUndefined();
     const b = firstBlock("fig: Diagram | src: ./d.png | caption: Test");
-    expect(b.type).toBe("figure");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("fig");
   });
 
   it("query type=figure returns all figures", () => {
@@ -532,10 +536,11 @@ describe("v2.11 signline: — physical signature placeholders", () => {
     expect(output).toContain("signline");
   });
 
-  it("sign-here: alias resolves to signline:", () => {
-    expect(ALIASES["sign-here"]).toBe("signline");
+  it("sign-here: is NO LONGER a signline alias (now a custom block)", () => {
+    expect(ALIASES["sign-here"]).toBeUndefined();
     const b = firstBlock("sign-here: Witness | name: Charlie | role: Witness");
-    expect(b.type).toBe("signline");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("sign-here");
   });
 
   it("signline: renders in print output", () => {
@@ -592,10 +597,11 @@ describe("v2.11 contact: — contact information", () => {
     expect(output).toContain("contact");
   });
 
-  it("person: alias resolves to contact:", () => {
-    expect(ALIASES["person"]).toBe("contact");
+  it("person: is NO LONGER a contact alias (now a custom block)", () => {
+    expect(ALIASES["person"]).toBeUndefined();
     const b = firstBlock("person: John | email: john@x.com | role: CEO");
-    expect(b.type).toBe("contact");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("person");
   });
 
   it("query type=contact with org filter works", () => {
@@ -682,10 +688,11 @@ describe("v2.11 deadline: — temporal commitments", () => {
     expect(output).toContain("Late fee of 1.5%");
   });
 
-  it("due: alias resolves to deadline:", () => {
-    expect(ALIASES["due"]).toBe("deadline");
+  it("due: is NO LONGER a deadline alias (now a custom block)", () => {
+    expect(ALIASES["due"]).toBeUndefined();
     const b = firstBlock("due: Sprint End | date: 2027-03-01");
-    expect(b.type).toBe("deadline");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("due");
   });
 
   it("query type=deadline with owner filter works", () => {
@@ -707,30 +714,41 @@ describe("v2.11 deadline: — temporal commitments", () => {
 // ═══════════════════════════════════════════════════════════
 
 describe("v2.11 additional alias coverage", () => {
-  it("see: alias resolves to ref:", () => {
-    expect(ALIASES["see"]).toBe("ref");
+  it("see: is NO LONGER a ref alias (now a custom block)", () => {
+    expect(ALIASES["see"]).toBeUndefined();
     const b = firstBlock("see: Related Doc | file: ./rel.it | rel: related");
-    expect(b.type).toBe("ref");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("see");
   });
 
-  it("related: alias resolves to ref:", () => {
-    expect(ALIASES["related"]).toBe("ref");
+  it("related: is NO LONGER a ref alias (now a custom block)", () => {
+    expect(ALIASES["related"]).toBeUndefined();
+    expect(firstBlock("related: Other | file: ./o.it").type).toBe("custom");
+    expect(firstBlock("related: Other | file: ./o.it").properties?.keyword).toBe(
+      "related",
+    );
   });
 
-  it("term: alias resolves to def:", () => {
-    expect(ALIASES["term"]).toBe("def");
+  it("term: is NO LONGER a def alias (now a custom block)", () => {
+    expect(ALIASES["term"]).toBeUndefined();
     const b = firstBlock("term: Glossary Entry | meaning: A term definition");
-    expect(b.type).toBe("def");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("term");
   });
 
-  it("glossary: alias resolves to def:", () => {
-    expect(ALIASES["glossary"]).toBe("def");
+  it("glossary: is NO LONGER a def alias (now a custom block)", () => {
+    expect(ALIASES["glossary"]).toBeUndefined();
+    expect(firstBlock("glossary: Entry | meaning: m").type).toBe("custom");
+    expect(firstBlock("glossary: Entry | meaning: m").properties?.keyword).toBe(
+      "glossary",
+    );
   });
 
-  it("measure: alias resolves to metric:", () => {
-    expect(ALIASES["measure"]).toBe("metric");
+  it("measure: is NO LONGER a metric alias (now a custom block)", () => {
+    expect(ALIASES["measure"]).toBeUndefined();
     const b = firstBlock("measure: Test | value: 42 | unit: items");
-    expect(b.type).toBe("metric");
+    expect(b.type).toBe("custom");
+    expect(b.properties?.keyword).toBe("measure");
   });
 
   // FORMAT-REVIEW T-01: `change` was REMOVED as an amendment alias — it is a
@@ -743,36 +761,62 @@ describe("v2.11 additional alias coverage", () => {
     expect(firstBlock("change: we lowered the price").type).toBe("custom");
   });
 
-  // T-07: figure's synonyms (diagram/chart/illustration/visual) were pruned; only the
-  // short `fig` alias remains, the rest pass through as custom blocks.
-  it("diagram/chart are NO LONGER figure aliases; fig still is", () => {
+  // T-07: figure's synonyms (diagram/chart/illustration/visual) were pruned, and the
+  // wider Latin-alias elimination dropped `fig` too — every former figure alias now
+  // passes through as a custom block; only the canonical `figure` keyword resolves.
+  it("diagram/chart/fig are NO LONGER figure aliases (all custom)", () => {
     expect(ALIASES["diagram"]).toBeUndefined();
     expect(ALIASES["chart"]).toBeUndefined();
-    expect(ALIASES["fig"]).toBe("figure");
+    expect(ALIASES["fig"]).toBeUndefined();
+    expect(firstBlock("diagram: D | src: ./d.png").type).toBe("custom");
+    expect(firstBlock("chart: C | src: ./c.png").type).toBe("custom");
+    expect(firstBlock("fig: F | src: ./f.png").type).toBe("custom");
   });
 
-  it("signature-line: alias resolves to signline:", () => {
-    expect(ALIASES["signature-line"]).toBe("signline");
+  it("signature-line: is NO LONGER a signline alias (now a custom block)", () => {
+    expect(ALIASES["signature-line"]).toBeUndefined();
+    expect(firstBlock("signature-line: S | name: A | role: R").type).toBe(
+      "custom",
+    );
+    expect(
+      firstBlock("signature-line: S | name: A | role: R").properties?.keyword,
+    ).toBe("signature-line");
   });
 
-  it("sig: alias resolves to sign:", () => {
-    expect(ALIASES["sig"]).toBe("sign");
+  it("sig: is NO LONGER a sign alias (now a custom block)", () => {
+    expect(ALIASES["sig"]).toBeUndefined();
+    expect(firstBlock("sig: Alice | role: CEO").type).toBe("custom");
+    expect(firstBlock("sig: Alice | role: CEO").properties?.keyword).toBe("sig");
   });
 
-  it("party: alias resolves to contact:", () => {
-    expect(ALIASES["party"]).toBe("contact");
+  it("party: is NO LONGER a contact alias (now a custom block)", () => {
+    expect(ALIASES["party"]).toBeUndefined();
+    expect(firstBlock("party: Acme Corp | role: Vendor").type).toBe("custom");
+    expect(firstBlock("party: Acme Corp | role: Vendor").properties?.keyword).toBe(
+      "party",
+    );
   });
 
-  it("milestone: alias resolves to deadline:", () => {
-    expect(ALIASES["milestone"]).toBe("deadline");
+  it("milestone: is NO LONGER a deadline alias (now a custom block)", () => {
+    expect(ALIASES["milestone"]).toBeUndefined();
+    expect(firstBlock("milestone: M | date: 2027-01-01").type).toBe("custom");
+    expect(
+      firstBlock("milestone: M | date: 2027-01-01").properties?.keyword,
+    ).toBe("milestone");
   });
 
-  it("due-date: alias resolves to deadline:", () => {
-    expect(ALIASES["due-date"]).toBe("deadline");
+  it("due-date: is NO LONGER a deadline alias (now a custom block)", () => {
+    expect(ALIASES["due-date"]).toBeUndefined();
+    expect(firstBlock("due-date: D | date: 2027-01-01").type).toBe("custom");
+    expect(
+      firstBlock("due-date: D | date: 2027-01-01").properties?.keyword,
+    ).toBe("due-date");
   });
 
-  it("stat: alias resolves to metric:", () => {
-    expect(ALIASES["stat"]).toBe("metric");
+  it("stat: is NO LONGER a metric alias (now a custom block)", () => {
+    expect(ALIASES["stat"]).toBeUndefined();
+    expect(firstBlock("stat: S | value: 42").type).toBe("custom");
+    expect(firstBlock("stat: S | value: 42").properties?.keyword).toBe("stat");
   });
 });
 
