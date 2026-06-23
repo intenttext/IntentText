@@ -11,9 +11,9 @@ text: Provider shall deliver the cloud platform, integrations, and support set o
   required for Provider to perform.
 
 section: 2. Commercials
-metric: Annual License | value: 96,000 QAR
-metric: Implementation (one-time) | value: 38,500 QAR
-metric: Total Year One | value: 134,500 QAR
+metric: Annual License | value: 96000 | unit: QAR
+metric: Implementation (one-time) | value: 38500 | unit: QAR
+metric: Total Year One | value: 134500 | unit: QAR
 
 section: 3. Service Levels
 | Tier | Target | Credit |
@@ -34,4 +34,4 @@ section: 6. Signatures
 approve: Legal review complete | by: Sara Hassan | role: Legal Counsel | at: 2026-03-28
 sign: Ahmed Al-Rashid | role: CEO, Dalil Technology LLC | at: 2026-04-01T09:00:00Z
 sign: Acme Corporation | role: Authorized Signatory | at: 2026-04-01T11:20:00Z
-freeze: | at: 2026-04-01T11:20:00Z | hash: sha256:9f1c… | status: locked
+freeze: | at: 2026-06-23T19:12:57.445Z | hash: sha256:fc87988a8a25ff96e54b4ac87f5921f749e318f02ebe28853644d1e5419d9865 | spec: 4 | appearance: sha256:8cacf1122ed35ba029e0bc3ae2670bba4d6f341f616543b5b58478fc9f1c444a | status: locked

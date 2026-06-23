@@ -2,7 +2,7 @@
   "name": "intenttext",
   "displayName": "IntentText (.it)",
   "description": "Syntax highlighting, live preview, inline validation, hover docs, and auto-completion for IntentText documents",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "publisher": "intenttext",
   "icon": "icon.png",
   "repository": {
@@ -129,8 +129,8 @@
   "scripts": {
     "compile": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
     "watch": "npm run compile -- --watch",
-    "package": "npx vsce package",
-    "publish": "npx vsce publish"
+    "package": "npx vsce package --no-dependencies",
+    "publish": "npx vsce publish --no-dependencies"
   },
   "dependencies": {
     "@dotit/core": "^1.25.0"

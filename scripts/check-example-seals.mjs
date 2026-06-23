@@ -4,7 +4,7 @@
 //
 //   node scripts/check-example-seals.mjs   (requires a built core)
 //
-// Scope: examples/ (the canonical corpus). demo/ showcase files are out of scope.
+// Scope: examples/ + demo/ — every sealed .it (one with a `freeze:` line) must verify intact.
 
 import { readdirSync, statSync, readFileSync } from "node:fs";
 import { join, dirname, relative } from "node:path";
@@ -12,13 +12,14 @@ import { fileURLToPath } from "node:url";
 import { verifyDocument } from "../packages/core/dist/index.js";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const examplesDir = join(root, "examples");
+const scanDirs = [join(root, "examples"), join(root, "demo")];
 
 function walk(dir, acc) {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
-    if (statSync(p).isDirectory()) walk(p, acc);
-    else if (name.endsWith(".it")) acc.push(p);
+    if (statSync(p).isDirectory()) {
+      if (name !== "node_modules" && name !== "dist") walk(p, acc);
+    } else if (name.endsWith(".it")) acc.push(p);
   }
   return acc;
 }
@@ -26,7 +27,7 @@ function walk(dir, acc) {
 const failures = [];
 let sealed = 0;
 
-for (const file of walk(examplesDir, [])) {
+for (const file of scanDirs.flatMap((d) => walk(d, []))) {
   const src = readFileSync(file, "utf8");
   if (!/^freeze:/m.test(src)) continue; // only sealed (frozen) documents
   sealed++;
