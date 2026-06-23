@@ -8,7 +8,7 @@ record.
 
 CORE PRINCIPLE — OPEN VOCABULARY: .it has NO fixed schema. The 41 reserved keywords (§2)
 have stable, guaranteed meaning, but they are NOT a whitelist. Inventing your own domain
-keywords — clause:, party:, risk:, milestone:, sla:, obligation:, expense: — is normal,
+keywords — clause:, risk:, obligation:, sla:, warranty:, expense: — is normal,
 first-class, and ENCOURAGED whenever no reserved keyword fits. Custom keywords parse, render,
 seal, and query exactly like reserved ones (§2c). A real document freely MIXES reserved and
 custom keywords; do NOT restrict yourself to the reserved set — that makes documents poorer.
@@ -159,17 +159,21 @@ The 41 reserved keywords are NOT a whitelist. ANY word: that is not reserved par
 queryable `custom` block that keeps its keyword verbatim (case + script preserved). Inventing a
 precise domain keyword is IDIOMATIC and ENCOURAGED — reach for one whenever no reserved keyword
 fits, instead of flattening the concept into text:/info:. All of these are first-class blocks:
-  clause: Indemnity | party: Provider | cap: 3 months fees         (contracts / legal)
-  party: Acme LLC | role: Buyer | cr: CR-10442                     (any domain entity)
+  clause: Indemnity | scope: Provider | cap: 3 months fees         (contracts / legal)
+  obligation: Deliver Schedule A | owner: Provider | by: 2026-08-01
   risk: Vendor lock-in | severity: high | mitigation: dual-source  (reports / assessments)
-  milestone: UAT sign-off | due: 2026-09-30 | owner: PMO
-  skill: summarize-contract | input: file | output: brief | model: claude-opus-4-8   (agent skills/tools)
-  memory: user prefers metric units | scope: session
+  warranty: Conforms to spec | owner: Provider | period: 90 days
+  sla: Resolution time | target: 4h | priority: P1
+  skill: summarize-contract | input: file | output: brief | model: claude-opus-4-8   (agent skills)
   expense: Office chairs | category: furniture | amount: 1200 | unit: QAR
-Query them like any block (`type=clause`, `type=risk`, `type=expense`). A reserved keyword wins
-ONLY if the word collides; everything else is yours. Unknown keywords NEVER error — they
-round-trip byte-for-byte and seal/verify like any block. Mixing reserved + custom keywords in ONE
-document is normal and expected — a strict, reserved-only document is the exception, not the goal.
+Query a custom keyword by NAME — `keyword=clause` — NOT `type=clause`: every custom block's `type`
+is literally `custom` (the word lives in properties.keyword), so `type=custom` matches them ALL and
+`keyword=clause` matches one kind. IMPORTANT — a reserved keyword or alias WINS when the word
+collides, and some natural words are already taken: party→contact, milestone→deadline (use date:,
+not due:), rule→policy; decision/policy/step/audit are canonical; memory/tool/signal are x-agent.
+Pick a different word if you want a distinct custom block. Everything else is yours: unknown
+keywords NEVER error, round-trip byte-for-byte, and seal/verify like any block — mixing reserved +
+custom in ONE document is normal.
 
 ## 2d. Format version stamp (optional)
 
@@ -316,7 +320,9 @@ A document carries its own approval policy; live state is derived, so it can nev
   require: manager
   require: finance | when: amount > 100000    (conditional — evaluated against the doc's own metric:/meta values)
   require: legal
-  approve: Reviewed | by: Sarah | role: manager | at: 2026-03-20    (fulfils a requirement)
+  approve: Reviewed | by: Sarah | role: manager | at: 2026-03-20    (fulfils require: manager)
+The approve: `role:` (or `by:`) MUST match the require: token — `require: legal` is fulfilled by
+`role: legal`, NOT by `role: Legal Counsel`. Keep the require token and the approver role identical.
 workflowState(source) → { pending, next, complete }; the renderer draws an approval-route panel.
 EXECUTABLE agent workflows use the agent tier: trigger: (entry) → step: (run a tool) → decision:
 (branch, `if:` condition) → gate: (human checkpoint) → result: (terminal). executeWorkflow() runs
@@ -348,7 +354,8 @@ One call does merge → seal → PDF, so the archived PDF and the sealed .it sha
   queryDocument / queryComposed (across many docs) / parseQuery(q) → { where, sort, limit, offset }
   CLI: dotit query ./docs "type=invoice status=Unpaid amount>1000 sort:due:asc limit:20"
 WHERE clauses use `=` (also `<` `>` `<=` `>=` `!=`, date-aware on ISO values); match any
-keyword or property (type=, owner=, status=, due=…). SORT uses `sort:field:asc|desc`;
+keyword or property (type=, owner=, status=, due=…); a CUSTOM keyword matches by `keyword=<word>`
+(its block type is `custom`, so `type=clause` finds nothing — use `keyword=clause`). SORT uses `sort:field:asc|desc`;
 paging uses `limit:N` / `offset:N`. Folder indexing is shallow, per-folder (.it-index),
 self-healing on query — no DB server. buildShallowIndex/composeIndexes build the index;
 askDocuments runs a natural-language-style ask over a folder.
@@ -471,7 +478,7 @@ data, {signer}) for sealed PDF bytes. Validate output with validateDocumentSeman
 2. One intent per line. No HTML, no Markdown headings (#), no raw CSS anywhere.
 3. Use semantic keywords over text: — a task is `task:`, a decision is `decision:`,
    money totals are `metric: Label | value: …`. When a concept is precise but has NO
-   reserved keyword, INVENT a domain one (clause:, party:, risk:, sla:, obligation:) rather
+   reserved keyword, INVENT a domain one (clause:, risk:, obligation:, sla:, warranty:) rather
    than burying it in text: — custom keywords are idiomatic, typed, and queryable (§2c),
    never a last resort. Lean on the open vocabulary; don't confine output to the 41.
 4. Dates: ISO format (2026-04-01 or 2026-04-01T09:00:00Z).
