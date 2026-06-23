@@ -270,8 +270,8 @@ importers:
         specifier: ^20.0.0
         version: 20.19.41
       '@vercel/ncc':
-        specifier: ^0.38.0
-        version: 0.38.4
+        specifier: ^0.44.0
+        version: 0.44.0
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
@@ -3622,8 +3622,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@vercel/ncc@0.38.4':
-    resolution: {integrity: sha512-8LwjnlP39s08C08J5NstzriPvW1SP8Zfpp1BvC2sI35kPeZnHfxVkCwu4/+Wodgnd60UtT1n8K8zw+Mp7J9JmQ==}
+  '@vercel/ncc@0.44.0':
+    resolution: {integrity: sha512-pHyI+bZokSgIscTKFSmpNk5vZzmOrb9RW0Vu4SRyqUvkJ0kgg3PzaZLLDVTFXhbUiCqg0/Eu8L4fKtgViA92kg==}
     hasBin: true
 
   '@vitejs/plugin-react@5.2.0':
@@ -14210,7 +14210,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
 
-  '@vercel/ncc@0.38.4': {}
+  '@vercel/ncc@0.44.0': {}
 
   '@vitejs/plugin-react@5.2.0(vite@7.3.3(@types/node@20.19.41)(jiti@1.21.7)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3))':
     dependencies:
