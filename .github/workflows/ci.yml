@@ -89,7 +89,7 @@ jobs:
       # The pdf suite renders via Puppeteer (tagged PDF / PAdES / print). Chrome is
       # not auto-downloaded (puppeteer postinstall is disabled), so fetch it here.
       - name: Install Chrome for Puppeteer (pdf tests)
-        run: npx puppeteer browsers install chrome
+        run: pnpm --filter @dotit/pdf exec puppeteer browsers install chrome
 
       - name: Test pdf
         run: pnpm --filter @dotit/pdf test

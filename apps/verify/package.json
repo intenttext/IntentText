@@ -1,7 +1,7 @@
 {
   "name": "@dotit/verify-portal",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "verify.uts.qa — 100% client-side public verification portal for IntentText (.it) documents. Your file never leaves your browser.",
   "type": "module",
   "scripts": {
@@ -11,8 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@dotit/core": "^1.25.0",
-    "@dotit/sign": "^1.4.3",
+    "@dotit/core": "^2.0.0",
+    "@dotit/sign": "^2.0.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

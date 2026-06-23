@@ -32,7 +32,7 @@ jobs:
           pnpm --filter @dotit/pdf build
 
       - name: Install Chrome for Puppeteer
-        run: npx puppeteer browsers install chrome
+        run: pnpm --filter @dotit/pdf exec puppeteer browsers install chrome
 
       - name: Fetch a standard sRGB ICC profile
         run: curl -fsSL https://www.color.org/sRGB2014.icc -o sRGB.icc
