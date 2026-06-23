@@ -13,7 +13,8 @@ Word and PDF — all on the same queryable, sealable format. Everything here is 
 
 A `meta: type: form` document with `input:` fields is a **form**: design it, send it,
 a recipient fills it, and a **complete** form (all required fields answered) stops
-being a template and becomes a final, signable record.
+being a template and becomes a final, signable record. (For the conceptual introduction,
+see [Concepts §7 — Forms](./concepts#7-forms).)
 
 ```intenttext
 meta: | type: form
@@ -24,12 +25,13 @@ input: VAT number | key: vat | type: text | show-if: country = SA
 input: Quantity | key: qty | type: number | value: 4
 input: Total | key: total | type: number | compute: qty * 250
 input: Evidence | key: cr | type: attachment
+output: Net total | value: {{total}}
 ```
 
 ```ts
 import {
   isFormComplete, missingRequiredFields, applyAnswers, formAnswers,
-  formVisibility, computeFormValues, sealDocument,
+  formVisibility, computeFormValues, buildSubmission, submitForm, sealDocument,
 } from "@dotit/core";
 
 missingRequiredFields(form);               // ["legal_name","country"] (hidden/computed skipped)
@@ -39,11 +41,18 @@ formAnswers(filled);                        // { legal_name, country, qty, total
 formVisibility(filled).vat;                 // false (country ≠ SA → field hidden)
 computeFormValues(filled).total;            // "1000"
 const record = sealDocument(filled, { signer: "Dalil" }).source;  // tamper-evident
+
+// Hand the answers to a backend:
+buildSubmission(filled);                    // { source, answers, hash, submittedAt } — no network
+await submitForm(filled, { endpoint: "https://api/forms" });  // validates complete, then POSTs
 ```
 
 **Field types:** text, textarea, date, number, choice, checkbox, signature, table,
 attachment. **`show-if:`** shows a field only when a condition holds; **`compute:`**
-derives a value from other fields (a safe arithmetic evaluator — never `eval`).
+derives a value from other fields (a safe arithmetic evaluator — never `eval`); **`output:`**
+displays a computed/summary value. `buildSubmission` packages the answers (with the content
+hash) for your backend; `submitForm` checks the form is complete and POSTs that payload,
+returning a structured result (it never throws on an HTTP error — check `ok`).
 
 ### Two-party trust
 

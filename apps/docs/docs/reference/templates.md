@@ -89,6 +89,57 @@ If auto-singularization doesn't produce the right name:
 
 If the array is empty, zero data rows are rendered. The table header always appears.
 
+## Conditional & computed fields — the mini-language
+
+Beyond `{{}}` substitution, two property values carry a tiny, **`eval`-free** expression
+language (`field-logic.ts`) for dynamic form/intake documents. Both run on a hand-written
+recursive-descent parser — never `eval`/`Function`.
+
+### `show-if:` / `when:` — one comparison
+
+`show-if:` (on an `x-form: input` field) and `when:` (on a `require:` line) hold **exactly one
+comparison**:
+
+```
+key <op> value
+```
+
+- **Operators:** `=` `==` `!=` `>` `<` `>=` `<=` (`=` is loose for `==`).
+- The compare is **numeric** when both sides parse as numbers (thousands separators
+  stripped), otherwise **string**.
+- There is **no** `&&` / `||` / `!` and **no** grouping — a single comparison only. (For
+  several conditions, use several `require:` lines.)
+- The key resolves against the document's own values (other fields, plus `metric:`
+  labels/keys and `meta:` properties). An unresolvable condition defaults to **true/active**,
+  so a field or required approval is never silently dropped.
+
+```intenttext
+x-form: input | label: VAT number | key: vat | show-if: country == SA
+require: finance | when: amount > 100000
+```
+
+A `show-if:` field only renders — and only counts toward form completeness — while its
+condition holds. A `require:` whose `when:` does not hold is inactive (see
+[`require:` →](./keywords/trust#require)).
+
+### `compute:` — arithmetic
+
+`compute:` (on an `x-form: input` field) derives a value from other fields so the recipient
+never types it. It holds **arithmetic** over field keys and numbers:
+
+- **Operators:** `+` `-` `*` `/` with `( )` grouping.
+- Identifiers resolve from other field values (commas stripped); a non-numeric or missing
+  operand evaluates to `0`.
+
+```intenttext
+x-form: input | label: Quantity   | key: qty    | type: number
+x-form: input | label: Unit price | key: price  | type: number
+x-form: input | label: Total      | key: total  | type: number | compute: qty * price
+```
+
+The operator set is **additive-only** after the format freeze — operators may be added,
+never removed or redefined.
+
 ## Data format
 
 Data is a JSON object:

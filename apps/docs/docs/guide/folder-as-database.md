@@ -53,7 +53,7 @@ meta: | ref: CON-2026-019 | status: active
 قسم: الالتزامات
 مهمة: تقرير الصيانة الشهري | owner: خالد | due: 2026-06-25
 مهلة: تجديد العقد | date: 2026-11-30 | consequence: ينتهي العقد تلقائيا
-done: Site survey completed | time: 2026-06-05
+done: Site survey completed | at: 2026-06-05
 ```
 
 ```intenttext title="contracts/vendor-nda.it"
@@ -234,7 +234,10 @@ for (const name of fs.readdirSync(folder).filter((f) => f.endsWith(".it"))) {
     modifiedAt: fs.statSync(path.join(folder, name)).mtime.toISOString(),
   };
 }
-const index = buildShallowIndex("contracts", files, "1.0.1");
+// The third argument stamps the index with the @dotit/core version that built it
+// (used for staleness/compat). Read it from the package — never hard-code a literal.
+const coreVersion = require("@dotit/core/package.json").version;
+const index = buildShallowIndex("contracts", files, coreVersion);
 
 // Compose (one or many folder indexes) and query
 const composed = composeIndexes([index], ".");

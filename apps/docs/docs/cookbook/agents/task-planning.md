@@ -29,6 +29,7 @@ decision: Account tier | options: standard, premium, enterprise | input: custome
 
 section: Account Setup
 
+gate: Provisioning approval | approver: operations-manager | timeout: 48h | fallback: escalate
 step: Create account | id: setup | depends: validate, credit | tool: account-api | input: customer_data, tier | output: account_id | status: pending
 step: Configure permissions | id: permissions | depends: setup | tool: iam-service | input: account_id, tier | status: pending
 step: Send welcome email | id: welcome | depends: permissions | tool: email-service | input: customer_data.email, account_id | status: pending

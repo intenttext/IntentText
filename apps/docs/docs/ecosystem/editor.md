@@ -84,12 +84,17 @@ which apply live on the canvas and identically in print.
 
 ### Trust UI
 
-The **Trust** panel drives the full lifecycle — track → approve → sign → seal → verify →
-amend — and the document shows styled trust chips (signatures, approvals, frozen banner)
-that print exactly as displayed. A **per-signer trust banner** reports each signer's status
-(signed the current version, or an earlier one), and the integrity-gated band stamps a red
-**"SEAL BROKEN"** banner on a tampered document rather than a clean seal. Restyling a sealed
-document never breaks its seal — only content edits do.
+The **Trust** panel drives the full lifecycle — track → approve → sign → seal → **certify** →
+verify → amend — and the document shows styled trust chips (signatures, approvals, frozen
+banner) that print exactly as displayed. A **per-signer trust banner** reports each signer's
+status (signed the current version, or an earlier one), and the integrity-gated band stamps a
+red **"SEAL BROKEN"** banner on a tampered document rather than a clean seal. Restyling or
+reformatting a sealed document never breaks its seal — only content edits do.
+
+An **approval-route panel** reads the document's own `route:`/`require:` policy and shows the
+live "who's next / what's pending" state derived from its `approve:` lines (the same
+`workflowState` core uses), so a reviewer can approve in order without a separate workflow
+system.
 
 ### History
 
@@ -169,11 +174,30 @@ The editor fills its parent — give the wrapper an explicit height.
 | `readOnly`        | `boolean`                               | `false`       | Force read-only. Sealed documents (`freeze:` block) are read-only automatically.                                        |
 | `showRibbon`      | `boolean`                               | `true`        | Show the formatting ribbon.                                                                                             |
 | `showTrustBanner` | `boolean`                               | `true`        | Show the trust status banner + document properties strip.                                                               |
-| `onTrustAction`   | `(a: "seal"\|"sign"\|"verify") => void` | —             | Handle the ribbon's Trust group — wire it to your own dialogs (e.g. core's `sealDocument`). Hidden when omitted.        |
+| `onTrustAction`   | `(a: "seal"\|"sign"\|"verify") => void` | —             | Handle the ribbon's Trust group — wire it to your own dialogs (e.g. core's `sealDocument`/`signDocument`). Hidden when omitted. (Certification and approval-routing are driven inside the editor's Trust panel, not through this host callback.) |
 
-### Key exports
+### Two components: `IntentTextEditor` and `IntentTextWorkbench`
 
-Besides `IntentTextEditor`: `exportDocumentPDF(source, theme)` / `exportDocumentHTML(source, theme)` (WYSIWYG print / print-ready HTML download), `builtinThemes()`, `extractTemplateVariables(source)` / `buildSampleSkeleton(vars)` for `{{variable}}` authoring, `extractTrustState(parsedDoc)` for the trust lifecycle snapshot, and `sourceToDoc` / `docToSource` (the lossless `.it` ↔ editor bridge). Full list in the [package README](https://github.com/intenttext/IntentText/tree/main/packages/editor).
+The package exports **both** — pick by how much control you want:
+
+- **`IntentTextEditor`** — the editor surface itself (the Word-like canvas + ribbon). Use it
+  when you want a document editor and will manage state/modes yourself. (Also re-exported as
+  `TemplateEditor`.)
+- **`IntentTextWorkbench`** — a thin wrapper that picks the right experience from a `mode`
+  prop: `"edit" | "fill" | "view" | "review" | "auto"`. `"auto"` (`detectMode`) inspects the
+  document — a form → fill UI, a sealed doc → read-only viewer, a draft → editor — so one
+  embed serves every stage of a document's life. See
+  [ERP / App Integration](./erp-integration#embed-the-editor-in-your-app).
+
+```tsx
+import { IntentTextWorkbench } from "@dotit/editor";
+
+<IntentTextWorkbench value={src} onChange={setSrc} mode="auto" />;
+```
+
+### Other key exports
+
+Besides the two components: `exportDocumentPDF(source, theme)` / `exportDocumentHTML(source, theme)` (WYSIWYG print / print-ready HTML download), `builtinThemes()`, `extractTemplateVariables(source)` / `buildSampleSkeleton(vars)` for `{{variable}}` authoring, `extractTrustState(parsedDoc)` for the trust lifecycle snapshot, and `sourceToDoc` / `docToSource` (the lossless `.it` ↔ editor bridge). Full list in the [package README](https://github.com/intenttext/IntentText/tree/main/packages/editor).
 
 ### SSR / Next.js
 

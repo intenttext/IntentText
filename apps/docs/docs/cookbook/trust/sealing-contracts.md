@@ -23,8 +23,13 @@ This adds to the document:
 
 ```intenttext
 sign: Ahmed Al-Rashid | role: CEO | at: 2026-03-22T15:00:00Z | hash: sha256:a1b2c3d4e5f6a7b8 | spec: 4
-freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:a1b2c3d4e5f6a7b8 | spec: 4 | status: locked
+freeze: | at: 2026-03-22T15:00:00Z | hash: sha256:f9a0b1c2d3e4f5a6 | spec: 4 | appearance: sha256:236e82f454aa492d | status: locked
 ```
+
+The `freeze:` line also carries an `appearance:` hash in `spec: 4`. The seal `hash:`
+excludes styling (so restyling never breaks it); the `appearance:` hash covers the document
+_with_ styling, so a hidden-content restyle is flagged (`appearanceChanged`) without
+invalidating the seal. See [What the hash covers](#what-the-hash-covers).
 
 ### Verify
 
@@ -67,7 +72,10 @@ The hash does **not** cover:
 - **Styling** — presentation lines (`page:`, `font:`, `style:`) and presentation
   properties (`color`, `size`, `align`, `margin`, `leading`, …). **Restyling never breaks
   a seal** — "sign content, not presentation."
-- **Comments** (`//` lines)
+- **Comments** (`//` lines) — including the optional `// it-format: 1.0` version stamp, a
+  leading-header comment that self-describes the grammar version for long-term archives.
+  Because it's a comment, adding or changing it never breaks a seal (the parser exposes it as
+  `document.version`).
 - The `history:` boundary and revisions below it
 
 This is what makes amendments possible: `amendment:` lines are excluded from the content
@@ -77,6 +85,14 @@ re-theming or reformatting a sealed contract leaves its seal intact.
 Two scopes share this algorithm: each `sign:` line hashes the **content** (and binds the
 signer's `name | role | at`), while the `freeze:` line hashes the **seal** scope — the
 content _plus_ the signatures _plus_ the seal's own metadata.
+
+A seal is therefore a SHA-256 hash over the document's **content** under `spec: 4`. v4
+excludes styling and comments and normalizes line endings (CRLF/CR → LF) and trailing
+whitespace — so restyling, reformatting, a CRLF round-trip, or a trailing-space re-save
+**never** break a seal; only a content change does. The separate `appearance:` hash (the
+full-fidelity hash, styling included) is what flags a hidden-content restyle: if it changes
+but the content hash still matches, `verifyDocument` keeps `intact: true` and sets
+`appearanceChanged`.
 
 ## Multiple signatures
 
@@ -95,7 +111,7 @@ After both:
 ```intenttext
 sign: Ahmed Al-Rashid | role: CEO, Acme Corp | at: 2026-03-22T10:00:00Z | hash: sha256:a1b2c3d4 | spec: 4
 sign: Maria Santos | role: COO, GlobalTech | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8 | spec: 4
-freeze: | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8 | spec: 4 | status: locked
+freeze: | at: 2026-03-22T14:30:00Z | hash: sha256:c3d4e5f6 | spec: 4 | appearance: sha256:236e82f4 | status: locked
 ```
 
 ## Verification in code
@@ -103,7 +119,7 @@ freeze: | at: 2026-03-22T14:30:00Z | hash: sha256:e5f6a7b8 | spec: 4 | status: l
 ```javascript
 import { verifyDocument } from "@dotit/core";
 
-// verifyDocument takes the raw .it source string — the hash covers exact bytes
+// verifyDocument takes the raw .it source string and re-derives the content hash
 const result = verifyDocument(source);
 
 if (result.intact) {
@@ -118,7 +134,7 @@ if (result.intact) {
 }
 ```
 
-To seal in code, use `sealDocument(source, { signer, role })` — it returns `{ success, hash, source, at }`. Store the returned `source` exactly as-is (no trimming, no CRLF conversion): the hash covers the exact bytes.
+To seal in code, use `sealDocument(source, { signer, role })` — it returns `{ success, hash, source, at }`. Store the returned `source` and you're done. Because `spec: 4` normalizes line endings (CRLF/CR → LF) and trailing whitespace before hashing, a later `LF`↔`CRLF` round-trip (Windows `git autocrlf`, an email gateway) or a trailing-space re-save will **not** break the seal — only a content change will.
 
 ## Complete workflow
 
@@ -142,4 +158,7 @@ dotit history contract.it
 
 - [Amending Frozen Documents](./amending-frozen-docs) — when a sealed contract needs changes
 - [Approval Workflow](./approval-workflow) — the full approve → sign → freeze flow
+- [Attachments](./attachments) — embed files so the seal covers them too
+- [Conformance](./conformance) — pass the strict gate before sealing
+- [Redline & Compare](./redline-and-compare) — review changes before re-sealing
 - [Audit Trail](./audit-trail) — revision tracking

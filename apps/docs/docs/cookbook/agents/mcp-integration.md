@@ -51,20 +51,35 @@ Add to `.vscode/mcp.json`:
 
 ## Available tools
 
-| Tool                   | Description                                  |
-| ---------------------- | -------------------------------------------- |
-| `parse_intent_text`    | Parse `.it` source into a structured document |
-| `render_html`          | Render to styled HTML with optional theme    |
-| `render_print`         | Render to print-optimised HTML               |
-| `query_document`       | Query blocks by type, content, or properties |
-| `merge_template`       | Merge a `{{variable}}` template with data    |
-| `validate_document`    | Semantic validation beyond syntax            |
-| `seal_document`        | Sign and freeze a document                   |
-| `verify_document`      | Verify document integrity                    |
-| `get_document_history` | Get document revision history                |
-| `diff_documents`       | Semantic diff between two versions           |
-| `document_to_source`   | Convert a parsed document back to `.it`      |
-| `extract_workflow`     | Extract the execution graph from a workflow  |
+| Tool                   | Description                                                      |
+| ---------------------- | --------------------------------------------------------------- |
+| `parse_intent_text`    | Parse `.it` source into a structured document                   |
+| `render_html`          | Render to styled HTML with optional theme                       |
+| `render_print`         | Render to print-optimised HTML                                  |
+| `query_document`       | Query blocks by type, content, or properties                   |
+| `merge_template`       | Merge a `{{variable}}` template with data                       |
+| `validate_document`    | Semantic validation beyond syntax                               |
+| `seal_document`        | Integrity seal — append a SHA-256 content hash + `freeze:`      |
+| `verify_document`      | Verify integrity (recompute the seal hash)                     |
+| `compute_hash`         | Compute the canonical content hash without sealing              |
+| `sign_document`        | Cryptographic Ed25519 signature (provable signer identity)      |
+| `verify_signatures`    | Verify Ed25519 signatures + embedded public keys                |
+| `verify_certification` | Verify a `certify:` authority claim against a published key     |
+| `generate_signing_key` | Generate an Ed25519 keypair for signing                         |
+| `get_document_history` | Get document revision history                                   |
+| `diff_documents`       | Semantic diff between two versions                              |
+| `document_to_source`   | Convert a parsed document back to `.it`                         |
+| `extract_workflow`     | Extract the execution graph from a workflow                    |
+
+:::note More capabilities live in the `@dotit/core` library
+The MCP server wraps the most common operations. Newer surfaces — **forms**
+(`isFormComplete`, `applyAnswers`, `sealFormStructure`, `submitForm`), **redline/compare**
+(`compareVersions`, `mergeThreeWay`), **conformance** (`checkConformance`), **attachments**
+(`addAttachment`/`extractAttachments`), and **e-invoice** (`buildUBLInvoice`) — are exposed
+as `@dotit/core` functions. Call them directly in code, or wrap them as your own MCP tools.
+See the [Forms](../forms/fillable-forms), [Redline & Compare](../trust/redline-and-compare),
+[Conformance](../trust/conformance), and [E-Invoices](../documents/e-invoice) recipes.
+:::
 
 ## Example conversation
 

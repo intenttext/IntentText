@@ -19,10 +19,13 @@ This page starts with Layer 1 (the everyday default) and builds up to Layers 2 a
 ## The trust lifecycle
 
 ```
-draft → tracked → approved → signed → frozen → amended (optional)
+draft → tracked → approved → signed → frozen → certified → amended (optional)
 ```
 
 Each step is a keyword. Each keyword is a line in the document. No external system required.
+`certify:` is the optional authority step (Layer 3 below) — a certification authority binds
+the signing key to a verified organization; `amendment:` formally changes a frozen document
+without voiding its seal.
 
 When rendered, trust blocks print **ink-first** — approvals, signatures, and the seal appear as hairline legal-document entries, not colored boxes, and date-only timestamps render as plain dates (`12 June 2026`, no `00:00 UTC`). A sealed document reads like a contract, not an app.
 
@@ -238,9 +241,12 @@ in order:
    its own `hash:` value blanked (its `at:`/`status:`/`spec:` stay, so editing the seal
    metadata breaks it). (`approve:` lines **are** hashed — an approval is part of what it
    approves.)
-5. **NFC-normalize, join with `\n`, trim, hash.** Surviving lines are Unicode-NFC
-   normalized, joined with LF, trimmed once, and hashed: `sha256:` + the hex SHA-256 of
-   those UTF-8 bytes.
+5. **Normalize line endings & trailing whitespace, NFC-normalize, join, trim, hash.**
+   Each surviving line has its line ending normalized (`CRLF`/lone-`CR` → `LF`) and its
+   per-line **trailing whitespace** stripped, the lines are Unicode-NFC normalized, joined
+   with LF, trimmed once, and hashed: `sha256:` + the hex SHA-256 of those UTF-8 bytes. So
+   a Windows `git autocrlf` round-trip, mixed-OS storage, an email gateway, or a
+   trailing-space re-save can **never** break an untampered seal (new in spec 4).
 6. **Bind the signer identity** (content scope only). A `sign:` hash also commits to the
    signer's `name | role | at`, so editing the signer on a signed document breaks _that_
    signature — even before the document is sealed.
@@ -248,6 +254,24 @@ in order:
 **Two scopes.** Each `sign:` line's hash covers **content**; the `freeze:` line's hash
 covers the **seal** scope — content _plus_ the signatures _plus_ the seal's own metadata —
 so tampering the body, a signature, or the seal metadata all break it.
+
+### The appearance hash (spec 4)
+
+Excluding styling from the content hash is what makes restyling free — but it also means a
+post-seal restyle (`opacity: 0`, white-on-white, `size: 0`, an injected `style:` line)
+could *hide* content while the seal still reads intact. To make that **non-silent**, a
+spec-4 `freeze:` also records an `appearance:` hash over the content **as styled**
+(`computeAppearanceHash`):
+
+```intenttext
+freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8... | spec: 4 | appearance: sha256:c4d5e6... | status: locked
+```
+
+`verifyDocument()` recomputes it. If the content is intact but the appearance differs,
+`intact` stays **true** (the signed content really is unchanged) and `appearanceChanged` is
+set with a warning, so a hidden-content restyle surfaces instead of slipping past. Trust
+surfaces also render **bare by default** (styling stripped, so any hidden content is shown).
+The principle: _sign content, not presentation — but never let presentation hide content._
 
 :::note Reproducibility & determinism
 Encoding is **UTF-8**, line ending is **LF (`\n`)**, normalization is **NFC** — so a file
@@ -262,9 +286,12 @@ reproduces the core hash — is **[SPEC §4](https://github.com/intenttext/Inten
 ## Storing sealed documents in a database
 
 A `.it` file is just a UTF-8 string — store it in any `TEXT`/blob column, string in, string
-out. Because the seal hash covers the **exact bytes**, the only risk is a storage layer that
-silently re-encodes, trims, or converts line endings (CRLF). To guarantee byte-exact
-storage, `@dotit/core` ships DB-safe wrappers:
+out. The seal hash covers **canonical content**, not raw bytes, so a storage layer that
+rewrites line endings (CRLF), trims trailing whitespace, or NFC-normalizes does **not**
+break the seal — verification still passes. What such re-encoding *does* hurt is byte
+fidelity: the file you stored no longer matches what the author wrote, giving noisy diffs.
+To guarantee byte-exact storage (and detect any drift), `@dotit/core` ships DB-safe
+wrappers:
 
 ```typescript
 import { toStorageRecord, fromStorageRecord, verifyStorageRecord } from "@dotit/core";
@@ -282,9 +309,11 @@ is a lossless text ↔ JSON round-trip — a sealed document still verifies afte
 Be precise about the guarantee, because "signed" means different things in different
 systems:
 
-- ✅ **Tamper-evidence.** If a single byte of the hashed body changes after sealing,
-  `verify` fails. This is real and useful: it proves the document you're holding is
-  bit-for-bit the one that was sealed.
+- ✅ **Tamper-evidence.** If the canonical **content** changes after sealing, `verify`
+  fails. This is real and useful: it proves the content you're holding is the content that
+  was sealed. (Restyling, reformatting, and CRLF/whitespace changes are excluded by spec 4,
+  so they don't trip it — and a `appearance:` hash separately flags a hidden-content
+  restyle.)
 - ✅ **Self-verifiable, offline, forever.** No vendor, key server, or network is needed
   to check a seal — just the file and SHA-256. The trust property travels with the file.
 - ✅ **Bound claimed identity.** A `sign:` hash also commits to the signer's

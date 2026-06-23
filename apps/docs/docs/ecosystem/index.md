@@ -5,20 +5,40 @@ title: Ecosystem
 
 # IntentText Ecosystem
 
-IntentText is more than a file format. It's a complete toolchain for structured documents.
+IntentText is more than a file format. It's a toolchain that does three things, in order:
 
-> **New (2026-06):** `.it` now closes the PDF/Word gap — **forms** (fillable, signable,
-> with conditional/computed fields + attachments + two-party trust), **redline & version
-> compare**, **redaction**, **PAdES** legal PDF signatures, **PDF/A** archival, and
-> **math**. Everything is in the packages below; the full developer guide is
-> **[ERP integration](/docs/ecosystem/erp-integration)**.
+- **Author** — write `.it` by hand, generate it from a template + data, convert it from
+  Markdown / HTML / Word / Excel, or edit it WYSIWYG. One plain-text source, no AST to store.
+- **Render** — themed HTML, print-ready paged HTML, or real PDF bytes — the editor, the CLI,
+  and the server all call the *same* core, so what you design is exactly what prints.
+- **Prove** — seal it (a versioned SHA-256 content hash), sign it (Ed25519), route it for
+  approval, and verify it **offline with no backend** — everything needed to check the
+  document lives inside the file.
+
+The result is **offline-verifiable, agent-native, and gov-ready**: an agent can drive the
+whole lifecycle through the [MCP server](./mcp-server), and the same bytes are accepted by a
+court (PAdES) or an archive (PDF/A).
+
+### Which tool for which job
+
+| I want to…                                          | Reach for                                         |
+| --------------------------------------------------- | ------------------------------------------------- |
+| Parse / render / query / merge / seal in code       | [`@dotit/core`](./core-api)                       |
+| Do all of the above from the terminal or CI         | [the `dotit` CLI](./cli)                          |
+| Let an AI agent drive the toolchain                 | [`@dotit/mcp`](./mcp-server)                      |
+| Edit `.it` visually (web or embedded in your app)   | [`@dotit/editor`](./editor)                       |
+| Author `.it` in VS Code                             | [VS Code extension](./vscode-extension)           |
+| Generate real PDF bytes on a server (email/archive) | [`@dotit/pdf`](./erp-integration)                 |
+| Apply a court-recognized PDF signature              | [`@dotit/pades`](./core-api#court-recognized-pdf-signatures) |
+| Add Ed25519 signatures + an authority certify chain | [`@dotit/sign`](./core-api#cryptographic-signatures-and-certification) |
+| Use `.it` as the print/report engine inside an ERP  | [ERP / App Integration](./erp-integration)        |
 
 ## Core
 
 | Tool                       | Description                                          |
 | -------------------------- | ---------------------------------------------------- |
-| [Core Library](./core-api) | `@dotit/core` **1.24** — parse, render, query, merge, trust (versioned seal `spec: 4`), forms, redline/compare, redaction, attachments, math markers, convert |
-| `@dotit/pdf` **1.1**       | Server-side PDFs — merge → seal → PDF; **PDF/A** archival; PAdES-signed PDF; opt-in |
+| [Core Library](./core-api) | `@dotit/core` **1.25** — parse, render, query, merge, trust (versioned seal `spec: 4`), forms, approval routing + audit chain, redline/version-compare, redaction, attachments, conformance, e-invoice (UBL), math markers, convert |
+| `@dotit/pdf` **1.2**       | Server-side PDFs — merge → seal → PDF; **PDF/A** archival; PAdES-signed PDF; opt-in |
 | `@dotit/pades` **1.0**     | **PAdES** (Adobe/court-recognized) PDF signatures — X.509/ECDSA + CMS; CSR/CA issuance |
 | `@dotit/sign` **1.4**      | Ed25519 signatures + UTS certification chain |
 | `@dotit/math` **0.1**      | Math rendering — dependency-free lite MathML + optional KaTeX |
@@ -29,7 +49,7 @@ IntentText is more than a file format. It's a complete toolchain for structured 
 | Tool                                    | Description                                               |
 | --------------------------------------- | --------------------------------------------------------- |
 | [VS Code Extension](./vscode-extension) | Syntax highlighting, snippets, hover docs, trust commands |
-| [Editor](./editor)                      | `@dotit/editor` **1.15** — Word-like WYSIWYG **and** an embeddable React component: one `<IntentTextWorkbench>` with every mode (edit / fill / review / view), New ▸ Document/Form/Template, form builder, per-signer trust banner, version history, attachment fill, version-compare, print/PDF |
+| [Editor](./editor)                      | `@dotit/editor` **1.16** — Word-like WYSIWYG **and** an embeddable React component: `<IntentTextEditor>` plus the `<IntentTextWorkbench>` mode wrapper (edit / fill / review / view / auto), New ▸ Document/Form/Template, form builder, per-signer trust banner, approval-route panel, version history, attachment fill, version-compare, print/PDF |
 
 ## Distribution
 

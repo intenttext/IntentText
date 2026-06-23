@@ -41,6 +41,7 @@ const sidebars: SidebarsConfig = {
         "reference/keywords/document-identity",
         "reference/keywords/content",
         "reference/keywords/structure",
+        "reference/keywords/tasks",
         "reference/keywords/data",
         "reference/keywords/agent",
         "reference/keywords/trust",
@@ -68,6 +69,7 @@ const sidebars: SidebarsConfig = {
         "cookbook/documents/contract",
         "cookbook/documents/report",
         "cookbook/documents/newsletter",
+        "cookbook/documents/e-invoice",
       ],
     },
     {
@@ -77,12 +79,20 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Forms",
+      items: ["cookbook/forms/fillable-forms"],
+    },
+    {
+      type: "category",
       label: "Trust",
       items: [
         "cookbook/trust/approval-workflow",
         "cookbook/trust/sealing-contracts",
         "cookbook/trust/amending-frozen-docs",
         "cookbook/trust/audit-trail",
+        "cookbook/trust/attachments",
+        "cookbook/trust/redline-and-compare",
+        "cookbook/trust/conformance",
       ],
     },
     {

@@ -118,7 +118,7 @@ The same contract pattern works fully in Arabic. The 33 Arabic keyword aliases i
 
 قسم: الدفع
 
-مؤشر: الأتعاب الشهرية | value: 55,000 ر.ق
+مؤشر: الأتعاب الشهرية | value: 55000 | unit: QAR
 مهلة: استحقاق الدفعة الأولى | date: 2026-07-15 | status: pending
 نص: تُسدد الدفعات خلال 15 يومًا من تاريخ كل فاتورة شهرية.
 

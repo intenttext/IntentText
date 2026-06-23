@@ -18,7 +18,7 @@ The [IntentText Hub](https://hub.dotit.uts.qa) is the template gallery for `.it`
 | Personal     | 6     | Letters, plans, personal documents                |
 | Reports      | 10    | Status reports, metrics dashboards, summaries     |
 
-Filter by domain or search by name, copy the source, and merge your data with [`parseAndMerge`](../reference/templates) or the [editor's template mode](./editor#template-mode).
+Filter by domain or search by name, copy the source, and merge your data with [`parseAndMerge`](../reference/templates) or the [editor's template mode](./editor).
 
 The 8 built-in [themes](./themes) are pre-installed everywhere — no Hub download needed.
 

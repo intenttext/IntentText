@@ -158,10 +158,10 @@ the reserved surface can stay small without losing extensibility.
 | Tier | Keywords | Use for |
 | --- | --- | --- |
 | **core** (13) | `title` `summary` `meta` `section` `sub` `text` `info` `quote` `code` `image` `link` `task` `done` | Everyday documents: notes, READMEs, plans |
-| **agent** | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` | AI / workflow documents |
-| **contract** | `track` `approve` `sign` `freeze` `certify` `amendment` `route` `require` `cite` | Signed, frozen, auditable documents (`history`/`revision` are machine-managed, not tier members) |
-| **data** | `headers` `row` `metric` | Structured tabular / metric data |
-| **print** | `page` `header` `footer` `watermark` `break` `toc` | Print / PDF layout |
+| **agent** (9) | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` | AI / workflow documents |
+| **contract** (9) | `track` `approve` `sign` `freeze` `certify` `amendment` `route` `require` `cite` | Signed, frozen, auditable documents (`history`/`revision` are machine-managed, not tier members) |
+| **data** (3) | `headers` `row` `metric` | Structured tabular / metric data |
+| **print** (7) | `toc` `page` `header` `footer` `watermark` `style` `break` | Print / PDF layout |
 
 > **Callouts.** `info:` is the canonical callout block; the everyday authoring forms
 > `note:` `tip:` `warning:` `danger:` `success:` are aliases that set the callout

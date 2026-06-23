@@ -135,7 +135,7 @@ accessibility**:
   ```intenttext
   image: Q3 revenue by region, bar chart — EU leads at 41% | src: ./charts/q3.png
   ```
-- Use `columns:` / `row:` for tabular data so it tags as a real table with header cells,
+- Use `headers:` / `row:` for tabular data so it tags as a real table with header cells,
   not as positioned text.
 
 For archival on top of accessibility, pair tagged output with **PDF/A** (`toPdfA` /
@@ -150,12 +150,12 @@ Export multiple documents:
 ```bash
 # Export all contracts
 for f in contracts/*.it; do
-  intenttext "$f" --pdf --theme legal
+  dotit "$f" --pdf --theme legal
 done
 
 # Export all with a template
 for f in invoices/*.it; do
-  intenttext "$f" --data clients.json --pdf --theme corporate
+  dotit "$f" --data clients.json --pdf --theme corporate
 done
 ```
 

@@ -85,8 +85,8 @@ The canonical keywords have registered Arabic aliases — same semantics, same q
 
 قسم: البنود
 أعمدة: الوصف | الكمية | الإجمالي
-صف: كرسي مكتب تنفيذي | 12 | 10,200 QAR
-مؤشر: الإجمالي المستحق | value: 10,200 QAR
+صف: كرسي مكتب تنفيذي | 12 | 10200 QAR
+مؤشر: الإجمالي المستحق | value: 10200 | unit: QAR
 
 مهمة: اعتماد العرض | owner: أحمد | due: 2026-06-20
 ```

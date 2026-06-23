@@ -19,20 +19,21 @@ IntentText has **41 canonical keywords** (13 in the everyday core tier), grouped
 - **Description** — what the block does
 - **Properties** — keyword-specific pipe properties (not including [style properties](../style-properties) which are available on all blocks)
 
-## Canonical keyword categories
+## Canonical keyword tiers
 
-| Category          | Count | Purpose                                                                  |
-| ----------------- | ----- | ------------------------------------------------------------------------ |
-| Document Identity | 4     | What the document is — title, metadata, context, tracking                |
-| Structure         | 3     | How the document is organized — sections, subsections, table of contents |
-| Content           | 7     | What the document says — text, quotes, callouts, code, images, links     |
-| Tasks             | 3     | Actionable items — tasks, completions, open questions                    |
-| Data              | 3     | Typed data — tables, rows, metrics                                       |
-| Agentic Workflow  | 9     | Executable workflows — steps, decisions, gates, approval routing, policy |
-| Trust             | 6     | Document integrity — approval, signing, sealing, certification, amendments |
-| Layout            | 6     | Print and PDF — page setup, headers, footers, watermarks, document styles |
+The 41 canonical keywords are grouped into five tiers (`KEYWORD_TIERS` in `@dotit/core`).
+The tier counts are authoritative; the documentation splits the everyday **core** tier
+across several category pages (Document Identity, Structure, Content, Tasks) for readability.
 
-Each keyword has a dedicated entry in its category page with full syntax, properties table, examples, and behavioral notes.
+| Tier         | Count | Keywords / purpose                                                                                  |
+| ------------ | ----- | -------------------------------------------------------------------------------------------------- |
+| **core**     | 13    | `title` `summary` `meta` `section` `sub` `text` `info` `quote` `code` `image` `link` `task` `done` |
+| **agent**    | 9     | `context` `ask` `step` `decision` `gate` `trigger` `result` `policy` `audit`                       |
+| **contract** | 9     | `cite` `track` `approve` `sign` `freeze` `amendment` `certify` `route` `require`                   |
+| **data**     | 3     | `headers` `row` `metric`                                                                            |
+| **print**    | 7     | `toc` `page` `header` `footer` `watermark` `style` `break`                                          |
+
+Each keyword has a dedicated entry in its category page with full syntax, properties table, examples, and behavioral notes. The documentation pages map onto the tiers as: Document Identity / Structure / Content / Tasks cover the **core** tier (plus `context` and `cite`); Agent covers **agent**; Trust covers **contract**; Data covers **data**; Layout covers **print**.
 
 ## Write keywords in Arabic
 
@@ -54,20 +55,23 @@ The `مهمة:` line is a `task` block (`type=task` queries match it), the table
 
 Beyond the 41 canonical keywords, IntentText supports **extension blocks** via a namespaced `x-ns:` prefix. Extensions cover domain-specific and advanced use cases without polluting the core keyword set.
 
-| Namespace   | Domain                       | Examples                                                                                                                                                              |
-| ----------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `x-writer:` | Editorial / publishing       | `byline`, `figure`, `caption`, `footnote`, `epigraph`, `dedication`                                                                                                   |
-| `x-doc:`    | Document cross-references    | `def`, `contact`, `deadline`, `ref`, `signline`                                                                                                                       |
-| `x-agent:`  | Advanced agent orchestration | `loop`, `parallel`, `retry`, `wait`, `handoff`, `call`, `checkpoint`, `signal`, `import`, `export`, `progress`, `tool`, `prompt`, `memory`, `error`, `agent`, `model` |
-| `x-trust:`  | Trust history                | `history`, `revision`                                                                                                                                                 |
-| `x-layout:` | Advanced typography          | `font`, `divider`                                                                                                                                                     |
-| `x-exp:`    | Experimental                 | `assert`, `secret`                                                                                                                                 |
+| Namespace   | Domain                       | Stability    | Examples                                                                                                                                                              |
+| ----------- | ---------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `x-form:`   | Typed I/O parameters         | **stable**   | `input`, `output`                                                                                                                                                    |
+| `x-writer:` | Editorial / publishing       | stable       | `byline`, `figure`, `caption`, `footnote`, `epigraph`, `dedication`                                                                                                  |
+| `x-doc:`    | Document cross-references    | stable       | `def`, `contact`, `deadline`, `ref`, `signline`, `attach`                                                                                                            |
+| `x-agent:`  | Advanced agent orchestration | stable       | `loop`, `parallel`, `retry`, `wait`, `handoff`, `call`, `checkpoint`, `signal`, `import`, `export`, `progress`, `tool`, `prompt`, `memory`, `error`, `agent`, `model` |
+| `x-trust:`  | Trust history                | machine-managed | `history`, `revision`                                                                                                                                             |
+| `x-layout:` | Advanced typography          | stable       | `font`, `divider`                                                                                                                                                    |
+| `x-exp:`    | Experimental                 | experimental | `assert`, `secret`                                                                                                                                                   |
 
 Extension blocks follow the same pipe-property syntax as canonical blocks — `x-<namespace>: <type> | key: value` — and are parsed, rendered, and queryable through all core APIs:
 
 ```intenttext
+x-form: input | label: Company name | key: company | type: text | required: yes
 x-writer: byline | date: 2026-03-09
 x-doc: ref | file: ./policy.it | rel: supersedes
+x-doc: attach | name: receipt.pdf | mime: application/pdf | sha256: <hash>
 x-agent: loop | over: invoices
 x-trust: revision | version: 1.1 | by: Ahmed
 x-layout: divider | style: dashed

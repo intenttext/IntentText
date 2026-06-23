@@ -239,9 +239,12 @@ in `@dotit/core`.
 
 ### Store `.it` so a seal can never break
 
-The seal hashes the **raw source bytes**. So persist the `.it` as **text, exactly
-as authored** — never re-serialize it through a model on save, and never let the
-DB normalize whitespace/encoding. The storage contract makes that a hard guarantee:
+The seal is a SHA-256 hash over the document's **content** under `spec: 4` — it excludes
+styling + comments and normalizes line endings (CRLF/CR → LF) + trailing whitespace, so a
+reformat, a `git autocrlf` transform, or a whitespace re-save **won't** break it; only a real
+content change does. Storing the `.it` as **UTF-8 text, exactly as authored** is still the
+safest default (it keeps every byte stable for diffs and signatures). The storage contract
+makes byte-integrity a hard, separate guarantee:
 
 ```ts
 import { toStorageRecord, fromStorageRecord } from "@dotit/core";

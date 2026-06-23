@@ -9,9 +9,30 @@ AI agents produce Markdown. Markdown has no structure for workflows, no typed bl
 
 IntentText gives agents a small set of canonical workflow keywords that produce documents machines can execute and humans can read. The executor enforces gate checks and policy rules before a single step runs.
 
+## Why not JSON or YAML for tool calls?
+
+The reflex for "structured agent output" is a JSON or YAML tool-call payload. That works
+for one machine handing data to another, but it is **not a document**: a human can't read a
+500-line JSON pipeline, it has no audit trail, no approval gates a person can sign, and
+nothing makes it tamper-evident. A `.it` workflow is **both** — the same file an agent
+executes, a human reviews and approves, and anyone verifies offline:
+
+| | JSON / YAML tool call | `.it` workflow |
+| --- | --- | --- |
+| Machine-executable | Yes | Yes (`executeWorkflow`) |
+| Human-readable as a document | No | Yes — typed lines, renders to HTML/PDF |
+| Human approval gates | No | `gate:` / `route:` / `require:` |
+| Tamper-evident audit trail | No | hash-chained `approve:` + `sign:`/`freeze:` |
+| Self-verifiable offline | No | `verifyDocument` / `verifyAuditChain` |
+| Self-validating | Schema, external | `checkConformance(source)` |
+
+**The payoff: one artifact is the plan, the human gate, and the sealed record.** No second
+system holds the approval state, the audit log, or the signed copy — they all travel inside
+the file the agent produced.
+
 ## The workflow keywords
 
-Seven canonical keywords cover the full agent workflow lifecycle:
+Nine canonical keywords (the **agent** tier) cover the full agent workflow lifecycle:
 
 | Keyword     | Purpose                                                              |
 | ----------- | -------------------------------------------------------------------- |
@@ -22,11 +43,20 @@ Seven canonical keywords cover the full agent workflow lifecycle:
 | `result:`   | Terminal workflow outcome                                            |
 | `policy:`   | Rule declaration — constraints the executor enforces before running  |
 | `audit:`    | Immutable audit log entry                                            |
+| `ask:`      | A question the workflow must resolve (human or model)               |
+| `context:`  | Agent execution context — goal and constraints                       |
 
-**Related keywords in other categories:**
+**Approval routing (contract tier).** When a workflow needs *named human approvers*, declare
+them in-file with `route:` / `require:` — `workflowState(source)` then derives who's pending
+and who's next, purely from the file. See [Approval Workflows](./approval-workflows).
 
-- `task:` / `done:` / `ask:` — task tracking (Tasks category)
-- `context:` — agent execution context, goal, and constraints (Document Identity)
+```intenttext
+route: sequential
+require: engineering-manager
+require: security | when: touches_prod = yes
+```
+
+**Related task keywords:** `task:` / `done:` — task tracking.
 
 **Extended workflow keywords** (for complex orchestration):
 
@@ -133,14 +163,48 @@ If a required gate has not passed, the executor returns `policy_blocked` without
 
 ---
 
-## Audit logging
+## Self-validate before handing off
 
-Agents write `audit:` blocks to build an immutable record of what was executed, by whom, and when:
+An agent should check its own output before passing it on. `checkConformance` is read-only
+(it never rewrites the document) and reports structural + semantic issues:
+
+```typescript
+import { checkConformance } from "@dotit/core";
+
+const { conformant, errors, warnings } = checkConformance(generatedSource, { level: "lax" });
+if (!conformant) throw new Error(`generated invalid .it: ${errors.map((e) => e.message).join("; ")}`);
+```
+
+Use **lax** (no error-level issues) as a hard gate; **strict** (no warnings either, e.g.
+every date ISO 8601) when you certify a spotless artifact. Unknown keywords are never errors
+— an agent can invent domain vocabulary and still produce a conformant document.
+
+## Audit logging — and making the order tamper-evident
+
+Agents write `audit:` blocks to build a record of what was executed, by whom, and when:
 
 ```intenttext
 audit: Fetched 12,450 records | by: DataBot | at: 2026-03-06T02:15:00Z | action: export
 audit: Migration complete — 0 errors | by: DataBot | at: 2026-03-06T03:45:00Z | action: migrate
 ```
+
+For **approvals**, go one step further: the hash-chained audit trail makes the *order*
+tamper-evident, so nobody can insert, delete, or reorder an approval after the fact.
+`appendApproval` links each `approve:` line to the previous via `prev: sha256:…`, and
+`verifyAuditChain` reports the first broken link:
+
+```typescript
+import { appendApproval, verifyAuditChain } from "@dotit/core";
+
+let src = appendApproval(plan, { by: "DataBot", role: "agent", note: "Pre-flight checks passed" });
+src = appendApproval(src, { by: "Sarah Chen", role: "engineering-manager", note: "Approved" });
+
+verifyAuditChain(src);   // { valid: true, length: 2, chained: 2 }
+```
+
+Seal the plan after the approvals (`approve:` is part of the hashed body), and the seal
+protects the body while the chain protects the order — together, the whole agent-plus-human
+decision record is tamper-evident. See [Approval Workflows](./approval-workflows#4-make-the-order-tamper-evident-the-audit-chain).
 
 Query the audit trail:
 

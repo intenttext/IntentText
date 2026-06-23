@@ -169,17 +169,22 @@ What `seal` actually does, in order:
    properties like `color`/`size`/`align`), then applies the **seal scope** — it
    keeps each `sign:` line whole and the `freeze:` line with only its own `hash:`
    blanked (so the seal covers the signatures and its own `at:`/`status:`), and
-   removes `certify:`/`amendment:`. It NFC-normalizes, joins with `\n`, trims, and
-   computes **SHA-256 over the UTF-8 bytes**. The result is the `sha256:<hex>`
-   string you see. `approve:` lines are *included* — an approval is part of what
-   gets sealed; **restyling and comments never break a seal**.
+   removes `certify:`/`amendment:`. It normalizes line endings (CRLF/lone-CR → LF) and
+   trailing whitespace, NFC-normalizes, joins with `\n`, trims, and computes
+   **SHA-256 over the UTF-8 bytes** of that canonical *content*. The result is the
+   `sha256:<hex>` string you see. `approve:` lines are *included* — an approval is part of
+   what gets sealed; **restyling, reformatting, CRLF/whitespace changes, and comments never
+   break a seal** (only a content change does).
 2. **Appends two lines to the file** (just above `history:`, or at the end), each
    stamped with the `spec:` ruleset that produced its hash:
 
    ```intenttext
    sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-12T16:42:23.608Z | hash: sha256:53cdd027… | spec: 4
-   freeze: | at: 2026-06-12T16:42:23.608Z | hash: sha256:53cdd027… | spec: 4 | status: locked
+   freeze: | at: 2026-06-12T16:42:23.608Z | hash: sha256:53cdd027… | spec: 4 | appearance: sha256:9f1c… | status: locked
    ```
+
+   (`appearance:` is a second hash over the content *as styled* — it flags a post-seal
+   restyle that could hide content, without breaking the integrity seal.)
 
 3. **Writes the file in place.** Nothing else changes — sealing never reformats
    your document.
@@ -291,9 +296,10 @@ check it, in any language, with no vendor and no service. That gives you
 - **Not encryption.** The document stays plain text. Sealing proves integrity,
   not confidentiality.
 
-Practical rules: archive the sealed source **byte-exact** (the hash covers exact
-bytes — converting LF to CRLF changes it), never edit above `history:` after
-sealing, and use `amendment:` for every change.
+Practical rules: archive the sealed source as **UTF-8 text** (byte-exact storage is good
+hygiene, but the seal hashes *content*, so a CRLF/whitespace transform won't break it —
+only a real content change does), never edit above `history:` after sealing, and use
+`amendment:` for every change.
 
 ## Where the CLI shines
 
@@ -328,6 +334,24 @@ spreadsheet. See [A Folder Is a Database](/docs/guide/folder-as-database).
 agent tool-use directly; the [MCP server](/docs/ecosystem/mcp-server) exposes the
 same operations as tools, and [`/llms.txt`](https://dotit.uts.qa/llms.txt)
 teaches any LLM to author the documents the pipeline consumes.
+
+## Library-only operations
+
+A few capabilities are exposed by `@dotit/core` (and the [MCP server](/docs/ecosystem/mcp-server))
+but not as `dotit` subcommands yet — call them from code:
+
+- **Conformance** — `checkConformance(source, { level })` (`lax`/`strict`). The CLI's
+  `--validate <schema>` covers schema checks today; format conformance is library-only.
+- **Version compare / 3-way merge** — `compareVersions(a, b)` (redline) and `mergeThreeWay`
+  for async co-authoring. (`dotit verify` and `dotit history` cover the integrity/audit side
+  on the CLI.)
+- **Approval routing** — `route:`/`require:` policy and live `workflowState(source)` are
+  evaluated in core; `dotit query --type approve` lists approvals, but driving the route is
+  library-only.
+- **Cryptographic signatures & certification** — `dotit seal`/`verify` cover the SHA-256
+  integrity seal; Ed25519 `sign:` and authority `certify:` verification live in
+  [`@dotit/sign`](./core-api#cryptographic-signatures-and-certification) (and the MCP server's `verify_signatures` /
+  `verify_certification` tools).
 
 ## Full command reference
 

@@ -84,6 +84,27 @@ dotit query ./reports --type metric --section "Revenue" --format csv
 dotit ask ./reports "What's our MRR trend?" --format text
 ```
 
+### Reading values back as typed numbers
+
+Because money and metrics are stored as a **bare magnitude** plus a separate `unit:` (no
+symbols, no thousands separators), the value reads back cleanly as a real number. The
+typed-value reader splits the magnitude, unit, and currency and classifies the kind:
+
+```javascript
+import { readTypedValue, metricTypedValue } from "@dotit/core";
+
+readTypedValue("4200000", "USD");
+// { raw: "4200000", number: 4200000, unit: "USD", currency: "USD", kind: "money" }
+
+readTypedValue("2.1", "%");
+// { raw: "2.1", number: 2.1, unit: "%", currency: null, kind: "percent" }
+
+metricTypedValue(metricBlock).number; // the numeric value of a parsed metric: block
+```
+
+So you can sum, compare, or chart `metric:` values directly — no string-stripping. (This is
+the payoff of the money rule: `value: 4200000 | unit: USD`, never `value: $4,200,000`.)
+
 ## Agent monitoring
 
 Agents can write metrics to a `.it` file as part of their pipeline:

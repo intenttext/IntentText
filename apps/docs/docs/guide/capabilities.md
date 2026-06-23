@@ -32,8 +32,9 @@ trail. No second system to keep in sync.
 
 | Capability | What it is | Docs |
 | --- | --- | --- |
-| **Tables** | `columns:` / `row:` typed tabular data; totals; `each:` dynamic rows from data | [Data keywords](../reference/keywords/data) · [Templates](../reference/templates) |
+| **Tables** | `headers:` / `row:` typed tabular data; totals; `each:` dynamic rows from data | [Data keywords](../reference/keywords/data) · [Templates](../reference/templates) |
 | **Metrics** | `metric:` measurable values, queryable and dashboard-ready | [Metrics cookbook](../cookbook/data/metrics-and-dashboards) |
+| **Typed values & money** | `metric:`'s `value:` holds a bare magnitude + `unit:` (ISO-4217 / `%` / unit); `readTypedValue` / `metricTypedValue` parse it to `{ number, currency, kind }` | [Data keywords](../reference/keywords/data) |
 | **Definitions & figures** | `def:` glossary entries, `figure:` numbered captioned figures, `ref:` cross-doc references | [Data cookbook](../cookbook/data/definitions-and-glossaries) |
 | **Folder as a database** | Every `.it` in a folder is a queryable row — no DB, no import | [A Folder Is a Database](./folder-as-database) |
 | **Query engine** | `queryBlocks` / `queryDocument` / `dotit query` across any number of files | [Query reference](../reference/query) |
@@ -52,7 +53,7 @@ trail. No second system to keep in sync.
 
 | Capability | What it is | Docs |
 | --- | --- | --- |
-| **Integrity seal** | SHA-256 seal over exact bytes — tamper-evident, offline-verifiable forever | [Trust & Signing](./trust-and-signing) |
+| **Integrity seal** | SHA-256 seal over canonical content (styling, comments, CRLF/whitespace excluded) — tamper-evident, offline-verifiable forever | [Trust & Signing](./trust-and-signing) |
 | **Approve / sign / freeze / amend** | The trust lifecycle, each step a line in the file | [Trust & Signing](./trust-and-signing) |
 | **Ed25519 signatures** | `@dotit/sign` — cryptographic identity binding a key to a hash | [Trust §Layer 2](./trust-and-signing#layer-2--identity-ed25519-signatures) |
 | **Authority / certification** | UTS `certify:` with root→intermediate X.509-style chain | [Trust §Layer 3](./trust-and-signing#layer-3--authority-uts-certification) |
@@ -99,6 +100,8 @@ trail. No second system to keep in sync.
 | Capability | What it is | Docs |
 | --- | --- | --- |
 | **Config / options file** | A readable, commentable, *signable* alternative to YAML/JSON | [Config & Options](./config-and-options) |
+| **Conformance check** | `checkConformance(src, { level })` — **lax** (no errors) or **strict** (no warnings either); read-only, never rewrites | [Conformance](../reference/conformance) |
+| **Format version stamp** | An optional `// it-format: 1.0` header comment → `document.version`; the level inferred from blocks used is `document.detectedFeatureLevel` | [Conformance](../reference/conformance) |
 | **Lossless round-trip** | `parseIntentText` ⇄ `documentToSource` reproduce source byte-for-byte | [Conformance](../reference/conformance) |
 | **Storage contract** | `toStorageRecord` / `verifyStorageRecord` — byte-exact persistence, drift detected | [Byte Preservation](./byte-preservation#storing-without-re-encoding-the-storage-contract) |
 | **Embeddable editor** | `@dotit/editor` — a controlled React editor over plain `.it` source | [Editor](../ecosystem/editor) |
@@ -120,8 +123,10 @@ you in **one portable text file**:
 3. **The workflow lives inside the document.** Routing policy, live state, and a
    tamper-evident approval trail are derived from the file, not a database.
    ([Approval Workflows](./approval-workflows))
-4. **The bytes are sacred.** No tool reformats your file; a sealed document keeps its hash
-   through editing, storage, and round-tripping. ([Byte Preservation](./byte-preservation))
+4. **The seal survives reformatting.** The seal hashes canonical content, so restyling,
+   reformatting, and CRLF/whitespace changes never break it — only a real content change
+   does. Byte-preservation tooling keeps your stored file faithful on top of that.
+   ([Byte Preservation](./byte-preservation))
 5. **It reads like a document and parses like a database.** The same lines a clerk reads,
    code queries. ([A Folder Is a Database](./folder-as-database))
 

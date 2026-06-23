@@ -61,7 +61,7 @@ Every line above is a fully typed block: `عنوان` is a `title`, `مهمة` i
 | `رابط:`    | `link:`      | | `مهلة:`    | `deadline:` |
 | `مهمة:`    | `task:`      | | `جهة:`     | `contact:`  |
 | `منجز:`    | `done:`      | | `تواصل:`   | `contact:`  |
-| `أعمدة:`   | `columns:`   | | `تعريف:`   | `def:`      |
+| `أعمدة:`   | `headers:`   | | `تعريف:`   | `def:`      |
 | `صف:`      | `row:`       | | `مرجع:`    | `ref:`      |
 | `مؤشر:`    | `metric:`    | |            |             |
 
@@ -137,7 +137,7 @@ primary forms above: `alert`/`caution` → warning, `hint`/`advice` → tip,
 
 | Canonical  | Aliases                                   |
 | ---------- | ----------------------------------------- |
-| `columns:` | `أعمدة:`, `headers:`                      |
+| `headers:` | `أعمدة:`, `columns:`                      |
 | `row:`     | `صف:`                                     |
 | `metric:`  | `مؤشر:`, `kpi:`, `measure:`, `indicator:` |
 
@@ -182,11 +182,11 @@ A few extension keywords also have registered aliases that resolve to the extens
 
 | Extension keyword | Aliases                                                            |
 | ----------------- | ------------------------------------------------------------------ |
-| `deadline`        | `مهلة:`, `due:`, `milestone:`, `by:`, `due-date:`                  |
+| `deadline`        | `مهلة:`, `due:`, `milestone:`, `due-date:`                         |
 | `contact`         | `جهة:`, `تواصل:`, `person:`, `party:`, `entity:`                   |
 | `def`             | `تعريف:`, `define:`, `term:`, `glossary:`                          |
 | `ref`             | `مرجع:`, `references:`, `see:`, `related:`, `xref:`                |
-| `figure`          | `fig:`, `diagram:`, `chart:`, `illustration:`, `visual:`           |
+| `figure`          | `fig:`                                                             |
 | `signline`        | `signature-line:`, `sign-here:`                                    |
 
 Namespaced forms (`x-ns: type`) do not take aliases — the full `x-ns: type` form is always used. See the extensions overview in [Keywords →](./index.md#extension-keywords).

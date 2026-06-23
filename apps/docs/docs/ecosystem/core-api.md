@@ -11,7 +11,7 @@ TypeScript/JavaScript API reference for `@dotit/core`.
 npm install @dotit/core
 ```
 
-Current version: **1.21.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
+Current version: **1.25.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
 
 ## Parser
 
@@ -318,6 +318,24 @@ interface QueryResult {
 }
 ```
 
+### `readTypedValue(raw, unit?)` / `metricTypedValue(block)`
+
+Interpret a raw value (or a `metric:` block's value) into a typed object — the number,
+unit, currency, and a `kind` (`money` / `percent` / `quantity` / `number` / `text`). Use
+this to do math on totals or to sort/format `metric:` values without re-parsing strings.
+
+```typescript
+import { readTypedValue, metricTypedValue, parseNumericValue } from "@dotit/core";
+
+readTypedValue("17,325 QAR");
+// { raw: "17,325 QAR", number: 17325, unit: null, currency: "QAR", kind: "money" }
+
+const m = parseIntentText("metric: Margin | value: 18%").blocks[0];
+metricTypedValue(m); // { raw: "18%", number: 18, unit: "%", currency: null, kind: "percent" }
+
+parseNumericValue("1,250.50"); // 1250.5
+```
+
 ## Merge
 
 ### `mergeData(document, data, options?)`
@@ -368,17 +386,23 @@ collectDocumentStyles(doc);
 
 ## Trust
 
-The trust hash is **versioned**: every `sign:`/`freeze:` line stamps a `spec:` version
-(current `SEAL_SPEC = 4`), and verification applies exactly that version forever, so a
-future byte-rule change can never silently break a historical seal. `spec: 4` excludes
-**styling** (presentation lines/properties) and **comments** from the hash, covers the
-seal's own metadata, and binds each signer's identity. See [SPEC §4](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md).
+A seal is a **SHA-256 hash over the document's CONTENT** under a recorded `spec:` version
+(currently `SEAL_SPEC = 4`). v4 **excludes styling + comments and normalizes line endings
+(CRLF/CR → LF) + trailing whitespace** — so restyling, reformatting, a CRLF transform, or a
+trailing-whitespace re-save **never** break a seal; only a real content change does. The seal
+is **versioned**: every `sign:`/`freeze:` line stamps the `spec:` that produced its hash, and
+verification applies exactly that version forever, so a future rule change can never silently
+break a historical seal. A v4 seal also records a separate **`appearance:`** hash that flags a
+hidden-content restyle (e.g. `opacity: 0`) without invalidating the seal — content is intact,
+but `verifyDocument` sets `appearanceChanged`. Preserving exact bytes is **storage hygiene**,
+not what the seal enforces. See [SPEC §4](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md).
 
 ### `sealDocument(source, options)`
 
 Seal a document: appends a `sign:` line (optional) and a `freeze:` line carrying the
-SHA-256 seal hash and `spec: 4`. Returns the updated source — store it exactly as returned
-(the hash covers the exact bytes).
+SHA-256 content hash, the `appearance:` hash, and `spec: 4`. Returns the updated source —
+store it as returned (re-serializing through a model on save is fine because the seal hashes
+*content*, not bytes; but a clean store is still the safest default).
 
 ```typescript
 import { sealDocument } from "@dotit/core";
@@ -398,7 +422,22 @@ signed an earlier version is reported as such, not as a blanket failure.
 import { verifyDocument } from "@dotit/core";
 
 const result = verifyDocument(source);
-// result.intact, result.hash, result.frozen, result.spec, result.specOutdated, result.signers
+// result.intact, result.hash, result.frozen, result.spec, result.specOutdated,
+// result.appearanceChanged, result.signers
+```
+
+### `signDocument(source, options)` / `unsealDocument(source)`
+
+`signDocument` appends a `sign:` line carrying the **content**-scope hash and `spec: 4`
+(identity-bound, no `freeze:`) — use it when a party signs but isn't the one locking the
+document. `unsealDocument` strips the `freeze:` line (and is a no-op on an unsealed document),
+so a sealed draft can be reopened for editing and then re-sealed.
+
+```typescript
+import { signDocument, unsealDocument } from "@dotit/core";
+
+const signed = signDocument(source, { signer: "Ahmed", role: "CEO" }); // { success, hash, source, at }
+const reopened = unsealDocument(sealedSource); // freeze: removed
 ```
 
 ### `computeDocumentHash(source)` / `computeSignatureHash(source, signer)`
@@ -457,8 +496,8 @@ interface SealOptions {
 
 interface SealResult {
   success: boolean;
-  hash: string; // "sha256:…"
-  source: string; // the sealed text — store exactly as returned
+  hash: string; // "sha256:…" — the content hash (not a hash of the raw bytes)
+  source: string; // the sealed text
   at: string;
   error?: string;
 }
@@ -467,7 +506,8 @@ interface VerifyResult {
   intact: boolean;
   frozen: boolean;
   frozenAt?: string;
-  spec?: number; // the recorded seal ruleset (e.g. 3)
+  appearanceChanged?: boolean; // content intact, but styling changed since sealing (possible hidden-content restyle)
+  spec?: number; // the recorded seal ruleset (currently 4)
   specOutdated?: boolean; // true if the seal predates the current SEAL_SPEC
   signers?: Array<{
     signer: string;
@@ -601,6 +641,22 @@ import { diffDocuments } from "@dotit/core";
 const diff = diffDocuments(oldDoc, newDoc);
 // diff.added, diff.removed, diff.modified, diff.unchanged
 // diff.summary — "2 added, 1 removed, 3 modified, 10 unchanged"
+```
+
+### `compareVersions(before, after, options?)` / `mergeThreeWay(base, mine, theirs, options?)`
+
+`compareVersions` produces a **redline `.it` document** (track-change spans) between two
+versions of a document's source — the same diff the editor's "Review changes" view and the
+`<Redline>` viewer render. `mergeThreeWay` does a 3-way (base / mine / theirs) merge for
+async co-authoring, marking conflicts as track-change regions.
+
+```typescript
+import { compareVersions, mergeThreeWay } from "@dotit/core";
+
+const redlineSource = compareVersions(oldSource, newSource, { by: "Sarah" });
+
+const { source, conflicts } = mergeThreeWay(baseSource, mineSource, theirsSource);
+// conflicts: number of unresolved regions (0 = clean merge)
 ```
 
 ## Workflow
@@ -834,6 +890,69 @@ auditTrail(src); // ordered AuditEvent[] — kind: approve|sign|freeze|amendment
 A plain hand-written `approve:` (no `prev:`) is a valid un-chained link, never reported as
 tampered.
 
+## Forms
+
+A document with `meta: type: form` turns `input:` lines into fields a recipient fills —
+text, choice, date, number, signature, table, and attachment, with `required:`, `show-if:`
+(conditional), and `compute:` (computed) modifiers. See the [fillable forms recipe](/docs/cookbook/forms/fillable-forms).
+
+### `isForm(source)` / `isFormComplete(source)` / `extractFormFields(source)`
+
+```typescript
+import { isForm, isFormComplete, extractFormFields, missingRequiredFields } from "@dotit/core";
+
+isForm(source); // true if meta: type: form
+isFormComplete(source); // true once every required field has a value
+missingRequiredFields(source); // string[] of unanswered required field ids
+```
+
+### `applyAnswers(source, answers)` / `setFieldValue` / `computeFormValues`
+
+Fill a form programmatically and resolve computed fields. `applyAnswers` returns the
+updated `.it` source — a complete form is then signable.
+
+```typescript
+import { applyAnswers, isFormComplete, computeFormValues } from "@dotit/core";
+
+const filled = applyAnswers(blankForm, {
+  legal_name: "Acme",
+  qty: "10",
+  unit_price: "250",
+});
+computeFormValues(filled); // resolves compute: fields (e.g. qty * unit_price)
+if (isFormComplete(filled)) {
+  /* now signable */
+}
+```
+
+### `sealFormStructure(source, opts)` / `verifyFormStructure(source)`
+
+Seal a form's **structure** (its fields, not its answers) so a recipient can fill it but
+cannot add, remove, or re-type fields without detection — a tamper-evident form template.
+
+```typescript
+import { sealFormStructure, verifyFormStructure } from "@dotit/core";
+
+const { source, structureHash } = sealFormStructure(blankForm, { sealer: "HR" });
+verifyFormStructure(source); // { sealed, intact, sealer, structureHash, expected }
+```
+
+### `submitForm(source, opts)` / `buildSubmission(source, opts?)`
+
+POST a completed form to an endpoint. `buildSubmission` builds the payload
+(`{ source, answers?, hash, submittedAt, formId? }`) without sending; `submitForm` sends it.
+`requireComplete` (default behavior) refuses to submit an incomplete form.
+
+```typescript
+import { submitForm } from "@dotit/core";
+
+const result = await submitForm(filledForm, {
+  endpoint: "https://hr.example.com/api/intake",
+  requireComplete: true,
+});
+// { ok: boolean, status: number, body?, error? }
+```
+
 ## Conversion
 
 ### `convertMarkdownToIntentText(markdown)`
@@ -894,13 +1013,40 @@ const docxBytes = convertIntentTextToDocx(itSource);
 All four converters are also exposed on the CLI via `dotit convert <in> <out>`
 (extension pair dispatch — see [CLI › Convert existing files](./cli#convert-existing-files)).
 
+## E-invoice (UBL)
+
+### `buildUBLInvoice(input)` / `intentToUBL(source, overrides?)`
+
+Emit a **UBL 2.1** invoice XML (the format behind EN 16931 / PEPPOL e-invoicing) from
+structured input, or directly from an `.it` invoice. `buildUBLInvoice` takes a typed
+object; `intentToUBL` derives the fields from a parsed `.it` document (with optional
+overrides).
+
+```typescript
+import { buildUBLInvoice, intentToUBL } from "@dotit/core";
+
+const xml = buildUBLInvoice({
+  id: "INV-2026-0042",
+  issueDate: "2026-06-23",
+  currency: "QAR",
+  supplier: { name: "Jadwal Technology", vatId: "…", country: "QA" },
+  customer: { name: "Acme Corporation", country: "QA" },
+  lines: [{ name: "Managed hosting", quantity: 1, unitPrice: 17325, unit: "MON" }],
+  taxPercent: 5,
+});
+
+const xmlFromIt = intentToUBL(invoiceSource, { currency: "QAR" });
+```
+
 ## Storage
 
 `.it` is plain UTF-8 text, so it can live in a database field instead of a file.
-These helpers guard against a storage layer silently normalizing or re-encoding the
-bytes (which would break any seal or signature bound to them). This byte-integrity
-tag is distinct from the seal hash (`computeDocumentHash`, which covers only the
-content body) — it hashes the **whole** source to catch storage corruption.
+These helpers guard against a storage layer silently re-encoding or corrupting the
+bytes. This byte-integrity tag is **distinct** from the seal hash: the seal
+(`computeDocumentHash`) covers only the canonicalized **content** and tolerates a
+CRLF/whitespace transform, whereas this tag hashes the **whole** source byte-for-byte to
+catch *any* storage corruption — useful when you want a hard guarantee that the bytes you
+read are the bytes you wrote.
 
 ### `toStorageRecord(source)` / `fromStorageRecord(record)` / `verifyStorageRecord(record)`
 
@@ -967,6 +1113,33 @@ const schema = createSchema("invoice", {
 ### Predefined schemas
 
 `project`, `meeting`, `article`, `checklist`, `agentic`
+
+### `checkConformance(input, options?)`
+
+Check a document (source string **or** parsed `IntentDocument`) against the format's
+conformance rules and return a structured report. Two levels: **`"lax"`** (default — only
+hard errors count) and **`"strict"`** (warnings also fail conformance). Useful as a gate
+before sealing or publishing.
+
+```typescript
+import { checkConformance } from "@dotit/core";
+
+const report = checkConformance(source, { level: "strict" });
+// { conformant: boolean, level, errors: number, warnings: number, issues: SemanticIssue[] }
+if (!report.conformant) console.error(report.issues);
+```
+
+```typescript
+type ConformanceLevel = "lax" | "strict";
+
+interface ConformanceReport {
+  conformant: boolean;
+  level: ConformanceLevel;
+  errors: number;
+  warnings: number;
+  issues: SemanticIssue[];
+}
+```
 
 ## Ask (AI Query)
 
@@ -1049,22 +1222,27 @@ interface IntentDocumentMetadata {
 
 ### `BlockType`
 
-Union type covering all 41 canonical keywords plus extension namespace blocks.
+Union type covering all 41 canonical keywords plus extension namespace blocks. The exact
+list and tier split is exported as `CANONICAL_KEYWORDS` and `KEYWORD_TIERS` (so it can never
+drift from the docs).
 
-**Canonical (38 total):**
+**Canonical (41 total)**, by tier (`KEYWORD_TIERS`):
 
-- **Document Identity (4):** `title`, `summary`, `meta`, `context`
-- **Structure (3):** `section`, `sub`, `toc`
-- **Content (7):** `text`, `info`, `quote`, `cite`, `code`, `image`, `link`
-- **Tasks (3):** `task`, `done`, `ask`
-- **Data (3):** `columns`, `row`, `metric`
-- **Agentic Workflow (7):** `step`, `decision`, `gate`, `trigger`, `result`, `policy`, `audit`
-- **Trust (5):** `track`, `approve`, `sign`, `freeze`, `amendment`
-- **Layout (6):** `page`, `header`, `footer`, `watermark`, `break`, `style`
+- **Core (13):** `title`, `summary`, `meta`, `section`, `sub`, `text`, `info`, `quote`, `code`, `image`, `link`, `task`, `done`
+- **Agent (9):** `context`, `ask`, `step`, `decision`, `gate`, `trigger`, `result`, `policy`, `audit`
+- **Contract (9):** `cite`, `track`, `approve`, `sign`, `freeze`, `amendment`, `certify`, `route`, `require`
+- **Data (3):** `headers`, `row`, `metric`
+- **Print (7):** `toc`, `page`, `header`, `footer`, `watermark`, `style`, `break`
 
-**Extension blocks:**
+Notes: the table-header keyword is `headers` (the older `columns` is an alias). `policy` and
+`context` are **agent**-tier (not Trust). `certify`/`route`/`require` are contract-tier — they
+power authority certification and in-file approval routing.
 
-Extension blocks have the form `x-ns: type` (e.g., `x-agent: loop`, `x-doc: def`). They are typed as `{ type: string; namespace: string }` and passed through the renderer without core evaluation. See [Extension keywords →](/docs/reference/keywords/#extension-keywords).
+**Boundary / extension keywords** (recognized, but outside the canonical 41):
+
+- **Forms (x-form):** `input` and `output` — fillable/computed form fields. See [Forms](#forms).
+- **Cross-document (x-doc):** `attach` — embed/reference another document. See [Attachments](/docs/cookbook/trust/attachments).
+- Other `x-ns: type` extension blocks (e.g., `x-agent: loop`) are typed as `{ type: string; namespace: string }` and passed through the renderer without core evaluation. See [Extension keywords →](/docs/reference/keywords/#extension-keywords).
 
 ### `InlineNode`
 
@@ -1130,3 +1308,62 @@ const { source, hash, at, pdf } = await issuePDF(templateSource, data, {
 Also: `issueDocument()` (same flow minus Chrome — returns print-ready HTML for
 sidecars like Gotenberg), `renderPDF()`, `htmlToPDF()`, and `createPdfRenderer()`
 for batch runs. Full guide: [ERP / App Integration](./erp-integration).
+
+## Cryptographic signatures and certification
+
+`@dotit/core`'s `sign:`/`freeze:` seals are integrity hashes (they prove the content is
+unchanged, not *who* signed). For real **cryptographic identity** — Ed25519 signatures that
+verify offline from the bytes alone, plus an authority **certification** chain — add the
+opt-in `@dotit/sign` (current **1.4.4**).
+
+```bash
+npm i @dotit/sign
+```
+
+```typescript
+import {
+  generateSigningKey,
+  publicKeyFor,
+  signDocumentCrypto,
+  verifyDocumentSignatures,
+  certifyDocument,
+  verifyCertifications,
+} from "@dotit/sign";
+
+const { publicKey, privateKey } = generateSigningKey(); // store privateKey in a KMS
+const signed = signDocumentCrypto(source, { signer: "Ahmed", role: "CEO", privateKey });
+
+// verification needs NO key — each sign:/certify: line carries the public key
+verifyDocumentSignatures(signed); // per-signer { signer, role, at, publicKey, valid }
+
+// an authority (e.g. UTS) attests this exact content; verify against its published key
+verifyCertifications(certifiedSource, { trustedKey });
+```
+
+Issuance helpers (`certifyDocument`, `issueIntermediate`, `parseIntermediateCert`,
+`verifyIntermediateCert`) build the authority side; the [MCP server](./mcp-server) exposes
+the *verification* tools (it never holds an authority key). Full guide:
+[Trust & Signing](/docs/guide/trust-and-signing).
+
+## Court-recognized PDF signatures
+
+`@dotit/pades` (current **1.0.1**) applies **PAdES** (PDF Advanced Electronic Signatures,
+Adobe/court-recognized) to a rendered PDF — X.509/ECDSA + CMS, with RFC 3161 timestamping
+and CA/CSR issuance for self-hosted PKI.
+
+```typescript
+import { signPdf, verifyPdfSignature, requestTimestampToken } from "@dotit/pades";
+// also: createCertificateAuthority, createCsr, issueCertificate, signDetachedCms, …
+```
+
+Native `.it` seals stay Ed25519; PAdES is the **standards bridge** for handing a signed PDF
+to a counterparty's Adobe/eIDAS workflow.
+
+## Math rendering
+
+`@dotit/math` (current **0.1.0**) renders the format's math markers — dependency-free lite
+MathML by default, with optional KaTeX for full fidelity.
+
+```typescript
+import { renderMath, mathToMathML, renderMathInHtml, hydrateMath } from "@dotit/math";
+```

@@ -51,10 +51,12 @@ require: legal
   - `| optional: yes` marks an approver as informational — they may approve, but their
     absence never blocks completion.
 
-`route:` and `require:` are **not** core keywords — they parse as preserved `custom`
-blocks (the [unknown-keyword guarantee](../reference/keywords/index.md)). That means they
-round-trip byte-for-byte and **a sealed document keeps its hash** with a policy inside it.
-There is no workflow registry, no schema to register, nothing to configure server-side.
+`route:` and `require:` are **reserved canonical keywords** (contract tier, since 4.4) —
+not custom blocks. They round-trip exactly and live **inside the hashed body**, so the
+policy is part of what gets sealed: **a sealed document keeps its hash** with its routing
+policy inside it, and you can't seal a document and later claim a different policy. There is
+still no workflow registry, no schema to register, nothing to configure server-side — the
+policy is just lines in the file.
 
 ## 2. Fulfill it: ordinary `approve:` lines
 
@@ -222,8 +224,9 @@ no reconciliation. The document *is* the workflow.
   the approvals, and the proof travel with it.
 - **Offline-verifiable forever.** No server is required to answer "is this fully approved
   and was the order intact?" — just the file and SHA-256.
-- **Byte-sacred.** Because `route:`/`require:`/`prev:` live in preserved lines, none of
-  this perturbs the seal. See [Byte Preservation](./byte-preservation).
+- **Seal-safe.** `route:`/`require:` are reserved keywords inside the hashed body and
+  `prev:` is an ordinary property, so they round-trip exactly and the policy + audit trail
+  are *covered by* the seal rather than perturbing it. See [Byte Preservation](./byte-preservation).
 
 ---
 

@@ -14,19 +14,29 @@ Build real documents — contracts, reports, newsletters. For an invoice walkthr
 - [Contract](./documents/contract) — verifiable contract with approval trail and signatures
 - [Report](./documents/report) — monthly report with metrics and figures
 - [Newsletter](./documents/newsletter) — editorial newsletter with images and pull quotes
+- [E-Invoices (EN16931 / UBL)](./documents/e-invoice) — emit standards UBL XML from one `.it` source
 
 ## Templates
 
 - [Building Templates](./templates/building-templates) — from document to reusable template. Variable syntax, `each:` tables, and the merge API live in the [Templates reference](../reference/templates).
 
+## Forms
+
+Fillable, signable `.it` documents — the PDF-form workflow in plain text.
+
+- [Fillable Forms](./forms/fillable-forms) — `meta: type: form`, `input:` fields, conditional `show-if:`, computed `compute:`, file `type: attachment`, two-party trust, and `submitForm()`/`isFormComplete()`
+
 ## Trust
 
-Approvals, signatures, sealing, and amendments.
+Approvals, routing, signatures, sealing, redline, and conformance.
 
-- [Approval Workflow](./trust/approval-workflow) — approve → sign → freeze
+- [Approval Workflow](./trust/approval-workflow) — approve → sign → freeze, plus in-file `route:`/`require:` routing and `workflowState`
 - [Sealing Contracts](./trust/sealing-contracts) — `dotit seal` and `dotit verify`
+- [Attachments](./trust/attachments) — embed files with `attach:` so they ride inside the doc and are covered by the seal
 - [Amending Frozen Documents](./trust/amending-frozen-docs) — formal amendments without breaking the seal
 - [Audit Trail](./trust/audit-trail) — track + revision + history
+- [Redline & Compare](./trust/redline-and-compare) — `compareVersions` and three-way `mergeThreeWay`
+- [Conformance](./trust/conformance) — `checkConformance` lax vs strict
 
 ## Agents
 

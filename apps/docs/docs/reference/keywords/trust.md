@@ -5,7 +5,14 @@ title: Trust Keywords
 
 # Trust Keywords
 
-Five keywords for document integrity — tracking versions, recording approvals, signing with hash verification, sealing against modification, and formally amending sealed documents.
+The canonical **contract** tier holds 9 keywords for document integrity, authority, and
+in-file approval routing: `track:`, `approve:`, `sign:`, `freeze:`, `amendment:`, `certify:`,
+`route:`, `require:`, and `cite:`. This page documents the trust and routing keywords —
+tracking versions, recording approvals, signing with hash verification, sealing against
+modification, formally amending sealed documents, certifying an authority identity, and
+declaring an in-file approval policy with `route:`/`require:`. (`cite:` is documented with
+[content keywords](./content); the machine-managed `x-trust: history`/`x-trust: revision`
+blocks live below the audit-log boundary.)
 
 ## `track:`
 
@@ -257,13 +264,169 @@ dotit amend contract.it \
 
 ---
 
+## `route:`
+
+**Category:** Trust (contract tier)
+**Aliases:** —
+
+Declares the **order** in which a document's required approvals are collected. With
+`require:` it gives a `.it` document its own in-file approval workflow, whose live state is
+**derived from the file** (`workflowState`) — never stored, so the document is the single
+source of truth and can never drift from a separate database. `route:`/`require:` lines stay
+inside the hashed body, so a sealed document keeps its hash.
+
+### Syntax
+
+```
+route: sequential
+route: parallel
+```
+
+The order may also be given as a property: `route: | order: sequential`.
+
+### Properties
+
+| Property | Type   | Required | Description                                                                 |
+| -------- | ------ | -------- | --------------------------------------------------------------------------- |
+| `order`  | enum   | no       | `sequential` (default) or `parallel`. The bare content (`route: parallel`) is read first, then this property. |
+
+- **`sequential`** (default) — approvals are expected in the declared `require:` order; `next` is the first unfulfilled required approver.
+- **`parallel`** — all required approvals may be collected in any order.
+
+### Examples
+
+```intenttext
+route: sequential
+require: manager
+require: finance | when: amount > 100000
+require: legal
+```
+
+### Notes
+
+- Without a `route:`/`require:` policy a document has nothing outstanding (`complete: true`).
+- `route:`/`require:` were reserved in 4.4. Documents authored earlier parsed them as `custom` blocks; the deriver still resolves those.
+
+### Related
+
+- [`require:`](#require) — the individual required approvers
+- [`approve:`](#approve) — approvals fulfill the policy
+- [Approval Workflows guide →](../../guide/approval-workflows)
+
+---
+
+## `require:`
+
+**Category:** Trust (contract tier)
+**Aliases:** —
+
+Declares **one required approver** for the document's approval policy. Repeat `require:` once
+per approver. A requirement is matched against the `role:`/`by:` token of the document's
+`approve:` lines; an unmatched, non-optional requirement is what keeps the workflow open.
+
+### Syntax
+
+```
+require: <role-or-name> | when: <condition> | optional: yes
+```
+
+### Properties
+
+| Property   | Type   | Required | Description                                                                                                 |
+| ---------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------- |
+| `when`     | string | no       | A **single comparison** (`key <op> value`) gating whether this approver is required (see below). When it does not hold, the requirement is inactive. |
+| `optional` | enum   | no       | `yes`/`true` marks the requirement informational — it never blocks completion.                              |
+
+The match token is the requirement's `content` (e.g. `require: legal`), falling back to a
+`role:`/`by:` property if content is empty.
+
+### Conditional requirements — `when:`
+
+`when:` holds **one comparison**, `key <op> value` — operators `=` `==` `!=` `>` `<` `>=`
+`<=` (`=` is loose for `==`). The compare is **numeric** when both sides parse as numbers
+(thousands separators stripped), otherwise string. There is **no** `&&`/`||`/`!` and no
+grouping — a single comparison only. The key is resolved against the document's own values:
+`metric:` labels/keys and `meta:` properties. It runs on a safe recursive-descent evaluator,
+never `eval`. An unresolvable condition defaults to **active** (a required approval is never
+silently dropped because a value was missing).
+
+```intenttext
+metric: Contract Value | key: amount | value: 250000 | unit: USD
+
+route: sequential
+require: manager
+require: finance | when: amount > 100000
+require: legal | optional: yes
+```
+
+### Deriving the live state — `workflowState`
+
+`workflowState(source)` (and `deriveWorkflowState(doc)`) DERIVE the live approval state
+purely from the `route:`/`require:` lines and the `approve:` lines — nothing is stored, so
+re-deriving always matches the file:
+
+```ts
+import { workflowState } from "@dotit/core";
+
+const state = workflowState(source);
+// → {
+//     hasRoute,    // true when a route:/require: policy is declared
+//     order,       // "sequential" | "parallel"
+//     required,    // every declared requirement, verbatim: { match, when?, optional }
+//     active,      // requirements currently in force (their when: holds, or none)
+//     fulfilled,   // active required match-tokens that have a matching approve:
+//     pending,     // active, non-optional match-tokens still awaiting approval (declared order)
+//     next,        // the next pending approver (sequential), or null
+//     complete,    // true when every active, required approver has approved
+//   }
+```
+
+An `approve:` line fulfills a requirement when its `role:` or `by:` value equals the
+requirement's match token:
+
+```intenttext
+require: manager
+approve: Budget reviewed | by: Sarah | role: manager | at: 2026-03-20
+// → manager is now fulfilled
+```
+
+### Examples
+
+```intenttext
+route: sequential
+require: department-head
+require: finance | when: amount >= 50000
+require: ceo | when: amount >= 1000000
+require: audit | optional: yes
+```
+
+### Notes
+
+- A document with no `route:`/`require:` policy is `complete: true` (nothing outstanding).
+- `require:`/`route:` round-trip byte-for-byte and stay inside the hashed body, so a sealed document keeps its hash.
+
+### Related
+
+- [`route:`](#route) — declares the approval order
+- [`approve:`](#approve) — approvals fulfill the requirements
+- [Approval Workflows guide →](../../guide/approval-workflows)
+
+---
+
 ## `certify:` (authority layer)
 
-`certify:` is not a core keyword — it is a line written by the
+**Category:** Trust (contract tier)
+**Aliases:** —
+
+`certify:` is a **canonical contract-tier keyword** — but unlike `sign:`/`freeze:` (which
+are integrity, checkable from the bytes alone), it carries an *authority* claim that needs
+the issuer's key to verify. The line itself is written by the
 [`@dotit/sign`](../../guide/trust-and-signing#layer-3--authority-uts-certification) authority
-layer. It binds a signature to a **verified organization identity**: a certification
-authority (UTS) verifies the account/entity once, then issues a `certify:` line that anyone
-can re-check offline. It round-trips losslessly through the core parser and serializer.
+layer: a certification authority (UTS) verifies the account/entity once, then issues a
+`certify:` line that anyone can re-check offline. The core parser recognizes `certify:` and
+round-trips it losslessly, but **presence of a `certify:` line is a claim, not a verdict** —
+the certified trust tier is shown only when a caller passes a cryptographically verified
+result from `@dotit/sign`.
 
 ### Syntax
 
@@ -308,7 +471,7 @@ legacy single-key model, where the signing key itself must be the trusted key.
 
 ## The trust chain
 
-A typical trust workflow combines all five keywords:
+A typical trust workflow combines the routing and integrity keywords:
 
 ```intenttext
 title: Service Agreement

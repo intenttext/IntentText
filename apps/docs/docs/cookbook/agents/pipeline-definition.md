@@ -9,6 +9,14 @@ title: Pipeline Definition
 
 You need a multi-step agent pipeline with conditional branching, error handling, retries, and dependencies — all in a format that both agents and humans can read.
 
+:::note `error:` and `model:` are x-agent extensions
+The agent-pipeline vocabulary (`step:`, `decision:`, `gate:`, `trigger:`, `audit:`, `done:`)
+is part of the `agentic` keyword tier. `error:` (a per-step failure handler) and the
+`model:` property are **x-agent extensions** — they parse, round-trip, and query like any
+other block, but they are not canonical keywords. This recipe uses them as first-class
+building blocks; treat any tool that doesn't recognise them as free to ignore them.
+:::
+
 ## The solution
 
 ```intenttext

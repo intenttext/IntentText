@@ -192,3 +192,96 @@ text: Custom data | department: Engineering | priority: high | reviewed: true
 Custom properties are preserved in parsed output, appear in queries, and survive merge operations. This makes `.it` files extensible without schema changes.
 
 One convention applies across all properties: the date-bearing keys (`date`, `due`, `at`, `expires`, `issued`) hold **ISO 8601** values (`2026-03-09` or `2026-03-09T14:00:00Z`). Locale formats are ambiguous and break [date-range queries](./query#dates-are-iso-8601) — the validator flags them with a `DATE_NOT_ISO` warning.
+
+## Reserved value conventions
+
+A handful of property keys carry a reserved **shape** so a machine can compute on the value
+without bespoke string parsing. The shape is a convention, not a separate type — the source
+string always stays the byte-of-record.
+
+### Money & quantities (`value:` + `unit:`)
+
+On a `metric:` (and any value/unit pair), `value:` holds the **bare magnitude** — no
+thousands separators, no currency symbol — and `unit:` holds either the currency as an
+**ISO-4217** code (`QAR`, `USD`, `EUR`) or the unit (`%`, `years`, `points`):
+
+```intenttext
+metric: Total Due   | value: 17325  | unit: QAR      // money    17325 QAR
+metric: VAT         | value: 5      | unit: %        // percent  5
+metric: Investment  | value: 3.80M  | unit: QAR      // money    3800000 QAR
+metric: Velocity    | value: 42     | unit: points   // quantity 42 points
+```
+
+A `K`/`M`/`B`/`T` magnitude suffix and a trailing `%` are tolerated and expanded on read.
+This is the arithmetic-friendly form the e-invoice export (`buildUBLInvoice`) consumes. Do
+**not** write `value: $17,325` or `value: 17,325 QAR` — keep the currency symbol and
+separators out of `value:`.
+
+### Reading a typed value — `readTypedValue` / `metricTypedValue`
+
+`@dotit/core` reads the reserved shape with a **pure, read-only** helper — it never
+re-serializes, so reading a typed value can never affect a seal:
+
+```ts
+import { readTypedValue, metricTypedValue } from "@dotit/core";
+
+readTypedValue("17325", "QAR");
+// → { raw: "17325", number: 17325, unit: "QAR", currency: "QAR", kind: "money" }
+
+readTypedValue("5", "%");
+// → { raw: "5", number: 5, unit: "%", currency: null, kind: "percent" }
+
+readTypedValue("42", "points");
+// → { raw: "42", number: 42, unit: "points", currency: null, kind: "quantity" }
+
+readTypedValue("hello");
+// → { raw: "hello", number: null, unit: null, currency: null, kind: "text" }
+
+// Convenience for a metric block (reads its value:/unit: properties):
+metricTypedValue(block); // → TypedValue
+```
+
+The returned `TypedValue` is `{ raw, number, unit, currency, kind }`, where `kind` is one of
+`money` | `percent` | `quantity` | `number` | `text`. `currency` is set only when `unit:` is
+a valid ISO-4217 code. `raw` is always the source string verbatim — the byte-of-record.
+
+### Actor keys — `owner:` vs `by:`
+
+The two "who" keys name **distinct roles** — they are not synonyms:
+
+| Key      | Names…                                        | Used on                                  |
+| -------- | --------------------------------------------- | ---------------------------------------- |
+| `owner:` | the party **responsible** for a task          | `task:`, `metric:`                       |
+| `by:`    | the actor who **performed** a recorded action | `approve:`, `sign:`, `amendment:`, `audit:`, quote attribution |
+
+```intenttext
+task: Ship the auth flow | owner: Ada                    // Ada is accountable
+approve: Reviewed | by: Sarah | role: manager | at: 2026-03-20   // Sarah performed the approval
+```
+
+For *when*, pair these with the temporal keys: `at:` for an event/approval/signature
+timestamp, `due:` for a future deadline, and `date:`/`issued:`/`expires:` for labelled dates
+(all ISO 8601).
+
+## Prose-pipe safety — the `PROSE_PIPE_SUSPECT` lint
+
+Because ` | ` is the property delimiter, a literal `|` in prose is parsed as a property. On a
+prose block (`text:`, `quote:`), a segment whose key is **not** a known presentation/layout
+or attribution key is very likely swallowed literal text, so the semantic validator emits a
+**warning** with code `PROSE_PIPE_SUSPECT`:
+
+```intenttext
+text: Compare plan A | plan B side by side
+// ⚠ PROSE_PIPE_SUSPECT — '| plan B side by side' was parsed as a property
+```
+
+It is a **lint only** — it never changes parsing, so it cannot affect a seal. The fix is to
+escape the literal pipe as `\|`:
+
+```intenttext
+text: Compare plan A \| plan B side by side
+```
+
+Recognized prose keys (which do **not** trigger the warning) include the style/layout props
+plus the legitimate prose/quote metadata `by`, `author`, `source`, `cite`, `role`, `at`,
+`caption`, `title`, `name`, `date`, `due`, `time`.

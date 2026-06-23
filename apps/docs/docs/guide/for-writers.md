@@ -7,6 +7,27 @@ title: For Writers
 
 You want to write, not fight formatting. IntentText gives you plain text in → professional documents out.
 
+## Markdown vs `.it`
+
+If you write in Markdown today, `.it` will feel familiar — same plain-text comfort, same
+inline `*bold*`/`_italic_`. The difference is everything Markdown *can't* do once a piece
+matters: number your figures, build a real bibliography, lay out for print, write
+right-to-left, and seal the final version so it can be verified later.
+
+| You want…                    | Markdown                         | IntentText                                  |
+| ---------------------------- | -------------------------------- | ------------------------------------------- |
+| Headings & prose             | `#`, `##`, bare text             | `section:` / `sub:`, bare text (`text:` is optional) |
+| Bold / italic / code         | Yes                              | Yes — same inline syntax                    |
+| Numbered, captioned figures  | No (raw `![]()` only)            | `figure:` — numbered, captioned, referenceable |
+| Citations / bibliography     | No                               | `cite:` builds a bibliography               |
+| Footnotes, epigraphs, byline | Extension-dependent              | `x-writer:` (`footnote`, `epigraph`, `byline`, `dedication`) |
+| Print / PDF layout           | No                               | `page:` / `font:` / `header:` / `footer:` → real PDF |
+| Themes                       | Depends on the renderer          | 8 built-in (editorial, warm, minimal, …)    |
+| Right-to-left / Arabic       | Awkward                          | First-class — write keywords in Arabic, RTL flips automatically |
+| Seal the final version       | No                               | `sign:` / `freeze:` — tamper-evident, verifiable offline |
+
+You don't give up the Markdown feel — you gain everything publishing-grade on top of it.
+
 ## Writer-friendly keywords
 
 You don't need to memorize the full language. Writers use these first:
@@ -41,6 +62,27 @@ section: Sources
 cite: Structured Documents and the Future of Computing | url: https://arxiv.org/example | author: Chen, Wei | date: 2025
 cite: Open Formats in Enterprise | url: https://openstandards.org/example | author: Thompson, Ada | date: 2024
 ```
+
+## Write in Arabic — a first-class manuscript story
+
+IntentText isn't English-with-a-translation-layer. The canonical keywords have **33 Arabic
+aliases**, and they **round-trip as written** — an Arabic manuscript stays Arabic through
+parse, edit, and save (and a sealed Arabic document keeps its hash). Direction handles
+itself: set `dir: rtl` (or just use Arabic) and headers, two-sided rows, and lists flip.
+
+```intenttext
+عنوان: مقدمة في الوثائق المنظمة
+ملخص: لماذا يعود النص العادي إلى الواجهة
+بيانات: | dir: rtl | theme: editorial
+
+قسم: المشكلة
+نص: تُخزَّن المعلومات الحساسة في صيغ لا يمكن البحث فيها ولا التحقق منها.
+اقتباس: أفضل صيغة هي التي ما زلت تستطيع قراءتها بعد خمسين عاما. | by: كنوث، 1984
+```
+
+Mixed Arabic/English (a quote, a code block, a Latin term) renders correctly in the same
+document — bidi is handled per run, not per file. See the
+[full Arabic alias table](../reference/keywords/aliases#arabic-aliases).
 
 ## Add figures with captions
 
@@ -125,6 +167,21 @@ The `font:` block sets the body `family`, `size`, and `leading`; `page:` sets th
 cite: The Pragmatic Programmer | author: Hunt, Thomas | date: 2019 | url: https://pragprog.com/titles/tpp20/
 ```
 
+## Long-form & editorial extras (`x-writer:`)
+
+For manuscript furniture beyond the core set, the **`x-writer:`** namespace adds stable
+publishing keywords — they round-trip and render, without enlarging the canonical contract:
+
+```intenttext
+x-writer: byline | author: Elena Vasquez | date: 2026-03-15
+x-writer: epigraph | text: All happy families are alike. | by: Tolstoy
+x-writer: footnote | id: 1 | text: See appendix B for the full dataset.
+x-writer: dedication | text: For the open-format faithful.
+```
+
+Available: `byline`, `figure`, `caption`, `footnote`, `epigraph`, `dedication`. See
+[Extension keywords](../reference/keywords/#extension-keywords).
+
 ## Inline formatting
 
 Within any block, use:
@@ -174,8 +231,9 @@ text: Run ```npm install``` to set up the project.
 3. Get feedback, revise
 4. `track:` to activate history
 5. `approve:` for editorial sign-off
-6. Export with `--pdf`
-7. Commit the `.it` source to version control — it stays a plain, readable file
+6. `sign:` / `freeze:` to seal the published version — tamper-evident and verifiable offline (restyling a sealed piece is still free; only a content edit breaks the seal)
+7. Export with `--pdf` (or PAdES / PDF/A for an archival, signed copy)
+8. Commit the `.it` source to version control — it stays a plain, readable file
 
 ---
 

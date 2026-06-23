@@ -24,9 +24,9 @@ contact: Acme Corp | role: Provider | email: billing@acme.co
 contact: GlobalTech Industries | role: Client | email: accounts@globaltech.co
 
 section: Line Items
-| Description | Qty | Price | Total |
-| Cloud setup | 1 | $15,000 | $15,000 |
-| Data migration | 1 | $8,000 | $8,000 |
+| Description | Qty | Price (USD) | Total (USD) |
+| Cloud setup | 1 | 15000 | 15000 |
+| Data migration | 1 | 8000 | 8000 |
 
 section: Payment
 metric: Total Due | value: 23000 | unit: USD
@@ -45,7 +45,7 @@ contact: {{provider_name}} | role: Provider | email: {{provider_email}}
 contact: {{client_name}} | role: Client | email: {{client_email}}
 
 section: Line Items
-| Description | Qty | Price | Total | each: items |
+| Description | Qty | Price (USD) | Total (USD) | each: items |
 | {{item.description}} | {{item.qty}} | {{item.price}} | {{item.total}} |
 
 section: Payment
@@ -67,14 +67,14 @@ deadline: Payment due | date: {{payment_due}}
     {
       "description": "Penetration testing",
       "qty": "1",
-      "price": "$12,000",
-      "total": "$12,000"
+      "price": "12000",
+      "total": "12000"
     },
     {
       "description": "Vulnerability report",
       "qty": "1",
-      "price": "$3,000",
-      "total": "$3,000"
+      "price": "3000",
+      "total": "3000"
     }
   ],
   "total": "15000",

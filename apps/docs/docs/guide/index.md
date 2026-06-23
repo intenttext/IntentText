@@ -15,14 +15,28 @@ IntentText is a plain-text document format that uses **keywords** to give every 
 - **AI agents** that need structured task plans, pipelines, and audit trails
 - **Writers** who want professional output from plain text — themes, PDF export, figures
 
+## What's new in 1.25.0 — three things only `.it` does
+
+- **The workflow lives in the document.** Declare *who must approve, in what order* with
+  `route:` / `require:`; the live state is derived (`workflowState`) and the approval order
+  is hash-chained — so the system-of-record and the system-of-approval can't disagree.
+  ([Approval Workflows](./approval-workflows))
+- **Forms that are fillable *and* sealable.** `meta: type: form` + `input:` fields
+  (`show-if:`, `compute:`) become a record with two-party trust — the author seals the blank
+  structure, the filler seals the answers. ([Forms](./forms-and-workflows))
+- **Authority certification.** `certify:` binds a signing key to a verified organization via
+  a certification authority with a root→intermediate chain — verifiable offline.
+  ([Trust & Signing](./trust-and-signing#layer-3--authority-uts-certification))
+
 ## What you get
 
-- **Canonical + extension language model** — stable core keywords with alias and extension support
+- **Canonical + extension language model** — 41 stable canonical keywords with alias and extension support
 - **Alias normalization** — write `todo:` and the parser resolves it to `task:`; 33 Arabic aliases (`عنوان:`, `مهمة:`, `صف:`, …) ship in core and round-trip as written
 - **8 built-in themes** — corporate, minimal, warm, technical, print, legal, editorial, dark
-- **Full trust system** — approve, sign, seal, verify, amend
+- **Full trust system** — approve, sign, seal, verify, certify, amend; a seal that survives restyling
 - **Template engine** — `{{variables}}`, dynamic table rows, data merge
-- **Query engine** — find any block across any number of files
+- **Query engine + folder-as-database** — find any block across any number of files; a folder of `.it` is a queryable database with no import
+- **Conformance** — `checkConformance` (lax/strict) to gate documents before a system of record
 - **CLI, npm, PyPI, MCP server, VS Code extension, web editor, Hub**
 
 ## Where to start
@@ -37,6 +51,9 @@ IntentText is a plain-text document format that uses **keywords** to give every 
 | See what orgs can do        | [For Organizations](./for-organizations) |
 | Build agent workflows       | [For Agents](./for-agents)               |
 | Write and publish           | [For Writers](./for-writers)             |
+| Fill & seal a form          | [Forms, Review & Compliance](./forms-and-workflows) |
+| Query a folder of files     | [A Folder Is a Database](./folder-as-database) |
 | Seal and verify documents   | [Trust & Signing](./trust-and-signing)   |
 | Put the workflow in the doc | [Approval Workflows](./approval-workflows) |
+| Use `.it` as config         | [Config & Options](./config-and-options) |
 | Keep seals intact, always   | [Byte Preservation](./byte-preservation) |

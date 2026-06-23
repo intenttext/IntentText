@@ -1,21 +1,32 @@
 ---
-title: Byte Preservation (the trust moat)
-description: Why every byte of a .it file is sacred — and the tools that guarantee a sealed document keeps its seal through editing, storage, and round-tripping. reconcileEdit, the storage contract, and the rules that never break a hash.
+title: Byte Preservation (authoring & storage discipline)
+description: Why a .it file preserves the author's exact bytes — and the tools that keep a sealed document verifiable through editing, storage, and round-tripping. reconcileEdit, the storage contract (bytesSha256), and how this differs from what the seal actually hashes.
 ---
 
-# Byte preservation — the bytes are sacred
+# Byte preservation — authoring & storage discipline
 
-The seal on a `.it` document is a SHA-256 hash of its **exact bytes**. That is the whole
-basis of trust: anyone, anywhere, offline, can recompute the hash and know the document
-hasn't changed. It also means the guarantee is *fragile by design* — change a single
-byte and the seal is gone. A tool that "helpfully" reformats your file, normalizes its
-whitespace, reorders properties, or converts line endings has **broken the seal**, even
-though it changed nothing a human would notice.
+There are **two different guarantees** at play in a `.it` file, and keeping them straight
+is the whole point of this page:
 
-So IntentText holds one rule above all others:
+1. **Byte preservation** (this page) — the author's exact bytes are kept. No tool
+   reformats, reorders, or re-encodes the file behind your back. This is good *authoring
+   and storage hygiene*: minimal diffs, faithful round-trips, drift you can detect.
+2. **The seal** (see [Trust & Signing](./trust-and-signing#what-exactly-gets-hashed)) — a
+   SHA-256 hash over the document's **canonical content** under a recorded `spec:`
+   (currently 4). The seal deliberately **excludes** styling (`page:`/`font:`/`style:` +
+   presentation properties) and comments, and **normalizes** line endings (CRLF/CR→LF)
+   and trailing whitespace before hashing. So restyling, reformatting, and CRLF/whitespace
+   changes **never** break a seal — only a real content change does.
+
+The crucial corrective: **preserving the author's exact bytes is NOT what the seal
+enforces.** You can reflow line endings, trim trailing spaces, or restyle a sealed
+document and it still verifies. Byte preservation is about the *file you store and diff*;
+the seal is about the *content you agreed to*. They are complementary, not the same hash.
+
+Still, the discipline matters. IntentText holds this rule:
 
 > **No tool may auto-format, reformat, reorder, or canonicalize a `.it` file.**
-> What the author wrote is preserved byte-for-byte. The bytes are sacred.
+> What the author wrote is preserved — minimal diffs, faithful round-trips.
 
 This page explains how that rule is kept across the three places bytes are most at risk —
 **editing**, **storage**, and **round-tripping** — and the APIs that enforce it.
@@ -64,9 +75,11 @@ document does — and the round-trip is byte-exact.
 :::warning One sharp edge
 `documentToSource` reproduces *parsed* blocks exactly, but if you **construct** blocks in
 code (not from `parseIntentText`) they have no trivia, so they serialize in canonical
-form. Never rebuild a sealed document from hand-made blocks and re-serialize — you'll get
-clean output with a *broken seal*. Edit sealed documents through `reconcileEdit` (below),
-which only ever re-serializes blocks that genuinely changed.
+form. Re-emitting only changes *bytes* — and because the seal hashes canonical content
+(not bytes), pure reformatting still verifies. But hand-rebuilding a document is also where
+real content can get dropped or reordered, which **would** break the seal. Edit sealed
+documents through `reconcileEdit` (below), which only ever re-serializes blocks that
+genuinely changed, so you get minimal diffs *and* never risk content drift.
 :::
 
 ## Editing without breaking the seal: `reconcileEdit`
@@ -74,7 +87,9 @@ which only ever re-serializes blocks that genuinely changed.
 A visual editor is the biggest threat to byte preservation. Editors like the
 [IntentText editor](../ecosystem/editor) work on a document *model* (TipTap), and turning
 that model back into text re-serializes the **whole document** — reformatting blocks the
-user never touched. For a sealed contract that's fatal.
+user never touched. The seal would survive that (it hashes canonical content, not bytes),
+but the *diff* would be enormous and unreviewable, and re-serializing the whole document
+is the one place subtle content changes can slip in.
 
 `reconcileEdit(originalSource, editedSource)` solves this at the source level, independent
 of any editor. For each block in the edited document, if a **semantically identical** block
@@ -107,10 +122,12 @@ can use anywhere you accept edited `.it` text from any source.
 ## Storing without re-encoding: the storage contract
 
 A `.it` file is just a UTF-8 string, so it goes in any `TEXT`/blob column, string in,
-string out. The only real risk is a storage or transport layer that *silently* re-encodes
-— trims trailing newlines, rewrites `\n` to `\r\n`, or normalizes Unicode. Any of those
-changes the bytes and breaks the seal. `@dotit/core` ships a DB-safe contract that makes
-such corruption **detectable**:
+string out. A storage or transport layer can *silently* re-encode — trim trailing
+newlines, rewrite `\n` to `\r\n`, or normalize Unicode. Most of those (CRLF, trailing
+whitespace, NFC) the **seal tolerates** under spec 4, so verification still passes. But
+they still mutate the bytes you stored, which means noisier diffs and a file that no longer
+matches what you wrote. `@dotit/core` ships a DB-safe contract that makes such drift
+**detectable** — so byte changes are caught, not silently absorbed:
 
 ```typescript
 import { toStorageRecord, fromStorageRecord, verifyStorageRecord } from "@dotit/core";
@@ -162,8 +179,10 @@ is the one path that reformats untouched blocks.
    round-trip is for inspection, not for rewriting sealed bytes from scratch.
 
 Follow these and a sealed `.it` survives editing, databases, queues, object stores, and
-JSON round-trips with its hash intact — which is the entire point. The trust *is* the moat,
-and the moat is the bytes.
+JSON round-trips with **minimal, reviewable diffs** and its **content hash intact**. Two
+guarantees, working together: byte preservation keeps the file you store faithful to what
+the author wrote, and the seal — which hashes canonical content, not raw bytes — keeps the
+*agreement* tamper-evident even when styling or line endings change.
 
 ---
 

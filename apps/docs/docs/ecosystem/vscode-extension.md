@@ -26,13 +26,13 @@ IntentText keywords, aliases, and template markers are highlighted with semantic
 
 | Category          | Color  | Keywords                                                                               |
 | ----------------- | ------ | -------------------------------------------------------------------------------------- |
-| Document identity | Blue   | title, summary, meta, context, track                                                   |
-| Content           | Green  | note, quote, warning, tip, code, image, link, cite, def, figure, contact               |
-| Structure         | Purple | section, sub, break, group, ref, deadline                                              |
-| Data              | Orange | input, output, columns, row, metric                                                    |
-| Agent             | Red    | step, gate, trigger, emit, decision, context, memory, prompt, tool, audit, done, error |
-| Trust             | Gold   | approve, sign, freeze, revision, policy, amendment                                     |
-| Layout            | Teal   | page, font, header, footer, watermark, signline                                        |
+| Document identity | Blue   | title, summary, meta, track                                                            |
+| Content           | Green  | text, info, quote, code, image, link, cite, task, done (+ aliases: note, warning, tip, def, figure, contact) |
+| Structure         | Purple | section, sub, break, toc (+ aliases: group, ref, deadline)                              |
+| Data              | Orange | headers, row, metric (+ x-form: input, output)                                         |
+| Agent             | Red    | context, ask, step, decision, gate, trigger, result, policy, audit (+ aliases: memory, prompt, tool, error) |
+| Trust             | Gold   | approve, sign, freeze, amendment, certify, route, require (+ alias: revision)           |
+| Layout            | Teal   | page, header, footer, watermark, style (+ aliases: font, signline)                     |
 
 Aliases get the same highlighting as their canonical keyword. Template variables (`{{name}}`) are highlighted distinctly.
 
@@ -73,7 +73,7 @@ Type a prefix and press Tab. The bundled snippets cover the common blocks, for e
 | `amendment` | Amendment block              |
 
 (Run `Insert Snippet` to see the full list — there are snippets for most keywords,
-including `workflow`, `columns`, `input`/`output`, `memory`, `prompt`, `tool`, `track`,
+including `workflow`, `headers`, `input`/`output`, `route`/`require`, `certify`, `track`,
 `freeze`, `revision`, `header`/`footer`/`watermark`, and `style`.)
 
 ### Diagnostics

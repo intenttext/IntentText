@@ -5,7 +5,7 @@ title: Core Concepts
 
 # Core Concepts
 
-Eight ideas that explain everything in IntentText.
+Nine ideas that explain everything in IntentText.
 
 ## 1. One line, one intent
 
@@ -47,17 +47,19 @@ so natural source round-trips byte-for-byte. See [Bare prose](../reference/keywo
 
 ## 2. Keywords
 
-IntentText has a stable **38-keyword canonical contract**, plus aliases and extension keywords for specialized domains.
+IntentText has a stable **41-keyword canonical contract**, plus aliases and extension keywords for specialized domains.
 
 The canonical keywords are tiered — a small everyday **core** set plus opt-in profiles:
 
 | Tier | Keywords | Use for |
 | --- | --- | --- |
 | **core** (13) | `title:` `summary:` `meta:` `section:` `sub:` `text:` `info:` `quote:` `code:` `image:` `link:` `task:` `done:` | Everyday documents: notes, READMEs, plans |
-| **agent** | `step:` `decision:` `gate:` `trigger:` `result:` `policy:` `audit:` `ask:` `context:` | AI / workflow documents |
-| **contract** | `sign:` `approve:` `freeze:` `track:` `amendment:` `cite:` | Signed, frozen, auditable documents |
-| **data** | `columns:` `row:` `metric:` | Tabular / metric data |
-| **print** | `page:` `header:` `footer:` `watermark:` `style:` `break:` `toc:` | Print / PDF layout |
+| **agent** (9) | `step:` `decision:` `gate:` `trigger:` `result:` `policy:` `audit:` `ask:` `context:` | AI / workflow documents |
+| **contract** (9) | `track:` `approve:` `sign:` `freeze:` `certify:` `amendment:` `route:` `require:` `cite:` | Signed, frozen, auditable documents |
+| **data** (3) | `headers:` `row:` `metric:` | Tabular / metric data |
+| **print** (7) | `page:` `header:` `footer:` `watermark:` `style:` `break:` `toc:` | Print / PDF layout |
+
+`headers:` is the canonical table-header keyword (`columns:` is a compat-only alias). `route:` and `require:` declare a document's in-file approval policy and `certify:` records an authority certification — all three are reserved contract-tier keywords (see [Approval Workflows](./approval-workflows) and [Trust & Signing](./trust-and-signing)).
 
 Beyond the canonical set: **aliases** (`todo:` resolves to `task:`, plus 33 Arabic aliases like `عنوان:` for `title:` that round-trip as written), **extension keywords** (`deadline:`, `contact:`, `def:`, `ref:`, `figure:`, and the `x-ns:` namespaces), and **custom keywords** — any `word: ...` line you invent parses as a typed `custom` block, never an error.
 
@@ -137,21 +139,43 @@ dotit invoice-template.it --data client-data.json --html
 
 The same parser handles both. Templates are just documents with `{{variables}}`.
 
-## 7. The trust chain
+## 7. Forms
 
-Documents follow a lifecycle: **draft → tracked → approved → signed → frozen → amended**.
+A template is filled by code; a **form** is filled by a person. Mark a document `meta: | type: form` and declare `input:` fields, and the file becomes a fillable, signable record:
+
+```intenttext
+meta: | type: form
+title: Vendor Onboarding
+input: Legal name | key: legal_name | type: text | required: yes
+input: Country | key: country | type: choice | options: KW, SA | required: yes
+input: VAT number | key: vat | type: text | show-if: country = SA
+input: Quantity | key: qty | type: number | value: 4
+input: Total | key: total | type: number | compute: qty * 250
+output: Net total | value: {{total}}
+```
+
+- **`input:`** declares a field (types: text, textarea, date, number, choice, checkbox, signature, table, attachment).
+- **`show-if:`** reveals a field only when a condition holds; **`compute:`** derives a value from other fields with a safe arithmetic evaluator — never `eval`.
+- **`output:`** displays a computed/summary value. A **complete** form (all required fields answered) stops being a template and becomes a final, signable record; `buildSubmission` / `submitForm` package and post the answers to a backend.
+
+Forms get the full trust model — a sent form has two-party trust (the author seals the blank *structure*; the filler seals the *answers*). See [Forms, Review & Compliance](./forms-and-workflows#forms--fillable-signable-documents).
+
+## 8. The trust chain
+
+Documents follow a lifecycle: **draft → tracked → approved → signed → frozen → certified → amended**.
 
 ```intenttext
 track: | version: 1.0 | by: Ahmed          // activate history
 approve: Legal review | by: Sarah Chen      // named approval
 sign: Ahmed Al-Rashid | role: CEO           // integrity hash seal
 freeze: | status: locked                    // seal — no more edits
+certify: UTS | entity: Acme Corp            // authority binds the signer to a verified org (optional)
 amendment: Payment terms | section: Payment | was: 30 days | now: 15 days
 ```
 
-Once frozen, a document can only change through formal `amendment:` blocks. The original seal is preserved. The amendment carries its own approval chain.
+Once frozen, a document can only change through formal `amendment:` blocks. The original seal is preserved. The amendment carries its own approval chain. `certify:` is an optional authority layer — a certification authority binds the signing key to a verified organization (see [Trust & Signing](./trust-and-signing)).
 
-## 8. The `.it` file is yours
+## 9. The `.it` file is yours
 
 IntentText is an open format. Your `.it` files are plain text — readable in any editor, storable in any VCS, parseable with any language.
 

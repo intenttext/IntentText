@@ -130,6 +130,18 @@ This layer answers _"who signed it?"_ and _"did an authority certify it?"_ Verif
 The MCP **verifies** certifications but never **issues** them. Certification issuance requires the UTS authority's private key, which lives only on the UTS service (`api.uts.qa`) and must never be placed in an MCP server. Document authors sign with their own keys (`sign_document`); the authority certifies separately.
 :::
 
+### Coverage
+
+The tools above expose the **core** of the toolchain — parse, render, merge, validate,
+query, diff, workflow extraction, and the full integrity + cryptographic-identity trust
+layer. A few `@dotit/core` capabilities are not yet wired as MCP tools and are reached via
+the library or CLI instead: **conformance** (`checkConformance`), the **Forms** API
+(`applyAnswers` / `isFormComplete` / `sealFormStructure`), **version compare / 3-way merge**
+(`compareVersions` / `mergeThreeWay`), the **binary converters** (`.xlsx`/`.docx` ⇄ `.it`),
+**e-invoice (UBL)** export (`buildUBLInvoice`), and **approval routing** (`workflowState` /
+`appendApproval`). These are on the MCP roadmap; until then, drive them through
+[`@dotit/core`](./core-api) or the [CLI](./cli).
+
 ## Tool examples
 
 ### Parse and render
@@ -180,7 +192,10 @@ Claude calls: seal_document({
 })
 ```
 
-The result includes the sealed source — store it exactly as returned (the hash covers the exact bytes).
+The result includes the sealed source — store it as returned. The seal is a SHA-256 hash over
+the document's **content** (under `spec: 4`, which excludes styling/comments and normalizes
+line endings + trailing whitespace), so a later reformat or CRLF change won't break it; only a
+content change does. Byte-exact storage is good hygiene, not what the seal enforces.
 
 ### Validate a generated workflow
 
@@ -234,4 +249,4 @@ All tools return clear error text (with `isError`) on bad input rather than cras
 
 ## Source
 
-Repository: [intenttext-mcp](https://github.com/intenttext/intenttext-mcp) · npm: [`@dotit/mcp`](https://www.npmjs.com/package/@dotit/mcp) (1.1.2 — formerly `@intenttext/mcp`, now deprecated with a pointer)
+Repository: [intenttext-mcp](https://github.com/intenttext/intenttext-mcp) · npm: [`@dotit/mcp`](https://www.npmjs.com/package/@dotit/mcp) (1.1.3 — formerly `@intenttext/mcp`, now deprecated with a pointer)
