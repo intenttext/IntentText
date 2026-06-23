@@ -51,6 +51,9 @@ jobs:
       - name: Documentation accuracy gate (keyword count / SEAL_SPEC literals never drift)
         run: node scripts/check-doc-accuracy.cjs
 
+      - name: Example seals verify intact (sealed examples never silently drift)
+        run: node scripts/check-example-seals.mjs
+
       - name: Emit core package size report
         run: node packages/core/scripts/report-package-size.cjs > core-package-size.json
 
