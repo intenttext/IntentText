@@ -157,17 +157,20 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     since: "1.0",
     status: "stable",
     description: "Callout block (warning/danger/tip/success are aliases with type injection)",
-    aliases: [{ alias: "تنبيه", status: "alias" }, 
+    // T-07: warning/danger/tip/success are the primary visible callout forms; the
+    // redundant synonyms are demoted to compat-only — they still parse and still inject
+    // their variant (via CALLOUT_ALIAS_MAP), just hidden from docs/completion.
+    aliases: [{ alias: "تنبيه", status: "alias" },
       { alias: "warning", status: "alias" },
       { alias: "danger", status: "alias" },
       { alias: "tip", status: "alias" },
       { alias: "success", status: "alias" },
-      { alias: "alert", status: "alias" },
-      { alias: "caution", status: "alias" },
-      { alias: "critical", status: "alias" },
-      { alias: "destructive", status: "alias" },
-      { alias: "hint", status: "alias" },
-      { alias: "advice", status: "alias" },
+      { alias: "alert", status: "compat-only" },
+      { alias: "caution", status: "compat-only" },
+      { alias: "critical", status: "compat-only" },
+      { alias: "destructive", status: "compat-only" },
+      { alias: "hint", status: "compat-only" },
+      { alias: "advice", status: "compat-only" },
     ],
   },
   {
