@@ -128,6 +128,11 @@ const config: Config = {
           position: "right",
         },
         {
+          to: "pathname:///llms.it",
+          label: "llms.it",
+          position: "right",
+        },
+        {
           href: "https://github.com/intenttext/IntentText",
           label: "GitHub",
           position: "right",
@@ -152,6 +157,7 @@ const config: Config = {
             { label: "CLI", to: "/docs/reference/cli" },
             { label: "Core API", to: "/docs/ecosystem/core-api" },
             { label: "llms.txt", to: "pathname:///llms.txt" },
+            { label: "llms.it", to: "pathname:///llms.it" },
           ],
         },
         {

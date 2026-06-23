@@ -1,0 +1,302 @@
+// it-format: 1.0
+title: IntentText (.it) — Format Reference for LLMs
+summary: The canonical machine reference, written in the format it documents (.it). A faithful companion to /llms.txt.
+meta: | type: reference | audience: llm | format: it | spec: 4 | canonical-keywords: 41
+
+text: After reading this file you can author, edit, and reason about `.it` files correctly. One `.it` file is simultaneously a human-readable document, a queryable typed database, a print/PDF-ready artifact, and a tamper-evident signable record. This is the SAME reference as /llms.txt, expressed in IntentText itself — every example below is real `.it`.
+
+info: OPEN VOCABULARY — .it has NO fixed schema. The 41 reserved keywords have stable, guaranteed meaning, but they are NOT a whitelist. Inventing your own domain keywords (clause:, risk:, obligation:, sla:, warranty:, expense:) is normal, first-class, and ENCOURAGED whenever no reserved keyword fits. ZERO ALIASES: the only reserved words are the 41 canonical keywords, their 33 Arabic localized names, and the namespaced extension keywords — every other word resolves RELIABLY to your own custom block, never silently reinterpreted. | type: success
+
+link: Companion plain-text reference | to: https://dotit.uts.qa/llms.txt
+text: Site https://dotit.uts.qa · npm @dotit/core · Editor https://editor.uts.qa · Verify https://verify.uts.qa (UTS certification service api.uts.qa)
+
+section: 0. The @dotit/* toolchain (one ecosystem)
+
+```text
+@dotit/core   2.0.0  Parser, HTML/print renderers, query, template merge, trust (SEAL_SPEC 4:
+                     seal/sign/verify, appearance hash, CRLF-stable, certify-as-claim), themes,
+                     lossless text<->JSON, DB-safe storage, converters (MD/HTML + XLSX/DOCX),
+                     EN 16931/UBL e-invoice export, and the `dotit` CLI. Zero deps; Node + browser.
+@dotit/sign   2.0.0  Ed25519 signatures (provable "who signed") + UTS certifications. Offline.
+@dotit/pdf    2.0.0  Server PDF bytes: merge -> seal -> real PDF in one call (issuePDF); PAdES.
+@dotit/pades  1.0.1  PAdES (Adobe/court-recognized) PDF signatures — X.509/CMS + RFC-3161 stamps.
+@dotit/mcp    2.0.0  MCP server — IntentText as an agent tool surface (parse/render/query/seal/...).
+@dotit/editor 2.0.0  Embeddable React WYSIWYG editor — Word-like pages, ribbon, trust stamp.
+```
+
+text: Everything is built on the SAME parser/hash, so a doc authored anywhere verifies everywhere.
+
+section: 1. Line grammar — everything is one line, one intent
+
+text: Every non-empty line is: `keyword: content | prop: value | prop: value`
+
+- The text before the first `:` is the keyword (block type).
+- Content is everything after `:` up to the first ` | `.
+- Pipe properties are `key: value` pairs separated by ` | `. The `|` character is RESERVED as the property delimiter — it cannot appear inside content or values. Every OTHER character is literal: Unicode punctuation, symbols, accents, RTL/Arabic need no escaping. Only `|` is special.
+- Blank lines separate blocks; they are significant between consecutive `text:` lines (without one, adjacent prose merges into a paragraph and only the first line's props are kept).
+- `// comment` lines are comments.
+- Unknown keywords NEVER error — they parse as `type: custom` with the keyword preserved, queryable. You can — and SHOULD — invent precise domain keywords freely.
+- Keywords and property keys are UNICODE words; Arabic domain keywords work exactly like ASCII ones. Dates stay ISO (2026-03-09) regardless of language.
+
+section: 2. The 41 canonical keywords, by tier
+
+sub: CORE tier (13)
+text: title summary meta section sub text info quote code image link task done — a plain document needs only these.
+
+```intenttext
+title: Service Agreement
+summary: Q2 consulting
+meta: | author: A | tags: x, y | theme: corporate | dir: rtl
+section: Scope
+sub: Payment Terms
+text: Plain prose here.
+info: Check this | type: warning
+quote: Stay hungry | by: Jobs
+image: Alt text | src: logo.png | caption: Our logo
+link: Docs | to: https://example.com
+task: Ship auth | owner: Ahmed | due: 2026-07-01 | priority: high
+done: Deploy staging | at: 2026-03-01
+```
+
+text: Lists: `- item` -> list-item; `1. item` -> step-item (both render as lists; query BOTH). Tables: pipe rows `| Cell | Cell |` (first row = header) or the `headers:`/`row:` keywords.
+
+sub: DATA tier (3) — metric, headers, row
+text: metric is a KPI/total. MONEY: bare magnitude in value:, ISO-4217 code in unit: (queryable, typed). With ANY of target:/trend:/period: a metric renders as a KPI card; plain renders as a label->value total row. `headers:` is the table-header keyword (`columns:` is NOT reserved — it resolves to a custom block).
+
+```intenttext
+metric: Total Due | value: 17325 | unit: QAR
+metric: IRR | value: 14.2% | target: 12% | trend: up
+headers: Description | Qty | Total
+row: Consulting | 40 | 6000
+```
+
+sub: CONTRACT (trust) tier (9) — cite track approve sign freeze amendment certify route require
+text: A conformant sign: carries hash: (added by sealing) + at:. For recorded pre-seal sign-offs use approve:; a bare `sign: Name` (no hash:) is flagged by checkConformance. history:/revision: live below the audit-log boundary (machine-managed, not tier members).
+
+```intenttext
+cite: ISO 27001:2022 | section: A.9
+track: | id: DOC-1 | by: Ahmed
+approve: Legal ok | by: Sara | role: Counsel | at: 2026-03-28
+freeze: | at: 2026-03-30 | hash: sha256:... | status: locked
+amendment: Terms updated | was: Net 30 | now: Net 15 | by: Ahmed
+route: sequential
+require: finance | when: amount > 100000
+```
+
+sub: AGENT tier (9) — step decision gate trigger result policy audit ask context
+```intenttext
+trigger: New form | id: t1
+step: Validate input | tool: validate | id: s1
+decision: Valid? | then: s2 | else: s9
+gate: Manager approval | approver: Ops Lead
+result: Done | status: success
+```
+
+sub: PRINT (layout) tier (7) — toc page header footer watermark style break
+```intenttext
+page: | size: A4 | margin: 20mm
+header: ACME — Confidential
+footer: INV-1 · Page {{page}} of {{pages}}
+watermark: DRAFT | opacity: 0.1
+toc:
+break:
+```
+
+section: 2b. Extensions — namespaced keywords (x-ns:)
+
+text: Beyond the 41, specialized blocks use an `x-<namespace>:` prefix (the bare form is also accepted). They parse, render, and query like any block.
+
+- x-writer: byline figure caption footnote epigraph dedication (editorial)
+- x-doc: def contact deadline ref signline attach (definitions, parties, cross-refs, attachments)
+- x-agent: loop parallel retry wait handoff call checkpoint signal import export progress tool prompt memory model error
+- x-form: input output (typed form fields — STABLE namespace)
+- x-layout: font divider
+- x-exp: assert secret (experimental)
+
+```intenttext
+contact: Acme Gulf Trading WLL | email: ops@acme.qa | role: Client
+deadline: First invoice due | date: 2026-07-01 | consequence: 2% late fee
+def: Force Majeure | meaning: events beyond a party's reasonable control
+ref: Prior policy | file: ./policy.it | rel: supersedes
+figure: Chart 1 | src: figures/q2-trend.svg | caption: Q2 revenue trend
+attach: cr | name: cr.pdf | mime: application/pdf | sha256: ... | data: <base64>
+```
+
+info: ref TARGET goes in file: or url: (NOT to:). figure: requires src:. The file in attach: rides INSIDE the doc and is covered by the seal. | type: info
+
+section: 2c. Custom keywords — the open vocabulary (first-class)
+
+text: ANY word that is not reserved parses as a typed, queryable custom block that keeps its keyword verbatim. Inventing a precise domain keyword is idiomatic and ENCOURAGED — reach for one whenever no reserved keyword fits, instead of flattening the concept into text:/info:.
+
+```intenttext
+clause: Indemnity | scope: Provider | cap: 3 months fees
+obligation: Deliver Schedule A | owner: Provider | by: 2026-08-01
+risk: Vendor lock-in | severity: high | mitigation: dual-source
+warranty: Conforms to spec | owner: Provider | period: 90 days
+sla: Resolution time | target: 4h | priority: P1
+expense: Office chairs | category: furniture | amount: 1200 | unit: QAR
+```
+
+text: Query a custom keyword by NAME — `keyword=clause` — NOT `type=clause` (every custom block's type is literally `custom`; the word lives in properties.keyword). There are NO synonym aliases, so party:, milestone:, rule:, status:, note:, item:, due:, kpi: are all ordinary custom blocks — never silently reinterpreted. Mixing reserved + custom in ONE document is normal.
+
+section: 2d. Format version stamp (optional)
+
+text: Declare the grammar a file targets with ONE header comment. It is a comment, so it never affects the seal hash and round-trips as trivia; parsed into document.version.
+
+```intenttext
+// it-format: 1.0
+title: Quarterly Report
+```
+
+section: 3. Inline formatting (inside content)
+
+text: `*bold*` `_italic_` `~strike~` `^highlight^` `` `code` `` `[text](https://url)` `[[side note]]` `@mention` `#tag` `@2026-05-01` (date) `{Label}` (badge pill).
+
+text: Styled span — style PART of a line with the same style keys as block props, but SEMICOLON-separated (`|` is reserved for line props):
+
+```intenttext
+text: Payment is [overdue]{ color: #c00; weight: bold } — act now.
+metric: Total | value: [17325 QAR]{ size: 1.2em; weight: bold }
+```
+
+section: 4. Styling — three layers (never write raw CSS)
+
+text: 1) Theme (document class): `meta: | theme: corporate|legal|editorial|technical|minimal|warm|dark|print`. 2) `style:` rules — house styling per block type, document-wide. 3) Per-line style props and `[text]{...}` spans for exceptions. Rules apply after the theme; per-line props win over rules.
+
+```intenttext
+style: section | color: #0a7 | weight: 600
+style: title | family: Georgia | size: 26pt
+```
+
+text: Style property keys (the ONLY style vocabulary — never arbitrary CSS): color, size, family, weight, align(center|right|justify), bg, indent, opacity, italic, border, underline, strike, valign(sub|super).
+
+section: 5. Templates and merge
+
+text: Placeholders `{{path.to.value}}` (dot paths, array indices `{{items.0.qty}}`). Repeating table rows — add `each: <arrayPath>` to the header row; the next row is the item template, with each element bound to `item`. Runtime print tokens `{{page}}` / `{{pages}}` resolve per page; `{{date}}` `{{year}}` resolve automatically.
+
+```intenttext
+section: Line Items
+| Description | Qty | Total | each: items |
+| {{item.description}} | {{item.qty}} | {{item.total}} |
+```
+
+text: API: `parseAndMerge(templateSource, data, { missing: "blank" })` — "blank" renders unresolved fields empty (finished docs); default "keep" shows the marker (authoring). Never hand-interpolate; use the merge engine.
+
+section: 6. Trust — three layers: integrity -> identity -> authority
+
+sub: Layer 1 — Integrity (seal/freeze)
+text: The document hash = SHA-256 over the source ABOVE the history: boundary, EXCLUDING lines starting with sign:/freeze:/certify:/amendment: (approve: IS included), under SEAL_SPEC 4 (excludes styling, normalizes CRLF/CR->LF + trailing whitespace). Anyone can recompute it — no vendor. A separate appearance: hash flags a post-seal restyle that hides content. APIs: `sealDocument(source, { signer, role? })`, `verifyDocument(source)`, `computeDocumentHash(source)`.
+
+sub: Layer 2 — Identity (Ed25519 sign:)
+text: Proves a specific key-holder signed THIS hash, verifiable offline. `signDocumentCrypto(source, { signer, role, privateKey })` upgrades a sign: line with key:+sig:. A bare `sign: Name` (no hash:) is NOT a conformant signature — pre-seal, use approve:.
+
+sub: Layer 3 — Authority (UTS certify:)
+text: Binds a signature to a KYC-verified org identity through a UTS certification; an offline root vouches for an issuing key, and the chain travels inside the document. `certifyDocument(...)`, `verifyCertifications(source)`.
+
+text: Lifecycle: track -> approve -> sign -> freeze (seal) -> [crypto sign] -> [certify] -> verify -> amendment. NEVER hand-compute or invent a hash/sig — only the libs/service compute valid ones. Store sealed source as returned; never edit above history: after sealing (use amendment:).
+
+text: STORING .it: a file is just a UTF-8 string — store it in any TEXT/blob column. To guarantee a DB layer can't corrupt sealed bytes, wrap with `toStorageRecord(source)` -> { source, bytesSha256 } and restore with `fromStorageRecord`. `documentToSource(parseIntentText(src))` is a lossless text<->JSON round-trip for indexing/diff.
+
+section: 6b. Forms — fillable, conditional, computed, signable
+
+text: A form is `meta: | type: form` + input: fields. Two-party trust: the AUTHOR seals the blank form's structure; the FILLER signs the answers. `show-if:` / `require:`-`when:` take ONE comparison `key <op> value` (== != > < >= <=). `compute:` is arithmetic (+ - * / with parentheses). APIs: submitForm() / buildSubmission().
+
+```intenttext
+meta: | type: form
+input: Full name | key: name | type: text | required: yes
+input: Country | key: country | type: select | options: SA, QA, AE
+input: VAT number | key: vat | show-if: country == SA
+input: Qty | key: qty | type: number
+input: Total | key: total | type: number | compute: qty * unit_price
+input: CR (PDF) | key: cr | type: attachment | required: yes
+```
+
+section: 6c. Workflows & approval routing — state DERIVED from the file
+
+text: A document carries its own approval policy; live state is derived, so it can never drift from a DB. The approve: role: (or by:) MUST match the require: token (`require: legal` is fulfilled by `role: legal`, NOT `role: Legal Counsel`). `workflowState(source)` -> { pending, next, complete }; the renderer draws an approval-route panel.
+
+```intenttext
+route: sequential
+require: manager
+require: finance | when: amount > 100000
+approve: Reviewed | by: Sarah | role: manager | at: 2026-03-20
+```
+
+text: Executable agent workflows use the agent tier: trigger: (entry) -> step: (tool) -> decision: (branch) -> gate: (human checkpoint) -> result: (terminal). `executeWorkflow()` runs them; audit: lines + the hash-chained audit trail (appendApproval / verifyAuditChain) make the approval SEQUENCE tamper-evident.
+
+section: 6d. Conformance — one read-only yes/no
+
+text: `checkConformance(source, { level: "lax" | "strict" })` -> { conformant, errors, warnings, issues }. lax (default): no error-level issues; unknown keywords are NOT errors (the open vocabulary is conformant by design). strict: no errors AND no warnings (e.g. every date ISO 8601) — the level a publisher certifies for a spotless document.
+
+section: 7. Rendering and PDFs
+
+text: `renderHTML(doc, { theme })` -> HTML fragment. `renderPrint(doc, { theme })` -> complete print-ready HTML (@page size/margins, running header/footer with page counters, multi-page tables). Browser: print renderPrint output via an iframe -> native dialog -> PDF (zero deps). Server PDFs: `issuePDF(template, data, { signer })` -> { source (sealed .it), hash, at, pdf (bytes) } — one call does merge -> seal -> PDF, so the archived PDF and the sealed .it share one hash.
+
+section: 8. Query — a folder of .it files is a database
+
+text: `queryBlocks(doc, "type=task owner=Ahmed sort:due:asc limit:5")` -> { blocks, total, matched }. WHERE clauses use `=` (also `< > <= >= !=`, date-aware on ISO values); match any keyword or property (type=, owner=, status=, due=...); a CUSTOM keyword matches by `keyword=<word>` (its type is `custom`). SORT `sort:field:asc|desc`; paging `limit:N` / `offset:N`. Folder indexing is shallow, per-folder (.it-index), self-healing on query — no DB server.
+
+```text
+dotit query ./docs "type=invoice status=Unpaid amount>1000 sort:due:asc limit:20"
+```
+
+section: 9. Big / multi-page documents
+
+text: `page: | size: A4 | margin: 20mm` (sizes A5..A1, Letter, Legal, or custom "80mm auto"; orientation portrait|landscape, shorthand `size: A3 landscape`). header:/footer: are RUNNING (repeat per page) with live `{{page}}`/`{{pages}}`. break: forces a page break. toc: renders a table of contents from section:/sub:. Tables auto-repeat their header row across page breaks.
+
+section: 10. Enterprise document patterns (recipes)
+
+text: Load-bearing shapes for real business docs — invoices, tenders + BoQ, feasibility studies, legal contracts (definitions, parties, obligations, execution + seal), bank/financial reports (multi-page, toc, KPIs). Mix freely; invent domain keywords where no canonical one fits; pre-seal sign-offs are approve:.
+
+```intenttext
+title: Service Agreement
+meta: | type: contract | ref: SA-2026-007
+section: 1. Definitions
+def: Services | meaning: The consulting work described in Schedule A
+section: 2. Parties
+contact: Acme LLC | role: Provider | email: legal@acme.qa | vat: VAT-300123
+section: 3. Terms
+obligation: Deliver Schedule A in full | owner: Provider | by: 2026-08-01
+clause: Limitation of Liability | cap: 3 months fees | excludes: indirect damages
+deadline: First milestone | date: 2026-08-01 | consequence: 2% penalty
+section: 4. Execution
+approve: Legal review complete | by: Sara | role: Counsel | at: 2026-06-13
+approve: Executed for the company | by: Ahmed Al-Thani | role: CEO | at: 2026-06-13
+```
+
+section: 11. Generation rules (follow these exactly)
+
+1. ` | ` (space-pipe-space) is the property delimiter. For a LITERAL pipe escape it `\|` (literal backslash `\\`). Colons inside content/values need no escaping.
+2. One intent per line. No HTML, no Markdown headings (#), no raw CSS.
+3. Use semantic keywords over text: — a task is task:, a decision is decision:, money totals are metric:. When a concept is precise but has NO reserved keyword, INVENT a domain one (clause:, risk:, obligation:, sla:, warranty:) — custom keywords are idiomatic, typed, queryable; never a last resort. Lean on the open vocabulary; don't confine output to the 41.
+4. Dates: ISO 8601 (2026-04-01 or 2026-04-01T09:00:00Z).
+5. Tables: keep header and rows the same column count; pad a short row with an empty cell `| |`; each: goes on the header row.
+6. Styled spans use `;` between props.
+7. RTL: `meta: | dir: rtl` for the whole doc, or `dir: rtl` on a single block.
+8. For templates, leave {{placeholders}} untouched.
+9. Don't invent style values (only §4 keys) or trust hashes/sigs (only sealDocument()/@dotit/sign compute valid ones; verify with verifyDocument()/verifyCryptoSignatures()/verifyCertifications()).
+10. Receipts: `page: | size: 80mm auto | margin: 4mm`, 2-3 narrow columns.
+
+section: 12. Arabic — first-class localized keyword names (33)
+
+text: The Arabic names are NOT aliases — they are localized keyword NAMES that resolve to the same canonical keyword, with the same rendering, query semantics, and seal coverage. Write a whole document in Arabic and still get full canonical behavior; one cross-language query (type=task) finds tasks in any language. Keywords round-trip AS WRITTEN, so Arabic files stay Arabic and sealed hashes hold. Property keys stay English (owner:, due:, value:); dates stay ISO.
+
+```text
+عنوان=title  ملخص=summary  بيانات=meta  قسم=section  فرعي=sub  نص=text
+تنبيه=info  اقتباس=quote  استشهاد=cite  شيفرة=code  صورة=image  رابط=link
+مهمة=task  منجز=done  أعمدة=headers  صف=row  مؤشر=metric  تتبع=track
+اعتماد=approve  توقيع=sign  تجميد=freeze  تعديل=amendment  صفحة=page
+ترويسة=header  تذييل=footer  علامة=watermark  نمط=style  فاصل=break
+مهلة=deadline  جهة=contact  تواصل=contact  تعريف=def  مرجع=ref
+```
+
+```intenttext
+عنوان: عرض سعر — تأثيث المكتب الرئيسي
+ملخص: شركة الإتقان للتجارة — صالح حتى 2026-07-15
+قسم: البنود
+أعمدة: الوصف | الكمية | الإجمالي
+صف: كرسي مكتب تنفيذي | 12 | 10200 QAR
+مؤشر: الإجمالي المستحق | value: 10200 | unit: QAR
+```
+
+text: This document is itself valid IntentText — open it in the editor (editor.uts.qa), render it to PDF, query it, or seal it. The reference and the format are one and the same.
