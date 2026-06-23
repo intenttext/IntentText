@@ -65,7 +65,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
+        version: 1.6.1(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
 
   apps/docs:
     dependencies:
@@ -240,7 +240,7 @@ importers:
         version: 7.3.3(@types/node@20.19.41)(jiti@1.21.7)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3)
       vitest:
         specifier: ^1.6.1
-        version: 1.6.1(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
+        version: 1.6.1(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
 
   demo/erp-integration:
     dependencies:
@@ -277,13 +277,10 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
+        version: 1.6.1(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
 
   packages/core:
     dependencies:
-      '@types/node':
-        specifier: ^20.0.0
-        version: 20.19.41
       fflate:
         specifier: ^0.8.2
         version: 0.8.3
@@ -294,12 +291,15 @@ importers:
       '@intenttext/core':
         specifier: 4.3.0
         version: 4.3.0
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
+        version: 1.6.1(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
 
   packages/editor:
     dependencies:
@@ -368,8 +368,8 @@ importers:
         specifier: 5.2.0
         version: 5.2.0(vite@7.3.3(@types/node@20.19.41)(jiti@1.21.7)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3))
       happy-dom:
-        specifier: 15.11.7
-        version: 15.11.7
+        specifier: 20.10.6
+        version: 20.10.6
       react:
         specifier: ^19.2.4
         version: 19.2.6
@@ -384,7 +384,7 @@ importers:
         version: 7.3.3(@types/node@20.19.41)(jiti@1.21.7)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3)
       vitest:
         specifier: 3.2.6
-        version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)(happy-dom@15.11.7)(jiti@1.21.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3)
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)(happy-dom@20.10.6)(jiti@1.21.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3)
 
   packages/math:
     dependencies:
@@ -400,7 +400,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
+        version: 1.6.1(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
 
   packages/mcp:
     dependencies:
@@ -431,7 +431,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
+        version: 1.6.1(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
 
   packages/pades:
     dependencies:
@@ -462,7 +462,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
+        version: 1.6.1(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
 
   packages/pdf:
     dependencies:
@@ -490,7 +490,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
+        version: 1.6.1(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
 
   packages/sign:
     dependencies:
@@ -509,7 +509,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
+        version: 1.6.1(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
 
   packages/vscode:
     dependencies:
@@ -571,7 +571,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^2.1.8
-        version: 2.1.9(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
+        version: 2.1.9(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)
 
 packages:
 
@@ -3432,6 +3432,9 @@ packages:
   '@types/webidl-conversions@7.0.3':
     resolution: {integrity: sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==}
 
+  '@types/whatwg-mimetype@3.0.2':
+    resolution: {integrity: sha512-c2AKvDT8ToxLIOUlN51gTiHXflsfIFisS4pO7pDPoKouJCESkhZnEy623gwP9laCy5lnLDAw1vAzu2vM2YLOrA==}
+
   '@types/whatwg-url@11.0.5':
     resolution: {integrity: sha512-coYR071JRaHa+xoEvvYqvnIHaVqaYrLPbsufM9BF63HkwI5Lgmy2QR8Q5K/lYDYo5AK82wOvSOS0UsLTpTG7uQ==}
 
@@ -4250,6 +4253,10 @@ packages:
 
   buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
+
+  buffer-image-size@0.6.4:
+    resolution: {integrity: sha512-nEh+kZOPY1w+gcCMobZ6ETUp9WfibndnosbpwB1iJk/8Gt5ZF2bhS6+B6bPYz424KtwsR6Rflc3tCz1/ghX2dQ==}
+    engines: {node: '>=4.0'}
 
   buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
@@ -5166,6 +5173,10 @@ packages:
     resolution: {integrity: sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g==}
     engines: {node: '>=0.12'}
 
+  entities@7.0.1:
+    resolution: {integrity: sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA==}
+    engines: {node: '>=0.12'}
+
   env-paths@2.2.1:
     resolution: {integrity: sha512-+h1lkLKhZMTYjog1VEpJNG7NZJWcuc2DDk/qsqSTRRCOXiLjeQ1d1/udrUGhqMxUgAlwKNZ0cf2uqan5GLuS2A==}
     engines: {node: '>=6'}
@@ -5846,9 +5857,9 @@ packages:
   handle-thing@2.0.1:
     resolution: {integrity: sha512-9Qn4yBxelxoh2Ow62nP+Ka/kMnOXRi8BXnRaUwezLNhqelnN49xKz4F/dPP8OYLxLxq6JDtZb2i9XznUQbNPTg==}
 
-  happy-dom@15.11.7:
-    resolution: {integrity: sha512-KyrFvnl+J9US63TEzwoiJOQzZBJY7KgBushJA8X61DMbNsH+2ONkDuLDnCnwUiPTF42tLoEmrPyoqbenVA5zrg==}
-    engines: {node: '>=18.0.0'}
+  happy-dom@20.10.6:
+    resolution: {integrity: sha512-6QD0ilzDDt93tX44y8tbmZdAcdTRYDhUP+Asgi6pC8Pp5IA3cvaZGyoVN/EGtlq9ziT65iPuBBn3ASLr6hCgVw==}
+    engines: {node: '>=20.0.0'}
 
   has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
@@ -8742,6 +8753,10 @@ packages:
     resolution: {integrity: sha512-ZX99e6tRweoUXqR+VBrslhda51Nh5MTQwou5tnUDgbtyM0dBgmhEDtWGP/xbKn6hqfPRHujUNwz5fy/wbbhnpw==}
     engines: {node: '>= 0.4'}
 
+  side-channel@1.1.1:
+    resolution: {integrity: sha512-6x6dK6zJdpTzF4sQeNYxwtvBzf6Eg4GtlesS94HOvTudUeyK2WXAaIfmDgsyslYrRBeFIlsi54AYsFGUuhmvrQ==}
+    engines: {node: '>= 0.4'}
+
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
 
@@ -9823,6 +9838,10 @@ packages:
 
   which-typed-array@1.1.21:
     resolution: {integrity: sha512-zbRA8cVm6io/d5W8uIe2hblzN76/Wm3v/yiythQvr+dpBWeqhPSWIDNj4zOyHi4zKbMK6DN34Xsr9jPHJERAEw==}
+    engines: {node: '>= 0.4'}
+
+  which-typed-array@1.1.22:
+    resolution: {integrity: sha512-fvO4ExWMFsqyhG3AiPAObMuY1lxaqgYcxbc49CNdWDDECOJNgQyvsOWVwbZc+qf3rzRtxojBK+CMEv0Ld5CYpw==}
     engines: {node: '>= 0.4'}
 
   which@2.0.2:
@@ -14024,6 +14043,8 @@ snapshots:
 
   '@types/webidl-conversions@7.0.3': {}
 
+  '@types/whatwg-mimetype@3.0.2': {}
+
   '@types/whatwg-url@11.0.5':
     dependencies:
       '@types/webidl-conversions': 7.0.3
@@ -14991,6 +15012,10 @@ snapshots:
 
   buffer-from@1.1.2: {}
 
+  buffer-image-size@0.6.4:
+    dependencies:
+      '@types/node': 20.19.41
+
   buffer@5.7.1:
     dependencies:
       base64-js: 1.5.1
@@ -15681,10 +15706,10 @@ snapshots:
       object-keys: 1.1.1
       object.assign: 4.1.7
       regexp.prototype.flags: 1.5.4
-      side-channel: 1.1.0
+      side-channel: 1.1.1
       which-boxed-primitive: 1.1.1
       which-collection: 1.0.2
-      which-typed-array: 1.1.21
+      which-typed-array: 1.1.22
 
   deep-extend@0.6.0: {}
 
@@ -15997,6 +16022,8 @@ snapshots:
   entities@4.5.0: {}
 
   entities@6.0.1: {}
+
+  entities@7.0.1: {}
 
   env-paths@2.2.1: {}
 
@@ -17028,11 +17055,18 @@ snapshots:
 
   handle-thing@2.0.1: {}
 
-  happy-dom@15.11.7:
+  happy-dom@20.10.6:
     dependencies:
-      entities: 4.5.0
-      webidl-conversions: 7.0.0
+      '@types/node': 20.19.41
+      '@types/whatwg-mimetype': 3.0.2
+      '@types/ws': 8.18.1
+      buffer-image-size: 0.6.4
+      entities: 7.0.1
       whatwg-mimetype: 3.0.0
+      ws: 8.21.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   has-bigints@1.1.0: {}
 
@@ -20598,6 +20632,14 @@ snapshots:
       side-channel-map: 1.0.1
       side-channel-weakmap: 1.0.2
 
+  side-channel@1.1.1:
+    dependencies:
+      es-errors: 1.3.0
+      object-inspect: 1.13.4
+      side-channel-list: 1.0.1
+      side-channel-map: 1.0.1
+      side-channel-weakmap: 1.0.2
+
   siginfo@2.0.0: {}
 
   signal-exit@3.0.7: {}
@@ -21608,7 +21650,7 @@ snapshots:
       terser: 5.48.0
       tsx: 4.22.3
 
-  vitest@1.6.1(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0):
+  vitest@1.6.1(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0):
     dependencies:
       '@vitest/expect': 1.6.1
       '@vitest/runner': 1.6.1
@@ -21632,7 +21674,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.19.41
-      happy-dom: 15.11.7
+      happy-dom: 20.10.6
       jsdom: 25.0.1
     transitivePeerDependencies:
       - less
@@ -21644,7 +21686,7 @@ snapshots:
       - supports-color
       - terser
 
-  vitest@2.1.9(@types/node@20.19.41)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0):
+  vitest@2.1.9(@types/node@20.19.41)(happy-dom@20.10.6)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@20.19.41)(lightningcss@1.32.0)(terser@5.48.0))
@@ -21668,7 +21710,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.19.41
-      happy-dom: 15.11.7
+      happy-dom: 20.10.6
       jsdom: 25.0.1
     transitivePeerDependencies:
       - less
@@ -21681,7 +21723,7 @@ snapshots:
       - supports-color
       - terser
 
-  vitest@3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)(happy-dom@15.11.7)(jiti@1.21.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3):
+  vitest@3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)(happy-dom@20.10.6)(jiti@1.21.7)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/expect': 3.2.6
@@ -21709,7 +21751,7 @@ snapshots:
     optionalDependencies:
       '@types/debug': 4.1.13
       '@types/node': 20.19.41
-      happy-dom: 15.11.7
+      happy-dom: 20.10.6
       jsdom: 25.0.1
     transitivePeerDependencies:
       - jiti
@@ -21982,6 +22024,16 @@ snapshots:
       is-weakset: 2.0.4
 
   which-typed-array@1.1.21:
+    dependencies:
+      available-typed-arrays: 1.0.7
+      call-bind: 1.0.9
+      call-bound: 1.0.4
+      for-each: 0.3.5
+      get-proto: 1.0.1
+      gopd: 1.2.0
+      has-tostringtag: 1.0.2
+
+  which-typed-array@1.1.22:
     dependencies:
       available-typed-arrays: 1.0.7
       call-bind: 1.0.9
