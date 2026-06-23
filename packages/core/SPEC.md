@@ -159,8 +159,8 @@ the reserved surface can stay small without losing extensibility.
 | --- | --- | --- |
 | **core** (13) | `title` `summary` `meta` `section` `sub` `text` `info` `quote` `code` `image` `link` `task` `done` | Everyday documents: notes, READMEs, plans |
 | **agent** | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` | AI / workflow documents |
-| **contract** | `sign` `approve` `freeze` `certify` `track` `revision` `amendment` `route` `require` `history` `cite` | Signed, frozen, auditable documents |
-| **data** | `columns` `row` `metric` | Structured tabular / metric data |
+| **contract** | `track` `approve` `sign` `freeze` `certify` `amendment` `route` `require` `cite` | Signed, frozen, auditable documents (`history`/`revision` are machine-managed, not tier members) |
+| **data** | `headers` `row` `metric` | Structured tabular / metric data |
 | **print** | `page` `header` `footer` `watermark` `break` `toc` | Print / PDF layout |
 
 > **Callouts.** `info:` is the canonical callout block; the everyday authoring forms
