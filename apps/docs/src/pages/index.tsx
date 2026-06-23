@@ -611,63 +611,79 @@ function HeroInvoice(): React.ReactElement {
   });
   return (
     <div className={styles.invoiceDoc}>
-      <div className={styles.invHead}>
-        <div>
-          <div className={styles.invTitle}>Invoice INV-2026-042</div>
-          <div className={styles.invParties}>Horizon Consulting → Acme Corp</div>
+      {/* Letterhead */}
+      <div className={styles.invBrand}>
+        <div className={styles.invBrandLeft}>
+          <span className={styles.invLogo} aria-hidden>
+            ◆
+          </span>
+          <div>
+            <div className={styles.invBrandName}>Horizon Consulting</div>
+            <div className={styles.invBrandKind}>Tax Invoice</div>
+          </div>
         </div>
-        <div className={styles.invDate}>2026-06-01</div>
+        <div className={styles.invBrandRight}>
+          <div className={styles.invNo}>INV-2026-042</div>
+          <div className={styles.invIssued}>Issued 2026-06-01</div>
+        </div>
       </div>
 
-      <div className={styles.invLabel}>Bill To</div>
-      <div className={styles.invBillTo}>
-        <strong>Acme Corp</strong>
-        <span>accounts@acme.com</span>
-      </div>
+      <div className={styles.invBody}>
+        <div className={styles.invMetaRow}>
+          <div className={styles.invBillBlock}>
+            <div className={styles.invLabel}>Bill to</div>
+            <strong>Acme Corp</strong>
+            <span>accounts@acme.com · VAT-300214</span>
+          </div>
+          <span className={styles.invStatus}>Unpaid</span>
+        </div>
 
-      <div className={styles.invLabel}>Line Items</div>
-      <table className={styles.invTable}>
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Qty</th>
-            <th>Unit</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Strategy consulting — May 2026</td>
-            <td>40</td>
-            <td>150.00</td>
-            <td>6,000.00</td>
-          </tr>
-          <tr>
-            <td>Systems integration</td>
-            <td>12</td>
-            <td>175.00</td>
-            <td>2,100.00</td>
-          </tr>
-          <tr>
-            <td>Compliance review</td>
-            <td>1</td>
-            <td>405.00</td>
-            <td>405.00</td>
-          </tr>
-        </tbody>
-      </table>
+        <div className={styles.invLabel}>Line items</div>
+        <table className={styles.invTable}>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Qty</th>
+              <th>Rate</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Strategy consulting — May 2026</td>
+              <td>40</td>
+              <td>150.00</td>
+              <td>6,000.00</td>
+            </tr>
+            <tr>
+              <td>Systems integration</td>
+              <td>12</td>
+              <td>175.00</td>
+              <td>2,100.00</td>
+            </tr>
+            <tr>
+              <td>Compliance review</td>
+              <td>1</td>
+              <td>405.00</td>
+              <td>405.00</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <div className={styles.invMetric}>
-        <span>Subtotal</span>
-        <span>8,505.00 USD</span>
-      </div>
-      <div className={styles.invMetric}>
-        <span>Tax (5%)</span>
-        <span>425.25 USD</span>
-      </div>
-      <div className={styles.invMetricTotal}>
-        <span>Total Due</span>
-        <span>8,930.25 USD</span>
+        <div className={styles.invTotals}>
+          <div className={styles.invMetric}>
+            <span>Subtotal</span>
+            <span>8,505.00 USD</span>
+          </div>
+          <div className={styles.invMetric}>
+            <span>Tax (5%)</span>
+            <span>425.25 USD</span>
+          </div>
+          <div className={styles.invMetricTotal}>
+            <span>Total Due</span>
+            <span>8,930.25 USD</span>
+          </div>
+        </div>
       </div>
 
       {/* The trust STAMP — the single mark that certifies the document. */}
@@ -677,9 +693,13 @@ function HeroInvoice(): React.ReactElement {
           dangerouslySetInnerHTML={{ __html: stamp }}
         />
         <span className={styles.invStampCap}>
-          <span>Signed Layla Hassan · Finance Director</span>
-          <span>Sealed 1 Jun 2026</span>
-          <span className={styles.invStampHash}>19fba2465d…</span>
+          <span className={styles.invStampWho}>
+            Signed · Layla Hassan, Finance Director
+          </span>
+          <span>
+            Sealed 1 Jun 2026 ·{" "}
+            <span className={styles.invStampHash}>19fba2465d…</span>
+          </span>
         </span>
       </div>
     </div>
@@ -829,7 +849,7 @@ export default function Home(): React.ReactElement {
           </div>
           <div className={styles.captionRow}>
             <span className={styles.captionChip}>
-              28 Arabic keyword aliases — full canonical semantics
+              33 Arabic keyword aliases — full canonical semantics
             </span>
             <span className={styles.captionChip}>
               RTL automatic — layout mirrors via CSS logical properties
@@ -910,17 +930,9 @@ export default function Home(): React.ReactElement {
             </div>
             <div className={styles.codeStack}>
               <figure className={styles.shotFig}>
-                <div className={styles.shot}>
-                  <img
-                    src={useBaseUrl("/img/landing-invoice.png")}
-                    alt="Invoice rendered by @dotit/core — corporate theme, two-sided title row, line-item table, totals, and payment deadline"
-                    width={1440}
-                    height={1276}
-                    loading="lazy"
-                  />
-                </div>
+                <InvoicePaper />
                 <figcaption className={styles.shotCaption}>
-                  Real renderer output — <code>dotit invoice.it --print --theme
+                  Live renderer output — <code>dotit invoice.it --print --theme
                   corporate</code>
                 </figcaption>
               </figure>
@@ -1298,7 +1310,7 @@ export default function Home(): React.ReactElement {
               </h3>
               <div className={styles.llmsUrl}>dotit.uts.qa/llms.txt</div>
               <p>
-                The complete machine reference: line grammar, all 38 canonical
+                The complete machine reference: line grammar, all 41 canonical
                 keywords, styling layers, templates and merge, the trust
                 model, and generation rules. Point any LLM at it and it writes
                 valid <code>.it</code> — documents, templates, and workflows —
