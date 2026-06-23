@@ -39,6 +39,8 @@ export { renderHTML } from "./renderer";
 export { validateDocumentSemantic } from "./validate";
 export { checkConformance } from "./conformance";
 export type { ConformanceLevel, ConformanceReport } from "./conformance";
+export { readTypedValue, parseNumericValue, metricTypedValue } from "./typed-value";
+export type { ValueKind, TypedValue } from "./typed-value";
 export { documentToSource, blockToSource } from "./source";
 export {
   effectiveProperties,

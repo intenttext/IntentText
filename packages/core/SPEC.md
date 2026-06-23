@@ -85,6 +85,9 @@ flags them (`DATE_NOT_ISO`, warning). Template placeholders are exempt.
 separators and no currency symbol — and `unit:` holds the currency (an ISO-4217 code like
 `QAR`/`USD`) or the unit (`%`, `years`, `points`): `metric: Total Due | value: 17325 | unit:
 QAR`. This is the arithmetic-friendly form the e-invoice export (`buildUBLInvoice`) consumes.
+Read it with `readTypedValue(value, unit)` / `metricTypedValue(block)` → `{ number, currency,
+kind }` (kind: `money` | `percent` | `quantity` | `number` | `text`). The reader is pure and
+never re-serializes, so reading a typed value never affects a seal.
 
 **Temporal & actor keys (by role).** Use `at:` for an event/approval/signature timestamp,
 `due:` for a future deadline, and `date:`/`issued:`/`expires:` for labelled dates (all ISO

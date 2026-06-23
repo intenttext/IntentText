@@ -9,14 +9,14 @@ const { execSync } = require("node:child_process");
 // `defaults.ts` module (read-time defaults). Nudged again at 4.4 for the FORMAT-REVIEW
 // freeze work: reserving route/require/certify, the rendered approval-route panel
 // (+ its CSS), the optional format-version stamp, and the read-only conformance module
-// (conformance.{js,d.ts}, +2 entries). Limits sit just above real size
+// (conformance.{js,d.ts}) and the typed-value reader (typed-value.{js,d.ts}). Limits sit just above real size
 // so the guard still catches FUTURE accidental bloat. Bump deliberately when real
 // features grow the surface; never to wave through an accidental dependency or stray
 // src file.
 const LIMITS = {
-  packedBytes: 138000,
-  unpackedBytes: 635000,
-  entryCount: 107,
+  packedBytes: 140000,
+  unpackedBytes: 640000,
+  entryCount: 109,
 };
 
 const raw = execSync("npm pack --json --dry-run", {
