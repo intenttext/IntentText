@@ -8,6 +8,6 @@
     "start": "node run.mjs"
   },
   "dependencies": {
-    "@dotit/core": "workspace:*"
+    "@dotit/core": "*"
   }
 }

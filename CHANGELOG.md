@@ -6,7 +6,9 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
-### Changed — format freeze prep (`@dotit/core`; see `assessment/FORMAT-REVIEW.md`)
+## [1.25.0] — 2026-06-23
+
+### Changed — `@dotit/core` 1.25.0: the format freeze (see `assessment/FORMAT-REVIEW.md`)
 
 - **Reserved `route`, `require`, `certify`** as canonical keywords (previously parsed as
   `custom`). The reserved canonical set is now **41** (13 core); a CI assertion pins the count.
@@ -26,6 +28,19 @@ The format is based on Keep a Changelog.
 - **Docs reconciled** to one accurate story — **13 core / 41 reserved**, SEAL_SPEC 4:
   removed stale 37/38 counts and `SEAL_SPEC = 3` references and the false "seal hashes exact
   bytes" claim across README/AGENTS/SPEC/INTEGRATION/the docs site/llms.txt.
+- **Reserved `attach`** (x-doc extension) — a keyword `attachments.ts` reads but the registry
+  omitted; fixed a pre-existing `check:examples` failure (the sealed example round-trips intact).
+- **Conformance + strict mode** — `checkConformance(source, { level })` → `{ conformant, errors,
+  warnings, issues }`; SPEC §8 defines lax/strict conformance.
+- **Typed-value reader** — `readTypedValue` / `metricTypedValue` / `parseNumericValue` over the
+  `value:`+`unit:` shape (money/percent/quantity/number/text); pure, never re-serializes.
+- **Prose-pipe lint** — `PROSE_PIPE_SUSPECT` warns when ` | word: value` is likely swallowed into
+  a prose property (no parse change). SPEC now documents the `show-if:`/`when:` + `compute:`
+  mini-grammar, the continuation rule, and positional `meta:` lifting.
+- **Alias hygiene** — pruned `figure` synonyms and the prose-collision `by`; demoted the redundant
+  `info` callout synonyms (alert/caution/critical/destructive/hint/advice) to compat-only.
+- **New CI gates** — `docs:check` (no doc may contradict the keyword count / SEAL_SPEC) and
+  `seals:check` (every sealed example must verify intact).
 
 ### Changed — the seal STAMP is the only trust mark shown (`@dotit/editor` 1.16.3)
 
