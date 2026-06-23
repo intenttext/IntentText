@@ -26,8 +26,9 @@ that matches wins:
 1. **Code fence** — ` ``` ` opens/closes a verbatim `code` block. Lines inside are
    literal (keywords are not interpreted).
 2. **Blank line** — terminates (flushes) the current block.
-3. **Continuation** — a line indented by 2+ spaces or a tab appends to the current
-   block's content.
+3. **Continuation** — consecutive plain prose lines merge into a single paragraph
+   block; the original per-line breaks are preserved as trivia, so the lines re-emit
+   unchanged on serialize. (Leading indentation is not significant to classification.)
 4. **Divider / table / list shorthand** — `---` is a `divider`; `|`-delimited rows
    form `table`; `- ` bullets form list items.
 5. **Keyword line** — `keyword: content | key: value | key: value`. The keyword
@@ -36,6 +37,11 @@ that matches wins:
 6. **Custom keyword** — a `word: ...` line whose `word` is **not** a reserved
    keyword is preserved verbatim as `type: "custom"` with `keyword` retained.
 7. **Implicit text** — any remaining non-empty line becomes a `text` block.
+
+**Document-metadata lifting.** `meta:`, `track:`, `agent:`, `model:`, and `context:`
+lines that appear **before the first `section:`** are lifted into document metadata (and
+re-emitted in their original position on serialize, so round-trips stay byte-stable); the
+same keyword **after** a section is an ordinary block.
 
 ### Two-sided rows (`end:`) and paragraph spacing
 
@@ -85,6 +91,20 @@ QAR`. This is the arithmetic-friendly form the e-invoice export (`buildUBLInvoic
 8601). For *who*: `owner:` names the party **responsible** for a task; `by:` names the actor
 who **performed** a recorded action (`approve:`/`sign:`/`amendment:`). Distinct roles, not synonyms.
 
+**Conditions & computed values.** Two property values carry a tiny, `eval`-free expression
+language (`field-logic.ts`):
+
+- `show-if:` (on `input:` fields) and `when:` (on `require:`) hold **one comparison**,
+  `key <op> value` — operators `=` `==` `!=` `>` `<` `>=` `<=` (`=` is loose for `==`).
+  The compare is **numeric** when both sides parse as numbers (thousands separators
+  stripped), otherwise string. There is **no** `&&` / `||` / `!` and no grouping — a single
+  comparison only.
+- `compute:` (on `input:` fields) holds **arithmetic** over field keys and numbers: `+ - * /`
+  with `( )` grouping (`compute: qty * price`); a non-numeric operand evaluates to `0`.
+
+Both run on a hand-written recursive-descent parser — never `eval`/`Function`. The operator
+set is additive-only after the freeze (operators may be added, never removed or redefined).
+
 ### Properties
 
 After the content, ` | key: value` segments attach as `properties`:
@@ -92,6 +112,11 @@ After the content, ` | key: value` segments attach as `properties`:
 ```
 task: Ship auth | owner: Ada | priority: high | due: 2026-03-08
 ```
+
+A keyword may carry **only** properties with empty content — put the first ` | ` right after
+the colon: `freeze: | at: … | status: locked`, `page: | size: A4`, `toc: | depth: 2`. The
+` | ` (space-pipe-space) delimiter is line-level; an inline styled span instead uses `;`
+(below), because ` | ` can never appear inside a line.
 
 ### Inline marks
 

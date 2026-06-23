@@ -7,7 +7,7 @@ import KeywordTable from '@site/src/components/KeywordTable';
 
 # Keywords
 
-IntentText has **41 canonical keywords** organized into eight categories. Each keyword maps to a typed block with a fixed syntax, a defined set of pipe properties, and predictable rendering behavior.
+IntentText has **41 canonical keywords** (13 in the everyday core tier), grouped by purpose. Each keyword maps to a typed block with a fixed syntax, a defined set of pipe properties, and predictable rendering behavior.
 
 <KeywordTable />
 
