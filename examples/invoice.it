@@ -21,9 +21,9 @@ section: Line Items
 | UX design services | 8 hrs | 450 QAR | 3,600 QAR |
 | Hosting and infrastructure | 1 month | 900 QAR | 900 QAR |
 
-metric: Subtotal | value: 16,500 QAR
-metric: VAT (5%) | value: 825 QAR
-metric: Total Due | value: 17,325 QAR
+metric: Subtotal | value: 16500 | unit: QAR
+metric: VAT (5%) | value: 825 | unit: QAR
+metric: Total Due | value: 17325 | unit: QAR
 
 section: Payment
 text: Bank | end: Qatar National Bank

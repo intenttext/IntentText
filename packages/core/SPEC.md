@@ -75,6 +75,16 @@ documents keep their hash.
 like `09/03/2026` are ambiguous and break date-range queries; the semantic validator
 flags them (`DATE_NOT_ISO`, warning). Template placeholders are exempt.
 
+**Money & quantities.** A `metric:`'s `value:` holds the **bare magnitude** — no thousands
+separators and no currency symbol — and `unit:` holds the currency (an ISO-4217 code like
+`QAR`/`USD`) or the unit (`%`, `years`, `points`): `metric: Total Due | value: 17325 | unit:
+QAR`. This is the arithmetic-friendly form the e-invoice export (`buildUBLInvoice`) consumes.
+
+**Temporal & actor keys (by role).** Use `at:` for an event/approval/signature timestamp,
+`due:` for a future deadline, and `date:`/`issued:`/`expires:` for labelled dates (all ISO
+8601). For *who*: `owner:` names the party **responsible** for a task; `by:` names the actor
+who **performed** a recorded action (`approve:`/`sign:`/`amendment:`). Distinct roles, not synonyms.
+
 ### Properties
 
 After the content, ` | key: value` segments attach as `properties`:

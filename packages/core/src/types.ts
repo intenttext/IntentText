@@ -158,6 +158,7 @@ export type BlockType =
   | "signline"
   | "contact"
   | "deadline"
+  | "attach"
   // v2.13 new keywords
   | "assert"
   | "secret"

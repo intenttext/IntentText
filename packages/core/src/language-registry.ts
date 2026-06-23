@@ -542,6 +542,7 @@ export const EXTENSION_REGISTRY: ExtensionEntry[] = [
   { keyword: "deadline", namespace: "doc", xForm: "x-doc: deadline", since: "2.11", description: "Date-bound milestone or due date" },
   { keyword: "ref", namespace: "doc", xForm: "x-doc: ref", since: "2.11", description: "Cross-document reference with typed relationship" },
   { keyword: "signline", namespace: "doc", xForm: "x-doc: signline", since: "2.11", description: "Physical signature line for print" },
+  { keyword: "attach", namespace: "doc", xForm: "x-doc: attach", since: "1.16", description: "Embedded or linked file attachment — key/name/mime/size/sha256/data, or href for external (read by attachments.ts; part of the sealed body)" },
 
   // ── Agent extensions (x-agent) ──────────────────────────────────────────
   { keyword: "loop", namespace: "agent", xForm: "x-agent: loop", since: "2.0", description: "Iterate over a collection" },

@@ -27,8 +27,8 @@ sub: The Ask
 text: QAR 3.80 million of equity to build a 500-tonne/year plant returning an IRR of ~38% with payback inside three years.
 
 sub: The Numbers
-metric: Investment | value: QAR 3.80M
-metric: NPV @ 10% | value: QAR 4.1M | trend: up | period: 5 years
+metric: Investment | value: 3.80M | unit: QAR
+metric: NPV @ 10% | value: 4.1M | unit: QAR | trend: up | period: 5 years
 metric: IRR | value: 38% | target: 10% hurdle
 metric: Payback | value: 2.7 yrs
 metric: Y5 EBITDA margin | value: 38%
@@ -42,10 +42,10 @@ section: 02. Market
 sub: Market Size
 text: Qatar's raw printing-ink imports (HS 3215) reached QAR 18.8 million in 2024, having grown at a 5.6% compound annual rate since 2020. The market is supplied entirely by imports — there is no domestic manufacturer. Separately, printer cartridges (HS 8443) represent a much larger QAR 118 million market that Medad may address in a future phase but which is excluded from this study's base case.
 
-metric: TAM 2024 | value: QAR 18.8M
+metric: TAM 2024 | value: 18.8M | unit: QAR
 metric: CAGR 2020–24 | value: 5.6% | trend: up
 metric: Local supply | value: Zero
-metric: GCC export market | value: USD 185M
+metric: GCC export market | value: 185M | unit: USD
 
 sub: Competitive Landscape
 text: No local manufacturer; competition is entirely imported brands and distributors.
@@ -122,11 +122,11 @@ section: 04. Financials
 sub: Financial Highlights
 text: A QAR 3.80M equity project returning IRR ~38% with payback in ~2.7 years.
 
-metric: Total investment | value: QAR 3.80M
-metric: NPV @ 10% | value: QAR 4.1M | trend: up | period: 5 years
+metric: Total investment | value: 3.80M | unit: QAR
+metric: NPV @ 10% | value: 4.1M | unit: QAR | trend: up | period: 5 years
 metric: IRR | value: 38% | target: 10% hurdle
 metric: Payback | value: 2.7 yrs
-metric: Y5 revenue | value: QAR 9.0M | trend: up
+metric: Y5 revenue | value: 9.0M | unit: QAR | trend: up
 
 text: Five-year summary (QAR '000)
 
@@ -213,7 +213,7 @@ info: Balance integrity — receivables (45 days), inventory (60-day RM + 30-day
 sub: NPV & IRR — Discounted Cash Flow
 text: At a 10% discount rate the project creates QAR 4.1M of value.
 
-metric: NPV @ 10% | value: QAR 4.1M | trend: up
+metric: NPV @ 10% | value: 4.1M | unit: QAR | trend: up
 metric: IRR | value: 37.6% | target: 10% WACC
 metric: WACC | value: 10%
 metric: Profitability index | value: 2.1x
