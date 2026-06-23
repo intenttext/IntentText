@@ -37,6 +37,8 @@ export {
 } from "./parser";
 export { renderHTML } from "./renderer";
 export { validateDocumentSemantic } from "./validate";
+export { checkConformance } from "./conformance";
+export type { ConformanceLevel, ConformanceReport } from "./conformance";
 export { documentToSource, blockToSource } from "./source";
 export {
   effectiveProperties,

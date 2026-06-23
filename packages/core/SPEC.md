@@ -353,5 +353,28 @@ indexes explicitly; the index is kept fresh by lazy self-healing on query. Full 
 ## 7. Governance
 
 Changing the keyword contract means editing `LANGUAGE_REGISTRY` and nothing else by
-hand. The CI gates (`keywords:check`, `parity:check`) fail the build if the
-`BlockType` union or the VSCode grammar drift from the registry.
+hand. The CI gates (`keywords:check`, `parity:check`, `docs:check`) fail the build if the
+`BlockType` union or the VSCode grammar drift from the registry, or if any public doc
+states a keyword count or `SEAL_SPEC` value that contradicts the code.
+
+## 8. Conformance
+
+A **conformant** `.it` document is valid UTF-8 (NFC, LF) that parses with no error-level
+diagnostics. Unknown keywords are **not** errors — they pass through as `custom` blocks
+(the open-keyword guarantee), so using domain vocabulary never makes a document
+non-conformant. Two levels:
+
+- **lax** (default) — no error-level issues (e.g. no unterminated code fence, no table
+  row without a header).
+- **strict** — no errors **and** no warnings (e.g. every date is ISO 8601, no missing
+  recommended properties). The level a publisher certifies for a spotless document.
+
+The reference checker ships in `@dotit/core`, is **read-only** (it never rewrites the
+document), and layers the parser's structural diagnostics over `validateDocumentSemantic`:
+
+```
+checkConformance(source, { level: "strict" })
+  → { conformant, level, errors, warnings, issues }
+```
+
+Producers gate on `conformant`; tooling surfaces `issues`.

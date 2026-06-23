@@ -8,14 +8,15 @@ const { execSync } = require("node:child_process");
 // redaction, math, mergeThreeWay, attachments — and at 1.16.0 the faithful-recorder
 // `defaults.ts` module (read-time defaults). Nudged again at 4.4 for the FORMAT-REVIEW
 // freeze work: reserving route/require/certify, the rendered approval-route panel
-// (+ its CSS), and the optional format-version stamp. Limits sit just above real size
+// (+ its CSS), the optional format-version stamp, and the read-only conformance module
+// (conformance.{js,d.ts}, +2 entries). Limits sit just above real size
 // so the guard still catches FUTURE accidental bloat. Bump deliberately when real
 // features grow the surface; never to wave through an accidental dependency or stray
 // src file.
 const LIMITS = {
   packedBytes: 138000,
   unpackedBytes: 635000,
-  entryCount: 105,
+  entryCount: 107,
 };
 
 const raw = execSync("npm pack --json --dry-run", {
