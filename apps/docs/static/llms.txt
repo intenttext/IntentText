@@ -97,7 +97,10 @@ CONTRACT (trust) tier (9):
   cite:     Citation / authority reference.          cite: ISO 27001:2022 | section: A.9
   track:    Start version tracking.                  track: | id: DOC-1 | by: Ahmed
   approve:  Named approval (HASHED with body).       approve: Legal ok | by: Sara | role: Counsel | at: 2026-03-28
-  sign:     Signature. Plain = approval; with key:+sig: = Ed25519 (provable).
+  sign:     Signature. A CONFORMANT sign: carries hash: + at: — the hash is added when you
+            SEAL (key:+sig: add Ed25519 proof). For recorded pre-seal sign-offs use approve:;
+            for a blank printed signature LINE use signline:. A bare `sign: Name` with no hash:
+            parses but is flagged by checkConformance (SIGN_NO_HASH) — it is not a signature yet.
             sign: Ahmed | role: CEO | at: … | hash: sha256:… | key: ed25519:<pub> | sig: <sig>
   freeze:   Seal the document (locks content).       freeze: | at: … | hash: sha256:… | status: locked
   amendment: Additive change to a sealed doc.        amendment: Terms updated | was: Net 30 | now: Net 15 | by: Ahmed
@@ -245,7 +248,9 @@ LAYER 2 — IDENTITY (Ed25519 sign:): proves a specific key-holder signed THIS h
     verifyCryptoSignatures(source) → [{ signer, role, at, publicKey, cryptographic, valid }]
   Line format (exact):
     sign: Name | role: … | at: … | hash: sha256:… | key: ed25519:<pub> | sig: <sig>
-  A plain `sign: Name | role: …` (no key:/sig:) is only a named approval, like approve:.
+  A conformant `sign:` carries hash: (added by sealing) + at:; signDocumentCrypto() then adds
+  key:+sig:. A bare `sign: Name` (no hash:) parses but is NOT a conformant signature — for
+  unsigned, pre-seal sign-offs use approve: (a recorded named sign-off, included in the hash).
   HONEST SCOPE: a valid signature proves "the holder of public key <pub> signed this exact
   hash" — it does NOT by itself prove the human's real-world identity. That is Layer 3.
 
@@ -379,7 +384,7 @@ TENDER + BILL OF QUANTITIES (multi-section costed tables, per-section subtotal, 
 
   section: 3. Authorization
   approve: Commercial review complete | by: Finance Director | role: Finance | at: 2026-07-12
-  sign: Fahad Al-Thani | role: Managing Director | at: 2026-07-14
+  approve: Executed for the company | by: Fahad Al-Thani | role: Managing Director | at: 2026-07-14
   (full example: examples/tender-boq.it — each BOQ section is its own table + a metric: subtotal,
    then a Commercial Summary of those subtotals + a Grand Total metric.)
 
@@ -416,9 +421,10 @@ LEGAL / CONTRACT (definitions, parties, obligations, execution + seal):
   deadline: First milestone | date: 2026-08-01 | consequence: 2% penalty
   section: 4. Execution
   approve: Legal review complete | by: Sara | role: Counsel | at: 2026-06-13
-  sign: Ahmed Al-Thani | role: CEO | at: 2026-06-13
-  (then seal: sealDocument(source,{signer}) → adds freeze:; for provable identity, run
-   @dotit/sign signDocumentCrypto() to upgrade the sign: line with key:+sig:.)
+  approve: Executed for the company | by: Ahmed Al-Thani | role: CEO | at: 2026-06-13
+  (pre-seal sign-offs are approve:. To SEAL: sealDocument(source,{signer}) → adds freeze:; for
+   provable identity, @dotit/sign signDocumentCrypto() adds a cryptographic sign: line with
+   hash:+key:+sig:. Never hand-write a hash.)
 
 BANK / FINANCIAL REPORT (multi-page, running header/footer, KPIs, tables):
 
