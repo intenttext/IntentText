@@ -9,18 +9,20 @@ The complete technical reference for the current IntentText language and tooling
 
 ## Keywords
 
-IntentText supports a compact canonical keyword set plus compatibility aliases and extension forms.
+IntentText supports a compact canonical keyword set plus namespaced extension forms and the
+Arabic localized keyword names — and **no Latin synonym aliases**, so every other word you write
+is reliably your own custom block.
 
 - [All Keywords](./keywords) — sortable, filterable keyword table
 - [Document Identity](./keywords/document-identity) — canonical `title:`, `summary:`, `meta:`, `context:`, `track:` (plus the `x-agent:` `agent:`/`model:` extensions)
-- [Content](./keywords/content) — canonical `text:`, `quote:`, `cite:`, `info:` (with the `warning:`/`danger:`/`tip:`/`success:` callout aliases), `code:`, `image:`, `link:` (plus `x-doc:`/`x-writer:` extensions: `def:`, `figure:`, `contact:`, `byline:`, `epigraph:`, `caption:`, `footnote:`, `dedication:`)
+- [Content](./keywords/content) — canonical `text:`, `quote:`, `cite:`, `info:` (callout variant set with `type: warning|danger|tip|success`), `code:`, `image:`, `link:` (plus `x-doc:`/`x-writer:` extensions: `def:`, `figure:`, `contact:`, `byline:`, `epigraph:`, `caption:`, `footnote:`, `dedication:`)
 - [Structure](./keywords/structure) — canonical `section:`, `sub:`, `toc:` (plus the `x-doc:` `ref:`/`deadline:`/`embed:` extensions)
 - [Tasks](./keywords/tasks) — canonical `task:`, `done:`, `ask:`
-- [Data](./keywords/data) — canonical `headers:` (alias `columns:`), `row:`, `metric:` (plus the `x-form:` `input:`/`output:` extensions)
+- [Data](./keywords/data) — canonical `headers:`, `row:`, `metric:` (plus the `x-form:` `input:`/`output:` extensions)
 - [Agent](./keywords/agent) — canonical `step:`, `gate:`, `trigger:`, `decision:`, `audit:`, `result:`, `policy:`, `context:`, `ask:` (plus the `x-agent:` orchestration extensions: `signal:`, `memory:`, `prompt:`, `tool:`, `error:`, `handoff:`, `wait:`, `parallel:`, `retry:`, `call:`, `loop:`, `checkpoint:`, `import:`, `export:`, `progress:`, `agent:`, `model:`)
 - [Trust](./keywords/trust) — canonical contract-tier `track:`, `approve:`, `sign:`, `freeze:`, `amendment:`, `certify:`, `route:`, `require:`, `cite:` (plus the machine-managed `x-trust:` `history:`/`revision:` blocks)
 - [Layout](./keywords/layout) — canonical `page:`, `header:`, `footer:`, `watermark:`, `style:`, `break:` (plus the `x-layout:` `font:`/`divider:` and `x-doc:` `signline:` extensions)
-- [Aliases](./keywords/aliases) — alias forms mapped to canonical keywords, including the **33 Arabic aliases** (`عنوان`→`title`, `مهمة`→`task`, `صف`→`row`, …) that round-trip as written
+- [Localized (Arabic) Keywords](./keywords/aliases) — the **33 Arabic localized keyword names** (`عنوان`→`title`, `مهمة`→`task`, `صف`→`row`, …) that round-trip as written; every non-reserved word is a collision-free custom block
 
 ## Keyword tiers
 

@@ -88,7 +88,7 @@ track: | by: legal@acme.co
 
 ## Arabic services contract (عقد)
 
-The same contract pattern works fully in Arabic. The 33 Arabic keyword aliases in core (`قسم`→section, `تعريف`→def, `جهة`→contact, `مهلة`→deadline, `اعتماد`→approve, …) carry full canonical semantics and are serialized back exactly as written, so an Arabic contract stays Arabic through every parse → edit → save cycle. Dates remain ISO (`YYYY-MM-DD`) regardless of language.
+The same contract pattern works fully in Arabic. The 33 Arabic keywords in core (`قسم`→section, `تعريف`→def, `جهة`→contact, `مهلة`→deadline, `اعتماد`→approve, …) are first-class localized keyword names: they carry full canonical semantics and are serialized back exactly as written, so an Arabic contract stays Arabic through every parse → edit → save cycle. Dates remain ISO (`YYYY-MM-DD`) regardless of language.
 
 ```intenttext
 عنوان: عقد تقديم خدمات — شركة الخليج للتقنية ومؤسسة الدوحة للتجارة

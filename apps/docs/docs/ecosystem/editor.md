@@ -108,7 +108,9 @@ you can review or restore an earlier one.
 
 ### Syntax highlighting
 
-IntentText keywords and aliases are highlighted by category:
+IntentText keywords are highlighted by category — the 41 canonical keywords, the Arabic
+localized keyword names, and the namespaced extension keywords. Any word you invent that
+isn't reserved highlights as your own custom keyword, so a domain block reads distinctly:
 
 | Category  | Color      |
 | --------- | ---------- |

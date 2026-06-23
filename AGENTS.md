@@ -58,7 +58,10 @@ task: Send invoice | owner: Finance | due: 2026-07-01
    begins with `|`, or is empty.
 6. **Never invent syntax.** Any `word: …` you don't find below still parses as a typed
    `custom` block (the *unknown-keyword guarantee*) — so domain keywords are safe, but use
-   the canonical keyword when one fits.
+   the canonical keyword when one fits. There are **zero synonym aliases**: a word is custom
+   UNLESS it is one of the 41 canonical keywords, one of the 33 Arabic (localized) keyword
+   names, or a namespaced extension keyword — so `party:`, `milestone:`, `note:`, `status:`, `due:`,
+   `kpi:` reliably resolve to *your* block, never silently reinterpreted (collision-free).
 7. **NEVER reformat an existing `.it` file.** See §6 — the bytes are sacred.
 
 ---
@@ -73,7 +76,7 @@ task: Send invoice | owner: Finance | due: 2026-07-01
 | **Structure** | `section:` `sub:` `toc:` |
 | **Content** | `text:` `info:` `quote:` `cite:` `code:` `image:` `link:` |
 | **Tasks** | `task:` `done:` `ask:` |
-| **Data** | `columns:` `row:` `metric:` |
+| **Data** | `headers:` `row:` `metric:` |
 | **Agent/workflow** | `step:` `decision:` `gate:` `trigger:` `result:` `policy:` `audit:` `route:` `require:` |
 | **Trust** | `track:` `approve:` `sign:` `freeze:` `certify:` `amendment:` |
 | **Layout (print/PDF)** | `page:` `header:` `footer:` `watermark:` `style:` `break:` |
@@ -86,9 +89,13 @@ history), `revision:` (a history entry), `---` (divider).
 set `loop:` `parallel:` `retry:` `wait:` `handoff:` `call:` `checkpoint:` `error:`, and the
 `x-writer:` / `x-doc:` / `x-agent:` namespaces.
 
-**Aliases** resolve to canonical and **round-trip as written** — including 33 Arabic aliases
-(`عنوان:`→`title`, `مهمة:`→`task`, `صف:`→`row`, `توقيع:`→`sign`, …) and shorthands (`todo:`→`task`,
-`note:`→`text`). Callout shorthands: `warning:` `danger:` `tip:` `success:` = `info: | type: …`.
+**Localized keyword names** resolve to canonical and **round-trip as written** — the 33 Arabic
+(localized) keyword names (`عنوان:`→`title`, `مهمة:`→`task`, `صف:`→`row`, `توقيع:`→`sign`, …).
+There are **NO synonym aliases**: words like `todo:`, `note:`, `warning:`, `tip:`, `danger:`,
+`success:`, `milestone:`, `due:`, `columns:` are ordinary `custom` blocks, NOT shorthands.
+Use the canonical keyword instead: a task is `task:`, prose is `text:`, table headers are
+`headers:`, a dated obligation is `deadline: … | date: …`. **Callout variants** are set via the
+`type:` property, not a keyword — `info: Heads up | type: warning` (variants: `tip`/`info`/`warning`/`danger`/`success`).
 
 **In-file approval policy** (reserved keywords since 4.4 — `workflowState()` derives live
 state and the renderer draws an approval-route panel): `route: sequential|parallel` and

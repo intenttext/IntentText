@@ -21,12 +21,12 @@ trail. No second system to keep in sync.
 | --- | --- | --- |
 | **Keyword model** | 41 canonical keywords give every line a purpose; tiered core / agent / contract / data / print | [Concepts](./concepts) · [Keywords](../reference/keywords/index.md) |
 | **Bare prose** | `text:` is optional — write natural prose, reach for keywords only when a line needs meaning | [Bare prose](../reference/keywords/content#bare-prose--text-is-optional) |
-| **Aliases** | `todo:` → `task:`, plus 33 Arabic aliases (`عنوان:`, `مهمة:`) that round-trip as written | [Aliases](../reference/keywords/aliases) |
-| **Custom keywords** | Any `word: …` line you invent parses as a typed `custom` block — never an error | [Concepts §2](./concepts) |
+| **Arabic keywords** | 33 localized keyword names (`عنوان:`, `مهمة:`) that resolve to the canonical keyword and round-trip as written | [Localized keywords](../reference/keywords/aliases) |
+| **Custom keywords** | Any non-reserved `word: …` line parses as a typed `custom` block — never an error, never reinterpreted (zero synonym aliases = collision-free) | [Concepts §2](./concepts) |
 | **Sections** | `section:` (H2) / `sub:` (H3) group blocks; `toc:` builds a table of contents | [Structure](../reference/keywords/structure) |
 | **Inline formatting** | `*bold*`, `_italic_`, `~strike~`, `` `code` ``, dates, mentions, tags, footnote refs | [Style properties](../reference/style-properties#inline-formatting) |
 | **Two-tier styling** | Pipe properties (`color:`, `weight:`) + `[text]{ key: value }` inline spans + `style:` house rules | [Style properties](../reference/style-properties) |
-| **RTL / bidi** | Arabic and mixed-direction documents render and round-trip correctly | [Aliases](../reference/keywords/aliases) |
+| **RTL / bidi** | Arabic and mixed-direction documents render and round-trip correctly | [Localized keywords](../reference/keywords/aliases) |
 
 ## Data & query
 

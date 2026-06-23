@@ -56,7 +56,9 @@ SHA-256 hash anyone can recompute to prove it hasn't changed.
 
 **The format is small and open:** 13 everyday core keywords (41 reserved in total across
 opt-in profiles), and **any other word is a valid keyword too** — `expense:`, `risk:`,
-`مصروف:` all parse as typed, queryable blocks. You never outgrow it.
+`مصروف:` all parse as typed, queryable blocks. With **zero synonym aliases**, any word that
+isn't reserved is reliably *yours* — `party:`, `milestone:`, `note:`, `status:` are never
+silently reinterpreted. You never outgrow it.
 
 ---
 
@@ -151,9 +153,9 @@ A single `.it` file is simultaneously **five** things:
   word stays a typed, queryable `custom` block** — so domain vocabularies (`مصروف:`, `risk:`,
   `skill:`) are first-class without bloating the format.
 
-And it is **Arabic-native**: 33 Arabic keyword aliases (`عنوان`→title, `مهمة`→task, `توقيع`→sign,
-…), automatic RTL, and aliases round-trip **as written** — a sealed Arabic document keeps its
-hash, and one query (`--type task`) finds tasks across languages.
+And it is **Arabic-native**: 33 Arabic (localized) keyword names (`عنوان`→title, `مهمة`→task,
+`توقيع`→sign, …), automatic RTL, and keywords round-trip **as written** — a sealed Arabic
+document keeps its hash, and one query (`--type task`) finds tasks across languages.
 
 > **Building dotit into your software?** → **[INTEGRATION.md](INTEGRATION.md)** — the complete
 > developer / AI-agent guide: format crash course, ERP & archive recipes, every package, full

@@ -76,7 +76,7 @@ npx -p @dotit/core dotit hello.it --query "type=deadline"
 
 ## Write it in Arabic, if you like
 
-The canonical keywords have registered Arabic aliases — same semantics, same queries, and the keywords **round-trip as written** (an Arabic document stays Arabic). Create `quotation.it`:
+The canonical keywords have localized Arabic keyword names — same semantics, same queries, and the keywords **round-trip as written** (an Arabic document stays Arabic). Create `quotation.it`:
 
 ```intenttext
 عنوان: عرض سعر — تأثيث المكتب الرئيسي

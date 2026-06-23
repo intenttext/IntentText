@@ -36,7 +36,7 @@ deadline: Q2 performance reviews | date: 2026-06-30 | status: pending
 deadline: Annual compensation review | date: 2026-12-01 | status: pending
 ```
 
-Arabic documents use the `مهلة` alias — same canonical `deadline` semantics, same queries, and the keyword round-trips exactly as written. Dates are always ISO `YYYY-MM-DD`:
+Arabic documents use the localized keyword `مهلة` — a first-class Arabic keyword name with the same canonical `deadline` semantics, same queries, and it round-trips exactly as written. Dates are always ISO `YYYY-MM-DD`:
 
 ```intenttext
 مهلة: تجديد الرخصة التجارية | date: 2026-09-30 | status: pending

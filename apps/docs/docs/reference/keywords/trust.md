@@ -17,7 +17,7 @@ blocks live below the audit-log boundary.)
 ## `track:`
 
 **Category:** Trust
-**Aliases:** `تتبع:`
+**Arabic:** `تتبع:`
 
 Activates document version tracking. Once set, the CLI records revisions below the `history:` boundary automatically.
 
@@ -57,7 +57,7 @@ track: | version: 2.3 | by: Sarah Chen
 ## `approve:`
 
 **Category:** Trust
-**Aliases:** `اعتماد:`
+**Arabic:** `اعتماد:`
 
 Named approval stamp. Records who approved the document, their role, and when.
 
@@ -95,7 +95,7 @@ approve: Compliance review | by: Maria Santos | role: Compliance Officer | ref: 
 ## `sign:`
 
 **Category:** Trust
-**Aliases:** `توقيع:`, `sig:`
+**Arabic:** `توقيع:`
 
 Integrity hash seal. Records the signer's name, role, timestamp, and a SHA-256 hash of the document content at the time of signing. The hash **binds the signer's identity** (`name | role | at`), so editing either the content or the named signer breaks that signature. The hash **excludes styling and comments** — restyling never breaks it. If the document is modified after signing, the stored hash will no longer match and verification will report the discrepancy. This is tamper evidence via hash comparison, not cryptographic non-repudiation (anyone can type a name; proving *who* is the `@dotit/sign` layer below).
 
@@ -157,7 +157,7 @@ Use both when a contract needs digital verification _and_ paper signatures.
 ## `freeze:`
 
 **Category:** Trust
-**Aliases:** `تجميد:`, `lock:`
+**Arabic:** `تجميد:`
 
 Seal the document. After `freeze:`, any edit to the **content** above invalidates the hash; the seal also covers the signatures and its own `at:`/`status:`, so editing those breaks it too. **Restyling and comments are excluded** — re-theming or reformatting a sealed document never breaks its seal.
 
@@ -194,7 +194,7 @@ freeze: | at: 2026-03-06T14:33:00Z | hash: sha256:e5f6a7b8 | spec: 4 | status: l
 ## `amendment:`
 
 **Category:** Trust
-**Aliases:** `تعديل:`
+**Arabic:** `تعديل:`
 
 Formal change to a frozen document. Preserves the original seal while recording what was changed, where, who authorized it, and when.
 
@@ -267,7 +267,7 @@ dotit amend contract.it \
 ## `route:`
 
 **Category:** Trust (contract tier)
-**Aliases:** —
+**Arabic:** —
 
 Declares the **order** in which a document's required approvals are collected. With
 `require:` it gives a `.it` document its own in-file approval workflow, whose live state is
@@ -318,7 +318,7 @@ require: legal
 ## `require:`
 
 **Category:** Trust (contract tier)
-**Aliases:** —
+**Arabic:** —
 
 Declares **one required approver** for the document's approval policy. Repeat `require:` once
 per approver. A requirement is matched against the `role:`/`by:` token of the document's
@@ -416,7 +416,7 @@ require: audit | optional: yes
 ## `certify:` (authority layer)
 
 **Category:** Trust (contract tier)
-**Aliases:** —
+**Arabic:** —
 
 `certify:` is a **canonical contract-tier keyword** — but unlike `sign:`/`freeze:` (which
 are integrity, checkable from the bytes alone), it carries an *authority* claim that needs

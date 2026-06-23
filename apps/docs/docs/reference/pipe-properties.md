@@ -173,7 +173,7 @@ Direction is automatic and per-value:
   built-in CSS uses logical properties, so tables, quotes, callouts, and splits mirror
   correctly without configuration.
 - **Override explicitly** with `meta: | dir: rtl` (or `dir: ltr`) — the explicit value
-  beats auto-detection in either direction. The Arabic alias works too:
+  beats auto-detection in either direction. The Arabic localized keyword works too:
   `بيانات: | dir: rtl`.
 - **Mixed-language values stay readable.** Table cells, task owner/due dates, metric
   values, deadline dates, contact email/phone, and `end:` values carry `dir="auto"` —

@@ -58,8 +58,8 @@ text: Customer-reported bugs dropped 40% quarter-over-quarter, tracking with the
 
 section: Risks
 
-warning: API platform launch delayed 2 weeks. Security audit found 3 critical issues requiring remediation before public release.
-warning: Two senior engineers departing in Q2. Knowledge transfer plan in progress.
+info: API platform launch delayed 2 weeks. Security audit found 3 critical issues requiring remediation before public release. | type: warning
+info: Two senior engineers departing in Q2. Knowledge transfer plan in progress. | type: warning
 
 section: Next Quarter Goals
 
@@ -94,7 +94,7 @@ dotit query ./reports --type metric --format table
 # Overdue deadlines
 dotit ask ./reports "What deadlines are overdue?" --format text
 
-# All risks and warnings (warning: is an alias of info — query the canonical type)
+# All risks and warnings (a warning is info: with type: warning — query the info type)
 dotit query ./reports --type info --format table
 
 # Metrics by department

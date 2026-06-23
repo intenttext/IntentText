@@ -126,7 +126,7 @@ dotit invoice.it --theme corporate --pdf    # writes invoice.pdf next to the sou
 
 ## The same invoice, in Arabic
 
-Every keyword you used above has a registered Arabic alias with identical semantics — and Arabic keywords **round-trip as written**, so the file stays Arabic through parse, edit, and serialize (a sealed Arabic document keeps its hash):
+Every keyword you used above has a localized Arabic keyword name with identical semantics — and Arabic keywords **round-trip as written**, so the file stays Arabic through parse, edit, and serialize (a sealed Arabic document keeps its hash):
 
 ```intenttext
 عنوان: فاتورة INV-2026-043
@@ -147,7 +147,7 @@ Every keyword you used above has a registered Arabic alias with identical semant
 توقيع: أحمد الراشد | role: المدير التنفيذي | at: 2026-06-12T10:00:00Z
 ```
 
-`type=task`, `type=contact`, and `type=deadline` queries match these blocks exactly as they match the English ones. See the [full Arabic alias table](../reference/keywords/aliases#arabic-aliases).
+`type=task`, `type=contact`, and `type=deadline` queries match these blocks exactly as they match the English ones. See the [full Arabic keyword table](../reference/keywords/aliases#the-33-arabic-localized-keyword-names).
 
 ## The complete file
 

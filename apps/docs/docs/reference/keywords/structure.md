@@ -10,7 +10,7 @@ Three keywords for organizing the document — sections, subsections, and a tabl
 ## `section:`
 
 **Category:** Structure
-**Aliases:** `قسم:`, `h2:`, `heading:`, `chapter:`
+**Arabic:** `قسم:`
 
 Section heading. Renders as H2. Blocks below belong to this section until the next `section:`.
 
@@ -38,7 +38,7 @@ section: Definitions
 ## `sub:`
 
 **Category:** Structure
-**Aliases:** `فرعي:`, `h3:`, `subheading:`
+**Arabic:** `فرعي:`
 
 Subsection heading. Renders as H3.
 

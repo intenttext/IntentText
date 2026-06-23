@@ -1,29 +1,49 @@
 ---
 sidebar_position: 9
-title: Aliases
+title: Localized (Arabic) Keywords
 ---
 
-# Keyword Aliases
+# Localized (Arabic) Keywords
 
-Many IntentText keywords have **aliases** — alternative names that resolve to the same canonical form. Use whichever reads best in your document. There is no behavioral difference between a canonical keyword and its alias.
+IntentText has **no Latin synonym aliases**. There is no `note:` that secretly means `text:`,
+no `columns:` that secretly means `headers:`, no `warning:` keyword. The only reserved words
+are the [41 canonical English keywords](../keywords), the [namespaced extension keywords](../keywords#extension-keywords)
+(`x-writer:`/`x-doc:`/`x-agent:`/`x-form:`/`x-layout:`/`x-exp:`), and the **33 Arabic
+localized keyword names** documented on this page. Every other word you write is reliably
+**your own custom block** — collision-free, never silently reinterpreted as something else.
 
-## How aliases work
+The Arabic names below are **first-class localized keyword names**, not aliases. `عنوان:` *is*
+a way to write `title:` — it resolves to the same canonical keyword, gets the same rendering,
+the same query semantics, the same seal coverage. They exist so you can author a whole document
+in Arabic and still get full canonical behavior (task tracking, table totals, contact cards,
+deadline logic, signatures) and a single cross-language query (`type=task` finds tasks in any
+language).
+
+## Zero aliases — every other word is custom
+
+This is the whole point of the open vocabulary: because there are **no synonym aliases**, a word
+is either one of the reserved sets above or it is **yours**. `party:`, `milestone:`, `status:`,
+`note:`, `item:`, `requirement:`, `due:`, `rule:`, `kpi:`, `columns:`, `body:`, `warning:` — none
+of these is reserved. Each parses as a typed, queryable `custom` block that keeps the keyword you
+wrote, verbatim. Nothing is reinterpreted behind your back.
 
 ```intenttext
-// These are all identical:
-text: Payment is due within 30 days.
-note: Payment is due within 30 days.
-body: Payment is due within 30 days.
-paragraph: Payment is due within 30 days.
+// Each of these is your own custom block — distinct, queryable by keyword, never an alias:
+note: An internal note for reviewers.
+milestone: Phase 1 complete | date: 2026-08-01
+party: Acme LLC | role: Provider
 ```
 
-The parser resolves every alias to its canonical keyword — the parsed block has the canonical `type`, so queries and the API always see canonical names. The keyword you actually wrote is kept on the block (`keywordAlias`), and the serializer **re-emits it as written**: `abstract:` stays `abstract:`, `عنوان:` stays `عنوان:`. Round-trips never rewrite your keywords.
+Query a custom keyword by **name** — `keyword=milestone`, `keyword=party` — since every custom
+block's `type` is literally `custom`. See [Custom keywords](../keywords#extension-keywords) and the
+[Query reference](../query).
 
----
+## Write a document in Arabic
 
-## Arabic aliases
-
-The canonical keywords ship with **33 registered Arabic aliases**. An Arabic document gets full canonical semantics — task tracking, table totals, contact cards, deadline logic, signatures — and one query (`type=task`) finds tasks across languages.
+The canonical keywords ship with **33 registered Arabic localized names**. An Arabic document gets
+full canonical semantics, and the serializer re-emits keywords **as written** — so Arabic
+documents stay Arabic through a parse → serialize cycle, and a sealed Arabic document keeps its
+hash.
 
 ```intenttext
 عنوان: عرض سعر — تأثيث المكتب الرئيسي
@@ -39,11 +59,18 @@ The canonical keywords ship with **33 registered Arabic aliases**. An Arabic doc
 مهلة: انتهاء صلاحية العرض | date: 2026-07-15 | consequence: يلزم عرض جديد
 ```
 
-Every line above is a fully typed block: `عنوان` is a `title`, `مهمة` is a `task` (queryable with `type=task due<2026-07-01`), `صف` is a table `row`, `جهة` is a `contact`.
+Every line above is a fully typed block: `عنوان` is a `title`, `مهمة` is a `task` (queryable with
+`type=task due<2026-07-01`), `صف` is a table `row`, `جهة` is a `contact`, `مهلة` is a `deadline`.
 
-**Arabic keywords round-trip as written.** Serialization re-emits the alias the author used, so an Arabic document stays Arabic through a parse → serialize cycle — and a sealed Arabic document keeps its hash. Table keywords (`أعمدة`/`صف`) are preserved too.
+**Arabic keywords round-trip as written.** Serialization re-emits the localized name the author
+used, so an Arabic document stays Arabic through a parse → serialize cycle — and a sealed Arabic
+document keeps its hash. Table keywords (`أعمدة`/`صف`) are preserved too.
 
-### The full Arabic alias table
+## The 33 Arabic localized keyword names
+
+Each Arabic name resolves to the canonical keyword shown beside it. Two Arabic names
+(`جهة` and `تواصل`) both localize `contact:`, which is why 33 names cover 32 distinct
+targets.
 
 | Arabic     | Canonical    | | Arabic     | Canonical   |
 | ---------- | ------------ |-| ---------- | ----------- |
@@ -65,157 +92,48 @@ Every line above is a fully typed block: `عنوان` is a `title`, `مهمة` i
 | `صف:`      | `row:`       | | `مرجع:`    | `ref:`      |
 | `مؤشر:`    | `metric:`    | |            |             |
 
-Beyond the registered aliases, **keywords and property keys are Unicode words** — any Arabic (or any-script) domain keyword parses as a typed `custom` block: `مصروف: كراسي مكتب | المورد: ايكيا | فئة: أثاث` is queryable by keyword, by Arabic property (`فئة=أثاث`), and by ISO date range. Pair Arabic documents with `meta: | dir: rtl` for full right-to-left rendering.
+Beyond these localized names, **keywords and property keys are Unicode words** — any Arabic (or
+any-script) domain keyword parses as a typed `custom` block: `مصروف: كراسي مكتب | المورد: ايكيا | فئة: أثاث`
+is queryable by keyword, by Arabic property (`فئة=أثاث`), and by ISO date range. Pair Arabic
+documents with `meta: | dir: rtl` for full right-to-left rendering.
 
 ---
 
-## Callout aliases
+## Callout variants — set with `type:`, not a keyword
 
-`info:` is the canonical callout block. The four variant forms — `warning:`, `danger:`, `tip:`, and `success:` — are aliases that set the callout's `type` property automatically.
+`info:` is the callout block. There is **no** `warning:`/`danger:`/`tip:`/`success:` keyword —
+you choose the variant with the `type:` **property**:
 
 ```intenttext
-// Canonical form
-info: Aliases are supported across all categories. | type: warning
-
-// Equivalent — both produce { type: "info", properties: { type: "warning" } }
-warning: Aliases are supported across all categories.
+info: This contract expires in 14 days. Renewal required. | type: warning
+info: Deleting this record is irreversible. | type: danger
+info: Use dotit query to find all deadlines across your folder. | type: tip
+info: Migration completed — 12,450 records transferred. | type: success
 ```
 
-| Alias      | Equivalent canonical form    |
-| ---------- | ---------------------------- |
-| `warning:` | `info: ... \| type: warning` |
-| `danger:`  | `info: ... \| type: danger`  |
-| `tip:`     | `info: ... \| type: tip`     |
-| `success:` | `info: ... \| type: success` |
-
-Older synonyms still parse for back-compat but are **not promoted** — prefer the four
-primary forms above: `alert`/`caution` → warning, `hint`/`advice` → tip,
-`critical`/`destructive` → danger.
+`type:` accepts `info` (default), `warning`, `danger`, `tip`, `success`. A bare `warning:` line is
+not a callout — it parses as a `custom` block named `warning` (your own keyword).
 
 ---
 
-## Complete alias table
+## Localized keywords in the parsed model — and on the way back out
 
-### Document Identity
-
-| Canonical  | Aliases               |
-| ---------- | --------------------- |
-| `title:`   | `عنوان:`, `h1:`       |
-| `summary:` | `ملخص:`, `abstract:`  |
-| `meta:`    | `بيانات:`             |
-| `context:` | —                     |
-
-### Structure
-
-| Canonical  | Aliases                                |
-| ---------- | -------------------------------------- |
-| `section:` | `قسم:`, `h2:`, `heading:`, `chapter:`  |
-| `sub:`     | `فرعي:`, `h3:`, `subheading:`          |
-| `toc:`     | —                                      |
-
-### Content
-
-| Canonical | Aliases                                                                                      |
-| --------- | -------------------------------------------------------------------------------------------- |
-| `text:`   | `نص:`, `note:`, `body:`, `content:`, `paragraph:`, `p:`                                      |
-| `info:`   | `تنبيه:`, `warning:`, `danger:`, `tip:`, `success:` (see [Callout aliases](#callout-aliases)) |
-| `quote:`  | `اقتباس:`, `blockquote:`, `excerpt:`, `pullquote:`                                           |
-| `cite:`   | `استشهاد:`, `citation:`, `source:`, `reference:`                                             |
-| `code:`   | `شيفرة:`, `snippet:`                                                                         |
-| `image:`  | `صورة:`, `img:`, `photo:`, `picture:`                                                        |
-| `link:`   | `رابط:`, `url:`, `href:`                                                                     |
-
-### Tasks
-
-| Canonical | Aliases                                        |
-| --------- | ---------------------------------------------- |
-| `task:`   | `مهمة:`, `check:`, `todo:`, `action:`, `item:` |
-| `done:`   | `منجز:`, `completed:`, `finished:`             |
-| `ask:`    | `question:`                                    |
-
-### Data
-
-| Canonical  | Aliases                                   |
-| ---------- | ----------------------------------------- |
-| `headers:` | `أعمدة:`, `columns:`                      |
-| `row:`     | `صف:`                                     |
-| `metric:`  | `مؤشر:`, `kpi:`, `measure:`, `indicator:` |
-
-### Agentic Workflow
-
-| Canonical   | Aliases                                          |
-| ----------- | ------------------------------------------------ |
-| `step:`     | `run:`                                           |
-| `decision:` | `if:`                                            |
-| `gate:`     | —                                                |
-| `trigger:`  | `on:`                                            |
-| `result:`   | —                                                |
-| `policy:`   | `rule:`, `constraint:`, `guard:`, `requirement:` |
-| `audit:`    | `log:`                                           |
-
-### Trust
-
-| Canonical    | Aliases                       |
-| ------------ | ----------------------------- |
-| `track:`     | `تتبع:`                       |
-| `approve:`   | `اعتماد:`                     |
-| `sign:`      | `توقيع:`, `sig:`              |
-| `freeze:`    | `تجميد:`, `lock:`             |
-| `amendment:` | `تعديل:` |
-
-### Layout
-
-| Canonical    | Aliases    |
-| ------------ | ---------- |
-| `page:`      | `صفحة:`    |
-| `header:`    | `ترويسة:`  |
-| `footer:`    | `تذييل:`   |
-| `watermark:` | `علامة:`   |
-| `style:`     | `نمط:`     |
-| `break:`     | `فاصل:`    |
-
----
-
-## Extension keyword aliases
-
-A few extension keywords also have registered aliases that resolve to the extension form:
-
-| Extension keyword | Aliases                                                            |
-| ----------------- | ------------------------------------------------------------------ |
-| `deadline`        | `مهلة:`, `due:`, `milestone:`, `due-date:`                         |
-| `contact`         | `جهة:`, `تواصل:`, `person:`, `party:`, `entity:`                   |
-| `def`             | `تعريف:`, `define:`, `term:`, `glossary:`                          |
-| `ref`             | `مرجع:`, `references:`, `see:`, `related:`, `xref:`                |
-| `figure`          | `fig:`                                                             |
-| `signline`        | `signature-line:`, `sign-here:`                                    |
-
-Namespaced forms (`x-ns: type`) do not take aliases — the full `x-ns: type` form is always used. See the extensions overview in [Keywords →](./index.md#extension-keywords).
-
----
-
-## Using aliases in queries
-
-Queries normalize aliases automatically:
-
-```bash
-# These return the same results:
-dotit query . --type text
-dotit query . --type note
-dotit query . --type body
-```
-
-A `type=task` query matches `task:`, `todo:`, and `مهمة:` blocks alike.
-
-## Aliases in the parsed model — and on the way back out
-
-The parsed block always carries the **canonical** type, with the written form preserved in `keywordAlias`:
+A parsed block always carries the **canonical** type, with the localized name preserved in
+`keywordAlias`, and `documentToSource()` re-emits it as written (`عنوان:` stays `عنوان:`):
 
 ```json
 {
-  "type": "text",
-  "keywordAlias": "note",
-  "content": "Payment is due within 30 days."
+  "type": "title",
+  "keywordAlias": "عنوان",
+  "content": "عرض سعر"
 }
 ```
 
-`documentToSource()` re-emits the keyword as written (`note:`, `عنوان:`, `abstract:`), so round-trips are stable — and a sealed document keeps its hash through a parse → serialize cycle.
+That keeps round-trips stable and a sealed document's hash intact through a parse → serialize
+cycle. A `type=task` query matches `task:` and `مهمة:` blocks alike — but **not** any custom
+keyword you invented (those are matched by `keyword=<word>`).
+
+```bash
+# Same canonical type, written in two languages — one query finds both:
+dotit query . --type task
+```

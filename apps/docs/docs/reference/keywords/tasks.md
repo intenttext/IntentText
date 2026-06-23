@@ -10,7 +10,7 @@ Three keywords for actionable and open items — tasks to complete, completed wo
 ## `task:`
 
 **Category:** Tasks
-**Aliases:** `مهمة:`, `check:`, `todo:`, `action:`, `item:`
+**Arabic:** `مهمة:`
 
 Actionable task item with owner and due date.
 
@@ -48,7 +48,7 @@ task: Send invoice to client | owner: Finance | due: 2026-04-01
 ## `done:`
 
 **Category:** Tasks
-**Aliases:** `منجز:`, `completed:`, `finished:`
+**Arabic:** `منجز:`
 
 Completed task item — the resolved state of a `task:` block.
 
@@ -81,7 +81,6 @@ done: Report generated | owner: @analyst | time: 2026-03-08T09:30:00Z
 ## `ask:`
 
 **Category:** Tasks
-**Aliases:** `question:`
 
 Open question requiring a response.
 

@@ -10,7 +10,7 @@ Seven keywords for the substance of a document — text, callouts, quotations, c
 ## `text:`
 
 **Category:** Content
-**Aliases:** `نص:`, `note:`, `body:`, `content:`, `paragraph:`, `p:`
+**Arabic:** `نص:`
 
 General body text — the default block type.
 
@@ -32,7 +32,7 @@ text: Please review by end of week | color: #dc2626 | italic: true
 
 - Supports all [style properties](../style-properties)
 - Supports [inline formatting](../style-properties#inline-formatting): `*bold*`, `_italic_`, `~strike~`, `` ```code``` ``, `^highlight^`, `` `label` ``, `{Label}`
-- `note:` is the most common alias — both `text:` and `note:` work identically
+- There is no `note:`/`body:`/`paragraph:` synonym — those parse as your own `custom` blocks. Use `text:` for body prose (or just write bare prose, below)
 
 ### Bare prose — `text:` is optional
 
@@ -71,9 +71,10 @@ To force a literal `text:` block even when bare would do, just write the keyword
 ## `info:`
 
 **Category:** Content
-**Aliases:** `تنبيه:`, plus the variant forms below
+**Arabic:** `تنبيه:`
 
-Callout block. Renders with a colored background and visual indicator.
+Callout block. Renders with a colored background and visual indicator. Choose the variant with
+the `type:` property — there is no separate `warning:`/`danger:`/`tip:`/`success:` keyword.
 
 ### Syntax
 
@@ -97,31 +98,31 @@ info: Use dotit query to find all deadlines across your folder. | type: tip
 info: Migration completed — 12,450 records transferred. | type: success
 ```
 
-### Callout aliases
+### Callout variants — set with `type:`
 
-The variant forms `warning:`, `danger:`, `tip:`, and `success:` are aliases for `info:` with the `type:` property set automatically:
+Pick the callout variant with the `type:` **property**. There is **no** `warning:`/`danger:`/`tip:`/`success:` keyword — a bare `warning:` line is your own `custom` block, not a callout.
 
-| Alias      | Equivalent                    | Visual style       |
-| ---------- | ----------------------------- | ------------------ |
-| `warning:` | `info: ... \| type: warning`  | Amber / yellow     |
-| `danger:`  | `info: ... \| type: danger`   | Red                |
-| `tip:`     | `info: ... \| type: tip`      | Green / blue       |
-| `success:` | `info: ... \| type: success`  | Green              |
+| `type:`   | Variant   | Visual style       |
+| --------- | --------- | ------------------ |
+| (default) | `info`    | Blue / neutral     |
+| `warning` | warning   | Amber / yellow     |
+| `danger`  | danger    | Red                |
+| `tip`     | tip       | Green / blue       |
+| `success` | success   | Green              |
 
 ```intenttext
-// These are equivalent:
 info: This contract expires in 14 days. | type: warning
-warning: This contract expires in 14 days.
+info: Deleting this record is irreversible. | type: danger
 ```
 
-The parser resolves both forms to `{ type: "info", properties: { type: "warning" } }`. There is no behavioral difference.
+The parser produces `{ type: "info", properties: { type: "warning" } }`.
 
 ---
 
 ## `quote:`
 
 **Category:** Content
-**Aliases:** `اقتباس:`, `blockquote:`, `excerpt:`, `pullquote:`
+**Arabic:** `اقتباس:`
 
 Block quotation with optional attribution.
 
@@ -149,7 +150,7 @@ quote: All documents should be machine-readable from birth. | by: IntentText Man
 ## `cite:`
 
 **Category:** Content
-**Aliases:** `استشهاد:`, `citation:`, `source:`, `reference:`
+**Arabic:** `استشهاد:`
 
 Bibliographic citation with author, date, and URL.
 
@@ -179,7 +180,7 @@ cite: Structured Documents in Enterprise | author: Chen, Wei | date: 2025 | url:
 ## `code:`
 
 **Category:** Content
-**Aliases:** `شيفرة:`, `snippet:`
+**Arabic:** `شيفرة:`
 
 Code block with optional language for syntax highlighting.
 
@@ -236,7 +237,7 @@ text: Set ```NODE_ENV=production``` before deploying.
 ## `image:`
 
 **Category:** Content
-**Aliases:** `صورة:`, `img:`, `photo:`, `picture:`
+**Arabic:** `صورة:`
 
 Inline image. No caption, no number — flows with surrounding text.
 
@@ -270,7 +271,7 @@ image: Architecture diagram | src: ./diagrams/arch.png
 ## `link:`
 
 **Category:** Content
-**Aliases:** `رابط:`, `url:`, `href:`
+**Arabic:** `رابط:`
 
 Hyperlink to an external resource.
 

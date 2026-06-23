@@ -10,7 +10,6 @@ Seven keywords for defining executable AI agent workflows. These blocks describe
 ## `step:`
 
 **Category:** Agentic Workflow
-**Aliases:** `run:`
 
 A unit of work in a workflow. Steps are executed in dependency order by the workflow runtime.
 
@@ -49,7 +48,6 @@ step: Transform records | id: transform | depends: validate | tool: jq
 ## `decision:`
 
 **Category:** Agentic Workflow
-**Aliases:** `if:`
 
 Conditional branching. Routes execution based on a condition evaluated by the runtime.
 
@@ -125,7 +123,6 @@ When the executor encounters a `gate:` block with no `status: approved` property
 ## `trigger:`
 
 **Category:** Agentic Workflow
-**Aliases:** `on:`
 
 Event-based activation. Declares what event starts a workflow or a section of a workflow.
 
@@ -183,7 +180,6 @@ result: Invoice generated | format: PDF | data: ./invoices/inv-2026-001.pdf
 ## `policy:`
 
 **Category:** Agentic Workflow
-**Aliases:** `rule:`, `constraint:`, `guard:`, `requirement:`
 
 Enforceable constraint or rule. Policies are evaluated by the workflow runtime before execution begins. A policy with `requires: gate` blocks execution unless a matching gate block with `status: approved` exists in the document.
 
@@ -229,7 +225,6 @@ This is the primary mechanism for enforcing mandatory human oversight in automat
 ## `audit:`
 
 **Category:** Agentic Workflow
-**Aliases:** `log:`
 
 Audit log entry. Records what an agent or person did, when, and the action taken. The runtime calls `onAudit()` when this block is encountered during execution.
 

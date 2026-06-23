@@ -10,7 +10,7 @@ Three keywords for structured data — tables, rows, and quantitative metrics.
 ## `headers:`
 
 **Category:** Data
-**Aliases:** `أعمدة:`, `columns:`
+**Arabic:** `أعمدة:`
 
 Table header row — declares the column labels for the following `row:` blocks.
 
@@ -32,7 +32,7 @@ row: Operations | USD 150,000 | USD 98,000 | USD 52,000
 ### Notes
 
 - `headers:` declares the column labels; `row:` provides the data
-- `columns:` is a compat alias for `headers:` — both parse identically
+- Write `headers:` — `columns:` is **not** reserved; it parses as your own `custom` block
 - Tables can also be written using Markdown pipe syntax (see below)
 
 ---
@@ -40,7 +40,7 @@ row: Operations | USD 150,000 | USD 98,000 | USD 52,000
 ## `row:`
 
 **Category:** Data
-**Aliases:** `صف:`
+**Arabic:** `صف:`
 
 Table data row — pipe-separated cell values. Must follow a `headers:` declaration.
 
@@ -90,7 +90,7 @@ The `each:` property on the header row enables dynamic row expansion:
 ## `metric:`
 
 **Category:** Data
-**Aliases:** `مؤشر:`, `kpi:`, `measure:`, `indicator:`
+**Arabic:** `مؤشر:`
 
 Quantitative measurement or KPI. Queryable, renderable as cards or grids, with optional target comparison and trend indicators.
 

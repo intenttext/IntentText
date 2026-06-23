@@ -44,7 +44,7 @@ contact: Maria Santos | role: Senior Engineer | email: maria@acme.co | org: Acme
 contact: Lisa Park | role: CTO | email: lisa@acme.co | org: Acme Corp
 ```
 
-Arabic documents use the `جهة` (or `تواصل`) alias — both resolve to the canonical `contact` type, round-trip as written, and land in the same directory query as English contacts:
+Arabic documents use the localized keyword `جهة` (or `تواصل`) — both are first-class Arabic keyword names for the canonical `contact` type, round-trip as written, and land in the same directory query as English contacts:
 
 ```intenttext
 عنوان: عقد توريد — شركة الخليج للتقنية
@@ -71,7 +71,7 @@ hr/employees/maria-offer.it       contact  Maria Santos         Acme Corp       
 hr/employees/maria-offer.it       contact  Lisa Park            Acme Corp             CTO                lisa@acme.co
 ```
 
-Arabic and English contacts compose into one directory because `جهة` and `تواصل` resolve to the same canonical `contact` type.
+Arabic and English contacts compose into one directory because `جهة` and `تواصل` are localized keyword names for the same canonical `contact` type.
 
 ### Export to CSV
 

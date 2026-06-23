@@ -795,14 +795,16 @@ import { documentToSource } from "@dotit/core";
 const source = documentToSource(doc);
 ```
 
-**Aliases round-trip as written.** When a line used an alias — including the Arabic
-keyword aliases (`عنوان` → `title`, `مهمة` → `task`, `صف` → `row`, `توقيع` → `sign`, …)
-— the parser records the keyword as written on `block.keywordAlias`, and
+**Localized keywords round-trip as written.** When a line used one of the 33 Arabic
+keyword names (`عنوان` → `title`, `مهمة` → `task`, `صف` → `row`, `توقيع` → `sign`, …)
+the parser records the keyword as written on `block.keywordAlias`, and
 `documentToSource` re-emits that form instead of normalizing to the canonical
-English keyword. An Arabic document stays Arabic, `abstract:` stays `abstract:`,
-and a sealed document keeps its hash through a parse → serialize cycle. Table
-keywords (`أعمدة`/`صف`, `headers`) are preserved the same way. Reserved characters
-are re-escaped on output (`\|`, `\\`), so escape round-trips are stable too.
+English keyword. An Arabic document stays Arabic and a sealed document keeps its
+hash through a parse → serialize cycle. Table keywords (`أعمدة`/`صف`, `headers`)
+are preserved the same way. (There are **no Latin synonym aliases** — a word like
+`abstract:` is not reserved, so it parses as your own `custom` block and round-trips
+verbatim, never silently rewritten.) Reserved characters are re-escaped on output
+(`\|`, `\\`), so escape round-trips are stable too.
 
 ### `reconcileEdit(originalSource, editedSource)`
 
@@ -1169,7 +1171,7 @@ interface AskOptions {
 interface IntentBlock {
   id: string;
   type: BlockType;
-  keywordAlias?: string; // keyword AS WRITTEN when the line used an alias (incl. Arabic) — re-emitted on serialize
+  keywordAlias?: string; // keyword AS WRITTEN when the line used a localized (Arabic) keyword name — re-emitted on serialize
   content: string;
   originalContent?: string;
   properties?: Record<string, string | number>;
@@ -1234,9 +1236,10 @@ drift from the docs).
 - **Data (3):** `headers`, `row`, `metric`
 - **Print (7):** `toc`, `page`, `header`, `footer`, `watermark`, `style`, `break`
 
-Notes: the table-header keyword is `headers` (the older `columns` is an alias). `policy` and
-`context` are **agent**-tier (not Trust). `certify`/`route`/`require` are contract-tier — they
-power authority certification and in-file approval routing.
+Notes: the table-header keyword is `headers` — write `headers:` (there are **no synonym
+aliases** anymore, so `columns:` is no longer reserved; it now parses as an ordinary `custom`
+block). `policy` and `context` are **agent**-tier (not Trust). `certify`/`route`/`require` are
+contract-tier — they power authority certification and in-file approval routing.
 
 **Boundary / extension keywords** (recognized, but outside the canonical 41):
 
@@ -1278,11 +1281,22 @@ interface Diagnostic {
 
 ### `ALIASES`
 
-Record mapping alias keywords to their canonical types. Includes callout aliases (`warning:` → `info:` with `type: warning`), shorthand forms, per-category aliases, and the 33 registered Arabic aliases (`عنوان` → `title`, `قسم` → `section`, `مهمة` → `task`, `مؤشر` → `metric`, `اعتماد` → `approve`, `تجميد` → `freeze`, …) — an Arabic document gets full canonical semantics, and aliases serialize back as written. See [Aliases Reference](/docs/reference/keywords/aliases).
+Record mapping each **localized (Arabic) keyword name** to its canonical type. As of core
+1.25 this is exactly the **33 Arabic keywords** (`عنوان` → `title`, `قسم` → `section`, `مهمة`
+→ `task`, `مؤشر` → `metric`, `اعتماد` → `approve`, `تجميد` → `freeze`, …) — an Arabic
+document gets full canonical semantics, and the keyword serializes back exactly as written.
+The Latin synonym aliases that older versions shipped (`note`, `warning`, `tip`, `columns`,
+`milestone`, `due`, …) have been **removed**: there are now **zero** non-localized aliases, so
+every one of those words parses as your own `custom` block instead. Callout variants are set
+with the `type:` property (`info: … | type: warning`), not a `warning:` keyword. See
+[Aliases Reference](/docs/reference/keywords/aliases).
 
 ### `KEYWORDS`
 
-Array of all recognized keyword strings — 41 canonical keywords plus their registered aliases.
+Array of every recognized keyword string — the 41 canonical keywords, the 33 Arabic localized
+keyword names, and the namespaced extension keywords (`def`, `contact`, `deadline`, `ref`,
+`figure`, `input`, `output`, `font`, …). It contains **no synonym aliases**: any word not in
+this array is a reliable, collision-free `custom` keyword of your own.
 
 
 ## Server-side PDFs — `@dotit/pdf`

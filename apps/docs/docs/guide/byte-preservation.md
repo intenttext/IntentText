@@ -34,8 +34,9 @@ This page explains how that rule is kept across the three places bytes are most 
 ## The lossless foundation
 
 The parser and serializer are a **lossless round-trip**. Parsing keeps each block's
-formatting trivia — leading blank lines, the exact keyword or alias spelling, merged
-inline lines, bare-prose flags — and the serializer re-emits them verbatim:
+formatting trivia — leading blank lines, the exact keyword spelling (English or its
+Arabic localized name), merged inline lines, bare-prose flags — and the serializer re-emits
+them verbatim:
 
 ```typescript
 import { parseIntentText, documentToSource } from "@dotit/core";

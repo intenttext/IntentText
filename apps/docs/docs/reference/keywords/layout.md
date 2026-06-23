@@ -10,7 +10,7 @@ Six keywords for controlling how a document looks when rendered — pagination, 
 ## `page:`
 
 **Category:** Layout
-**Aliases:** `صفحة:`
+**Arabic:** `صفحة:`
 
 Defines the page layout settings for print and PDF output.
 
@@ -55,7 +55,7 @@ page: | size: 80mm auto | margin: 4mm
 ## `header:`
 
 **Category:** Layout
-**Aliases:** `ترويسة:`
+**Arabic:** `ترويسة:`
 
 Defines the running header for multi-page output.
 
@@ -94,7 +94,7 @@ header: | center: Service Agreement v1.0 | skip-first: true
 ## `footer:`
 
 **Category:** Layout
-**Aliases:** `تذييل:`
+**Arabic:** `تذييل:`
 
 Defines the running footer for multi-page output, including page numbers.
 
@@ -143,7 +143,7 @@ only substituted tokens — any other text in a header/footer zone renders liter
 ## `watermark:`
 
 **Category:** Layout
-**Aliases:** `علامة:`
+**Arabic:** `علامة:`
 
 Watermark printed diagonally across every page.
 
@@ -188,7 +188,7 @@ watermark: {{watermark_text}} | color: {{watermark_color}}
 ## `break:`
 
 **Category:** Layout
-**Aliases:** `فاصل:`
+**Arabic:** `فاصل:`
 
 Page break for print output. Invisible in web rendering — renders as `display:none` with `aria-hidden="true"`. In print and PDF, forces a page break at the point where `break:` appears.
 
@@ -236,7 +236,7 @@ Use `break:` for structural pagination. Use `x-layout: divider` for visible sect
 ## `style:`
 
 **Category:** Layout
-**Aliases:** `نمط:`
+**Arabic:** `نمط:`
 
 Scoped document style rule — house styling for a **block type**, declared once,
 document-wide. Keeps presentation out of the content body: lines stay clean and

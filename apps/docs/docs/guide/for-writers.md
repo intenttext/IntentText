@@ -30,18 +30,20 @@ You don't give up the Markdown feel — you gain everything publishing-grade on 
 
 ## Writer-friendly keywords
 
-You don't need to memorize the full language. Writers use these first:
+You don't need to memorize the full language. Writers reach for these handful first — and that's nearly all of them:
 
-| You write                   | It means           | Canonical  |
-| --------------------------- | ------------------ | ---------- |
-| `note:` or `body:`          | A paragraph        | `text:`    |
-| `h2:` or `heading:`         | Section heading    | `section:` |
-| `h3:` or `subheading:`      | Subsection heading | `sub:`     |
-| `blockquote:` or `excerpt:` | Quotation          | `quote:`   |
-| `citation:` or `source:`    | Citation           | `cite:`    |
-| `todo:` or `check:`         | Task item          | `task:`    |
+| You want…          | Keyword    |
+| ------------------ | ---------- |
+| A paragraph        | `text:` (or just write bare prose — `text:` is optional) |
+| Section heading    | `section:` |
+| Subsection heading | `sub:`     |
+| Quotation          | `quote:`   |
+| Citation           | `cite:`    |
+| Task item          | `task:`    |
 
-All aliases are listed in the [Aliases Reference](../reference/keywords/aliases) — including **33 Arabic aliases** (`عنوان:` for `title:`, `نص:` for `text:`, `اقتباس:` for `quote:`, …) that are re-emitted exactly as you wrote them, so an Arabic manuscript stays Arabic. Write what’s natural — the parser maps it to the canonical keyword.
+These are canonical keywords with guaranteed meaning. There are **no synonym aliases** — so any word that isn't reserved (like `note:`, `aside:`, `verse:`) is reliably *your own* custom block, never silently reinterpreted. That's the open vocabulary: invent a keyword and it's yours, collision-free.
+
+The canonical keywords also have **33 Arabic (localized) keyword names** (`عنوان:` for `title:`, `نص:` for `text:`, `اقتباس:` for `quote:`, …) — first-class names that resolve to the same canonical keyword and are re-emitted exactly as you wrote them, so an Arabic manuscript stays Arabic. See the [Keywords Reference](../reference/keywords/aliases).
 
 ## Write an article
 
@@ -66,9 +68,9 @@ cite: Open Formats in Enterprise | url: https://openstandards.org/example | auth
 ## Write in Arabic — a first-class manuscript story
 
 IntentText isn't English-with-a-translation-layer. The canonical keywords have **33 Arabic
-aliases**, and they **round-trip as written** — an Arabic manuscript stays Arabic through
-parse, edit, and save (and a sealed Arabic document keeps its hash). Direction handles
-itself: set `dir: rtl` (or just use Arabic) and headers, two-sided rows, and lists flip.
+(localized) keyword names**, and they **round-trip as written** — an Arabic manuscript stays
+Arabic through parse, edit, and save (and a sealed Arabic document keeps its hash). Direction
+handles itself: set `dir: rtl` (or just use Arabic) and headers, two-sided rows, and lists flip.
 
 ```intenttext
 عنوان: مقدمة في الوثائق المنظمة
@@ -82,7 +84,7 @@ itself: set `dir: rtl` (or just use Arabic) and headers, two-sided rows, and lis
 
 Mixed Arabic/English (a quote, a code block, a Latin term) renders correctly in the same
 document — bidi is handled per run, not per file. See the
-[full Arabic alias table](../reference/keywords/aliases#arabic-aliases).
+[full Arabic keyword table](../reference/keywords/aliases#the-33-arabic-localized-keyword-names).
 
 ## Add figures with captions
 

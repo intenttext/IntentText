@@ -65,7 +65,7 @@ text: Confidentiality period of 24 months from the effective date.
 task: Send for signature | owner: Fahad | due: 2026-06-18 | priority: medium
 ```
 
-Note the Arabic file: `عنوان` is a registered alias for `title`, `مهمة` for
+Note the Arabic file: `عنوان` is a localized keyword name for `title`, `مهمة` for
 `task`, `مهلة` for `deadline`, `جهة` for `contact`. The document gets full
 canonical semantics while staying Arabic on disk.
 
@@ -86,8 +86,8 @@ contracts/gulf-maintenance-ar.it  deadline  تجديد العقد              d
 ```
 
 The Arabic `مهلة:` line and the English `deadline:` lines came back as **one
-result set** — aliases resolve to canonical types at parse time, so one query
-crosses languages. The same is true for tasks:
+result set** — Arabic keywords resolve to the canonical type at parse time, so one
+query crosses languages. The same is true for tasks:
 
 ```bash
 dotit query ./contracts --type task --format table

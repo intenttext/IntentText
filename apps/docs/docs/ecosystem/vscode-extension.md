@@ -22,19 +22,25 @@ manual install.
 
 ### Syntax highlighting
 
-IntentText keywords, aliases, and template markers are highlighted with semantic coloring:
+IntentText keywords and template markers are highlighted with semantic coloring. Only
+**reserved** words are colored — the 41 canonical keywords, the 33 Arabic localized keyword
+names, and the namespaced extension keywords. The Latin synonym aliases older versions shipped
+(`note`, `warning`, `tip`, `columns`, …) have been removed, so they highlight as ordinary
+custom keywords — which is exactly what they now are:
 
 | Category          | Color  | Keywords                                                                               |
 | ----------------- | ------ | -------------------------------------------------------------------------------------- |
 | Document identity | Blue   | title, summary, meta, track                                                            |
-| Content           | Green  | text, info, quote, code, image, link, cite, task, done (+ aliases: note, warning, tip, def, figure, contact) |
-| Structure         | Purple | section, sub, break, toc (+ aliases: group, ref, deadline)                              |
+| Content           | Green  | text, info, quote, code, image, link, cite, task, done (+ x-doc/x-writer: def, figure, contact) |
+| Structure         | Purple | section, sub, break, toc (+ x-doc: ref, deadline)                                       |
 | Data              | Orange | headers, row, metric (+ x-form: input, output)                                         |
-| Agent             | Red    | context, ask, step, decision, gate, trigger, result, policy, audit (+ aliases: memory, prompt, tool, error) |
-| Trust             | Gold   | approve, sign, freeze, amendment, certify, route, require (+ alias: revision)           |
-| Layout            | Teal   | page, header, footer, watermark, style (+ aliases: font, signline)                     |
+| Agent             | Red    | context, ask, step, decision, gate, trigger, result, policy, audit (+ x-agent: memory, prompt, tool, error) |
+| Trust             | Gold   | approve, sign, freeze, amendment, certify, route, require (+ audit log: revision)       |
+| Layout            | Teal   | page, header, footer, watermark, style (+ x-layout/x-doc: font, signline)               |
 
-Aliases get the same highlighting as their canonical keyword. Template variables (`{{name}}`) are highlighted distinctly.
+Callout variants (`info: … | type: warning`) are driven by the `type:` property, not a separate
+keyword. Arabic localized keyword names get the same color as their canonical keyword. Template
+variables (`{{name}}`) are highlighted distinctly.
 
 ### Hover documentation
 
@@ -50,8 +56,8 @@ Hover over any keyword to see:
 Type at the start of a line and get keyword completions; type after a `|` and get
 the pipe properties for that block type:
 
-- Keyword names (with descriptions)
-- Alias suggestions (the canonical keyword is shown)
+- Keyword names (with descriptions) — canonical, Arabic localized, and extension keywords
+- Arabic localized keyword names (the canonical keyword is shown alongside)
 - Pipe properties after `|`
 
 ### Snippets

@@ -57,7 +57,7 @@ dotit document.it --query "type=task due<2026-03-01 sort:due:asc"
 
 ### Queries cross languages
 
-Arabic keyword aliases resolve to canonical types, so one query finds blocks regardless of the language they were written in. Given a quotation written in Arabic:
+Arabic localized keyword names resolve to canonical types, so one query finds blocks regardless of the language they were written in. Given a quotation written in Arabic:
 
 ```intenttext
 عنوان: عرض سعر — تأثيث المكتب الرئيسي

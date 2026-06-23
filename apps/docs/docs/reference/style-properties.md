@@ -48,7 +48,7 @@ style: text | leading: 1.9 | space-after: 24px
 text: This is important | color: red | weight: bold
 text: Subtle aside | color: #666 | size: 0.85em | italic: true
 quote: Key insight | bg: #fffde7 | border: true | indent: 2em
-warning: Deadline tomorrow | color: #d32f2f | bg: #ffebee | weight: bold
+info: Deadline tomorrow | type: warning | color: #d32f2f | bg: #ffebee | weight: bold
 text: Fine print | size: 0.75em | opacity: 0.7 | align: center
 ```
 
