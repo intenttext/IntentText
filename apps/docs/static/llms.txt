@@ -119,6 +119,40 @@ PRINT (layout) tier:
   break:    Forced page break.                       break:
   toc:      Table of contents.
 
+## 2b. Extensions — namespaced keywords (x-ns:)
+
+Beyond the 41 reserved keywords, specialized blocks use an `x-<namespace>:` prefix (the bare
+form is also accepted); they parse, render, and query like any block.
+  x-writer:  byline figure caption footnote epigraph dedication      (editorial)
+  x-doc:     def contact deadline ref signline attach                (definitions, parties, cross-refs, attachments)
+  x-agent:   loop parallel retry wait handoff call checkpoint signal import export progress tool prompt memory model error
+  x-form:    input output                                            (typed form fields — STABLE namespace)
+  x-exp:     assert secret                                           (experimental)
+Examples:
+  contact: Acme Gulf Trading WLL | email: ops@acme.qa | role: Client
+  deadline: First invoice due | date: 2026-07-01 | consequence: 2% late fee
+  def: Force Majeure | meaning: events beyond a party's reasonable control
+  ref: ./policy.it | rel: supersedes
+  attach: cr | name: cr.pdf | mime: application/pdf | sha256: … | data: <base64>   (the file rides INSIDE the doc and is covered by the seal)
+
+## 2c. Custom keywords — the open vocabulary (USE THIS for agent memory / skills / tools)
+
+ANY word: that is not reserved parses as a typed, queryable `custom` block that keeps its keyword
+verbatim (case + script preserved). This is how an agent persists domain data, MEMORY, SKILLS, and
+TOOL MANIFESTS in .it without inventing a side-format:
+  skill: summarize-contract | input: file | output: brief | model: claude-opus-4-8
+  tool: web-search | args: query | returns: results | endpoint: https://…
+  memory: user prefers metric units | scope: session | at: 2026-06-01
+  expense: Office chairs | category: furniture | amount: 1200 | unit: QAR
+Query them like any block (`type=skill`, `type=expense`). A reserved keyword wins if the word
+collides; everything else is yours. Unknown keywords NEVER error — they round-trip byte-for-byte.
+
+## 2d. Format version stamp (optional)
+
+Declare the grammar a file targets with ONE header comment. It is a comment, so it never affects
+the seal hash and round-trips as trivia; parsed into document.version.
+  // it-format: 1.0
+
 ## 3. Inline formatting (inside content)
 
   *bold*  _italic_  ~strike~  ^highlight^  `code`  [text](https://url)  [[side note]]
@@ -234,6 +268,40 @@ silently corrupt sealed bytes, wrap it:
   verifyStorageRecord(record) → boolean                ← bytes survived the round-trip
 documentToSource(parseIntentText(src)) is a lossless text↔JSON round-trip for indexing/diff
 without touching the stored bytes.
+
+## 6b. Forms — fillable, conditional, computed, signable
+
+A form is `meta: | type: form` + `input:` fields. Two-party trust: the AUTHOR seals the blank
+form's structure; the FILLER signs the answers.
+  input: Full name | key: name | type: text | required: yes
+  input: Country | key: country | type: select | options: SA, QA, AE
+  input: VAT number | key: vat | show-if: country == SA            (conditional — shows/counts only when true)
+  input: Qty | key: qty | type: number
+  input: Total | key: total | type: number | compute: qty * unit_price   (derived; the filler never types it)
+  input: CR (PDF) | key: cr | type: attachment | required: yes
+`show-if:` and `require:`-`when:` take ONE comparison `key <op> value`, ops == != > < >= <= (= is
+loose ==; numeric when both sides parse). `compute:` is arithmetic (+ - * / with parentheses).
+A COMPLETE form (all required filled) becomes a signable record. APIs: submitForm() / buildSubmission().
+
+## 6c. Workflows & approval routing — state DERIVED from the file (never stored)
+
+A document carries its own approval policy; live state is derived, so it can never drift from a DB:
+  route: sequential                          (or `parallel`)
+  require: manager
+  require: finance | when: amount > 100000    (conditional — evaluated against the doc's own metric:/meta values)
+  require: legal
+  approve: Reviewed | by: Sarah | role: manager | at: 2026-03-20    (fulfils a requirement)
+workflowState(source) → { pending, next, complete }; the renderer draws an approval-route panel.
+EXECUTABLE agent workflows use the agent tier: trigger: (entry) → step: (run a tool) → decision:
+(branch, `if:` condition) → gate: (human checkpoint) → result: (terminal). executeWorkflow() runs
+them; `audit:` lines + the hash-chained audit trail (appendApproval / verifyAuditChain) make the
+approval SEQUENCE tamper-evident (no insert/delete/reorder without detection).
+
+## 6d. Conformance — one read-only yes/no
+
+  checkConformance(source, { level: "lax" | "strict" }) → { conformant, errors, warnings, issues }
+  lax (default): no error-level issues. Unknown keywords are NOT errors (the open vocabulary is conformant by design).
+  strict: no errors AND no warnings (e.g. every date ISO 8601) — the level a publisher certifies for a spotless document.
 
 ## 7. Rendering and PDFs
 

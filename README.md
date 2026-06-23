@@ -5,8 +5,8 @@
 <h1 align="center">IntentText (.it)</h1>
 
 <p align="center">
-  A structured document language where every line is a declared intent.<br>
-  Human-writable &nbsp;·&nbsp; Machine-queryable &nbsp;·&nbsp; Print-ready &nbsp;·&nbsp; Cryptographically sealable.
+  <b>One plain-text file that is readable by people, queryable by machines, print-ready, and cryptographically sealable.</b><br>
+  Write it like Markdown. Query it like a database. Seal it like a contract. Hand it to an AI.
 </p>
 
 <p align="center">
@@ -15,6 +15,7 @@
   <a href="https://editor.uts.qa">Editor</a> ·
   <a href="https://npmjs.com/package/@dotit/core">npm</a> ·
   <a href="https://pypi.org/project/intenttext/">PyPI</a> ·
+  <a href="https://dotit.uts.qa/llms.txt">llms.txt</a> ·
   <a href="https://x.com/IntentText">Twitter</a>
 </p>
 
@@ -22,13 +23,15 @@
 
 ## What is IntentText?
 
-Every document you write is either prose or data. Prose is for reading; data is for
-machines. A `.it` file is both. Every line carries a keyword that declares its
-meaning — a `task:` is always a task, a `deadline:` is always a deadline, a `sign:`
-is always a signature — so any tool can query, validate, render, and act on your
-documents without guessing at free-form text.
+Every document is either **prose** (for people) or **data** (for machines). You normally
+pick one and lose the other — a beautiful PDF a database can't read, or a JSON blob no one
+wants to. A `.it` file is **both at once**. Every line begins with a keyword that declares
+its meaning — a `task:` is always a task, a `sign:` is always a signature, an `invoice`
+line is always an invoice line — so any tool can read, query, validate, render, and *act on*
+your documents without guessing at free-form text.
 
 ```intenttext
+// it-format: 1.0
 title: Service Agreement — Acme Gulf Trading
 meta: | ref: CON-2026-014 | status: active
 
@@ -36,51 +39,127 @@ section: Scope
 text: Managed hosting, 99.9% uptime SLA, monthly reporting.
 deadline: First invoice due | date: 2026-07-01 | consequence: 2% late fee
 
-section: Parties
 contact: Acme Gulf Trading WLL | email: ops@acmegulf.qa | role: Client
-
 approve: Legal review complete | by: Sara Haddad | role: Counsel | at: 2026-06-01
 ```
 
-That file is readable as-is by any person. To a machine, every line is a typed
-block — the `deadline:` line parses to:
+A person reads that at a glance. A machine sees typed blocks — the `deadline:` line is:
 
 ```json
-{
-  "type": "deadline",
-  "content": "First invoice due",
-  "properties": { "date": "2026-07-01", "consequence": "2% late fee" }
-}
+{ "type": "deadline", "content": "First invoice due",
+  "properties": { "date": "2026-07-01", "consequence": "2% late fee" } }
 ```
 
-…which means a folder of these files answers questions like *"every deadline before
-October, across all contracts"* with one command — no database, no export step.
+…so a folder of these answers *"every deadline before October, across all contracts"* with
+one command — **no database, no export step** — and that same file can be sealed with a
+SHA-256 hash anyone can recompute to prove it hasn't changed.
 
-## Why
+**The format is small and open:** 13 everyday core keywords (41 reserved in total across
+opt-in profiles), and **any other word is a valid keyword too** — `expense:`, `risk:`,
+`مصروف:` all parse as typed, queryable blocks. You never outgrow it.
 
-One `.it` file is simultaneously four things:
+---
 
-- **A human-readable text file.** Plain UTF-8, diffable, greppable, versionable in
-  git. No binary format, no lock-in — the file is yours.
-- **A queryable database.** Every line is typed data. Filter by type, owner,
-  status, or ISO date range across a whole folder tree (`dotit query`), or ask in
-  natural language (`dotit ask`).
-- **A print-ready document.** `page:`, `header:`, `footer:`, `watermark:`, themes,
-  and templates render to print HTML with running page numbers and multi-page
-  tables — browser print dialog or server-side PDF (`@dotit/pdf`).
-- **A cryptographically sealable record.** `seal` computes a SHA-256 hash over the
-  document's *content* (presentation is excluded — restyling never breaks a seal)
-  and freezes it; `verify` detects any later edit. Tamper-evidence anyone can
-  recompute — no vendor required.
+## Where `.it` shines — pick your lens
 
-And it is **Arabic-native**: the registry ships 33 Arabic keyword aliases
-(`عنوان`→title, `مهمة`→task, `توقيع`→sign, …), any Arabic content flips the
-document to RTL automatically (tables, totals, and print footers mirror via CSS
-logical properties), and aliases round-trip **as written** — an Arabic document
-stays Arabic through every parse/serialize cycle, so sealed Arabic documents keep
-their hash. One query (`--type task`) finds tasks across languages.
+<table>
+<tr><td width="50%" valign="top">
 
-> **Integrating dotit into your software?** → [INTEGRATION.md](INTEGRATION.md) — the complete developer / AI-agent guide: format crash course, ERP & archive recipes, all packages, CLI and API reference (also served at [dotit.uts.qa/integration.md](https://dotit.uts.qa/integration.md)).
+### 🏢 Enterprise
+**Invoices · contracts · quotations · receipts · finance reports.**
+One template → merge data → render print/PDF → **seal** → export **EN 16931 / UBL**
+e-invoice. The sealed `.it` is the verifiable record; the PDF is just a view.
+
+```intenttext
+headers: Item | Qty | Unit | Total
+row: Hosting | 12 | 900 | 10800
+metric: Total Due | value: 10800 | unit: QAR
+sign: Acme Billing | at: 2026-07-01T09:00:00Z
+freeze: | hash: sha256:… | spec: 4 | status: locked
+```
+
+</td><td width="50%" valign="top">
+
+### 🤖 AI agents
+**Memory · workflows · skills · tool manifests.**
+Agents read/write `.it` as structured, queryable, **hash-chained** state — and run
+in-file approval workflows. Point any LLM at `llms.txt`, or drive it over **MCP**.
+
+```intenttext
+trigger: invoice received
+step: extract line items | tool: ocr
+decision: total > 100000 | if: amount > 100000
+route: sequential
+require: finance | when: amount > 100000
+```
+
+</td></tr>
+<tr><td width="50%" valign="top">
+
+### 👤 Humans & teams
+**Notes · plans · READMEs · reports · meeting minutes.**
+As easy to write as Markdown — but every line is typed, so your notes become a
+**queryable, print-ready** record. RTL & Arabic are native.
+
+```intenttext
+title: Sprint Planning
+task: Ship auth | owner: Ahmed | priority: high | due: 2026-06-20
+done: Deploy staging | at: 2026-06-01
+ask: Do we need SSO for launch?
+```
+
+</td><td width="50%" valign="top">
+
+### 🏛️ Government & archives
+**Official records · long-term archives · archive conversion.**
+Plain UTF-8 / NFC / LF, **version-stamped** and **offline-verifiable for decades** —
+no vendor, no runtime. Convert PDF/Word/Excel archives *into* `.it`.
+
+```intenttext
+// it-format: 1.0
+meta: | type: record | retention: 2046-01-01
+certify: National Archives | at: 2026-06-01T00:00:00Z
+freeze: | hash: sha256:… | spec: 4 | status: locked
+```
+
+</td></tr>
+</table>
+
+…and it also shines anywhere a document needs to be **both readable and computable**:
+fillable forms, redline review, audit trails, dashboards, definitions/glossaries, and
+cross-document reference graphs — all in the *same* format, so nothing is ever locked in a
+silo. See the persona guides: [for organizations](https://dotit.uts.qa/docs/guide/for-organizations) ·
+[for agents](https://dotit.uts.qa/docs/guide/for-agents) ·
+[for writers](https://dotit.uts.qa/docs/guide/for-writers).
+
+---
+
+## Why one file can do all that
+
+A single `.it` file is simultaneously **five** things:
+
+- **A human-readable text file.** Plain UTF-8, diffable, greppable, git-versionable. No
+  binary format, no lock-in — the file is yours.
+- **A queryable database.** Every line is typed data. Filter by type, owner, status, or ISO
+  date range across a whole folder tree (`dotit query`), or ask in natural language (`dotit ask`).
+- **A print-ready document.** `page:`/`header:`/`footer:`/`watermark:`, themes, and templates
+  render to print HTML with running page numbers and multi-page tables — or server-side PDF.
+- **A cryptographically sealable record.** `seal` hashes the *content* (presentation is
+  excluded, so restyling never breaks a seal) and freezes it; `verify` detects any later edit.
+  Tamper-evidence anyone can recompute — no vendor required.
+- **An open vocabulary.** Reserved keywords give you semantics out of the box; **any unknown
+  word stays a typed, queryable `custom` block** — so domain vocabularies (`مصروف:`, `risk:`,
+  `skill:`) are first-class without bloating the format.
+
+And it is **Arabic-native**: 33 Arabic keyword aliases (`عنوان`→title, `مهمة`→task, `توقيع`→sign,
+…), automatic RTL, and aliases round-trip **as written** — a sealed Arabic document keeps its
+hash, and one query (`--type task`) finds tasks across languages.
+
+> **Building dotit into your software?** → **[INTEGRATION.md](INTEGRATION.md)** — the complete
+> developer / AI-agent guide: format crash course, ERP & archive recipes, every package, full
+> CLI and API reference (also at [dotit.uts.qa/integration.md](https://dotit.uts.qa/integration.md)).
+
+---
 
 ## Quick start
 
@@ -94,256 +173,174 @@ npm install -g @dotit/core     # installs the `dotit` command
 dotit contract.it                          # parse → JSON
 dotit contract.it --html --theme corporate # render HTML
 dotit contract.it --print                  # print-ready HTML (PDF via browser)
-dotit notes.md --to-it                     # convert Markdown to .it
+dotit notes.md --to-it                     # convert Markdown → .it
 dotit query ./contracts --type deadline    # query a folder like a database
 dotit seal contract.it --signer "Fahad Al-Thani" --role "Managing Director"
 dotit verify contract.it                   # tamper check (exit 1 if modified)
 ```
 
-Full walkthrough: [CLI guide](https://dotit.uts.qa/docs/ecosystem/cli).
-
-### Library
-
-```bash
-npm install @dotit/core        # zero dependencies
-```
+### Library — `npm install @dotit/core` (zero dependencies)
 
 ```js
-const { parseIntentText, queryDocument, renderHTML } = require("@dotit/core");
+const { parseIntentText, queryDocument, renderHTML, checkConformance } = require("@dotit/core");
 
 const doc = parseIntentText(`title: Sprint Planning
 task: Ship auth | owner: Ahmed | priority: high | due: 2026-06-20
 task: Write docs | owner: Sara | priority: medium | due: 2026-06-25
-done: Deploy staging | time: 2026-06-01`);
+done: Deploy staging | at: 2026-06-01`);
 
-const urgent = queryDocument(doc, { type: "task", properties: { priority: "high" } });
+queryDocument(doc, { type: "task", properties: { priority: "high" } });
 // [{ type: "task", content: "Ship auth", properties: { owner: "Ahmed", … } }]
 
-const html = renderHTML(doc, { theme: "corporate" });
+renderHTML(doc, { theme: "corporate" });
+checkConformance(doc, { level: "strict" }); // { conformant, errors, warnings, issues }
 ```
 
-### Server-side PDFs
-
-```bash
-npm install @dotit/pdf         # opt-in companion (core stays zero-dep)
-```
+### Server-side PDFs — `npm install @dotit/pdf`
 
 ```js
 const { issuePDF } = require("@dotit/pdf");
-
-const { source, hash, pdf } = await issuePDF(template, invoiceData, {
-  signer: "Acme Billing",
-});
+const { source, hash, pdf } = await issuePDF(template, invoiceData, { signer: "Acme Billing" });
 // store `source` (the sealed .it — the verifiable record), email/archive `pdf`
 ```
 
-### For AI agents
-
-```bash
-npm install -g @dotit/mcp      # MCP server: parse, query, render, seal, verify
-```
+### For AI agents — `npm install -g @dotit/mcp`
 
 ```json
 { "mcpServers": { "intenttext": { "command": "intenttext-mcp" } } }
 ```
 
 Or skip tooling entirely: point any LLM at
-[`dotit.uts.qa/llms.txt`](https://dotit.uts.qa/llms.txt) — a complete
-machine reference that teaches the format in one read. An agent that has read it
-can author valid documents, templates, and workflows immediately.
+[`dotit.uts.qa/llms.txt`](https://dotit.uts.qa/llms.txt) — a complete machine reference that
+teaches the whole format in one read. An agent that has read it can author valid documents,
+templates, and workflows immediately.
+
+---
 
 ## Feature tour
 
 ### Templates + merge
-
-A template is a normal `.it` file with `{{placeholders}}`. Repeating table rows
-use `each:` on the header row. Merge with a JSON object and render:
+A template is a normal `.it` file with `{{placeholders}}`; repeating table rows use `each:`.
 
 ```intenttext
 title: Invoice {{invoice.number}}
-summary: {{company.name}} → {{customer.name}}
-
-section: Line Items
-| Description | Qty | Unit Price | Total | each: items |
-| {{item.description}} | {{item.qty}} | {{item.unitPrice}} | {{item.total}} |
-
-section: Totals
-metric: Subtotal | value: {{totals.subtotal}}
-metric: Total Due | value: {{totals.due}}
+headers: Description | Qty | Unit Price | Total | each: items
+row: {{item.description}} | {{item.qty}} | {{item.unitPrice}} | {{item.total}}
+metric: Total Due | value: {{totals.due}} | unit: QAR
 ```
 
 ```js
 const { parseAndMerge, renderPrint } = require("@dotit/core");
-const html = renderPrint(parseAndMerge(template, data, { missing: "blank" }));
+renderPrint(parseAndMerge(template, data, { missing: "blank" }));
 // → @page size/margins, running header/footer, page counters, multi-page tables
 ```
 
-Or from the CLI: `dotit invoice-template.it --data invoice-data.json --print`.
+### Money & typed values
+`value:` holds the bare number; `unit:` the currency (ISO-4217) or unit — the arithmetic-friendly
+form the e-invoice export consumes. Read it typed (no string-parsing):
 
-### Tables and two-sided rows
-
-```intenttext
-| Item | Qty | Price |
-| Office chairs | 12 | 250 QAR |
-
-text: Customer Name | end: 2026-06-12
+```js
+const { metricTypedValue } = require("@dotit/core");
+metricTypedValue(block); // { number: 10800, currency: "QAR", kind: "money" }
 ```
-
-Pipe rows form tables (first row is the header). The `end:` property renders a
-two-sided row — content at the line start, value at the line end — the classic
-invoice "label left, date right" pattern. Built on flex start/end, so it flips
-automatically in RTL documents.
 
 ### Styling without CSS
-
-Three layers, all constrained style keys — never arbitrary CSS, so content stays
-queryable:
-
-```intenttext
-style: section | color: #0a7466 | weight: 600
-style: text | leading: 1.8
-
-title: Quarterly Report
-text: Revenue grew [18%]{ color: #0a7466; weight: bold } over Q1.
-text: Wide spacing paragraph. | space-after: 24px
-```
-
-1. **Themes** — `meta: | theme: corporate` (8 built-in).
-2. **`style:` rules** — house styling per block type, declared once, document-wide.
-3. **Per-line props and `[text]{ key: value; key: value }` spans** for exceptions
-   (`;`-separated inside spans; `|` is the line-level delimiter). `leading:`,
-   `space-before:`, and `space-after:` give Word-parity paragraph spacing.
+Three layers of **constrained** style keys (never arbitrary CSS, so content stays queryable):
+**themes** (`meta: | theme: corporate`, 8 built-in), document-wide **`style:` rules**, and
+per-line props / `[text]{ key: value; … }` spans.
 
 ### Print
-
 ```intenttext
 page: | size: A4 | margin: 20mm
 header: ACME Corp — Confidential
 footer: Page {{page}} of {{pages}}
 watermark: DRAFT | opacity: 0.1
 ```
+`{{page}}`/`{{pages}}` compile to real CSS page counters. `page: | size: 80mm auto` prints a POS receipt roll.
 
-`{{page}}`/`{{pages}}` compile to real CSS page counters in print. Narrow pages
-work too — `page: | size: 80mm auto | margin: 4mm` prints a POS receipt roll.
-
-### Trust: seal, verify, amend
-
+### Trust: seal, verify, amend, certify
 ```bash
 dotit seal contract.it --signer "Fahad Al-Thani" --role "Managing Director"
-# ✅  Document sealed
-#     Hash:     sha256:53cdd027b9a246d6…
-
-dotit verify contract.it
-# ✅  Document intact — or ❌ + exit code 1 if any byte of the body changed
-
-dotit amend contract.it --section "Scope" --was "2% late fee" \
-  --now "1.5% late fee" --ref "Amendment #1" --by "Fahad Al-Thani"
+dotit verify contract.it     # ✅ intact, or ❌ + exit 1 if any content byte changed
 ```
+`seal` hashes the document's **content** and appends `sign:`+`freeze:` carrying it. The hash is
+**versioned** (`spec: 4`, verified against the recorded version forever) and **excludes
+presentation** — restyling never breaks a seal ("sign content, not presentation"). A separate
+`appearance:` hash flags a post-seal restyle that *hides* content, and the hash is CRLF/whitespace-stable.
+`amendment:` records changes to a frozen doc without breaking its seal; `certify:` is an authority
+claim verified above the hash with the issuer's key. This is honest **tamper-evidence, not PKI** —
+the full model is in [SPEC §4](packages/core/SPEC.md).
 
-`seal` computes a SHA-256 hash over the document's **content** and appends `sign:` +
-`freeze:` lines carrying it. The hash is **versioned** (every seal stamps `spec: 4`,
-verified against that recorded version forever) and excludes presentation — `page:`,
-`font:`, `style:`, and per-line style props — so restyling never breaks a seal
-("sign content, not presentation"). A separate `appearance:` hash means a post-seal
-restyle that *hides* content (`opacity:0`, white-on-white) is still flagged, and the
-hash is CRLF/whitespace-stable. Any content edit, signature swap, or seal-metadata
-change flips the hash and `verify` reports it; a tampered document renders a red
-**SEAL BROKEN** stamp instead of a clean seal. Amendments are append-only and excluded
-from the hash, so a frozen contract can evolve without breaking its seal. This is honest
-**tamper-evidence, not PKI** — proving *who* signed is a layer above the hash (see
-[INTEGRATION.md](INTEGRATION.md)). The exact model is documented in the
-[CLI guide](https://dotit.uts.qa/docs/ecosystem/cli) and
-[SPEC §4](packages/core/SPEC.md).
+### Forms, review & compliance (closes the PDF/Word gap)
+- **Forms** — `meta: type: form` + `input:` fields (conditional `show-if:`, computed `compute:`,
+  **attachments** that travel inside the doc and are covered by the seal). **Two-party trust**: the
+  author seals the blank form; the filler signs the answers.
+- **Approval workflows** — a document carries its own routing: `route:` + `require:` declare who must
+  approve; `workflowState()` derives `{ pending, next, complete }` live from the file (no database),
+  and the renderer draws an approval-route panel. Executable agent flows use `step:`/`decision:`/`gate:`.
+- **Redline & compare** — `compareVersions(a, b)` diffs two versions into an accept/reject redline; track-changes + comments.
+- **Redaction** — legally *remove* content, leaving a tamper-evident, provable marker.
+- **Legal signatures & archival** — export a sealed `.it` as a **PAdES** PDF (`@dotit/pades`) or a
+  **PDF/A-oriented** archival PDF (`@dotit/pdf`). **Math** — `math: E = mc^2` → MathML/KaTeX (`@dotit/math`).
 
 ### Query: a folder is a database
-
 ```bash
 dotit query ./contracts --type deadline --format table
-dotit query ./contracts --type contact --format csv > contacts.csv
 dotit contract.it --query "type=deadline date<2026-09-30 sort:date:asc"
 dotit ask ./contracts "Which contracts renew before December?"
 ```
+A shallow `.it-index` cache per folder self-heals on query — the `.it` files stay the source of truth.
 
-Each folder gets a shallow `.it-index` cache that self-heals on query — the `.it`
-files stay the source of truth. Dates are ISO 8601, so range queries work out of
-the box. Full story:
-[A Folder Is a Database](https://dotit.uts.qa/docs/guide/folder-as-database).
+### Conformance
+```js
+checkConformance(source, { level: "strict" }); // strict = no errors AND no warnings (e.g. ISO dates)
+```
+A read-only yes/no a producer can gate on. Unknown keywords are **not** errors — open vocabulary is conformant by design.
 
 ### Arabic, natively
-
 ```intenttext
 عنوان: عرض سعر — تأثيث المكتب الرئيسي
-قسم: البنود
 أعمدة: الصنف | الكمية | السعر
 صف: كراسي مكتب | 12 | 250 QAR
-صف: طاولات اجتماعات | 3 | 1,800 QAR
 مهمة: اعتماد العرض | owner: أحمد | due: 2026-06-20
-مهلة: انتهاء صلاحية العرض | date: 2026-07-15
 ```
+`عنوان` *is* `title`, `مهمة` *is* `task` — full canonical semantics, automatic RTL, byte-stable round-trips.
 
-`عنوان` *is* `title`, `مهمة` *is* `task`, `مهلة` *is* `deadline` — full canonical
-semantics, automatic RTL rendering, and byte-stable round-trips (the serializer
-re-emits the keyword the author wrote). Custom Arabic keywords and property keys
-work too: `مصروف: كراسي | فئة: أثاث` is a typed, queryable block.
-
-### Forms, review & compliance (closes the PDF/Word gap)
-
-`.it` now does what businesses still keep Word/PDF for — all on the same queryable,
-sealable format:
-
-- **Forms** — `meta: type: form` + `input:` fields: design, send, fill, and a
-  **complete** form becomes a signable record. Conditional (`show-if:`), computed
-  (`compute:`), tables, and **attachments** (a file travels inside the doc, covered by
-  the seal). **Two-party trust**: the author seals the blank form's structure; the
-  filler signs the answers.
-- **Redline & compare** — Word track-changes + comments; `compareVersions(a, b)` diffs
-  two versions into an accept/reject redline.
-- **Redaction** — legally *remove* content with a tamper-evident, provable marker.
-- **Legal signatures & archival** — export a sealed `.it` as a **PAdES** PDF Adobe and
-  courts recognize (`@dotit/pades`), or **PDF/A-oriented** archival PDF (`@dotit/pdf`, with
-  an in-repo veraPDF gate; font embedding is the remaining step for a fully green run).
-- **Math** — `math: E = mc^2` → MathML/KaTeX via `@dotit/math`.
-
-Embed it all in your app with one component — see **[INTEGRATION.md](INTEGRATION.md)**.
+---
 
 ## Monorepo map
 
-| Path | Package | What it is |
+| Package | Version | What it is |
 | --- | --- | --- |
-| `packages/core` | [`@dotit/core`](https://npmjs.com/package/@dotit/core) `1.24` | The format: parser, renderers, query, template merge (+ Intl filters), trust (versioned SEAL_SPEC 4 — appearance hash, CRLF-stable, certify-as-claim), **forms, redline/compare, redaction, attachments, math markers, EN 16931/UBL e-invoice export**, themes, CLI. Zero dependencies. |
-| `packages/editor` | [`@dotit/editor`](https://npmjs.com/package/@dotit/editor) `1.16` | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`**, ribbon, trust banner, form builder, document/form/template flow, version history, attachment fill, version-compare. |
-| `packages/pdf` | [`@dotit/pdf`](https://npmjs.com/package/@dotit/pdf) `1.2.1` | Server-side PDFs — merge → seal → PDF; **PDF/A-oriented** archival (veraPDF gate); PAdES-signed PDF. Opt-in. |
-| `packages/pades` | [`@dotit/pades`](https://npmjs.com/package/@dotit/pades) `1.0` | **PAdES** (Adobe/court-recognized) PDF signatures — X.509/ECDSA + CMS; CSR/CA issuance; timestamps. |
-| `packages/sign` | [`@dotit/sign`](https://npmjs.com/package/@dotit/sign) `1.4` | Ed25519 signatures + UTS certification chain. Offline, self-verifying. |
-| `packages/math` | [`@dotit/math`](https://npmjs.com/package/@dotit/math) `0.1` | Math rendering — dependency-free lite MathML + optional KaTeX. |
-| `packages/mcp` | [`@dotit/mcp`](https://npmjs.com/package/@dotit/mcp) `1.1` | MCP server — AI agents read, write, query, and seal `.it` documents. |
-| `packages/vscode` | — | VS Code extension: highlighting, snippets, diagnostics. |
-| `apps/editor` | — | Web editor: WYSIWYG pages, live preview, themes, trust chips. |
-| `apps/desktop` | — | Electron desktop app (Word-grade reader/editor; PAdES export). |
-| `apps/docs` | — | The docs site ([dotit.uts.qa](https://dotit.uts.qa)). |
+| [`@dotit/core`](https://npmjs.com/package/@dotit/core) | **1.25** | The format: parser, renderers (HTML + print/PDF), query, template merge, trust (SEAL_SPEC 4), conformance, typed values, **forms, redline/compare, redaction, attachments, math markers, EN 16931/UBL e-invoice export**, converters, themes, CLI. **Zero dependencies.** |
+| [`@dotit/editor`](https://npmjs.com/package/@dotit/editor) | **1.16** | Embeddable React editor — all modes in one `<IntentTextWorkbench>`, ribbon, trust banner, form builder, version history, attachments, version-compare. |
+| [`@dotit/pdf`](https://npmjs.com/package/@dotit/pdf) | **1.2** | Server-side PDFs — merge → seal → PDF; PDF/A-oriented archival; PAdES-signed PDF. Opt-in. |
+| [`@dotit/pades`](https://npmjs.com/package/@dotit/pades) | **1.0** | **PAdES** (Adobe/court-recognized) PDF signatures — X.509/ECDSA + CMS; CSR/CA issuance; timestamps. |
+| [`@dotit/sign`](https://npmjs.com/package/@dotit/sign) | **1.4** | Ed25519 signatures + UTS certification chain. Offline, self-verifying. |
+| [`@dotit/math`](https://npmjs.com/package/@dotit/math) | **0.1** | Math rendering — dependency-free MathML + optional KaTeX. |
+| [`@dotit/mcp`](https://npmjs.com/package/@dotit/mcp) | **1.1** | MCP server — agents read, write, query, and seal `.it`. |
+| `packages/vscode` | **1.6** | VS Code extension: highlighting, snippets, diagnostics, hovers, completion. |
+| `apps/` | — | Web editor, Electron desktop app, docs site, verify portal, hub. |
 
-Experimental (no stability promise): Hub, Desktop, Builder, and the Python client
-(`intenttext` on PyPI — a thin wrapper over the core CLI). The TypeScript core is
-the single canonical implementation of the grammar (see
-[ARCHITECTURE.md](ARCHITECTURE.md)).
+The TypeScript core is the single canonical implementation of the grammar (see
+[ARCHITECTURE.md](ARCHITECTURE.md)). The Python client (`intenttext` on PyPI) is a thin CLI wrapper.
 
 ## Learn more
 
 - **Docs** — guide, reference, cookbook: [dotit.uts.qa](https://dotit.uts.qa)
 - **Spec** — the canonical grammar: [packages/core/SPEC.md](packages/core/SPEC.md)
-- **Changelog** — [CHANGELOG.md](CHANGELOG.md)
 - **For LLMs** — [dotit.uts.qa/llms.txt](https://dotit.uts.qa/llms.txt)
+- **Changelog** — [CHANGELOG.md](CHANGELOG.md)
 
 ## Status
 
-`@dotit/core` is **1.x** (rebranded from `@intenttext/core` 4.3.x — same code, same
-format, same team). The grammar is stable: documents that parsed under 3.x parse
-identically today, and unknown keywords never error. The test suite is 897 tests
-including a fuzz/property suite (random structured documents, byte soup, and
-pathological inputs — the full parse → render → seal → verify pipeline must never
-throw), and an enterprise-hardening track is ongoing (recent releases fixed a
-parser DoS, stored-XSS in style values, and escape round-trip corruption). It runs
-in production as the embedded print/report engine of an ERP.
+`@dotit/core` is **1.x** and the format is **frozen** at this line: **13 core / 41 reserved
+keywords**, `SEAL_SPEC = 4`, with CI gates that fail the build on any keyword-count or
+SEAL_SPEC drift, any registry↔grammar mismatch, a round-trip/byte-preservation regression, or a
+sealed example whose seal no longer verifies. Documents that parsed under earlier versions parse
+identically today, and unknown keywords never error. The core suite is **1,300+ tests** including
+a fuzz/property byte-preservation gate. It runs in production as the embedded print/report engine
+of an ERP.
 
 ## License
 
