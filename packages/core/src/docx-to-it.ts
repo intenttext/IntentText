@@ -203,7 +203,10 @@ export function convertDocxToIntentText(
         out.push(`${kw}: ${escapeIt(text.trim())}`);
         out.push("");
       } else if (text.trim() !== "") {
-        out.push(`text: ${escapeIt(text.trim())}`);
+        const t = escapeIt(text.trim());
+        // bare prose is the preferred style; force `text:` only when the line would
+        // otherwise parse as a keyword (starts with a single `word:` token).
+        out.push(/^[\p{L}][\p{L}\d-]*:(\s|$)/u.test(t) ? `text: ${t}` : t);
         out.push("");
       } else {
         out.push("");

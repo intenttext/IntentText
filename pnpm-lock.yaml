@@ -15,8 +15,8 @@ importers:
   apps/desktop:
     dependencies:
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       '@dotit/editor':
         specifier: ^2.0.0
         version: 2.0.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -79,8 +79,8 @@ importers:
         specifier: 3.10.1
         version: 3.10.1(@algolia/client-search@5.52.1)(@docusaurus/faster@3.10.1(@docusaurus/types@3.10.1(@swc/core@1.15.41(@swc/helpers@0.5.5))(postcss@8.5.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@swc/helpers@0.5.5)(postcss@8.5.15))(@mdx-js/react@3.1.1(@types/react@19.2.17)(react@19.2.6))(@rspack/core@1.7.11(@swc/helpers@0.5.5))(@swc/core@1.15.41(@swc/helpers@0.5.5))(@types/react@19.2.17)(postcss@8.5.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(search-insights@2.17.3)(typescript@5.6.3)
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       '@mdx-js/react':
         specifier: ^3.0.0
         version: 3.1.1(@types/react@19.2.17)(react@19.2.6)
@@ -125,8 +125,8 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.6)
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       '@dotit/editor':
         specifier: ^2.0.0
         version: 2.0.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -159,8 +159,8 @@ importers:
   apps/hub:
     dependencies:
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       mongodb:
         specifier: ^7.1.0
         version: 7.2.0(socks@2.8.9)
@@ -211,8 +211,8 @@ importers:
   apps/verify:
     dependencies:
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       '@dotit/sign':
         specifier: ^2.0.0
         version: 2.0.0
@@ -245,8 +245,8 @@ importers:
   demo/erp-integration:
     dependencies:
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
 
   packages/action:
     dependencies:
@@ -257,8 +257,8 @@ importers:
         specifier: ^0.4.0
         version: 0.4.0
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       minimatch:
         specifier: ^9.0.0
         version: 9.0.9
@@ -304,8 +304,8 @@ importers:
   packages/editor:
     dependencies:
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       '@tiptap/core':
         specifier: ^3.20.1
         version: 3.23.6(@tiptap/pm@3.23.6)
@@ -405,8 +405,8 @@ importers:
   packages/mcp:
     dependencies:
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       '@dotit/sign':
         specifier: ^2.0.0
         version: 2.0.0
@@ -467,8 +467,8 @@ importers:
   packages/pdf:
     dependencies:
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
@@ -495,8 +495,8 @@ importers:
   packages/sign:
     dependencies:
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       '@noble/curves':
         specifier: ^1.8.1
         version: 1.9.7
@@ -514,8 +514,8 @@ importers:
   packages/vscode:
     dependencies:
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -533,8 +533,8 @@ importers:
   services/uts-certify:
     dependencies:
       '@dotit/core':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       '@dotit/pades':
         specifier: workspace:^
         version: link:../../packages/pades
@@ -1814,8 +1814,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@dotit/core@2.0.2':
-    resolution: {integrity: sha512-cG3sqhsnCfYQLxLVkZt9hlmNRiryeWWUAbwPBsQcjbELhYtMBWqKgtdaqjbV1iQyXtVAVvn6/mbvdnGHB1yUhg==}
+  '@dotit/core@2.0.3':
+    resolution: {integrity: sha512-tjDmBLVskoZ3wtT6REeT05bHxRl4j5G9c9B51m3678zeipJOHkFLx378UqNGaoAb3iV5nFN9UBEbLFUK6rtHQw==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -12337,7 +12337,7 @@ snapshots:
       fflate: 0.8.3
       node-html-parser: 7.1.0
 
-  '@dotit/core@2.0.2':
+  '@dotit/core@2.0.3':
     dependencies:
       '@types/node': 20.19.43
       fflate: 0.8.3
@@ -12345,7 +12345,7 @@ snapshots:
 
   '@dotit/editor@2.0.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
-      '@dotit/core': 2.0.2
+      '@dotit/core': 2.0.3
       '@tiptap/core': 3.23.6(@tiptap/pm@3.23.6)
       '@tiptap/extension-color': 3.23.6(@tiptap/extension-text-style@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6)))
       '@tiptap/extension-font-family': 3.23.6(@tiptap/extension-text-style@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6)))
@@ -12398,7 +12398,7 @@ snapshots:
 
   '@dotit/sign@2.0.0':
     dependencies:
-      '@dotit/core': 2.0.2
+      '@dotit/core': 2.0.3
       '@noble/curves': 1.9.7
 
   '@electron/asar@3.4.1':
@@ -13937,7 +13937,7 @@ snapshots:
 
   '@types/plist@3.0.5':
     dependencies:
-      '@types/node': 20.19.43
+      '@types/node': 20.19.41
       xmlbuilder: 15.1.1
     optional: true
 

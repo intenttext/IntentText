@@ -104,7 +104,7 @@ section: Data
     const back = convertDocxToIntentText(docx);
     expect(back).toContain("title: Report");
     expect(back).toContain("section: Intro");
-    expect(back).toContain("text: Hello world.");
+    expect(back).toContain("Hello world."); // bare prose (preferred style)
     expect(back).toContain("- one");
     expect(back).toContain("- two");
     expect(back).toContain("section: Data");

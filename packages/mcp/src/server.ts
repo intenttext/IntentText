@@ -9,6 +9,7 @@ import { registerSourceTools } from "./tools/source.js";
 import { registerWorkflowTools } from "./tools/workflow.js";
 import { registerTrustTools } from "./tools/trust.js";
 import { registerSignTools } from "./tools/sign.js";
+import { registerConvertTools } from "./tools/convert.js";
 
 export function createServer(): McpServer {
   const server = new McpServer({
@@ -26,6 +27,7 @@ export function createServer(): McpServer {
   registerWorkflowTools(server);
   registerTrustTools(server);
   registerSignTools(server);
+  registerConvertTools(server);
 
   return server;
 }

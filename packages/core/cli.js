@@ -6,6 +6,7 @@ const {
   renderPrint,
   mergeData,
   convertMarkdownToIntentText,
+  convertIntentTextToMarkdown,
   convertHtmlToIntentText,
   convertXlsxToIntentText,
   convertIntentTextToXlsx,
@@ -59,6 +60,7 @@ Convert (by extension pair):
   dotit convert in.docx out.it        Word document → IntentText
   dotit convert in.it out.xlsx        IntentText → spreadsheet (tables → sheets)
   dotit convert in.it out.docx        IntentText → Word document
+  dotit convert in.it out.md          IntentText → Markdown
   dotit convert in.md out.it          Markdown/HTML → IntentText
   dotit <file.it> --query "..."       Query blocks
   dotit <file.it> --validate <schema> Validate against schema
@@ -154,24 +156,26 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
         fs.writeFileSync(dst, converted);
         console.log(`✅ Converted ${src} → ${dst}`);
       } else if (srcExt === ".it") {
-        // IntentText → binary
+        // IntentText → Markdown (text) or binary (xlsx/docx)
         const source = fs.readFileSync(src, "utf-8");
-        let bytes;
-        if (dstExt === ".xlsx") {
-          bytes = convertIntentTextToXlsx(source);
+        if (dstExt === ".md" || dstExt === ".markdown") {
+          fs.writeFileSync(dst, convertIntentTextToMarkdown(source));
+          console.log(`✅ Converted ${src} → ${dst}`);
+        } else if (dstExt === ".xlsx") {
+          fs.writeFileSync(dst, Buffer.from(convertIntentTextToXlsx(source)));
+          console.log(`✅ Converted ${src} → ${dst}`);
         } else if (dstExt === ".docx") {
-          bytes = convertIntentTextToDocx(source);
+          fs.writeFileSync(dst, Buffer.from(convertIntentTextToDocx(source)));
+          console.log(`✅ Converted ${src} → ${dst}`);
         } else {
           console.error(
-            `❌ Unsupported target for .it source: ${dstExt} (use .xlsx or .docx)`,
+            `❌ Unsupported target for .it source: ${dstExt} (use .md, .xlsx or .docx)`,
           );
           process.exit(1);
         }
-        fs.writeFileSync(dst, Buffer.from(bytes));
-        console.log(`✅ Converted ${src} → ${dst}`);
       } else {
         console.error(
-          `❌ Unsupported conversion: ${srcExt} → ${dstExt}\n   Supported: .md/.html/.xlsx/.docx → .it  and  .it → .xlsx/.docx`,
+          `❌ Unsupported conversion: ${srcExt} → ${dstExt}\n   Supported: .md/.html/.xlsx/.docx → .it  and  .it → .md/.xlsx/.docx`,
         );
         process.exit(1);
       }

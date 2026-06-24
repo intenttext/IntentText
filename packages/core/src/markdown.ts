@@ -6,12 +6,16 @@ export function convertMarkdownToIntentText(markdown: string): string {
   const out: string[] = [];
   let inCodeBlock = false;
   let codeLines: string[] = [];
+  let codeLang = "";
 
   const flushCodeBlock = () => {
-    out.push("code:");
+    // A Markdown fenced block IS already valid IntentText — re-emit the fence verbatim
+    // (```lang … ```). It parses to a clean `code` block with the language preserved.
+    out.push("```" + codeLang);
     out.push(...codeLines);
-    out.push("end:");
+    out.push("```");
     codeLines = [];
+    codeLang = "";
   };
 
   const convertInline = (text: string): string => {
@@ -19,8 +23,7 @@ export function convertMarkdownToIntentText(markdown: string): string {
 
     // Images/links are handled at the block level.
 
-    // Inline code: Markdown `code` -> IntentText ```code``` (triple backtick)
-    result = result.replace(/`([^`]+)`/g, "```$1```");
+    // Inline code: Markdown `code` is already IntentText inline code — leave as-is.
 
     // Protect bold markers during italic conversion
     const BOLD_START = "\x00BS\x00";
@@ -51,6 +54,7 @@ export function convertMarkdownToIntentText(markdown: string): string {
     if (trimmed.startsWith("```")) {
       if (!inCodeBlock) {
         inCodeBlock = true;
+        codeLang = trimmed.slice(3).trim();
         continue;
       } else {
         inCodeBlock = false;
@@ -146,8 +150,11 @@ export function convertMarkdownToIntentText(markdown: string): string {
       continue;
     }
 
-    // Default: paragraph -> note
-    out.push(`note: ${convertInline(trimmed)}`);
+    // Default: a paragraph is plain prose — emit it BARE (no keyword), the preferred
+    // IntentText style. Force an explicit `text:` only when the line would otherwise be
+    // read as a keyword (it starts with a single `word:` token).
+    const para = convertInline(trimmed);
+    out.push(/^[\p{L}][\p{L}\d-]*:(\s|$)/u.test(para) ? `text: ${para}` : para);
   }
 
   // Unterminated fenced code: best-effort flush

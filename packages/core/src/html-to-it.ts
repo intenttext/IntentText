@@ -87,13 +87,19 @@ function processChildren(node: SimpleNode, lines: string[]): void {
   }
 }
 
+// A bare prose paragraph is the preferred IntentText style; only force an explicit
+// `text:` when the line would otherwise parse as a keyword (starts with a `word:` token).
+function proseLine(text: string): string {
+  return /^[\p{L}][\p{L}\d-]*:(\s|$)/u.test(text) ? `text: ${text}` : text;
+}
+
 function processNode(node: SimpleNode, lines: string[]): void {
   // Text nodes
   if (node.nodeType === 3) {
     const text = (node.text || "").trim();
     if (text) {
       // Standalone text not inside any element — treat as note
-      lines.push(`note: ${text}`);
+      lines.push(proseLine(text));
     }
     return;
   }
@@ -214,7 +220,7 @@ function handleParagraph(node: SimpleNode, lines: string[]): void {
 
   const text = getInlineText(node);
   if (text) {
-    lines.push(`note: ${text}`);
+    lines.push(proseLine(text));
   }
 }
 
@@ -240,7 +246,7 @@ function getInlineText(node: SimpleNode): string {
     case "strike":
       return `~${inner.trim()}~`;
     case "code":
-      return `\`\`\`${inner}\`\`\``;
+      return `\`${inner}\``; // IntentText inline code is single-backtick
     case "a": {
       const href = node.getAttribute("href") || "";
       if (!href || href.startsWith("javascript:") || href.startsWith("data:")) {
@@ -380,7 +386,7 @@ function processBlockLink(node: SimpleNode, lines: string[]): void {
   const text = getInlineText(node).trim();
 
   if (!href || href.startsWith("javascript:") || href.startsWith("data:")) {
-    if (text) lines.push(`note: ${text}`);
+    if (text) lines.push(proseLine(text));
     return;
   }
 

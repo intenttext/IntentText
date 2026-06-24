@@ -68,6 +68,8 @@ export type { DocumentStyleRule } from "./renderer";
 export { mergeData, parseAndMerge } from "./merge";
 export type { MergeOptions } from "./merge";
 export { convertMarkdownToIntentText } from "./markdown";
+export { convertIntentTextToMarkdown } from "./it-to-markdown";
+export type { ItToMarkdownOptions } from "./it-to-markdown";
 export { convertHtmlToIntentText } from "./html-to-it";
 export { convertXlsxToIntentText } from "./xlsx-to-it";
 export type { XlsxToItOptions } from "./xlsx-to-it";

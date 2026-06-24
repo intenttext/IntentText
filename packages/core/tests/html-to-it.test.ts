@@ -23,40 +23,40 @@ describe("convertHtmlToIntentText", () => {
   });
 
   describe("paragraphs", () => {
-    it("should convert p to note:", () => {
+    it("should convert p to bare prose", () => {
       expect(convertHtmlToIntentText("<p>Hello world</p>")).toBe(
-        "note: Hello world",
+        "Hello world",
       );
     });
 
     it("should handle multiple paragraphs", () => {
       const html = "<p>First</p><p>Second</p>";
-      expect(convertHtmlToIntentText(html)).toBe("note: First\n\nnote: Second");
+      expect(convertHtmlToIntentText(html)).toBe("First\n\nSecond");
     });
   });
 
   describe("inline formatting", () => {
     it("should convert strong/b to *bold*", () => {
       expect(convertHtmlToIntentText("<p><strong>bold</strong> text</p>")).toBe(
-        "note: *bold* text",
+        "*bold* text",
       );
     });
 
     it("should convert em/i to _italic_", () => {
       expect(convertHtmlToIntentText("<p><em>italic</em> text</p>")).toBe(
-        "note: _italic_ text",
+        "_italic_ text",
       );
     });
 
     it("should convert del/s to ~strike~", () => {
       expect(convertHtmlToIntentText("<p><del>deleted</del> text</p>")).toBe(
-        "note: ~deleted~ text",
+        "~deleted~ text",
       );
     });
 
-    it("should convert inline code to triple backticks", () => {
+    it("should convert inline code to single backtick", () => {
       expect(convertHtmlToIntentText("<p><code>const x</code></p>")).toBe(
-        "note: ```const x```",
+        "`const x`",
       );
     });
 
@@ -65,7 +65,7 @@ describe("convertHtmlToIntentText", () => {
         convertHtmlToIntentText(
           '<p>Visit <a href="https://example.com">here</a></p>',
         ),
-      ).toBe("note: Visit [here](https://example.com)");
+      ).toBe("Visit [here](https://example.com)");
     });
 
     it("should strip javascript: links", () => {
@@ -73,7 +73,7 @@ describe("convertHtmlToIntentText", () => {
         convertHtmlToIntentText(
           '<p><a href="javascript:alert(1)">click</a></p>',
         ),
-      ).toBe("note: click");
+      ).toBe("click");
     });
   });
 
@@ -187,20 +187,20 @@ describe("convertHtmlToIntentText", () => {
         convertHtmlToIntentText(
           "<p>Hello</p><script>alert(1)</script><p>World</p>",
         ),
-      ).toBe("note: Hello\n\nnote: World");
+      ).toBe("Hello\n\nWorld");
     });
 
     it("should strip style tags", () => {
       expect(
         convertHtmlToIntentText("<style>body{color:red}</style><p>Content</p>"),
-      ).toBe("note: Content");
+      ).toBe("Content");
     });
   });
 
   describe("transparent containers", () => {
     it("should recurse through div/span/article", () => {
       const html = "<div><article><p>Inside article</p></article></div>";
-      expect(convertHtmlToIntentText(html)).toBe("note: Inside article");
+      expect(convertHtmlToIntentText(html)).toBe("Inside article");
     });
   });
 
@@ -221,14 +221,14 @@ describe("convertHtmlToIntentText", () => {
       `;
       const result = convertHtmlToIntentText(html);
       expect(result).toContain("title: Project Plan");
-      expect(result).toContain("note: This is the *main* plan.");
+      expect(result).toContain("This is the *main* plan.");
       expect(result).toContain("section: Tasks");
       expect(result).toContain("- Design the UI");
       expect(result).toContain("- Write the code");
       expect(result).toContain("section: Notes");
       expect(result).toContain("quote: Start simple, iterate fast.");
       expect(result).toContain("---");
-      expect(result).toContain("note: End of document.");
+      expect(result).toContain("End of document.");
     });
   });
 
