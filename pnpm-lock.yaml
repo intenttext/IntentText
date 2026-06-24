@@ -514,8 +514,8 @@ importers:
   packages/vscode:
     dependencies:
       '@dotit/core':
-        specifier: ^2.0.3
-        version: 2.0.3
+        specifier: ^2.0.4
+        version: 2.0.4
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -1816,6 +1816,11 @@ packages:
 
   '@dotit/core@2.0.3':
     resolution: {integrity: sha512-tjDmBLVskoZ3wtT6REeT05bHxRl4j5G9c9B51m3678zeipJOHkFLx378UqNGaoAb3iV5nFN9UBEbLFUK6rtHQw==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  '@dotit/core@2.0.4':
+    resolution: {integrity: sha512-/6AF/vy4HVsrOYEFiNAz7BCMsZHkb4pDTD1ohH4ddNppVL6paApbBUqphxEQ+AmlJIaT7oNg+tjLUTPKE+UiOA==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -12338,6 +12343,12 @@ snapshots:
       node-html-parser: 7.1.0
 
   '@dotit/core@2.0.3':
+    dependencies:
+      '@types/node': 20.19.41
+      fflate: 0.8.3
+      node-html-parser: 7.1.0
+
+  '@dotit/core@2.0.4':
     dependencies:
       '@types/node': 20.19.41
       fflate: 0.8.3
