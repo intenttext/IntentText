@@ -101,3 +101,29 @@ describe("bridge fidelity — a single edit touches only one block", () => {
     ).toBeLessThanOrEqual(1);
   });
 });
+
+describe("bridge — literal pipes are escaped on serialize (no broken lines)", () => {
+  it("re-emits a literal pipe in prose as \\| (round-trips intact, no diagnostics)", () => {
+    const src = "text: run a \\| b in the shell";
+    const out = roundtrip(src);
+    expect(out).toContain("\\|");
+    const doc = parseIntentText(out);
+    expect(doc.blocks[0].content).toBe("run a | b in the shell");
+    expect(doc.diagnostics ?? []).toHaveLength(0);
+  });
+
+  it("escapes a pipe in BARE prose too", () => {
+    const out = roundtrip("A logical OR is written a \\| b here.");
+    const doc = parseIntentText(out);
+    expect(doc.blocks[0].type).toBe("text");
+    expect(doc.blocks[0].content).toBe("A logical OR is written a | b here.");
+    expect(doc.diagnostics ?? []).toHaveLength(0);
+  });
+
+  it("leaves pipes in fenced code verbatim (NOT escaped)", () => {
+    const src = "code: ```sh\na | grep b\n```";
+    const out = roundtrip(src);
+    expect(out).not.toContain("\\|");
+    expect(parseIntentText(out).blocks[0].content).toContain("a | grep b");
+  });
+});

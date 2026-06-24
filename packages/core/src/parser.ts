@@ -854,7 +854,7 @@ function parseLine(
             ctx.diagnostics.push({
               severity: "warning",
               code: "INVALID_PROPERTY_SEGMENT",
-              message: `Invalid property key '${key}'. Property keys must not contain escapes.`,
+              message: `Invalid property key '${key}'. A literal '|' or '\\' in text must be escaped — write the pipe as '\\|' (and a backslash as '\\\\').`,
               line: ctx.lineNumber,
               column: 1,
             });
@@ -867,7 +867,7 @@ function parseLine(
           ctx.diagnostics.push({
             severity: "warning",
             code: "INVALID_PROPERTY_SEGMENT",
-            message: `Invalid property segment '${segment.trim()}'. Expected 'key: value'.`,
+            message: `Invalid property segment '${segment.trim()}'. Expected 'key: value' — if you meant a literal pipe in text, escape it as '\\|'.`,
             line: ctx.lineNumber,
             column: 1,
           });

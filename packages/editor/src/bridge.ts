@@ -282,10 +282,20 @@ function marksToProps(marks: Mark[] | undefined): Record<string, string> {
  *  - color/font/size, or combined marks → a styled span [text]{ k: v; k: v }
  * This is what lets partial styling round-trip (vs. flattening to the whole line).
  */
+// Escape a literal pipe/backslash typed in body text so it round-trips as `\|` / `\\`
+// instead of being parsed as the property delimiter. Mirrors core's escapeIntentText; the
+// escape rule is frozen (SPEC §2). NOT applied to fenced code (extractText) — code is verbatim.
+// IDEMPOTENT: some bridge paths reach the serializer with already-escaped content, so we
+// normalize existing `\|`/`\\` escapes first, then re-escape — applying it twice is a no-op.
+function escapeInline(s: string): string {
+  const normalized = s.replace(/\\([\\|])/g, "$1");
+  return normalized.replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
+}
+
 function runToInlineText(child: JSONContent): string {
   if (child.type === "hardBreak") return "\\n";
   if (child.type !== "text") return extractText(child);
-  const t = child.text || "";
+  const t = escapeInline(child.text || "");
   if (!t) return "";
   const marks = (child.marks || []) as Mark[];
   if (!marks.length) return t;
@@ -378,7 +388,7 @@ function inlineToSource(node: JSONContent): {
   // Whole-line: exactly one text run → keep its style as line-level props.
   if (children.length === 1 && children[0].type === "text") {
     return {
-      text: children[0].text || "",
+      text: escapeInline(children[0].text || ""),
       props: { ...marksToProps(children[0].marks as Mark[]), ...align },
     };
   }
