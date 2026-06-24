@@ -6,7 +6,15 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
-## [2.0.0 – 2.0.4] — 2026-06-24
+### Planned — next major (`@dotit/core` 3.0.0)
+
+- **Demote `cite` → recommended custom keyword** (see `RECOMMENDED-KEYWORDS.md`). It is the
+  thinnest reserved keyword — only a trivial presence-warning and no styling — so it costs
+  nothing in the core. Deferred from 2.0.x because removing a reserved word is **breaking**
+  (`type=cite` queries → `keyword=cite`) and not worth a standalone major; it will ship in the
+  next 3.0.0, dropping the count **41 → 40** (contract tier 9 → 8) and its Arabic name (33 → 32).
+
+## [2.0.0 – 2.0.5] — 2026-06-24
 
 ### Changed — `@dotit/core` 2.0.0: zero aliases (breaking)
 
@@ -29,6 +37,9 @@ The format is based on Keep a Changelog.
 - **Markdown-compatible inline marks.** `**bold**` / `__bold__` → bold and `~~strike~~` →
   strikethrough are accepted alongside native `*bold*` / `~strike~`. Parse/render only —
   source bytes are untouched, so seals are unaffected.
+- **Open vocabulary is first-class in the render (2.0.5).** Custom blocks now render their own
+  keyword — `clause:` → `[clause]` with `data-keyword` + an `intent-custom-<kw>` class — instead
+  of a generic `[custom]`.
 - **`RECOMMENDED-KEYWORDS.md`** appendix — non-binding best-practice conventions for the
   open vocabulary, to reduce synonym drift. `SPEC.md` moved to the repo root.
 

@@ -156,6 +156,13 @@ export const LANGUAGE_REGISTRY: KeywordDefinition[] = [
     aliases: [{ alias: "اقتباس", status: "alias" }],
   },
   {
+    // NEXT MAJOR (core 3.0.0): demote `cite` to a recommended custom keyword (see
+    // RECOMMENDED-KEYWORDS.md). It is the thinnest reserved keyword — only a trivial
+    // presence-warning in validate.ts and 0 CSS — so it costs nothing in the core. Deferred
+    // (not removed now) because removing a reserved word is breaking and not worth a
+    // standalone major; fold it into the next 3.0.0. On removal: drop this entry + its
+    // Arabic `استشهاد` (33→32), the validate.ts cite check, the renderer `case "cite"`,
+    // the BlockType union member, update the count 41→40 + contract tier 9→8 across docs/gates.
     canonical: "cite",
     category: "content",
     since: "1.0",
