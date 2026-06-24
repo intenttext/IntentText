@@ -21,7 +21,7 @@ sub: Bill To
 contact: {{customer.name}} | role: Customer | email: {{customer.email}} | phone: {{customer.phone}} | vat: {{customer.vat}} | address: {{customer.billingAddress}}
 
 sub: Ship To
-contact: {{customer.shipName}} | role: Recipient | address: {{customer.shippingAddress}} | attn: {{customer.shipContact}}
+contact: {{customer.shipName}} | role: Recipient | email: {{customer.shipEmail}} | address: {{customer.shippingAddress}} | attn: {{customer.shipContact}}
 
 section: 2. Invoice Details
 text: Invoice number | end: {{invoice.number}}

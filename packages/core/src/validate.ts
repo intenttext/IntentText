@@ -857,6 +857,11 @@ export function validateDocumentSemantic(
   return { valid: !hasErrors, issues };
 }
 
+// Runtime tokens resolved at render/print time (SPEC §5): {{page}}/{{pages}} in
+// header/footer, {{date}}/{{year}}. They are never "unresolved" template variables,
+// so the standard footer `Page {{page}} of {{pages}}` must not warn.
+const RUNTIME_VARS = new Set(["page", "pages", "date", "year"]);
+
 function checkUnresolvedVars(
   block: IntentBlock,
   declaredVars: Set<string>,
@@ -869,7 +874,7 @@ function checkUnresolvedVars(
   let match: RegExpExecArray | null;
   while ((match = varPattern.exec(text)) !== null) {
     const varName = match[1].trim();
-    if (!declaredVars.has(varName)) {
+    if (!declaredVars.has(varName) && !RUNTIME_VARS.has(varName)) {
       issues.push({
         blockId: block.id,
         blockType: block.type,
@@ -887,7 +892,7 @@ function checkUnresolvedVars(
       varPattern.lastIndex = 0;
       while ((match = varPattern.exec(strVal)) !== null) {
         const varName = match[1].trim();
-        if (!declaredVars.has(varName)) {
+        if (!declaredVars.has(varName) && !RUNTIME_VARS.has(varName)) {
           issues.push({
             blockId: block.id,
             blockType: block.type,

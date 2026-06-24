@@ -2,7 +2,7 @@
   "name": "intenttext",
   "displayName": "IntentText (.it)",
   "description": "Syntax highlighting, live preview, inline validation, hover docs, and auto-completion for IntentText documents",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "publisher": "intenttext",
   "icon": "icon.png",
   "repository": {

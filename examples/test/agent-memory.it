@@ -57,7 +57,7 @@ section: 5. Working Metrics (last run snapshot)
 text: Carried forward run-to-run so the agent can detect drift. Updated by amendment after each run; not authoritative against the ledger.
 
 metric: Unreconciled rate | value: 0.31 | unit: percent | target: 0.5 | trend: down | period: 2026-06
-metric: Drafts awaiting human gate | value: 7 | trend: flat | period: 2026-06-24
+metric: Drafts awaiting human gate | value: 7 | trend: stable | period: 2026-06-24
 metric: Largest pending draft | value: 184500 | unit: QAR | period: 2026-06-24
 metric: Mean time to human approval | value: 3.2 | unit: hours | trend: down | target: 4
 

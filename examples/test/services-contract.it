@@ -174,9 +174,9 @@ clause: Assignment | scope: neither party may assign without the other's prior w
 clause: Notices | scope: notices must be in writing to the addresses in Section 2 and are deemed received on the next Business Day
 clause: Severability | scope: if any provision is held invalid, the remainder continues in full force
 
-ref: Schedule A — Detailed Scope of Work | file: schedules/sow-schedule-a.it
-ref: Schedule B — Service Levels & Credits | file: schedules/sla-schedule-b.it
-ref: Schedule C — Data Processing Addendum | file: schedules/dpa-schedule-c.it
+ref: Schedule A — Detailed Scope of Work | file: schedules/sow-schedule-a.it | rel: schedule
+ref: Schedule B — Service Levels & Credits | file: schedules/sla-schedule-b.it | rel: schedule
+ref: Schedule C — Data Processing Addendum | file: schedules/dpa-schedule-c.it | rel: schedule
 
 section: 15. Execution
 

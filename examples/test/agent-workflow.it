@@ -32,11 +32,11 @@ ask: Refund amount requested | key: requested_amount | required: yes
 
 section: 3. Policy
 
-policy: Auto-approve threshold | rule: refund <= 750 QAR AND risk_band != high | otherwise: escalate
-policy: Customer must own the order | rule: order.customer_id == customer.customer_id | otherwise: reject
-policy: Window | rule: order placed within 30 days | otherwise: escalate
-policy: Disbursement currency | rule: refund issued in the original capture currency only
-policy: Maximum prior refunds | rule: prior_refunds_90d < 3 | otherwise: escalate
+rule: Auto-approve threshold | if: refund <= 750 QAR AND risk_band != high | otherwise: escalate
+rule: Customer must own the order | if: order.customer_id == customer.customer_id | otherwise: reject
+rule: Window | if: order placed within 30 days | otherwise: escalate
+rule: Disbursement currency | if: refund issued in the original capture currency only
+rule: Maximum prior refunds | if: prior_refunds_90d < 3 | otherwise: escalate
 
 metric: Auto-approve ceiling | value: 750 | unit: QAR
 metric: Refund window | value: 30 | unit: days

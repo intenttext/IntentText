@@ -243,7 +243,7 @@
           "name": "punctuation.separator.intenttext"
         },
         "3": {
-          "name": "markup.heading.intenttext",
+          "name": "entity.name.section.title.intenttext",
           "patterns": [
             {
               "include": "#template-variable"
@@ -262,7 +262,7 @@
           "name": "punctuation.separator.intenttext"
         },
         "3": {
-          "name": "markup.heading.section.intenttext",
+          "name": "entity.name.section.intenttext",
           "patterns": [
             {
               "include": "#template-variable"

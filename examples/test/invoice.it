@@ -10,11 +10,11 @@ meta: | type: invoice | ref: INV-2026-0417 | theme: corporate | issued: 2026-06-
 
 section: Issuer
 contact: Meridian Cloud Services W.L.L. | role: Supplier | email: billing@meridiancloud.qa | phone: +974 4012 9900 | vat: QA-VAT-300447188 | cr: CR-118420
-text: Tornado Tower, Floor 21, West Bay | City: Doha | Country: Qatar
+text: Tornado Tower, Floor 21, West Bay, Doha, Qatar
 
 section: Bill To
 contact: Northgate Logistics W.L.L. | role: Customer | attn: Layla Al-Mansoori | email: accounts@northgate.qa | phone: +974 4455 7120 | vat: QA-VAT-300651029
-text: Salwa Road, Building 88, Office 4 | City: Doha | Country: Qatar
+text: Salwa Road, Building 88, Office 4, Doha, Qatar
 
 section: Invoice Details
 text: Invoice Number | end: INV-2026-0417
@@ -49,7 +49,7 @@ metric: Total Due | value: [40438.65 QAR]{ weight: bold; size: 1.15em } | unit: 
 section: Payment
 deadline: Payment due in full | date: 2026-07-24 | consequence: 1.5% monthly late fee on overdue balance
 remit: Bank transfer | bank: Qatar National Bank | iban: QA58 QNBA 0000 0000 0417 1882 991 | swift: QNBAQAQA | account-name: Meridian Cloud Services W.L.L.
-text: Reference INV-2026-0417 on all remittances. | type: info
+info: Reference INV-2026-0417 on all remittances. | type: info
 info: A 5% volume discount has been applied for committed annual capacity. | type: success
 
 section: Notes

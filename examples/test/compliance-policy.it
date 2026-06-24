@@ -40,7 +40,7 @@ def: Risk Owner | meaning: The person or entity with the accountability and auth
 
 section: 5. Roles and Responsibilities
 sub: 5.1 Governance Bodies
-contact: Information Security Steering Committee | role: Governance | mandate: Approves policy, accepts residual risk, oversees the ISMS
+contact: Information Security Steering Committee | role: Governance | email: isms-committee@acme.example | mandate: Approves policy, accepts residual risk, oversees the ISMS
 contact: Chief Information Security Officer | role: CISO | email: ciso@meridian-logistics.qa | mandate: Owns and maintains this policy
 contact: Data Protection Officer | role: DPO | email: dpo@meridian-logistics.qa | mandate: PDPPL and GDPR compliance oversight
 
