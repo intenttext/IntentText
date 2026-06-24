@@ -6,47 +6,47 @@ page: | size: A4 | margins: 25mm 30mm 25mm 30mm | footer: {{contract.ref}} · Pa
 
 title: {{contract.title}}
 
-text: This agreement ("Agreement") is entered into as of **{{contract.date}}** between:
-text: **{{party1.name}}**, {{party1.type}}, registered at {{party1.address}} ("Party A"); and
-text: **{{party2.name}}**, {{party2.type}}, registered at {{party2.address}} ("Party B").
+This agreement ("Agreement") is entered into as of **{{contract.date}}** between:
+**{{party1.name}}**, {{party1.type}}, registered at {{party1.address}} ("Party A"); and
+**{{party2.name}}**, {{party2.type}}, registered at {{party2.address}} ("Party B").
 
 ---
 
 section: 1. Scope of Services
 
-text: {{sections.scope}}
+{{sections.scope}}
 
 section: 2. Term
 
-text: This Agreement commences on **{{contract.startDate}}** and continues until **{{contract.endDate}}**, unless terminated earlier in accordance with Section 8.
+This Agreement commences on **{{contract.startDate}}** and continues until **{{contract.endDate}}**, unless terminated earlier in accordance with Section 8.
 
 section: 3. Compensation
 
-text: Party B shall pay Party A the sum of **{{contract.fee}}** {{contract.currency}}, payable {{contract.paymentSchedule}}.
+Party B shall pay Party A the sum of **{{contract.fee}}** {{contract.currency}}, payable {{contract.paymentSchedule}}.
 
 section: 4. Confidentiality
 
-text: Both parties agree to maintain strict confidentiality regarding all proprietary information exchanged during the term of this Agreement and for a period of {{contract.confidentialityPeriod}} thereafter.
+Both parties agree to maintain strict confidentiality regarding all proprietary information exchanged during the term of this Agreement and for a period of {{contract.confidentialityPeriod}} thereafter.
 
 section: 5. Intellectual Property
 
-text: {{sections.ip}}
+{{sections.ip}}
 
 section: 6. Limitation of Liability
 
-text: Neither party shall be liable for indirect, incidental, or consequential damages. Total liability shall not exceed {{contract.liabilityCap}} {{contract.currency}}.
+Neither party shall be liable for indirect, incidental, or consequential damages. Total liability shall not exceed {{contract.liabilityCap}} {{contract.currency}}.
 
 section: 7. Governing Law
 
-text: This Agreement shall be governed by the laws of **{{contract.jurisdiction}}**.
+This Agreement shall be governed by the laws of **{{contract.jurisdiction}}**.
 
 section: 8. Termination
 
-text: Either party may terminate this Agreement with **{{contract.noticePeriod}}** written notice. Termination for cause may be immediate upon written notice.
+Either party may terminate this Agreement with **{{contract.noticePeriod}}** written notice. Termination for cause may be immediate upon written notice.
 
 section: 9. Entire Agreement
 
-text: This Agreement constitutes the entire understanding between the parties and supersedes all prior negotiations, representations, and agreements.
+This Agreement constitutes the entire understanding between the parties and supersedes all prior negotiations, representations, and agreements.
 
 ---
 
@@ -54,7 +54,7 @@ break:
 
 section: Signatures
 
-text: IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
 
 | Party A                          | Party B                          |
 | **{{party1.name}}**              | **{{party2.name}}**              |

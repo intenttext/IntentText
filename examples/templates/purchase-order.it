@@ -11,15 +11,15 @@ title: Purchase Order
 
 ---
 
-text: **From (Buyer)**
-text: {{buyer.company}}
-text: {{buyer.department}}
-text: {{buyer.address}}
+**From (Buyer)**
+{{buyer.company}}
+{{buyer.department}}
+{{buyer.address}}
 text: Contact: {{buyer.contact}} · {{buyer.email}}
 
-text: **To (Supplier)**
-text: {{supplier.name}}
-text: {{supplier.address}}
+**To (Supplier)**
+{{supplier.name}}
+{{supplier.address}}
 text: Contact: {{supplier.contact}} · {{supplier.email}}
 
 ---
@@ -41,9 +41,9 @@ text: **Order Total: {{totals.grand}} {{totals.currency}}** | align: right
 
 section: Terms & Conditions
 
-text: Delivery Terms: {{po.deliveryTerms}}
-text: Payment Terms: {{po.paymentTerms}}
-text: Ship To: {{po.shipTo}}
+Delivery Terms: {{po.deliveryTerms}}
+Payment Terms: {{po.paymentTerms}}
+Ship To: {{po.shipTo}}
 
 info: This PO is subject to the terms agreed in Contract {{po.contractRef}}. All deliveries must include this PO number. | type: warning
 

@@ -10,16 +10,16 @@ title: Invoice
 ---
 
 text: **{{seller.name}}** | align: left
-text: {{seller.address}}
-text: {{seller.email}} · {{seller.phone}}
+{{seller.address}}
+{{seller.email}} · {{seller.phone}}
 text: VAT: {{seller.vat}}
 
 ---
 
-text: **Bill To**
-text: {{client.name}}
-text: {{client.address}}
-text: {{client.email}}
+**Bill To**
+{{client.name}}
+{{client.address}}
+{{client.email}}
 
 ---
 

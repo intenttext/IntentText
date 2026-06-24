@@ -3,12 +3,12 @@ title: IntentText (.it) — Format Reference for LLMs
 summary: The canonical machine reference, written in the format it documents (.it). A faithful companion to /llms.txt.
 meta: | type: reference | audience: llm | format: it | spec: 4 | canonical-keywords: 41
 
-text: After reading this file you can author, edit, and reason about `.it` files correctly. One `.it` file is simultaneously a human-readable document, a queryable typed database, a print/PDF-ready artifact, and a tamper-evident signable record. This is the SAME reference as /llms.txt, expressed in IntentText itself — every example below is real `.it`.
+After reading this file you can author, edit, and reason about `.it` files correctly. One `.it` file is simultaneously a human-readable document, a queryable typed database, a print/PDF-ready artifact, and a tamper-evident signable record. This is the SAME reference as /llms.txt, expressed in IntentText itself — every example below is real `.it`.
 
 info: OPEN VOCABULARY — .it has NO fixed schema. The 41 reserved keywords have stable, guaranteed meaning, but they are NOT a whitelist. Inventing your own domain keywords (clause:, risk:, obligation:, sla:, warranty:, expense:) is normal, first-class, and ENCOURAGED whenever no reserved keyword fits. ZERO ALIASES: the only reserved words are the 41 canonical keywords, their 33 Arabic localized names, and the namespaced extension keywords — every other word resolves RELIABLY to your own custom block, never silently reinterpreted. | type: success
 
 link: Companion plain-text reference | to: https://dotit.uts.qa/llms.txt
-text: Site https://dotit.uts.qa · npm @dotit/core · Editor https://editor.uts.qa · Verify https://verify.uts.qa (UTS certification service api.uts.qa)
+Site https://dotit.uts.qa · npm @dotit/core · Editor https://editor.uts.qa · Verify https://verify.uts.qa (UTS certification service api.uts.qa)
 
 section: 0. The @dotit/* toolchain (one ecosystem)
 
@@ -24,11 +24,11 @@ section: 0. The @dotit/* toolchain (one ecosystem)
 @dotit/editor 2.0.0  Embeddable React WYSIWYG editor — Word-like pages, ribbon, trust stamp.
 ```
 
-text: Everything is built on the SAME parser/hash, so a doc authored anywhere verifies everywhere.
+Everything is built on the SAME parser/hash, so a doc authored anywhere verifies everywhere.
 
 section: 1. Line grammar — everything is one line, one intent
 
-text: A non-empty line is either PLAIN PROSE — a bare line of body text (type `text`); you do NOT need `text:` for ordinary paragraphs, just write the sentence (the clean, preferred style) — or a TYPED BLOCK: a keyword, content, then pipe-separated properties.
+A non-empty line is either PLAIN PROSE — a bare line of body text (type `text`); you do NOT need `text:` for ordinary paragraphs, just write the sentence (the clean, preferred style) — or a TYPED BLOCK: a keyword, content, then pipe-separated properties.
 
 - A line is a typed block ONLY when it starts with a single keyword-token (a word of letters/hyphens, any language, no spaces, beginning with a letter) immediately followed by `:`. That token is the keyword; content runs to the first pipe. Everything else is prose — `Pay by: cash`, `Ratio is 3:2`, and any mid-sentence colon stay TEXT, but `Note: …` (one leading token) becomes a custom `Note` block.
 - Gotchas writing prose bare: a line starting `Word:` is read as a keyword (prefix `text:` to force literal prose); a bare URL alone (`https://…`) becomes a custom `https` block (use `link:` or keep it inline).
@@ -41,7 +41,7 @@ text: A non-empty line is either PLAIN PROSE — a bare line of body text (type 
 section: 2. The 41 canonical keywords, by tier
 
 sub: CORE tier (13)
-text: title summary meta section sub text info quote code image link task done — a plain document needs only these.
+title summary meta section sub text info quote code image link task done — a plain document needs only these.
 
 ```intenttext
 title: Service Agreement
@@ -61,7 +61,7 @@ done: Deploy staging | at: 2026-03-01
 text: Lists: `- item` -> list-item; `1. item` -> step-item (both render as lists; query BOTH). Tables: pipe rows `\| Cell \| Cell \|` (first row = header) or the `headers:`/`row:` keywords.
 
 sub: DATA tier (3) — metric, headers, row
-text: metric is a KPI/total. MONEY: bare magnitude in value:, ISO-4217 code in unit: (queryable, typed). With ANY of target:/trend:/period: a metric renders as a KPI card (trend: up|down|stable|at-risk); plain renders as a label->value total row. `headers:` is the table-header keyword (`columns:` is NOT reserved — it resolves to a custom block).
+metric is a KPI/total. MONEY: bare magnitude in value:, ISO-4217 code in unit: (queryable, typed). With ANY of target:/trend:/period: a metric renders as a KPI card (trend: up|down|stable|at-risk); plain renders as a label->value total row. `headers:` is the table-header keyword (`columns:` is NOT reserved — it resolves to a custom block).
 
 ```intenttext
 metric: Total Due | value: 17325 | unit: QAR
@@ -71,7 +71,7 @@ row: Consulting | 40 | 6000
 ```
 
 sub: CONTRACT (trust) tier (9) — cite track approve sign freeze amendment certify route require
-text: A conformant sign: carries hash: (added by sealing) + at:. For recorded pre-seal sign-offs use approve:; a bare `sign: Name` (no hash:) is flagged by checkConformance. history:/revision: live below the audit-log boundary (machine-managed, not tier members).
+A conformant sign: carries hash: (added by sealing) + at:. For recorded pre-seal sign-offs use approve:; a bare `sign: Name` (no hash:) is flagged by checkConformance. history:/revision: live below the audit-log boundary (machine-managed, not tier members).
 
 ```intenttext
 cite: ISO 27001:2022 | section: A.9
@@ -104,7 +104,7 @@ break:
 
 section: 2b. Extensions — namespaced keywords (x-ns:)
 
-text: Beyond the 41, specialized blocks use an `x-<namespace>:` prefix (the bare form is also accepted). They parse, render, and query like any block.
+Beyond the 41, specialized blocks use an `x-<namespace>:` prefix (the bare form is also accepted). They parse, render, and query like any block.
 
 - x-writer: byline figure caption footnote epigraph dedication (editorial)
 - x-doc: def contact deadline ref signline attach (definitions, parties, cross-refs, attachments)
@@ -126,7 +126,7 @@ info: ref TARGET goes in file: or url: (NOT to:). figure: requires src:. The fil
 
 section: 2c. Custom keywords — the open vocabulary (first-class)
 
-text: ANY word that is not reserved parses as a typed, queryable custom block that keeps its keyword verbatim. Inventing a precise domain keyword is idiomatic and ENCOURAGED — reach for one whenever no reserved keyword fits, instead of flattening the concept into text:/info:.
+ANY word that is not reserved parses as a typed, queryable custom block that keeps its keyword verbatim. Inventing a precise domain keyword is idiomatic and ENCOURAGED — reach for one whenever no reserved keyword fits, instead of flattening the concept into text:/info:.
 
 ```intenttext
 clause: Indemnity | scope: Provider | cap: 3 months fees
@@ -137,11 +137,11 @@ sla: Resolution time | target: 4h | priority: P1
 expense: Office chairs | category: furniture | amount: 1200 | unit: QAR
 ```
 
-text: Query a custom keyword by NAME — `keyword=clause` — NOT `type=clause` (every custom block's type is literally `custom`; the word lives in properties.keyword). There are NO synonym aliases, so party:, milestone:, rule:, status:, note:, item:, due:, kpi: are all ordinary custom blocks — never silently reinterpreted. Mixing reserved + custom in ONE document is normal.
+Query a custom keyword by NAME — `keyword=clause` — NOT `type=clause` (every custom block's type is literally `custom`; the word lives in properties.keyword). There are NO synonym aliases, so party:, milestone:, rule:, status:, note:, item:, due:, kpi: are all ordinary custom blocks — never silently reinterpreted. Mixing reserved + custom in ONE document is normal.
 
 section: 2d. Format version stamp (optional)
 
-text: Declare the grammar a file targets with ONE header comment. It is a comment, so it never affects the seal hash and round-trips as trivia; parsed into document.version.
+Declare the grammar a file targets with ONE header comment. It is a comment, so it never affects the seal hash and round-trips as trivia; parsed into document.version.
 
 ```intenttext
 // it-format: 1.0
@@ -150,9 +150,9 @@ title: Quarterly Report
 
 section: 3. Inline formatting (inside content)
 
-text: `*bold*` `_italic_` `~strike~` `^highlight^` `` `code` `` `[text](https://url)` `[[side note]]` `@mention` `#tag` `@2026-05-01` (date) `{Label}` (badge pill).
+`*bold*` `_italic_` `~strike~` `^highlight^` `` `code` `` `[text](https://url)` `[[side note]]` `@mention` `#tag` `@2026-05-01` (date) `{Label}` (badge pill).
 
-text: Styled span — style PART of a line with the same style keys as block props, but SEMICOLON-separated (`|` is reserved for line props):
+Styled span — style PART of a line with the same style keys as block props, but SEMICOLON-separated (`|` is reserved for line props):
 
 ```intenttext
 text: Payment is [overdue]{ color: #c00; weight: bold } — act now.
@@ -161,18 +161,18 @@ metric: Total | value: [17325 QAR]{ size: 1.2em; weight: bold }
 
 section: 4. Styling — three layers (never write raw CSS)
 
-text: 1) Theme (document class): `meta: | theme: corporate|legal|editorial|technical|minimal|warm|dark|print`. 2) `style:` rules — house styling per block type, document-wide. 3) Per-line style props and `[text]{...}` spans for exceptions. Rules apply after the theme; per-line props win over rules.
+1) Theme (document class): `meta: \| theme: corporate|legal|editorial|technical|minimal|warm|dark|print`. 2) `style:` rules — house styling per block type, document-wide. 3) Per-line style props and `[text]{...}` spans for exceptions. Rules apply after the theme; per-line props win over rules.
 
 ```intenttext
 style: section | color: #0a7 | weight: 600
 style: title | family: Georgia | size: 26pt
 ```
 
-text: Style property keys (the ONLY style vocabulary — never arbitrary CSS): color, size, family, weight, align(center|right|justify), bg, indent, opacity, italic, border, underline, strike, valign(sub|super).
+Style property keys (the ONLY style vocabulary — never arbitrary CSS): color, size, family, weight, align(center|right|justify), bg, indent, opacity, italic, border, underline, strike, valign(sub|super).
 
 section: 5. Templates and merge
 
-text: Placeholders `{{path.to.value}}` (dot paths, array indices `{{items.0.qty}}`). Repeating table rows — add `each: <arrayPath>` to the header row; the next row is the item template, with each element bound to `item`. Runtime print tokens `{{page}}` / `{{pages}}` resolve per page; `{{date}}` `{{year}}` resolve automatically.
+Placeholders `{{path.to.value}}` (dot paths, array indices `{{items.0.qty}}`). Repeating table rows — add `each: <arrayPath>` to the header row; the next row is the item template, with each element bound to `item`. Runtime print tokens `{{page}}` / `{{pages}}` resolve per page; `{{date}}` `{{year}}` resolve automatically.
 
 ```intenttext
 section: Line Items
@@ -185,21 +185,21 @@ text: API: `parseAndMerge(templateSource, data, { missing: "blank" })` — "blan
 section: 6. Trust — three layers: integrity -> identity -> authority
 
 sub: Layer 1 — Integrity (seal/freeze)
-text: The document hash = SHA-256 over the source ABOVE the history: boundary, EXCLUDING lines starting with sign:/freeze:/certify:/amendment: (approve: IS included), under SEAL_SPEC 4 (excludes styling, normalizes CRLF/CR->LF + trailing whitespace). Anyone can recompute it — no vendor. A separate appearance: hash flags a post-seal restyle that hides content. APIs: `sealDocument(source, { signer, role? })`, `verifyDocument(source)`, `computeDocumentHash(source)`.
+The document hash = SHA-256 over the source ABOVE the history: boundary, EXCLUDING lines starting with sign:/freeze:/certify:/amendment: (approve: IS included), under SEAL_SPEC 4 (excludes styling, normalizes CRLF/CR->LF + trailing whitespace). Anyone can recompute it — no vendor. A separate appearance: hash flags a post-seal restyle that hides content. APIs: `sealDocument(source, { signer, role? })`, `verifyDocument(source)`, `computeDocumentHash(source)`.
 
 sub: Layer 2 — Identity (Ed25519 sign:)
-text: Proves a specific key-holder signed THIS hash, verifiable offline. `signDocumentCrypto(source, { signer, role, privateKey })` upgrades a sign: line with key:+sig:. A bare `sign: Name` (no hash:) is NOT a conformant signature — pre-seal, use approve:.
+Proves a specific key-holder signed THIS hash, verifiable offline. `signDocumentCrypto(source, { signer, role, privateKey })` upgrades a sign: line with key:+sig:. A bare `sign: Name` (no hash:) is NOT a conformant signature — pre-seal, use approve:.
 
 sub: Layer 3 — Authority (UTS certify:)
-text: Binds a signature to a KYC-verified org identity through a UTS certification; an offline root vouches for an issuing key, and the chain travels inside the document. `certifyDocument(...)`, `verifyCertifications(source)`.
+Binds a signature to a KYC-verified org identity through a UTS certification; an offline root vouches for an issuing key, and the chain travels inside the document. `certifyDocument(...)`, `verifyCertifications(source)`.
 
 text: Lifecycle: track -> approve -> sign -> freeze (seal) -> [crypto sign] -> [certify] -> verify -> amendment. NEVER hand-compute or invent a hash/sig — only the libs/service compute valid ones. Store sealed source as returned; never edit above history: after sealing (use amendment:).
 
-text: STORING .it: a file is just a UTF-8 string — store it in any TEXT/blob column. To guarantee a DB layer can't corrupt sealed bytes, wrap with `toStorageRecord(source)` -> { source, bytesSha256 } and restore with `fromStorageRecord`. `documentToSource(parseIntentText(src))` is a lossless text<->JSON round-trip for indexing/diff.
+STORING .it: a file is just a UTF-8 string — store it in any TEXT/blob column. To guarantee a DB layer can't corrupt sealed bytes, wrap with `toStorageRecord(source)` -> { source, bytesSha256 } and restore with `fromStorageRecord`. `documentToSource(parseIntentText(src))` is a lossless text<->JSON round-trip for indexing/diff.
 
 section: 6b. Forms — fillable, conditional, computed, signable
 
-text: A form is `meta: | type: form` + input: fields. Two-party trust: the AUTHOR seals the blank form's structure; the FILLER signs the answers. `show-if:` / `require:`-`when:` take ONE comparison `key <op> value` (== != > < >= <=). `compute:` is arithmetic (+ - * / with parentheses). APIs: submitForm() / buildSubmission().
+A form is `meta: \| type: form` + input: fields. Two-party trust: the AUTHOR seals the blank form's structure; the FILLER signs the answers. `show-if:` / `require:`-`when:` take ONE comparison `key <op> value` (== != > < >= <=). `compute:` is arithmetic (+ - * / with parentheses). APIs: submitForm() / buildSubmission().
 
 ```intenttext
 meta: | type: form
@@ -213,7 +213,7 @@ input: CR (PDF) | key: cr | type: attachment | required: yes
 
 section: 6c. Workflows & approval routing — state DERIVED from the file
 
-text: A document carries its own approval policy; live state is derived, so it can never drift from a DB. The approve: role: (or by:) MUST match the require: token (`require: legal` is fulfilled by `role: legal`, NOT `role: Legal Counsel`). `workflowState(source)` -> { pending, next, complete }; the renderer draws an approval-route panel.
+A document carries its own approval policy; live state is derived, so it can never drift from a DB. The approve: role: (or by:) MUST match the require: token (`require: legal` is fulfilled by `role: legal`, NOT `role: Legal Counsel`). `workflowState(source)` -> { pending, next, complete }; the renderer draws an approval-route panel.
 
 ```intenttext
 route: sequential
@@ -222,19 +222,19 @@ require: finance | when: amount > 100000
 approve: Reviewed | by: Sarah | role: manager | at: 2026-03-20
 ```
 
-text: Executable agent workflows use the agent tier: trigger: (entry) -> step: (tool) -> decision: (branch) -> gate: (human checkpoint) -> result: (terminal). `executeWorkflow()` runs them; audit: lines + the hash-chained audit trail (appendApproval / verifyAuditChain) make the approval SEQUENCE tamper-evident.
+Executable agent workflows use the agent tier: trigger: (entry) -> step: (tool) -> decision: (branch) -> gate: (human checkpoint) -> result: (terminal). `executeWorkflow()` runs them; audit: lines + the hash-chained audit trail (appendApproval / verifyAuditChain) make the approval SEQUENCE tamper-evident.
 
 section: 6d. Conformance — one read-only yes/no
 
-text: `checkConformance(source, { level: "lax" | "strict" })` -> { conformant, errors, warnings, issues }. lax (default): no error-level issues; unknown keywords are NOT errors (the open vocabulary is conformant by design). strict: no errors AND no warnings (e.g. every date ISO 8601) — the level a publisher certifies for a spotless document.
+`checkConformance(source, { level: "lax" \| "strict" })` -> { conformant, errors, warnings, issues }. lax (default): no error-level issues; unknown keywords are NOT errors (the open vocabulary is conformant by design). strict: no errors AND no warnings (e.g. every date ISO 8601) — the level a publisher certifies for a spotless document.
 
 section: 7. Rendering and PDFs
 
-text: `renderHTML(doc, { theme })` -> HTML fragment. `renderPrint(doc, { theme })` -> complete print-ready HTML (@page size/margins, running header/footer with page counters, multi-page tables). Browser: print renderPrint output via an iframe -> native dialog -> PDF (zero deps). Server PDFs: `issuePDF(template, data, { signer })` -> { source (sealed .it), hash, at, pdf (bytes) } — one call does merge -> seal -> PDF, so the archived PDF and the sealed .it share one hash.
+`renderHTML(doc, { theme })` -> HTML fragment. `renderPrint(doc, { theme })` -> complete print-ready HTML (@page size/margins, running header/footer with page counters, multi-page tables). Browser: print renderPrint output via an iframe -> native dialog -> PDF (zero deps). Server PDFs: `issuePDF(template, data, { signer })` -> { source (sealed .it), hash, at, pdf (bytes) } — one call does merge -> seal -> PDF, so the archived PDF and the sealed .it share one hash.
 
 section: 8. Query — a folder of .it files is a database
 
-text: `queryBlocks(doc, "type=task owner=Ahmed sort:due:asc limit:5")` -> { blocks, total, matched }. WHERE clauses use `=` (also `< > <= >= !=`, date-aware on ISO values); match any keyword or property (type=, owner=, status=, due=...); a CUSTOM keyword matches by `keyword=<word>` (its type is `custom`). SORT `sort:field:asc|desc`; paging `limit:N` / `offset:N`. Folder indexing is shallow, per-folder (.it-index), self-healing on query — no DB server.
+`queryBlocks(doc, "type=task owner=Ahmed sort:due:asc limit:5")` -> { blocks, total, matched }. WHERE clauses use `=` (also `< > <= >= !=`, date-aware on ISO values); match any keyword or property (type=, owner=, status=, due=...); a CUSTOM keyword matches by `keyword=<word>` (its type is `custom`). SORT `sort:field:asc|desc`; paging `limit:N` / `offset:N`. Folder indexing is shallow, per-folder (.it-index), self-healing on query — no DB server.
 
 ```text
 dotit query ./docs "type=invoice status=Unpaid amount>1000 sort:due:asc limit:20"
@@ -242,11 +242,11 @@ dotit query ./docs "type=invoice status=Unpaid amount>1000 sort:due:asc limit:20
 
 section: 9. Big / multi-page documents
 
-text: `page: | size: A4 | margin: 20mm` (sizes A5..A1, Letter, Legal, or custom "80mm auto"; orientation portrait|landscape, shorthand `size: A3 landscape`). header:/footer: are RUNNING (repeat per page) with live `{{page}}`/`{{pages}}`. break: forces a page break. toc: renders a table of contents from section:/sub:. Tables auto-repeat their header row across page breaks.
+`page: \| size: A4 \| margin: 20mm` (sizes A5..A1, Letter, Legal, or custom "80mm auto"; orientation portrait|landscape, shorthand `size: A3 landscape`). header:/footer: are RUNNING (repeat per page) with live `{{page}}`/`{{pages}}`. break: forces a page break. toc: renders a table of contents from section:/sub:. Tables auto-repeat their header row across page breaks.
 
 section: 10. Enterprise document patterns (recipes)
 
-text: Load-bearing shapes for real business docs — invoices, tenders + BoQ, feasibility studies, legal contracts (definitions, parties, obligations, execution + seal), bank/financial reports (multi-page, toc, KPIs). Mix freely; invent domain keywords where no canonical one fits; pre-seal sign-offs are approve:.
+Load-bearing shapes for real business docs — invoices, tenders + BoQ, feasibility studies, legal contracts (definitions, parties, obligations, execution + seal), bank/financial reports (multi-page, toc, KPIs). Mix freely; invent domain keywords where no canonical one fits; pre-seal sign-offs are approve:.
 
 ```intenttext
 title: Service Agreement
@@ -279,7 +279,7 @@ section: 11. Generation rules (follow these exactly)
 
 section: 12. Arabic — first-class localized keyword names (33)
 
-text: The Arabic names are NOT aliases — they are localized keyword NAMES that resolve to the same canonical keyword, with the same rendering, query semantics, and seal coverage. Write a whole document in Arabic and still get full canonical behavior; one cross-language query (type=task) finds tasks in any language. Keywords round-trip AS WRITTEN, so Arabic files stay Arabic and sealed hashes hold. Property keys stay English (owner:, due:, value:); dates stay ISO.
+The Arabic names are NOT aliases — they are localized keyword NAMES that resolve to the same canonical keyword, with the same rendering, query semantics, and seal coverage. Write a whole document in Arabic and still get full canonical behavior; one cross-language query (type=task) finds tasks in any language. Keywords round-trip AS WRITTEN, so Arabic files stay Arabic and sealed hashes hold. Property keys stay English (owner:, due:, value:); dates stay ISO.
 
 ```text
 عنوان=title  ملخص=summary  بيانات=meta  قسم=section  فرعي=sub  نص=text
@@ -307,4 +307,4 @@ The keyword set is open, so for cross-document query interop teams should conver
 - No reserved keyword but a common concept? Reach for the conventional word: contracts/legal — clause, obligation, warranty, liability, indemnity, term, party, jurisdiction, governing-law, penalty; projects — milestone, deliverable, dependency, blocker, scope, objective, assumption, constraint, requirement, risk; risk/compliance — control, finding, mitigation, incident; service/finance — sla, stakeholder, payment, expense, fee; agent memory — fact, entity, preference, belief, question, lesson, skill; meetings — attendee, agenda.
 - Genuinely domain-specific? Invent freely — lowercase, hyphen-joined, singular (delivery-term, not delivery_term or DeliveryTerms).
 
-text: This document is itself valid IntentText — open it in the editor (editor.uts.qa), render it to PDF, query it, or seal it. The reference and the format are one and the same.
+This document is itself valid IntentText — open it in the editor (editor.uts.qa), render it to PDF, query it, or seal it. The reference and the format are one and the same.

@@ -24,9 +24,9 @@ section: Status
 metric: Sprint velocity | value: 42 | unit: points
 metric: Open blockers | value: 1
 info: Payment-provider sandbox outage is blocking billing integration tests. | type: warning
-text: Decision on Arabic onboarding is due at the 2026-06-16 steering meeting.
+Decision on Arabic onboarding is due at the 2026-06-16 steering meeting.
 text: 
 text: 
-text: Hello
+Hello
 text: 
 text: 
