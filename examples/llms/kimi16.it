@@ -1,0 +1,38 @@
+page: | size: A4 | margin: 20mm
+header: Al-Diwan Contracting W.L.L. — Purchase Order
+footer: PO-2026-0089 · Page {{page}} of {{pages}}
+
+title: Purchase Order
+summary: Al-Diwan Contracting W.L.L. → Gulf Electrical Supplies W.L.L.
+meta: | type: purchase_order | ref: PO-2026-0089 | date: 2026-06-24 | status: Pending Approval
+
+section: Vendor
+contact: Gulf Electrical Supplies W.L.L. | role: Vendor | email: sales@gulfelec.qa | vat: VAT-305566 | address: Industrial Area, Street 15, Doha
+
+section: Buyer
+contact: Al-Diwan Contracting W.L.L. | role: Buyer | email: procurement@aldiwan.qa | vat: VAT-300123 | address: C-Ring Road, Doha
+
+section: Line Items
+| Item | Description | Unit | Qty | Unit Price (QAR) | Total (QAR) |
+| 1 | VRF outdoor unit, 28kW, R410A | set | 4 | 42,000 | 168,000 |
+| 2 | VRF indoor unit, cassette type, 7.1kW | set | 12 | 3,800 | 45,600 |
+| 3 | Copper refrigerant pipe, 9.52mm, insulated | m | 480 | 45 | 21,600 |
+| 4 | Control cable, 2-core shielded | m | 600 | 12 | 7,200 |
+
+section: Totals
+metric: Subtotal | value: 242,400 QAR
+metric: VAT (5%) | value: 12,120 QAR
+metric: Total PO Value | value: 254,520 QAR | weight: bold
+
+section: Delivery
+deadline: Delivery required by | date: 2026-07-20 | consequence: LD at 0.05% per day delay, max 5%
+text: Delivery address: Doha Tower Site, West Bay, Doha. Contact: Site Manager +974 5555 1234.
+
+section: Approval Routing
+route: sequential
+require: procurement_manager
+require: finance_manager | when: value > 100000
+require: project_director
+
+approve: Procurement review | by: Nasser Al-Kuwari | role: procurement_manager | at: 2026-06-23
+approve: Finance clearance | by: Fatima Al-Sulaiti | role: finance_manager | at: 2026-06-24

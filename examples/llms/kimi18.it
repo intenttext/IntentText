@@ -1,0 +1,37 @@
+meta: | theme: corporate | type: dashboard | period: Q2 2026 | date: 2026-06-24
+
+title: Operations KPI Dashboard
+summary: Al-Diwan Contracting W.L.L. — Quarterly performance review
+
+section: Financial Performance
+metric: Revenue YTD | value: 284,500,000 QAR | trend: up | target: 270,000,000 QAR | period: YTD 2026
+metric: Gross Margin | value: 18.2% | trend: up | target: 17.0% | period: Q2
+metric: Net Profit | value: 42,675,000 QAR | trend: up | target: 40,000,000 QAR | period: Q2
+metric: Cash Conversion Cycle | value: 45 days | trend: down | target: 50 days | period: Q2
+metric: DSO | value: 38 days | trend: down | target: 40 days | period: Q2
+
+section: Project Delivery
+metric: Projects on Schedule | value: 14 | trend: stable | target: 15 | period: Q2
+metric: Projects Behind Schedule | value: 2 | trend: down | target: 0 | period: Q2
+metric: Average Project Delay | value: 8 days | trend: down | target: 5 days | period: Q2
+metric: Safety Incidents | value: 0 | trend: stable | target: 0 | period: Q2
+metric: Rework Rate | value: 1.2% | trend: down | target: 1.5% | period: Q2
+
+section: Quality & Compliance
+metric: NCRs Open | value: 7 | trend: down | target: 5 | period: Q2
+metric: NCRs Closed | value: 23 | trend: up | target: 20 | period: Q2
+metric: ISO 9001 Audit Score | value: 94% | trend: up | target: 90% | period: Q2
+metric: Client Satisfaction Score | value: 4.6 | trend: up | target: 4.5 | period: Q2
+metric: Subcontractor Default Rate | value: 0% | trend: stable | target: 0% | period: Q2
+
+section: Human Resources
+metric: Total Workforce | value: 1,240 | trend: up | target: 1,200 | period: Q2
+metric: Employee Turnover | value: 4.2% | trend: down | target: 5.0% | period: Q2
+metric: Training Hours per Employee | value: 28 | trend: up | target: 24 | period: Q2
+metric: Lost Time Injury Frequency | value: 0.8 | trend: down | target: 1.0 | period: Q2
+
+section: Procurement
+metric: Purchase Orders Issued | value: 186 | trend: up | target: 170 | period: Q2
+metric: PO Value | value: 45,200,000 QAR | trend: up | target: 40,000,000 QAR | period: Q2
+metric: Supplier On-Time Delivery | value: 92% | trend: up | target: 90% | period: Q2
+metric: Procurement Cost Savings | value: 2,100,000 QAR | trend: up | target: 1,500,000 QAR | period: Q2

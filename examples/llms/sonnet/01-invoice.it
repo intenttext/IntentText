@@ -1,0 +1,34 @@
+// it-format: 1.0
+page: | size: A4 | margin: 20mm
+header: Meridian Technology W.L.L.
+footer: INV-2026-0041 · Page {{page}} of {{pages}}
+
+title: Tax Invoice
+summary: Meridian Technology W.L.L. → Gulf Systems Co.
+meta: | type: invoice | ref: INV-2026-0041 | date: 2026-06-01 | status: Unpaid | theme: corporate
+
+section: Vendor
+contact: Meridian Technology W.L.L. | email: billing@meridian.qa | vat: VAT-300441882 | role: Vendor
+
+section: Bill To
+contact: Gulf Systems Co. | email: accounts@gulfsys.qa | vat: VAT-300119004 | role: Client
+
+section: Line Items
+| # | Description | Qty | Unit Price (QAR) | Amount (QAR) |
+| 1 | NestJS API development — Phase 1 | 1 | 28,500.00 | 28,500.00 |
+| 2 | PostgreSQL schema design & migration | 1 | 9,800.00 | 9,800.00 |
+| 3 | BullMQ job queue integration | 1 | 6,200.00 | 6,200.00 |
+| 4 | DevOps pipeline setup (CI/CD) | 1 | 4,500.00 | 4,500.00 |
+| 5 | Documentation & handover | 1 | 2,000.00 | 2,000.00 |
+
+section: Totals
+metric: Subtotal | value: 51000 | unit: QAR
+metric: VAT (15%) | value: 7650 | unit: QAR
+metric: Total Due | value: 58650 | unit: QAR
+
+section: Payment Terms
+deadline: Payment due | date: 2026-07-01 | consequence: 1.5% late fee per month
+text: Bank: Qatar Islamic Bank · IBAN: QA57QISB000000006140005015800 · Swift: QISBQAQA
+
+section: Authorization
+approve: Invoice verified | by: Noor Al-Ansari | role: Finance | at: 2026-06-01

@@ -1,0 +1,28 @@
+// it-format: 1.0
+title: Operations KPI Dashboard — Q2 2026
+summary: GRC platform build · Meridian Technology
+meta: | type: dashboard | ref: KPI-Q2-2026 | period: 2026-04-01/2026-06-30 | theme: corporate
+
+section: Delivery
+metric: Sprint velocity | value: 48 | unit: points | target: 45 | trend: up | period: Q2 2026
+metric: Features shipped | value: 23 | unit: count | target: 20 | trend: up | period: Q2 2026
+metric: Bugs opened | value: 14 | unit: count | target: 10 | trend: down | period: Q2 2026
+metric: Bugs closed | value: 18 | unit: count | target: 14 | trend: up | period: Q2 2026
+metric: Sprint goal hit rate | value: 87.5% | target: 85% | trend: up | period: Q2 2026
+
+section: Quality
+metric: Test coverage | value: 81% | target: 80% | trend: up | period: Q2 2026
+metric: Code review turnaround | value: 6.2h | target: 8h | trend: up | period: Q2 2026
+metric: P1 incidents | value: 1 | unit: count | target: 0 | trend: down | period: Q2 2026
+metric: Mean time to resolve (P1) | value: 3.4h | target: 4h | trend: up | period: Q2 2026
+
+section: Commercial
+metric: Milestones invoiced | value: 70500 | unit: QAR | target: 70500 | trend: stable | period: Q2 2026
+metric: Outstanding receivables | value: 28500 | unit: QAR | trend: down | period: Q2 2026
+metric: Budget consumed | value: 67% | target: 70% | trend: stable | period: Q2 2026
+metric: Forecast at completion | value: 105500 | unit: QAR | target: 105500 | period: FY 2026
+
+section: Team
+metric: Headcount | value: 6 | unit: people | period: Q2 2026
+metric: Utilisation | value: 88% | target: 85% | trend: up | period: Q2 2026
+metric: Training hours | value: 12 | unit: hours | target: 8 | trend: up | period: Q2 2026

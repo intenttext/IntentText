@@ -1,0 +1,31 @@
+title: Customer Onboarding Agent
+summary: Automated KYC and account provisioning workflow
+meta: | type: workflow | ref: WF-ONB-001 | version: 1.0
+
+policy: All customer data must be encrypted in transit and at rest. PII fields require explicit consent before processing.
+audit: Workflow initiated | by: system | at: 2026-06-24T09:00:00Z
+
+trigger: New customer signup received | source: web_form | id: t1
+
+step: Validate input data | tool: validate_kyc_form | id: s1 | input: raw_form_data
+step: Check sanctions list | tool: sanctions_screening | id: s2 | input: customer_name, dob, nationality
+step: Run identity verification | tool: idv_service | id: s3 | input: id_document, selfie
+step: Provision account | tool: account_provision | id: s4 | input: validated_customer
+step: Send welcome email | tool: email_service | id: s5 | input: customer_email, account_details
+step: Notify CRM | tool: crm_sync | id: s6 | input: customer_record
+
+decision: KYC form valid? | if: form_valid == true | then: s2 | else: e1
+decision: Sanctions clear? | if: sanctions_hit == false | then: s3 | else: e2
+decision: IDV passed? | if: idv_score >= 0.85 | then: s4 | else: e3
+decision: Account provisioned? | if: provision_status == success | then: s5 | else: e4
+
+gate: Manual review required | approver: Compliance Officer | condition: idv_score < 0.95 | id: g1
+gate: High-value account approval | approver: Branch Manager | condition: deposit_amount > 500000 | id: g2
+
+result: Onboarding complete | status: success | id: r1
+result: KYC rejection | status: failure | reason: invalid_form | id: e1
+result: Sanctions hit | status: failure | reason: sanctions_match | id: e2
+result: IDV failure | status: failure | reason: identity_mismatch | id: e3
+result: Provision error | status: failure | reason: system_error | id: e4
+
+audit: Workflow definition loaded | hash: sha256:abc123... | at: 2026-06-24T09:00:00Z

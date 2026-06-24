@@ -247,8 +247,11 @@ export function validateDocumentSemantic(
       }
     }
 
-    // result: must be last in its section (or document)
-    if (block.type === "result") {
+    // result: must be last in its section (or document) — but ONLY for a linear
+    // workflow. A BRANCHED workflow (one with decision: blocks) legitimately has one
+    // terminal result PER branch, interleaved with that branch's steps, so multiple
+    // results are expected and none is "the last block".
+    if (block.type === "result" && !allBlocks.some((b) => b.type === "decision")) {
       // Find the next non-result block in the same level
       const remaining = allBlocks.slice(i + 1);
       const nextNonResult = remaining.find(

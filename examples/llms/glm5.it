@@ -1,0 +1,18 @@
+page: | size: A4 | margin: 20mm
+header: Meridian Bank N.A. | Quarterly Financial Report | {{page}}/{{pages}}
+footer: Confidential | Page {{page}} of {{pages}}
+title: Quarterly Financial Report — Q1 2025
+meta: | type: report | date: 2025-04-22
+toc:
+
+section: Performance
+metric: Net Interest Margin | value: 3.21 | unit: % | target: 3.10 | trend: up | period: Q1-2025
+metric: Return on Equity | value: 11.8 | unit: % | target: 10.0 | trend: up | period: Q1-2025
+break:
+
+section: Balance Sheet
+| Line item | 2025-03-31 | 2024-12-31 | Change % |
+| Total Assets | 58410 | 57050 | 2.4 |
+| Total Loans | 38940 | 37820 | 3.0 |
+| Total Deposits | 42100 | 41350 | 1.8 |
+metric: Tier 1 Capital Ratio | value: 13.6 | unit: % | target: 11.0 | trend: up | period: Q1-2025

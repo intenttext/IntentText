@@ -1,0 +1,129 @@
+title: Software Services Agreement
+summary: ERP Development, Support and Maintenance Services
+meta: | type: contract | ref: SSA-2026-001 | theme: legal | date: 2026-06-24
+
+section: 1. Definitions
+
+def: Services | meaning: Software development, implementation, support and maintenance activities described in this agreement
+
+def: Deliverables | meaning: Source code, documentation, configurations, reports and related outputs produced under the services
+
+def: Confidential Information | meaning: Non-public business, technical or financial information disclosed by either party
+
+def: Business Day | meaning: Any day excluding Fridays, Saturdays and official public holidays in Qatar
+
+section: 2. Parties
+
+contact: UTS Technologies W.L.L. | role: Provider | email: [contracts@uts.qa](mailto:contracts@uts.qa) | country: QA
+
+contact: Client Organization | role: Client | email: [procurement@example.com](mailto:procurement@example.com) | country: QA
+
+section: 3. Scope of Services
+
+text: The Provider shall design, develop, configure, deploy and support software systems requested by the Client.
+
+obligation: Deliver agreed project milestones | owner: Provider
+
+obligation: Provide access to required stakeholders and information | owner: Client
+
+deliverable: ERP platform implementation | phase: delivery
+
+deliverable: Technical documentation | phase: handover
+
+deliverable: User training sessions | phase: onboarding
+
+section: 4. Commercial Terms
+
+metric: Contract Value | value: 250000 | unit: QAR
+
+payment: Advance payment | percentage: 30
+
+payment: Delivery payment | percentage: 40
+
+payment: Acceptance payment | percentage: 30
+
+deadline: Final payment due | date: 2026-12-31 | consequence: Service suspension may apply
+
+section: 5. Project Governance
+
+milestone: Project Kickoff | date: 2026-07-01
+
+milestone: Prototype Delivery | date: 2026-08-15
+
+milestone: User Acceptance Testing | date: 2026-10-15
+
+milestone: Production Go-Live | date: 2026-11-01
+
+risk: Delayed stakeholder feedback | severity: medium | mitigation: Weekly review meetings
+
+risk: Scope expansion | severity: high | mitigation: Formal change request process
+
+section: 6. Service Level Agreement
+
+sla: Critical Incident Response | target: 1 hour | priority: P1
+
+sla: High Incident Response | target: 4 hours | priority: P2
+
+sla: Normal Incident Response | target: 1 business day | priority: P3
+
+warranty: Defect correction period | period: 90 days
+
+section: 7. Intellectual Property
+
+clause: Ownership of Deliverables | owner: Client
+
+text: Upon full payment, ownership of project-specific deliverables transfers to the Client.
+
+clause: Pre-Existing Materials | owner: Provider
+
+text: The Provider retains ownership of frameworks, libraries, tools and reusable intellectual property developed independently of this agreement.
+
+section: 8. Confidentiality
+
+obligation: Protect confidential information | owner: Both Parties
+
+obligation: Restrict disclosure to authorized personnel | owner: Both Parties
+
+deadline: Confidentiality survival period | date: 2031-06-24
+
+section: 9. Warranties
+
+warranty: Professional services warranty | owner: Provider | period: Agreement term
+
+text: Services will be performed using reasonable skill, care and industry standards.
+
+section: 10. Limitation of Liability
+
+clause: Liability Cap | cap: 12 months fees
+
+clause: Excluded Damages | excludes: indirect consequential punitive damages
+
+section: 11. Governing Law
+
+text: This agreement shall be governed by the laws of the State of Qatar.
+
+jurisdiction: Courts of Qatar
+
+section: 12. Approval Workflow
+
+route: sequential
+
+require: legal
+
+require: finance
+
+require: executive
+
+approve: Legal review completed | by: Sara Al-Kuwari | role: legal | at: 2026-06-24
+
+approve: Financial review completed | by: Khalid Hassan | role: finance | at: 2026-06-24
+
+approve: Executive authorization | by: Ahmed Al-Thani | role: executive | at: 2026-06-24
+
+section: 13. Execution
+
+approve: Executed for Provider | by: Authorized Representative | role: provider | at: 2026-06-24
+
+approve: Executed for Client | by: Authorized Representative | role: client | at: 2026-06-24
+
+text: This document is intentionally left pre-seal and ready for future signing and certification.

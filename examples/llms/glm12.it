@@ -1,0 +1,18 @@
+title: Meeting Notes — Platform Sync
+meta: | date: 2025-04-17
+
+section: Attendees
+- Priya
+- Sam
+- Wei
+
+section: Discussion
+sub: Staging Blockers
+text: Staging cluster hit a quota ceiling on persistent volumes.
+
+section: Decisions
+decision: Adopt Redis Cluster for catalog caching | by: Priya
+
+section: Action Items
+task: Submit PV quota ticket | owner: Wei | due: 2025-04-24 | priority: high
+done: Confirm cutover rehearsal | at: 2025-04-17

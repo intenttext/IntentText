@@ -1,0 +1,20 @@
+page: | size: 80mm auto | margin: 4mm
+title: Receipt 0007-4821
+meta: | type: receipt | date: 2025-04-18
+
+section: Items
+| Item | Qty | Amount |
+| Cortado | 1 | 4.20 |
+| Almond croissant | 1 | 3.80 |
+| Filter coffee 12oz | 2 | 5.40 |
+
+section: Totals
+metric: Subtotal | value: 15.90 | unit: USD
+metric: Tax (8.0%) | value: 1.27 | unit: USD
+metric: Total | value: 17.17 | unit: USD
+
+section: Payment
+text: Visa **** 4471
+text: Approved: 2025-04-18T09:14:00Z
+
+footer: Thank you — see you tomorrow!

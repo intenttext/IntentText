@@ -1,0 +1,67 @@
+// it-format: 1.0
+title: Software Services Agreement
+summary: Platform development services — GRC module
+meta: | type: contract | ref: SA-2026-019 | date: 2026-06-10 | theme: legal
+
+section: 1. Definitions
+def: Services | meaning: The software development work described in Schedule A
+def: Deliverable | meaning: Any code, design artefact, or documentation produced under this agreement
+def: Confidential Information | meaning: Non-public technical, commercial, or operational data disclosed by either party
+def: Go-Live | meaning: Successful deployment to the Client's production environment and acceptance sign-off
+
+section: 2. Parties
+contact: Meridian Technology W.L.L. | role: Provider | email: legal@meridian.qa | vat: VAT-300441882
+contact: Divan Risk Partners W.L.L. | role: Client | email: ops@divanrisk.qa | vat: VAT-300558761
+
+section: 3. Scope
+text: Provider shall design, build, test, and deploy the GRC platform components specified in Schedule A, including risk register, control library, audit findings, and CAPA workflow modules.
+obligation: Deliver Schedule A components | owner: Provider | by: 2026-10-01
+obligation: Provide UAT environment access | owner: Provider | by: 2026-08-15
+obligation: Conduct user acceptance testing | owner: Client | by: 2026-09-01
+
+section: 4. Commercial Terms
+text: Fees are fixed-price per milestone as set out in Schedule B. Payment is Net 30 from milestone acceptance.
+milestone: Phase 1 — schema & auth | value: 28500 | unit: QAR | due: 2026-07-31
+milestone: Phase 2 — risk & controls | value: 42000 | unit: QAR | due: 2026-09-15
+milestone: Phase 3 — audit & CAPA | value: 35000 | unit: QAR | due: 2026-10-31
+metric: Total Contract Value | value: 105500 | unit: QAR
+deadline: Milestone 1 payment | date: 2026-08-30 | consequence: 1.5% per month late fee
+
+section: 5. Service Level Agreement
+sla: Critical bug resolution | target: 4h | priority: P1 | window: business hours
+sla: Standard bug resolution | target: 2 business days | priority: P2 | window: business hours
+sla: Feature change response | target: 5 business days | priority: P3 | window: business hours
+sla: Monthly uptime (post go-live) | target: 99.5% | period: monthly
+
+section: 6. Obligations and Warranties
+warranty: Deliverables conform to agreed specifications | owner: Provider | period: 90 days
+warranty: No known malware or back-doors introduced | owner: Provider | period: perpetual
+clause: Limitation of Liability | scope: Both parties | cap: 3 months fees | excludes: indirect damages, loss of profit
+clause: Indemnity | scope: Provider | covers: third-party IP infringement claims arising from Deliverables
+
+section: 7. Intellectual Property
+text: All Deliverables created under this agreement vest in the Client upon full payment. Provider retains rights to pre-existing tools and frameworks.
+ip-assignment: GRC platform source code | owner: Client | condition: full payment received
+ip-retained: Internal tooling and libraries | owner: Provider | licensed-to: Client | license: perpetual, non-exclusive
+
+section: 8. Confidentiality
+text: Each party shall protect the other's Confidential Information with at least the same care as its own, and no less than reasonable care. Obligations survive termination for 3 years.
+clause: Non-disclosure | scope: Both parties | duration: 3 years post-termination
+
+section: 9. Governing Law
+governing-law: State of Qatar | jurisdiction: Qatar International Court and Dispute Resolution Centre (QICDRC)
+clause: Dispute resolution | method: Negotiation → Mediation → QICDRC arbitration | language: English
+
+section: 10. Term and Termination
+text: This agreement commences on 2026-06-10 and continues until Go-Live acceptance or until terminated.
+clause: Termination for convenience | notice: 30 days written notice | by: Either party
+clause: Termination for cause | notice: 14 days | trigger: material breach uncured within cure period
+
+section: 11. Execution
+route: sequential
+require: Counsel
+require: finance
+require: CEO
+approve: Legal review complete | by: Sara Hamdan | role: Counsel | at: 2026-06-11
+approve: Budget confirmed | by: Noor Al-Ansari | role: finance | at: 2026-06-12
+approve: Executed for Provider | by: Khalid Meridian | role: CEO | at: 2026-06-13

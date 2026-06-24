@@ -1,0 +1,49 @@
+// it-format: 1.0
+title: GRC Risk Assessment Agent
+summary: Automated risk intake → scoring → review routing
+meta: | type: workflow | ref: WF-RISK-001 | version: 1.2 | theme: technical
+
+section: Policy
+policy: All risk records must be human-confirmed before entering the risk register.
+policy: Inherent risk score above 15 triggers mandatory Head of Risk gate.
+audit: enabled | retention: 7 years | format: append-only
+
+section: Trigger
+trigger: New risk submission received | event: form.submitted | source: vendor-onboarding-form
+
+section: Steps
+step: Extract risk fields | tool: form-parser | id: s1
+step: Validate required fields present | tool: validate | id: s2
+decision: All required fields present? | then: s3 | else: s_reject
+
+step: Score inherent risk | tool: risk-scorer | id: s3
+// risk-scorer reads likelihood (1-5) × impact (1-5) → inherent score
+step: Enrich with control library | tool: control-matcher | id: s4
+step: Compute residual risk | tool: risk-scorer | id: s5
+decision: Residual score ≤ 15? | then: s6 | else: s_escalate
+
+step: Route to Risk Owner for confirmation | tool: notify | id: s6
+gate: Risk Owner review | approver: Risk Owner | id: g1
+decision: Risk Owner approved? | then: s7 | else: s_revise
+
+step: Write to risk register | tool: db-write | id: s7
+step: Notify stakeholders | tool: notify | id: s8
+result: Risk record created | status: success
+
+step: Reject incomplete submission | tool: notify | id: s_reject
+result: Submission rejected — missing fields | status: rejected
+
+step: Escalate high residual risk | tool: notify | id: s_escalate
+gate: Head of Risk review | approver: Head of Risk | id: g2
+decision: Head of Risk approved? | then: s7 | else: s_archive
+
+step: Archive declined risk | tool: db-write | id: s_revise
+result: Risk returned for revision | status: pending
+
+step: Archive declined escalation | tool: db-write | id: s_archive
+result: Risk declined and archived | status: declined
+
+section: Configuration
+context: risk-register-db | type: postgres | table: risks
+context: control-library | type: mongodb | collection: controls
+context: notification-channel | type: email | recipients: risk-team@divanrisk.qa

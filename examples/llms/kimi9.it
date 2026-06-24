@@ -1,0 +1,26 @@
+meta: | type: memory | ref: MEM-PROJ-001 | project: Doha Tower Fit-Out | agent: doc-agent-v2
+
+context: Project background
+text: Commercial interior fit-out for Qatar Holding, Levels 15-22. Tender ref TND-2026-014. Budget ceiling 1.8M QAR. Deadline 2026-07-15.
+
+scope: Technical scope
+text: Civil & finishes, MEP, joinery & furniture. Excludes IT infrastructure and security systems.
+confidence: 0.95
+
+scope: Commercial terms
+text: Net 30 payment, 5% retention for 12 months, LD at 0.05% per day delay capped at 5%.
+confidence: 0.92
+
+milestone: Tender submission | date: 2026-07-15 | status: pending | owner: Commercial Team
+milestone: Technical review | date: 2026-07-13 | status: in_progress | owner: Engineering
+milestone: Board approval | date: 2026-07-10 | status: done | owner: Managing Director
+
+decision: Subcontract MEP to Al-Jazeera MEP | by: Engineering Manager | at: 2026-06-20 | rationale: Cost savings of 12% vs in-house, proven track record on 3 prior projects.
+
+risk: Material price escalation | severity: medium | mitigation: Lock steel prices with supplier letter of intent by 2026-06-30.
+risk: Labour shortage during Ramadan | severity: high | mitigation: Pre-mobilize 20% workforce early, schedule critical path before Ramadan.
+
+skill: generate_boq_table | input: scope_description | output: formatted_table | model: claude-opus-4
+skill: validate_tender_compliance | input: tender_document | output: compliance_report | model: gpt-4.1
+
+confidence: 0.88

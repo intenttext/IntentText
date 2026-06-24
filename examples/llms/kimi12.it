@@ -1,0 +1,32 @@
+title: Sprint 24 Planning — Q3 Roadmap
+summary: Core tier only, no print setup, no trust layer
+
+section: Attendees
+text: Ahmed (PM), Layla (Tech Lead), Omar (Backend), Sara (Frontend), Khalid (QA)
+
+section: Completed Since Last Sprint
+done: OAuth 2.0 integration shipped to production
+done: Database migration to PostgreSQL 16 completed
+done: New CI/CD pipeline deployed on GitLab
+
+section: Decisions
+decision: Prioritize performance over new features for Sprint 24 | by: Ahmed | at: 2026-06-24
+decision: Adopt React Server Components for dashboard rewrite | by: Sara | at: 2026-06-24
+decision: Postpone mobile app v2 to Sprint 26 | by: Ahmed | at: 2026-06-24
+
+section: Tasks
+task: Implement query caching layer | owner: Omar | due: 2026-07-08 | priority: high
+task: Design system audit and token consolidation | owner: Sara | due: 2026-07-05 | priority: medium
+task: Load testing for 10k concurrent users | owner: Khalid | due: 2026-07-12 | priority: high
+task: API documentation update | owner: Layla | due: 2026-07-03 | priority: low
+
+section: Discussion Notes
+text: Query caching should use Redis Cluster with fallback to in-memory LRU. Omar to spike Redis Sentinel configuration by 2026-06-28.
+quote: "We need to ship the caching layer before the marketing campaign launches in August." — Ahmed
+text: Sara raised concern about RSC bundle size; agreed to measure before/after with Lighthouse.
+
+section: Action Items
+- Omar: Redis Sentinel spike by 2026-06-28
+- Sara: RSC bundle size analysis by 2026-07-01
+- Khalid: Draft load test plan by 2026-07-01
+- Layla: Schedule architecture review for 2026-06-27

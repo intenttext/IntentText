@@ -1,0 +1,30 @@
+// it-format: 1.0
+page: | size: A4 | margin: 20mm
+header: {{company.name}}
+footer: {{invoice.number}} · Page {{page}} of {{pages}}
+
+title: Tax Invoice {{invoice.number}}
+summary: {{company.name}} → {{client.name}}
+meta: | type: invoice | ref: {{invoice.number}} | date: {{invoice.date}} | status: {{invoice.status}} | theme: corporate
+
+section: Vendor
+contact: {{company.name}} | email: {{company.email}} | vat: {{company.vat}} | role: Vendor
+
+section: Bill To
+contact: {{client.name}} | email: {{client.email}} | vat: {{client.vat}} | role: Client
+
+section: Line Items
+| Description | Qty | Unit Price ({{currency}}) | Amount ({{currency}}) | each: items |
+| {{item.description}} | {{item.qty}} | {{item.unitPrice}} | {{item.amount}} |
+
+section: Totals
+metric: Subtotal | value: {{totals.subtotal}} | unit: {{currency}}
+metric: VAT ({{totals.vatRate}}%) | value: {{totals.vat}} | unit: {{currency}}
+metric: Total Due | value: {{totals.total}} | unit: {{currency}}
+
+section: Payment
+deadline: Payment due | date: {{invoice.dueDate}} | consequence: {{invoice.lateFeeClause}}
+text: Bank: {{company.bankName}} · IBAN: {{company.iban}} · Swift: {{company.swift}}
+
+section: Authorization
+approve: Invoice issued | by: {{issuer.name}} | role: {{issuer.role}} | at: {{invoice.date}}

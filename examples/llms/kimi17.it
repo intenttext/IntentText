@@ -1,0 +1,48 @@
+title: Doha Tower Fit-Out — Project Plan
+summary: Levels 15-22 interior fit-out · 180 days · Target completion 2026-12-15
+meta: | type: project_plan | ref: PP-2026-014 | date: 2026-06-24
+
+section: Project Overview
+text: Complete interior fit-out of office floors 15-22 for Qatar Holding. Scope includes civil, MEP, finishes, joinery, and furniture.
+
+section: Milestones
+milestone: Mobilization complete | date: 2026-07-01 | status: pending | owner: Project Manager
+milestone: MEP rough-in complete | date: 2026-08-15 | status: pending | owner: MEP Lead
+milestone: Finishes 50% complete | date: 2026-09-30 | status: pending | owner: Finishes Lead
+milestone: Joinery installation complete | date: 2026-10-31 | status: pending | owner: Joinery Lead
+milestone: Furniture installation complete | date: 2026-11-30 | status: pending | owner: Furniture Lead
+milestone: Final handover | date: 2026-12-15 | status: pending | owner: Project Manager
+
+section: Tasks
+task: Site setup and hoarding | owner: Project Manager | due: 2026-07-05 | priority: high
+task: MEP first fix — electrical | owner: Omar Hassan | due: 2026-07-25 | priority: high
+task: MEP first fix — HVAC | owner: Omar Hassan | due: 2026-08-05 | priority: high
+task: Gypsum partition installation | owner: Khalid Al-Mansouri | due: 2026-08-20 | priority: medium
+task: Floor tiling — Levels 15-17 | owner: Ahmed Fakhroo | due: 2026-09-10 | priority: medium
+task: Floor tiling — Levels 18-20 | owner: Ahmed Fakhroo | due: 2026-09-25 | priority: medium
+task: Floor tiling — Levels 21-22 | owner: Ahmed Fakhroo | due: 2026-10-05 | priority: medium
+task: Ceiling installation | owner: Sara Al-Thani | due: 2026-09-20 | priority: medium
+task: Joinery workshop production start | owner: Mariam Al-Kuwari | due: 2026-08-01 | priority: high
+task: Joinery site installation | owner: Mariam Al-Kuwari | due: 2026-10-15 | priority: high
+task: Furniture delivery and placement | owner: Layla Hassan | due: 2026-11-20 | priority: medium
+task: Final cleaning and snagging | owner: Khalid Al-Mansouri | due: 2026-12-10 | priority: high
+
+section: Completed Tasks
+done: Tender award and contract signing
+done: Design development and shop drawings approval
+done: Building permit obtained
+done: MEP design approval from Civil Defence
+
+section: Decisions
+decision: Award MEP subcontract to Al-Jazeera MEP | by: Engineering Manager | at: 2026-06-20
+decision: Use Italian porcelain tiles for all floors | by: Client Representative | at: 2026-06-15
+decision: Accelerate joinery production by 2 weeks | by: Project Manager | at: 2026-06-22
+
+section: Schedule
+| Phase | Start | End | Duration | Owner |
+| Mobilization | 2026-07-01 | 2026-07-10 | 10 days | Project Manager |
+| MEP Rough-in | 2026-07-11 | 2026-08-15 | 36 days | MEP Lead |
+| Civil & Finishes | 2026-08-16 | 2026-10-15 | 61 days | Finishes Lead |
+| Joinery | 2026-08-01 | 2026-10-31 | 92 days | Joinery Lead |
+| Furniture | 2026-11-01 | 2026-11-30 | 30 days | Furniture Lead |
+| Handover | 2026-12-01 | 2026-12-15 | 15 days | Project Manager |

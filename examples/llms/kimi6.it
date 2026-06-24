@@ -1,0 +1,31 @@
+page: | size: 80mm auto | margin: 4mm
+
+title: Al Meera Market
+summary: Receipt #POS-2026-0624-0847
+meta: | type: receipt | ref: POS-2026-0624-0847 | date: 2026-06-24T08:47:00Z
+
+text: Al Meera Market — Doha Festival City
+text: VAT: VAT-301234 | TRN: 1001234567
+text: ----------------------------------------
+
+| Qty | Item | Price |
+| 2 | Fresh milk 1L | 7.00 QAR |
+| 1 | Sliced white bread | 4.50 QAR |
+| 3 | Bottled water 500ml | 3.00 QAR |
+| 1 | Arabic coffee 250g | 18.00 QAR |
+| 2 | Labneh 400g | 9.50 QAR |
+
+text: ----------------------------------------
+metric: Subtotal | value: 49.00 QAR
+metric: VAT (5%) | value: 2.45 QAR
+metric: TOTAL | value: 51.45 QAR | weight: bold
+
+section: Payment
+text: Method: Visa ending 4242
+text: Auth: 847291
+text: AID: A0000000031010
+
+text: ----------------------------------------
+text: Thank you for shopping at Al Meera
+text: Returns within 14 days with receipt
+text: www.almeera.qa | support@almeera.qa

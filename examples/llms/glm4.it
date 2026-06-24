@@ -1,0 +1,24 @@
+title: Feasibility Study — Solar Microgrid for North Industrial Park
+meta: | type: study | ref: FS-2025-02 | date: 2025-03-10
+
+section: Executive Summary
+text: This study evaluates a 4.2 MWp solar microgrid with 6 MWh battery storage. The project clears the hurdle rate and is recommended for detailed design.
+
+section: Key Metrics
+metric: LCOE | value: 0.061 | unit: USD/kWh | target: 0.075 | trend: down | period: 25-year
+metric: IRR | value: 11.4 | unit: % | target: 8.0 | trend: up | period: 25-year
+metric: Payback | value: 7.8 | unit: years | target: 10 | trend: down | period: project-life
+
+section: Assumptions
+- Capex 6.8M USD
+- Grid electricity price escalation 3.0% per year
+- Capacity factor 21.5%
+
+section: Financial Model
+| Year | CapEx | OpEx | Revenue | Net Cash |
+| 0 | -6800 | 0 | 0 | -6800 |
+| 1 | 0 | -240 | 1180 | 940 |
+| 2 | 0 | -247 | 1216 | 969 |
+
+section: Recommendation
+info: Proceed to detailed design and EPC tender. | type: success

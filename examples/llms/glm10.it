@@ -1,0 +1,16 @@
+title: Vendor Onboarding Form
+meta: | type: form
+
+section: Company Info
+input: Legal Name | key: legal_name | type: text | required: yes
+input: Country | key: country | type: select | options: US, AE, SA, QA | required: yes
+input: VAT Number | key: vat | type: text | show-if: country == AE
+input: Total Days | key: total_days | type: number | compute: 365 * 1
+
+section: Compliance
+input: CR Document | key: cr | type: attachment | required: yes
+
+section: Approval
+route: sequential
+require: procurement
+approve: Procurement Review | by: Dana | role: procurement | at: 2025-04-12

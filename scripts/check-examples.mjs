@@ -16,10 +16,15 @@ import {
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-// examples/test/ is a generated swarm sandbox (LLM-authored corpus for testing
-// llms.txt teachability) — NOT curated shipped examples. Its own harness validates
-// it; it intentionally exercises the open vocabulary (UNKNOWN_KEYWORD by design).
-const SKIP_DIRS = new Set([join(root, "examples", "test")]);
+// examples/test/ is a generated swarm sandbox, examples/llms/ is the external-LLM
+// corpus (GPT/Sonnet/Kimi/GLM authored from llms.txt alone) — both test llms.txt
+// teachability, NOT curated shipped examples. Their own harness validates them; they
+// intentionally exercise the open vocabulary (UNKNOWN_KEYWORD by design) and capture
+// raw model output, warts included.
+const SKIP_DIRS = new Set([
+  join(root, "examples", "test"),
+  join(root, "examples", "llms"),
+]);
 
 const files = [];
 function walk(d) {
