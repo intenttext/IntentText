@@ -1,0 +1,1780 @@
+{
+  "description": "IntentText conformance vectors — the canonical golden outputs every implementation must reproduce byte-for-byte. Generated from @dotit/core; see scripts/gen-conformance-vectors.mjs.",
+  "sealSpec": 4,
+  "algorithm": "UTF-8 source, NFC normalization, LF line endings, SHA-256 (see SPEC.md §4).",
+  "count": 31,
+  "vectors": [
+    {
+      "name": "minimal",
+      "source": "title: Hello\n\nA bare paragraph — no keyword needed.",
+      "blocks": [
+        {
+          "content": "Hello",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Hello"
+            }
+          ],
+          "originalContent": "Hello",
+          "type": "title"
+        },
+        {
+          "content": "A bare paragraph — no keyword needed.",
+          "inline": [
+            {
+              "type": "text",
+              "value": "A bare paragraph — no keyword needed."
+            }
+          ],
+          "originalContent": "A bare paragraph — no keyword needed.",
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "title": "Hello"
+      },
+      "serialized": "title: Hello\n\nA bare paragraph — no keyword needed.",
+      "contentHash": "sha256:7d3b795d97d055a35dba424e059ebfce370cfe6c7c94b22bc22a60305fce465a",
+      "appearanceHash": "sha256:7d3b795d97d055a35dba424e059ebfce370cfe6c7c94b22bc22a60305fce465a",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    },
+    {
+      "name": "core-blocks",
+      "source": "title: Doc\nsummary: A subtitle\nsection: Scope\nsub: Details\ninfo: Heads up | type: warning\nquote: Stay hungry | by: Jobs\nlink: Docs | to: https://example.com\nimage: Logo | src: logo.png | caption: Our logo",
+      "blocks": [
+        {
+          "content": "Doc",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Doc"
+            }
+          ],
+          "originalContent": "Doc",
+          "type": "title"
+        },
+        {
+          "content": "A subtitle",
+          "inline": [
+            {
+              "type": "text",
+              "value": "A subtitle"
+            }
+          ],
+          "originalContent": "A subtitle",
+          "type": "summary"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "content": "Heads up",
+                  "inline": [
+                    {
+                      "type": "text",
+                      "value": "Heads up"
+                    }
+                  ],
+                  "originalContent": "Heads up",
+                  "properties": {
+                    "type": "warning"
+                  },
+                  "type": "info"
+                },
+                {
+                  "content": "Stay hungry",
+                  "inline": [
+                    {
+                      "type": "text",
+                      "value": "Stay hungry"
+                    }
+                  ],
+                  "originalContent": "Stay hungry",
+                  "properties": {
+                    "by": "Jobs"
+                  },
+                  "type": "quote"
+                }
+              ],
+              "content": "Details",
+              "inline": [
+                {
+                  "type": "text",
+                  "value": "Details"
+                }
+              ],
+              "originalContent": "Details",
+              "type": "sub"
+            }
+          ],
+          "content": "Scope",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Scope"
+            }
+          ],
+          "originalContent": "Scope",
+          "type": "section"
+        },
+        {
+          "content": "Docs",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Docs"
+            }
+          ],
+          "originalContent": "Docs",
+          "properties": {
+            "to": "https://example.com"
+          },
+          "type": "link"
+        },
+        {
+          "content": "Logo",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Logo"
+            }
+          ],
+          "originalContent": "Logo",
+          "properties": {
+            "caption": "Our logo",
+            "src": "logo.png"
+          },
+          "type": "image"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "summary": "A subtitle",
+        "title": "Doc"
+      },
+      "serialized": "title: Doc\nsummary: A subtitle\nsection: Scope\nsub: Details\ninfo: Heads up | type: warning\nquote: Stay hungry | by: Jobs\nlink: Docs | to: https://example.com\nimage: Logo | src: logo.png | caption: Our logo",
+      "contentHash": "sha256:1932908cae039082a958670903b52772ea0b5b3ef3c4bee8962fb8c1b09c66c6",
+      "appearanceHash": "sha256:1932908cae039082a958670903b52772ea0b5b3ef3c4bee8962fb8c1b09c66c6",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    },
+    {
+      "name": "tasks",
+      "source": "title: Plan\ntask: Ship auth | owner: Ahmed | due: 2026-07-01 | priority: high\ndone: Deploy staging | at: 2026-03-01",
+      "blocks": [
+        {
+          "content": "Plan",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Plan"
+            }
+          ],
+          "originalContent": "Plan",
+          "type": "title"
+        },
+        {
+          "content": "Ship auth",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Ship auth"
+            }
+          ],
+          "originalContent": "Ship auth",
+          "properties": {
+            "due": "2026-07-01",
+            "owner": "Ahmed",
+            "priority": "high"
+          },
+          "type": "task"
+        },
+        {
+          "content": "Deploy staging",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Deploy staging"
+            }
+          ],
+          "originalContent": "Deploy staging",
+          "properties": {
+            "at": "2026-03-01"
+          },
+          "type": "done"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "title": "Plan"
+      },
+      "serialized": "title: Plan\ntask: Ship auth | owner: Ahmed | due: 2026-07-01 | priority: high\ndone: Deploy staging | at: 2026-03-01",
+      "contentHash": "sha256:15276a16caceb611a68f131e1a62f1ee90aaa1317dc11fcfce54d78ea29b898d",
+      "appearanceHash": "sha256:15276a16caceb611a68f131e1a62f1ee90aaa1317dc11fcfce54d78ea29b898d",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    },
+    {
+      "name": "lists",
+      "source": "section: Items\n- one\n- two\n1. first\n2. second",
+      "blocks": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "content": "one",
+                  "inline": [
+                    {
+                      "type": "text",
+                      "value": "one"
+                    }
+                  ],
+                  "originalContent": "one",
+                  "type": "text"
+                }
+              ],
+              "content": "one",
+              "inline": [
+                {
+                  "type": "text",
+                  "value": "one"
+                }
+              ],
+              "originalContent": "one",
+              "type": "list-item"
+            },
+            {
+              "children": [
+                {
+                  "content": "two",
+                  "inline": [
+                    {
+                      "type": "text",
+                      "value": "two"
+                    }
+                  ],
+                  "originalContent": "two",
+                  "type": "text"
+                }
+              ],
+              "content": "two",
+              "inline": [
+                {
+                  "type": "text",
+                  "value": "two"
+                }
+              ],
+              "originalContent": "two",
+              "type": "list-item"
+            },
+            {
+              "content": "first",
+              "inline": [
+                {
+                  "type": "text",
+                  "value": "first"
+                }
+              ],
+              "originalContent": "first",
+              "type": "step-item"
+            },
+            {
+              "content": "second",
+              "inline": [
+                {
+                  "type": "text",
+                  "value": "second"
+                }
+              ],
+              "originalContent": "second",
+              "type": "step-item"
+            }
+          ],
+          "content": "Items",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Items"
+            }
+          ],
+          "originalContent": "Items",
+          "type": "section"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "section: Items\n- one\n- two\n1. first\n1. second",
+      "contentHash": "sha256:21a400b27ea529f321bcf1f51914db8ecffece7bbe41883a983e93bda2a1be9f",
+      "appearanceHash": "sha256:21a400b27ea529f321bcf1f51914db8ecffece7bbe41883a983e93bda2a1be9f",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "table-keywords",
+      "source": "headers: Item | Qty | Total\nrow: Hosting | 12 | 10800\nrow: Support | 4 | 3600",
+      "blocks": [
+        {
+          "content": "Item | Qty | Total",
+          "table": {
+            "headers": [
+              "Item",
+              "Qty",
+              "Total"
+            ],
+            "rows": [
+              [
+                "Hosting",
+                "12",
+                "10800"
+              ],
+              [
+                "Support",
+                "4",
+                "3600"
+              ]
+            ]
+          },
+          "type": "table"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "headers: Item | Qty | Total\nrow: Hosting | 12 | 10800\nrow: Support | 4 | 3600",
+      "contentHash": "sha256:60259bdf1fe4aae6da5b71e85f135ae85b8ad40807c661fceba2be9bb37d89f3",
+      "appearanceHash": "sha256:60259bdf1fe4aae6da5b71e85f135ae85b8ad40807c661fceba2be9bb37d89f3",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "table-markdown",
+      "source": "| Name | Age |\n| Ahmed | 30 |\n| Sara | 25 |",
+      "blocks": [
+        {
+          "content": "| Name | Age |",
+          "table": {
+            "headers": [
+              "Name",
+              "Age"
+            ],
+            "rows": [
+              [
+                "Ahmed",
+                "30"
+              ],
+              [
+                "Sara",
+                "25"
+              ]
+            ]
+          },
+          "type": "table"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "headers: Name | Age\nrow: Ahmed | 30\nrow: Sara | 25",
+      "contentHash": "sha256:360c35228d2f0792a20d636f0a7f515247ddbdde859d846f88615ea14786b0d5",
+      "appearanceHash": "sha256:360c35228d2f0792a20d636f0a7f515247ddbdde859d846f88615ea14786b0d5",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "metric-total",
+      "source": "metric: Total Due | value: 17325 | unit: QAR",
+      "blocks": [
+        {
+          "content": "Total Due",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Total Due"
+            }
+          ],
+          "originalContent": "Total Due",
+          "properties": {
+            "unit": "QAR",
+            "value": "17325"
+          },
+          "type": "metric"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "metric: Total Due | value: 17325 | unit: QAR",
+      "contentHash": "sha256:fac00b898cf51918ed5fb831e2763073a679e85ed64e6a9a5b29b96b1f50ae6f",
+      "appearanceHash": "sha256:fac00b898cf51918ed5fb831e2763073a679e85ed64e6a9a5b29b96b1f50ae6f",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "metric-kpi",
+      "source": "metric: IRR | value: 14.2% | target: 12% | trend: up | period: 10 years",
+      "blocks": [
+        {
+          "content": "IRR",
+          "inline": [
+            {
+              "type": "text",
+              "value": "IRR"
+            }
+          ],
+          "originalContent": "IRR",
+          "properties": {
+            "period": "10 years",
+            "target": "12%",
+            "trend": "up",
+            "value": "14.2%"
+          },
+          "type": "metric"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "metric: IRR | value: 14.2% | target: 12% | trend: up | period: 10 years",
+      "contentHash": "sha256:8d4244586c5c5568849dd6e2a42c6d22d8fca8df806279f2e8260bece8833266",
+      "appearanceHash": "sha256:8d4244586c5c5568849dd6e2a42c6d22d8fca8df806279f2e8260bece8833266",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "agent-workflow",
+      "source": "title: Onboarding\ntrigger: New form | id: t1\nstep: Validate | tool: validate | id: s1\ndecision: Valid? | then: s2 | else: s3\nstep: Provision | tool: infra | id: s2\nstep: Notify | tool: email | id: s3\nresult: Done | status: success",
+      "blocks": [
+        {
+          "content": "Onboarding",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Onboarding"
+            }
+          ],
+          "originalContent": "Onboarding",
+          "type": "title"
+        },
+        {
+          "content": "New form",
+          "inline": [
+            {
+              "type": "text",
+              "value": "New form"
+            }
+          ],
+          "originalContent": "New form",
+          "properties": {},
+          "type": "trigger"
+        },
+        {
+          "content": "Validate",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Validate"
+            }
+          ],
+          "originalContent": "Validate",
+          "properties": {
+            "tool": "validate"
+          },
+          "type": "step"
+        },
+        {
+          "content": "Valid?",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Valid?"
+            }
+          ],
+          "originalContent": "Valid?",
+          "properties": {
+            "else": "s3",
+            "then": "s2"
+          },
+          "type": "decision"
+        },
+        {
+          "content": "Provision",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Provision"
+            }
+          ],
+          "originalContent": "Provision",
+          "properties": {
+            "tool": "infra"
+          },
+          "type": "step"
+        },
+        {
+          "content": "Notify",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Notify"
+            }
+          ],
+          "originalContent": "Notify",
+          "properties": {
+            "tool": "email"
+          },
+          "type": "step"
+        },
+        {
+          "content": "Done",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Done"
+            }
+          ],
+          "originalContent": "Done",
+          "properties": {
+            "status": "success"
+          },
+          "type": "result"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "title": "Onboarding"
+      },
+      "serialized": "title: Onboarding\ntrigger: New form\nstep: Validate | tool: validate\ndecision: Valid? | then: s2 | else: s3\nstep: Provision | tool: infra\nstep: Notify | tool: email\nresult: Done | status: success",
+      "contentHash": "sha256:a96b533dc1cbe18140e34f3ac81fb3e68dd0638bd407212db6d7a8e78eaee603",
+      "appearanceHash": "sha256:a96b533dc1cbe18140e34f3ac81fb3e68dd0638bd407212db6d7a8e78eaee603",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    },
+    {
+      "name": "agent-extra",
+      "source": "policy: Auto-approve | if: amount < 1000 | action: approve\naudit: Reviewed by ops | at: 2026-03-09T10:00:00Z\ncontext: region | value: gulf\nask: Do we need SSO for launch?",
+      "blocks": [
+        {
+          "content": "Auto-approve",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Auto-approve"
+            }
+          ],
+          "originalContent": "Auto-approve",
+          "properties": {
+            "action": "approve",
+            "if": "amount < 1000"
+          },
+          "type": "policy"
+        },
+        {
+          "content": "Reviewed by ops",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Reviewed by ops"
+            }
+          ],
+          "originalContent": "Reviewed by ops",
+          "properties": {
+            "at": "2026-03-09T10:00:00Z"
+          },
+          "type": "audit"
+        },
+        {
+          "content": "region",
+          "inline": [
+            {
+              "type": "text",
+              "value": "region"
+            }
+          ],
+          "originalContent": "region",
+          "properties": {
+            "value": "gulf"
+          },
+          "type": "context"
+        },
+        {
+          "content": "Do we need SSO for launch?",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Do we need SSO for launch?"
+            }
+          ],
+          "originalContent": "Do we need SSO for launch?",
+          "type": "ask"
+        }
+      ],
+      "metadata": {
+        "context": {
+          "value": "gulf"
+        },
+        "language": "ltr"
+      },
+      "serialized": "context: region | value: gulf\n\npolicy: Auto-approve | if: amount < 1000 | action: approve\naudit: Reviewed by ops | at: 2026-03-09T10:00:00Z\nask: Do we need SSO for launch?",
+      "contentHash": "sha256:b3f1c470c3238eb55ca321a3fbc0404367b74cd97c1590a9b9b8538f2a8d80b6",
+      "appearanceHash": "sha256:b3f1c470c3238eb55ca321a3fbc0404367b74cd97c1590a9b9b8538f2a8d80b6",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "inline-native",
+      "source": "text: see *bold* and _italic_ and ~strike~ and `code` and [label](https://x.io) and @ahmed #urgent",
+      "blocks": [
+        {
+          "content": "see bold and italic and strike and code and label and ahmed urgent",
+          "inline": [
+            {
+              "type": "text",
+              "value": "see "
+            },
+            {
+              "type": "bold",
+              "value": "bold"
+            },
+            {
+              "type": "text",
+              "value": " and "
+            },
+            {
+              "type": "italic",
+              "value": "italic"
+            },
+            {
+              "type": "text",
+              "value": " and "
+            },
+            {
+              "type": "strike",
+              "value": "strike"
+            },
+            {
+              "type": "text",
+              "value": " and "
+            },
+            {
+              "type": "label",
+              "value": "code"
+            },
+            {
+              "type": "text",
+              "value": " and "
+            },
+            {
+              "href": "https://x.io",
+              "type": "link",
+              "value": "label"
+            },
+            {
+              "type": "text",
+              "value": " and "
+            },
+            {
+              "type": "mention",
+              "value": "ahmed"
+            },
+            {
+              "type": "text",
+              "value": " "
+            },
+            {
+              "type": "tag",
+              "value": "urgent"
+            }
+          ],
+          "originalContent": "see *bold* and _italic_ and ~strike~ and `code` and [label](https://x.io) and @ahmed #urgent",
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "text: see *bold* and _italic_ and ~strike~ and `code` and [label](https://x.io) and @ahmed #urgent",
+      "contentHash": "sha256:f4043ad6a694ebec675bbde58c6fa313480e13309800c25b36f020ed7425c511",
+      "appearanceHash": "sha256:f4043ad6a694ebec675bbde58c6fa313480e13309800c25b36f020ed7425c511",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "inline-md-compat",
+      "source": "text: **bold** and __also bold__ and ~~struck~~ here",
+      "blocks": [
+        {
+          "content": "bold and also bold and struck here",
+          "inline": [
+            {
+              "type": "bold",
+              "value": "bold"
+            },
+            {
+              "type": "text",
+              "value": " and "
+            },
+            {
+              "type": "bold",
+              "value": "also bold"
+            },
+            {
+              "type": "text",
+              "value": " and "
+            },
+            {
+              "type": "strike",
+              "value": "struck"
+            },
+            {
+              "type": "text",
+              "value": " here"
+            }
+          ],
+          "originalContent": "**bold** and __also bold__ and ~~struck~~ here",
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "text: **bold** and __also bold__ and ~~struck~~ here",
+      "contentHash": "sha256:8fac2f8faf8162af236bc2f62b080327f4a743db0fe1173a9a5587b178c406d8",
+      "appearanceHash": "sha256:8fac2f8faf8162af236bc2f62b080327f4a743db0fe1173a9a5587b178c406d8",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "bare-prose-multi",
+      "source": "title: Notes\n\nFirst paragraph of plain prose.\n\nSecond paragraph, still bare.",
+      "blocks": [
+        {
+          "content": "Notes",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Notes"
+            }
+          ],
+          "originalContent": "Notes",
+          "type": "title"
+        },
+        {
+          "content": "First paragraph of plain prose.",
+          "inline": [
+            {
+              "type": "text",
+              "value": "First paragraph of plain prose."
+            }
+          ],
+          "originalContent": "First paragraph of plain prose.",
+          "type": "text"
+        },
+        {
+          "content": "Second paragraph, still bare.",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Second paragraph, still bare."
+            }
+          ],
+          "originalContent": "Second paragraph, still bare.",
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "title": "Notes"
+      },
+      "serialized": "title: Notes\n\nFirst paragraph of plain prose.\n\nSecond paragraph, still bare.",
+      "contentHash": "sha256:76efebfa42bfc83959eae6307beecf416550c3a74f0b0fc871fb40bca24bdaf5",
+      "appearanceHash": "sha256:76efebfa42bfc83959eae6307beecf416550c3a74f0b0fc871fb40bca24bdaf5",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    },
+    {
+      "name": "rtl-arabic",
+      "source": "عنوان: عرض سعر\nقسم: البنود\nمهمة: مراجعة العرض | owner: أحمد | due: 2026-06-20",
+      "blocks": [
+        {
+          "content": "عرض سعر",
+          "inline": [
+            {
+              "type": "text",
+              "value": "عرض سعر"
+            }
+          ],
+          "keywordAlias": "عنوان",
+          "originalContent": "عرض سعر",
+          "type": "title"
+        },
+        {
+          "children": [
+            {
+              "content": "مراجعة العرض",
+              "inline": [
+                {
+                  "type": "text",
+                  "value": "مراجعة العرض"
+                }
+              ],
+              "keywordAlias": "مهمة",
+              "originalContent": "مراجعة العرض",
+              "properties": {
+                "due": "2026-06-20",
+                "owner": "أحمد"
+              },
+              "type": "task"
+            }
+          ],
+          "content": "البنود",
+          "inline": [
+            {
+              "type": "text",
+              "value": "البنود"
+            }
+          ],
+          "keywordAlias": "قسم",
+          "originalContent": "البنود",
+          "type": "section"
+        }
+      ],
+      "metadata": {
+        "language": "rtl",
+        "title": "عرض سعر"
+      },
+      "serialized": "عنوان: عرض سعر\nقسم: البنود\nمهمة: مراجعة العرض | owner: أحمد | due: 2026-06-20",
+      "contentHash": "sha256:5e4c933fce05e70b5931b83a43afb0fa032f9067f21d841b383854ce83733c7c",
+      "appearanceHash": "sha256:5e4c933fce05e70b5931b83a43afb0fa032f9067f21d841b383854ce83733c7c",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    },
+    {
+      "name": "custom-keywords",
+      "source": "clause: No refunds after 30 days | ref: 4.2\nrisk: Vendor lock-in | sev: high\nمصروف: كراسي مكتب | فئة: أثاث",
+      "blocks": [
+        {
+          "content": "No refunds after 30 days",
+          "inline": [
+            {
+              "type": "text",
+              "value": "No refunds after 30 days"
+            }
+          ],
+          "originalContent": "clause: No refunds after 30 days | ref: 4.2",
+          "properties": {
+            "keyword": "clause",
+            "ref": "4.2"
+          },
+          "type": "custom"
+        },
+        {
+          "content": "Vendor lock-in",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Vendor lock-in"
+            }
+          ],
+          "originalContent": "risk: Vendor lock-in | sev: high",
+          "properties": {
+            "keyword": "risk",
+            "sev": "high"
+          },
+          "type": "custom"
+        },
+        {
+          "content": "كراسي مكتب",
+          "inline": [
+            {
+              "type": "text",
+              "value": "كراسي مكتب"
+            }
+          ],
+          "originalContent": "مصروف: كراسي مكتب | فئة: أثاث",
+          "properties": {
+            "keyword": "مصروف",
+            "فئة": "أثاث"
+          },
+          "type": "custom"
+        }
+      ],
+      "metadata": {
+        "language": "rtl"
+      },
+      "serialized": "clause: No refunds after 30 days | ref: 4.2\nrisk: Vendor lock-in | sev: high\nمصروف: كراسي مكتب | فئة: أثاث",
+      "contentHash": "sha256:ac6e3bb22d6f3194115f90a817f048558a21887a1d22a6d6e568a5021a202a75",
+      "appearanceHash": "sha256:ac6e3bb22d6f3194115f90a817f048558a21887a1d22a6d6e568a5021a202a75",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "two-sided",
+      "source": "text: Customer Name | end: 2026-06-12\ntext: IBAN | end: QA57QNBA000000000123456789001",
+      "blocks": [
+        {
+          "content": "Customer Name IBAN",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Customer Name IBAN"
+            }
+          ],
+          "originalContent": "Customer Name IBAN",
+          "properties": {
+            "end": "2026-06-12"
+          },
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "text: Customer Name | end: 2026-06-12\ntext: IBAN | end: QA57QNBA000000000123456789001",
+      "contentHash": "sha256:e03423831b895178fae705e1437e5d30ccb3d6a864eb39fc7030e903032595b5",
+      "appearanceHash": "sha256:e03423831b895178fae705e1437e5d30ccb3d6a864eb39fc7030e903032595b5",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "styled-span",
+      "source": "text: Payment is [overdue]{ color: #c00; weight: bold } — act now.",
+      "blocks": [
+        {
+          "content": "Payment is overdue — act now.",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Payment is "
+            },
+            {
+              "props": {
+                "color": "#c00",
+                "weight": "bold"
+              },
+              "type": "styled",
+              "value": "overdue"
+            },
+            {
+              "type": "text",
+              "value": " — act now."
+            }
+          ],
+          "originalContent": "Payment is [overdue]{ color: #c00; weight: bold } — act now.",
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "text: Payment is [overdue]{ color: #c00; weight: bold } — act now.",
+      "contentHash": "sha256:00abefc52391af912aac6b38e4b757a9e8572fe1e8e564032ebc109c17a2dfba",
+      "appearanceHash": "sha256:00abefc52391af912aac6b38e4b757a9e8572fe1e8e564032ebc109c17a2dfba",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "template",
+      "source": "title: {{client.name}} Invoice\nheaders: Item | Qty | each: items\nrow: {{item.name}} | {{item.qty}}\nfooter: Page {{page}} of {{pages}}",
+      "blocks": [
+        {
+          "content": "{{client.name}} Invoice",
+          "inline": [
+            {
+              "type": "text",
+              "value": "{{client.name}} Invoice"
+            }
+          ],
+          "originalContent": "{{client.name}} Invoice",
+          "type": "title"
+        },
+        {
+          "content": "Item | Qty | each: items",
+          "table": {
+            "headers": [
+              "Item",
+              "Qty",
+              "each: items"
+            ],
+            "rows": [
+              [
+                "{{item.name}}",
+                "{{item.qty}}"
+              ]
+            ]
+          },
+          "type": "table"
+        },
+        {
+          "content": "Page {{page}} of {{pages}}",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Page {{page}} of {{pages}}"
+            }
+          ],
+          "originalContent": "Page {{page}} of {{pages}}",
+          "type": "footer"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "title": "{{client.name}} Invoice"
+      },
+      "serialized": "footer: Page {{page}} of {{pages}}\n\ntitle: {{client.name}} Invoice\nheaders: Item | Qty | each: items\nrow: {{item.name}} | {{item.qty}}",
+      "contentHash": "sha256:ee6bab77577da9afdb341f7bfaa98a2d774feac44ec4b55b5a3bf4970058a250",
+      "appearanceHash": "sha256:ee6bab77577da9afdb341f7bfaa98a2d774feac44ec4b55b5a3bf4970058a250",
+      "lax": true,
+      "strict": false,
+      "issues": [
+        "FOOTER_WITHOUT_PAGE",
+        "TEMPLATE_HAS_UNRESOLVED"
+      ]
+    },
+    {
+      "name": "escaped-pipe",
+      "source": "text: A logical OR is written a \\| b in the guard.",
+      "blocks": [
+        {
+          "content": "A logical OR is written a | b in the guard.",
+          "inline": [
+            {
+              "type": "text",
+              "value": "A logical OR is written a | b in the guard."
+            }
+          ],
+          "originalContent": "A logical OR is written a | b in the guard.",
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "text: A logical OR is written a \\| b in the guard.",
+      "contentHash": "sha256:1e021de226ab8fdf981242c22bf053d97bf45f31542eefe272778fd95a51b1ac",
+      "appearanceHash": "sha256:1e021de226ab8fdf981242c22bf053d97bf45f31542eefe272778fd95a51b1ac",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "code-fence-lang",
+      "source": "title: Snippet\ncode: ```js\nconst x = 1;\nconsole.log(x);\n```",
+      "blocks": [
+        {
+          "content": "Snippet",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Snippet"
+            }
+          ],
+          "originalContent": "Snippet",
+          "type": "title"
+        },
+        {
+          "content": "js\nconst x = 1;\nconsole.log(x);",
+          "type": "code"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "title": "Snippet"
+      },
+      "serialized": "title: Snippet\n```\njs\nconst x = 1;\nconsole.log(x);\n```",
+      "contentHash": "sha256:db74a55e8fc5b25c26a19f364b2fa75ec377227ef9f1ebca44d75fbc6221c8e5",
+      "appearanceHash": "sha256:db74a55e8fc5b25c26a19f364b2fa75ec377227ef9f1ebca44d75fbc6221c8e5",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    },
+    {
+      "name": "unicode-punct",
+      "source": "text: Tolerance –0.5 × ΔE ≤ 2 for β values; no escaping needed.",
+      "blocks": [
+        {
+          "content": "Tolerance –0.5 × ΔE ≤ 2 for β values; no escaping needed.",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Tolerance –0.5 × ΔE ≤ 2 for β values; no escaping needed."
+            }
+          ],
+          "originalContent": "Tolerance –0.5 × ΔE ≤ 2 for β values; no escaping needed.",
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "text: Tolerance –0.5 × ΔE ≤ 2 for β values; no escaping needed.",
+      "contentHash": "sha256:ff59c9b72856b3448aab80057c9dbc510670d78f65dc914e8656b0b10b5a44cf",
+      "appearanceHash": "sha256:ff59c9b72856b3448aab80057c9dbc510670d78f65dc914e8656b0b10b5a44cf",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "metadata-lift",
+      "source": "meta: | author: Billing | theme: corporate | dir: rtl\ntrack: | id: DOC-1 | by: Ahmed\ncontext: project | value: jadwal\ntitle: After Meta\nsection: Body",
+      "blocks": [
+        {
+          "content": "project",
+          "inline": [
+            {
+              "type": "text",
+              "value": "project"
+            }
+          ],
+          "originalContent": "project",
+          "properties": {
+            "value": "jadwal"
+          },
+          "type": "context"
+        },
+        {
+          "content": "After Meta",
+          "inline": [
+            {
+              "type": "text",
+              "value": "After Meta"
+            }
+          ],
+          "originalContent": "After Meta",
+          "type": "title"
+        },
+        {
+          "children": [],
+          "content": "Body",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Body"
+            }
+          ],
+          "originalContent": "Body",
+          "type": "section"
+        }
+      ],
+      "metadata": {
+        "context": {
+          "value": "jadwal"
+        },
+        "language": "rtl",
+        "meta": {
+          "author": "Billing",
+          "dir": "rtl",
+          "theme": "corporate"
+        },
+        "title": "After Meta",
+        "tracking": {
+          "active": true,
+          "by": "Ahmed",
+          "version": "1.0"
+        }
+      },
+      "serialized": "meta: | author: Billing | theme: corporate | dir: rtl\ntrack: | id: DOC-1 | by: Ahmed\ncontext: project | value: jadwal\ntitle: After Meta\nsection: Body",
+      "contentHash": "sha256:21faafcd9881f0d41f7a91c03a1907052afff589fc2bc7633135bf743c52ed6a",
+      "appearanceHash": "sha256:1bd396b0d960cf4878e59f22fa0e38372a84cd276d814af33f9885083926cbeb",
+      "lax": true,
+      "strict": false,
+      "issues": [
+        "EMPTY_SECTION"
+      ]
+    },
+    {
+      "name": "print-layout",
+      "source": "meta: | theme: corporate\npage: | size: A4 | margin: 20mm\nheader: ACME — Confidential\nfooter: INV-1 · Page {{page}} of {{pages}}\nwatermark: DRAFT | opacity: 0.1\ntoc:\nsection: One\nbreak:\nsection: Two\nstyle: section | color: #0a7 | weight: 600",
+      "blocks": [
+        {
+          "content": "",
+          "inline": [
+            {
+              "type": "text",
+              "value": ""
+            }
+          ],
+          "originalContent": "",
+          "properties": {
+            "margin": "20mm",
+            "size": "A4"
+          },
+          "type": "page"
+        },
+        {
+          "content": "ACME — Confidential",
+          "inline": [
+            {
+              "type": "text",
+              "value": "ACME — Confidential"
+            }
+          ],
+          "originalContent": "ACME — Confidential",
+          "type": "header"
+        },
+        {
+          "content": "INV-1 · Page {{page}} of {{pages}}",
+          "inline": [
+            {
+              "type": "text",
+              "value": "INV-1 · Page {{page}} of {{pages}}"
+            }
+          ],
+          "originalContent": "INV-1 · Page {{page}} of {{pages}}",
+          "type": "footer"
+        },
+        {
+          "content": "DRAFT",
+          "inline": [
+            {
+              "type": "text",
+              "value": "DRAFT"
+            }
+          ],
+          "originalContent": "DRAFT",
+          "properties": {
+            "opacity": "0.1"
+          },
+          "type": "watermark"
+        },
+        {
+          "content": "",
+          "inline": [
+            {
+              "type": "text",
+              "value": ""
+            }
+          ],
+          "originalContent": "",
+          "type": "toc"
+        },
+        {
+          "children": [],
+          "content": "One",
+          "inline": [
+            {
+              "type": "text",
+              "value": "One"
+            }
+          ],
+          "originalContent": "One",
+          "type": "section"
+        },
+        {
+          "content": "",
+          "type": "break"
+        },
+        {
+          "children": [
+            {
+              "content": "section",
+              "inline": [
+                {
+                  "type": "text",
+                  "value": "section"
+                }
+              ],
+              "originalContent": "section",
+              "properties": {
+                "color": "#0a7",
+                "weight": "600"
+              },
+              "type": "style"
+            }
+          ],
+          "content": "Two",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Two"
+            }
+          ],
+          "originalContent": "Two",
+          "type": "section"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "meta": {
+          "theme": "corporate"
+        }
+      },
+      "serialized": "meta: | theme: corporate\npage: | size: A4 | margin: 20mm\nheader: ACME — Confidential\nfooter: INV-1 · Page {{page}} of {{pages}}\nwatermark: DRAFT | opacity: 0.1\ntoc:\nsection: One\nbreak:\nsection: Two\nstyle: section | color: #0a7 | weight: 600",
+      "contentHash": "sha256:29ecd45f2681239cf2a59cbd8832596ab19799e2f1d791321de5adfdd7550bd4",
+      "appearanceHash": "sha256:4fbfd26000e706e7760bd33fd2d889d3914fc6d9320d6cf07a9cc87b408d0e36",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE",
+        "TEMPLATE_HAS_UNRESOLVED"
+      ]
+    },
+    {
+      "name": "extensions",
+      "source": "x-form: input | label: Country | key: country | type: choice | options: SA, QA, AE\nx-doc: def | meaning: events beyond control | term: Force Majeure\nx-doc: ref | file: ./policy.it | rel: supersedes\nx-doc: contact | email: ops@acme.qa | role: Client\nx-writer: figure | src: chart.svg | caption: Q2",
+      "blocks": [
+        {
+          "content": "",
+          "inline": [
+            {
+              "type": "text",
+              "value": ""
+            }
+          ],
+          "originalContent": "input | label: Country | key: country | type: choice | options: SA, QA, AE",
+          "properties": {
+            "key": "country",
+            "label": "Country",
+            "options": "SA, QA, AE",
+            "type": "choice"
+          },
+          "type": "input"
+        },
+        {
+          "content": "",
+          "inline": [
+            {
+              "type": "text",
+              "value": ""
+            }
+          ],
+          "originalContent": "def | meaning: events beyond control | term: Force Majeure",
+          "properties": {
+            "meaning": "events beyond control",
+            "term": "Force Majeure"
+          },
+          "type": "def"
+        },
+        {
+          "content": "",
+          "inline": [
+            {
+              "type": "text",
+              "value": ""
+            }
+          ],
+          "originalContent": "ref | file: ./policy.it | rel: supersedes",
+          "properties": {
+            "file": "./policy.it",
+            "rel": "supersedes"
+          },
+          "type": "ref"
+        },
+        {
+          "content": "",
+          "inline": [
+            {
+              "type": "text",
+              "value": ""
+            }
+          ],
+          "originalContent": "contact | email: ops@acme.qa | role: Client",
+          "properties": {
+            "email": "ops@acme.qa",
+            "role": "Client"
+          },
+          "type": "contact"
+        },
+        {
+          "content": "",
+          "inline": [
+            {
+              "type": "text",
+              "value": ""
+            }
+          ],
+          "originalContent": "figure | src: chart.svg | caption: Q2",
+          "properties": {
+            "caption": "Q2",
+            "src": "chart.svg"
+          },
+          "type": "figure"
+        }
+      ],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "input: input \\| label: Country \\| key: country \\| type: choice \\| options: SA, QA, AE | label: Country | key: country | type: choice | options: SA, QA, AE\ndef: def \\| meaning: events beyond control \\| term: Force Majeure | meaning: events beyond control | term: Force Majeure\nref: ref \\| file: ./policy.it \\| rel: supersedes | file: ./policy.it | rel: supersedes\ncontact: contact \\| email: ops@acme.qa \\| role: Client | email: ops@acme.qa | role: Client\nfigure: figure \\| src: chart.svg \\| caption: Q2 | src: chart.svg | caption: Q2",
+      "contentHash": "sha256:28cd03d68cc2c3f644b7bae31e92861a551f5e9c252e88b2c386950f52bfb5c3",
+      "appearanceHash": "sha256:28cd03d68cc2c3f644b7bae31e92861a551f5e9c252e88b2c386950f52bfb5c3",
+      "lax": true,
+      "strict": false,
+      "issues": [
+        "DOCUMENT_NO_TITLE",
+        "INPUT_MISSING_NAME"
+      ]
+    },
+    {
+      "name": "hash-comments",
+      "source": "// it-format: 1.0\n// internal note — excluded from the hash\ntitle: Contract\ntext: The body that is hashed.",
+      "blocks": [
+        {
+          "content": "Contract",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Contract"
+            }
+          ],
+          "originalContent": "Contract",
+          "type": "title"
+        },
+        {
+          "content": "The body that is hashed.",
+          "inline": [
+            {
+              "type": "text",
+              "value": "The body that is hashed."
+            }
+          ],
+          "originalContent": "The body that is hashed.",
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "title": "Contract"
+      },
+      "serialized": "// it-format: 1.0\n// internal note — excluded from the hash\ntitle: Contract\ntext: The body that is hashed.",
+      "contentHash": "sha256:f596af1e0b32c57def472d8ffd8b77289afbe98151567c640b1a84c6142f39a3",
+      "appearanceHash": "sha256:f596af1e0b32c57def472d8ffd8b77289afbe98151567c640b1a84c6142f39a3",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    },
+    {
+      "name": "hash-history",
+      "source": "title: Sealed Doc\ntext: Live content above the boundary.\nhistory:\nrevision: v1.0 | by: Ahmed | at: 2026-01-01",
+      "blocks": [
+        {
+          "content": "Sealed Doc",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Sealed Doc"
+            }
+          ],
+          "originalContent": "Sealed Doc",
+          "type": "title"
+        },
+        {
+          "content": "Live content above the boundary.",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Live content above the boundary."
+            }
+          ],
+          "originalContent": "Live content above the boundary.",
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "title": "Sealed Doc"
+      },
+      "serialized": "title: Sealed Doc\ntext: Live content above the boundary.",
+      "contentHash": "sha256:8384b7da3e6ffd91d89c7efdac6a062bfba552c5fe392f5c1842260544d69a28",
+      "appearanceHash": "sha256:8384b7da3e6ffd91d89c7efdac6a062bfba552c5fe392f5c1842260544d69a28",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    },
+    {
+      "name": "hash-styling-excluded",
+      "source": "title: Styled\npage: | size: A4\nstyle: text | color: #333\ntext: Content [word]{ color: #c00 } stays; styling drops from the hash.",
+      "blocks": [
+        {
+          "content": "Styled",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Styled"
+            }
+          ],
+          "originalContent": "Styled",
+          "type": "title"
+        },
+        {
+          "content": "",
+          "inline": [
+            {
+              "type": "text",
+              "value": ""
+            }
+          ],
+          "originalContent": "",
+          "properties": {
+            "size": "A4"
+          },
+          "type": "page"
+        },
+        {
+          "content": "text",
+          "inline": [
+            {
+              "type": "text",
+              "value": "text"
+            }
+          ],
+          "originalContent": "text",
+          "properties": {
+            "color": "#333"
+          },
+          "type": "style"
+        },
+        {
+          "content": "Content word stays; styling drops from the hash.",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Content "
+            },
+            {
+              "props": {
+                "color": "#c00"
+              },
+              "type": "styled",
+              "value": "word"
+            },
+            {
+              "type": "text",
+              "value": " stays; styling drops from the hash."
+            }
+          ],
+          "originalContent": "Content [word]{ color: #c00 } stays; styling drops from the hash.",
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "title": "Styled"
+      },
+      "serialized": "page: | size: A4\n\ntitle: Styled\nstyle: text | color: #333\ntext: Content [word]{ color: #c00 } stays; styling drops from the hash.",
+      "contentHash": "sha256:8629e9bf112389598eb88f9d3c74e63864f8778d5cb20f29f7caa2f8f45489ff",
+      "appearanceHash": "sha256:7256a6a00d1adfd760987924f5c6a12c5dfaeeb5c65b59db66a14665f86ed0c2",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    },
+    {
+      "name": "hash-trust-scope",
+      "source": "title: Approved\napprove: Legal ok | by: Sara | role: Counsel | at: 2026-03-28\ntext: Body content.\nsign: Fahad | role: MD | at: 2026-04-01 | hash: sha256:placeholder | spec: 4\nfreeze: | at: 2026-04-01 | hash: sha256:placeholder | spec: 4 | status: locked",
+      "blocks": [
+        {
+          "content": "Approved",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Approved"
+            }
+          ],
+          "originalContent": "Approved",
+          "type": "title"
+        },
+        {
+          "content": "Legal ok",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Legal ok"
+            }
+          ],
+          "originalContent": "Legal ok",
+          "properties": {
+            "at": "2026-03-28",
+            "by": "Sara",
+            "role": "Counsel"
+          },
+          "type": "approve"
+        },
+        {
+          "content": "Body content.",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Body content."
+            }
+          ],
+          "originalContent": "Body content.",
+          "type": "text"
+        },
+        {
+          "content": "Fahad",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Fahad"
+            }
+          ],
+          "originalContent": "Fahad",
+          "properties": {
+            "at": "2026-04-01",
+            "hash": "sha256:placeholder",
+            "role": "MD",
+            "spec": "4"
+          },
+          "type": "sign"
+        },
+        {
+          "content": "",
+          "inline": [
+            {
+              "type": "text",
+              "value": ""
+            }
+          ],
+          "originalContent": "",
+          "properties": {
+            "at": "2026-04-01",
+            "hash": "sha256:placeholder",
+            "spec": "4",
+            "status": "locked"
+          },
+          "type": "freeze"
+        }
+      ],
+      "metadata": {
+        "freeze": {
+          "at": "2026-04-01",
+          "hash": "sha256:placeholder",
+          "spec": 4,
+          "status": "locked"
+        },
+        "language": "ltr",
+        "signatures": [
+          {
+            "at": "2026-04-01",
+            "hash": "sha256:placeholder",
+            "role": "MD",
+            "signer": "Fahad",
+            "spec": 4
+          }
+        ],
+        "title": "Approved"
+      },
+      "serialized": "title: Approved\napprove: Legal ok | by: Sara | role: Counsel | at: 2026-03-28\ntext: Body content.\nsign: Fahad | role: MD | at: 2026-04-01 | hash: sha256:placeholder | spec: 4\nfreeze: | at: 2026-04-01 | hash: sha256:placeholder | spec: 4 | status: locked",
+      "contentHash": "sha256:8f5ea8bf5a1cdbf5702a56d65a00a40fd738c5c51505fd9ee6ba54089b489e17",
+      "appearanceHash": "sha256:8f5ea8bf5a1cdbf5702a56d65a00a40fd738c5c51505fd9ee6ba54089b489e17",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    },
+    {
+      "name": "edge-comment-only",
+      "source": "// just a comment\n// it-format: 1.0",
+      "blocks": [],
+      "metadata": {
+        "language": "ltr"
+      },
+      "serialized": "// just a comment\n// it-format: 1.0",
+      "contentHash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "appearanceHash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "edge-empty",
+      "source": "",
+      "blocks": [],
+      "metadata": {},
+      "serialized": "",
+      "contentHash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "appearanceHash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lax": true,
+      "strict": true,
+      "issues": [
+        "DOCUMENT_NO_TITLE"
+      ]
+    },
+    {
+      "name": "hash-crlf-equals-lf",
+      "source": "title: Contract\r\ntext: The body that is hashed.",
+      "blocks": [
+        {
+          "content": "Contract",
+          "inline": [
+            {
+              "type": "text",
+              "value": "Contract"
+            }
+          ],
+          "originalContent": "Contract",
+          "type": "title"
+        },
+        {
+          "content": "The body that is hashed.",
+          "inline": [
+            {
+              "type": "text",
+              "value": "The body that is hashed."
+            }
+          ],
+          "originalContent": "The body that is hashed.",
+          "type": "text"
+        }
+      ],
+      "metadata": {
+        "language": "ltr",
+        "title": "Contract"
+      },
+      "serialized": "title: Contract\ntext: The body that is hashed.",
+      "contentHash": "sha256:f596af1e0b32c57def472d8ffd8b77289afbe98151567c640b1a84c6142f39a3",
+      "appearanceHash": "sha256:f596af1e0b32c57def472d8ffd8b77289afbe98151567c640b1a84c6142f39a3",
+      "lax": true,
+      "strict": true,
+      "issues": []
+    }
+  ]
+}

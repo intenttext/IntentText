@@ -22,7 +22,8 @@
     "keywords:check": "node scripts/check-keyword-consistency.cjs",
     "parity:check": "node scripts/check-consumer-parity.cjs",
     "check": "pnpm build && pnpm test && pnpm keywords:check && pnpm parity:check && pnpm pack:check",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "conformance:gen": "node scripts/gen-conformance-vectors.mjs"
   },
   "keywords": [
     "intenttext",
