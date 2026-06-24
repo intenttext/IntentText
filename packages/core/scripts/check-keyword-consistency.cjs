@@ -119,7 +119,7 @@ for (const lit of blockTypeLiterals) {
 // The source-of-truth count must never silently drift from what the docs/marketing
 // state. Bump this number here — and in every doc/comment that states it — in the
 // SAME commit that changes the canonical set. That is the point of the gate.
-const EXPECTED_CANONICAL_COUNT = 41;
+const EXPECTED_CANONICAL_COUNT = 40;
 const actualCount = canonicalKeywords.size;
 if (actualCount !== EXPECTED_CANONICAL_COUNT) {
   failures.push(

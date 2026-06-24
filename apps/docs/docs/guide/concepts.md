@@ -47,7 +47,7 @@ so natural source round-trips byte-for-byte. See [Bare prose](../reference/keywo
 
 ## 2. Keywords
 
-IntentText has a stable **41-keyword canonical contract**, plus localized keyword names and extension keywords for specialized domains.
+IntentText has a stable **40-keyword canonical contract**, plus localized keyword names and extension keywords for specialized domains.
 
 The canonical keywords are tiered — a small everyday **core** set plus opt-in profiles:
 
@@ -55,13 +55,13 @@ The canonical keywords are tiered — a small everyday **core** set plus opt-in 
 | --- | --- | --- |
 | **core** (13) | `title:` `summary:` `meta:` `section:` `sub:` `text:` `info:` `quote:` `code:` `image:` `link:` `task:` `done:` | Everyday documents: notes, READMEs, plans |
 | **agent** (9) | `step:` `decision:` `gate:` `trigger:` `result:` `policy:` `audit:` `ask:` `context:` | AI / workflow documents |
-| **contract** (9) | `track:` `approve:` `sign:` `freeze:` `certify:` `amendment:` `route:` `require:` `cite:` | Signed, frozen, auditable documents |
+| **contract** (8) | `track:` `approve:` `sign:` `freeze:` `certify:` `amendment:` `route:` `require:` | Signed, frozen, auditable documents |
 | **data** (3) | `headers:` `row:` `metric:` | Tabular / metric data |
 | **print** (7) | `page:` `header:` `footer:` `watermark:` `style:` `break:` `toc:` | Print / PDF layout |
 
 `headers:` is the canonical table-header keyword (write `headers:`; `columns:` is **not** reserved — it resolves to an ordinary custom block). `route:` and `require:` declare a document's in-file approval policy and `certify:` records an authority certification — all three are reserved contract-tier keywords (see [Approval Workflows](./approval-workflows) and [Trust & Signing](./trust-and-signing)).
 
-Beyond the canonical set: **localized keyword names** (33 Arabic keywords like `عنوان:` for `title:` that round-trip as written), **extension keywords** (`deadline:`, `contact:`, `def:`, `ref:`, `figure:`, and the `x-ns:` namespaces), and **custom keywords** — any `word: ...` line you invent parses as a typed `custom` block, never an error. There are **no synonym aliases**: every word that isn't a canonical keyword, an Arabic keyword, or a namespaced extension is reliably *your* custom block — collision-free, never silently reinterpreted.
+Beyond the canonical set: **localized keyword names** (32 Arabic keywords like `عنوان:` for `title:` that round-trip as written), **extension keywords** (`deadline:`, `contact:`, `def:`, `ref:`, `figure:`, and the `x-ns:` namespaces), and **custom keywords** — any `word: ...` line you invent parses as a typed `custom` block, never an error. There are **no synonym aliases**: every word that isn't a canonical keyword, an Arabic keyword, or a namespaced extension is reliably *your* custom block — collision-free, never silently reinterpreted.
 
 Every keyword has a purpose. Use `text:` for text, `task:` for trackable work, `metric:` for measurable values, `deadline:` for dates with consequences.
 

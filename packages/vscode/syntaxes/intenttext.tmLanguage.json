@@ -291,7 +291,7 @@
       }
     },
     "keyword-callout": {
-      "match": "^(text|info|cite)(:)\\s*(.*)",
+      "match": "^(text|info)(:)\\s*(.*)",
       "captures": {
         "1": {
           "name": "markup.italic.callout.intenttext"

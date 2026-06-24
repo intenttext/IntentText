@@ -73,7 +73,7 @@ prose), write it as explicit text: `text: total: 50`.
 Keywords and property keys are **Unicode words** (`\p{L}` letters, then letters/
 digits/`-`/`_`) — Arabic, Chinese, or any-script domain keywords parse as typed
 `custom` blocks exactly like ASCII ones (`مصروف: كراسي | فئة: أثاث` is a queryable
-`custom` block with keyword `مصروف`). The 41 canonical keywords themselves remain
+`custom` block with keyword `مصروف`). The 40 canonical keywords themselves remain
 English; **Arabic aliases ship in the registry** (e.g. عنوان→title, مهمة→task,
 صف→row, توقيع→sign), so an Arabic document gets full canonical semantics — one
 query (`type:task`) matches tasks across languages. Aliases are emitted AS WRITTEN
@@ -173,7 +173,7 @@ the reserved surface can stay small without losing extensibility.
 | --- | --- | --- |
 | **core** (13) | `title` `summary` `meta` `section` `sub` `text` `info` `quote` `code` `image` `link` `task` `done` | Everyday documents: notes, READMEs, plans |
 | **agent** (9) | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` | AI / workflow documents |
-| **contract** (9) | `track` `approve` `sign` `freeze` `certify` `amendment` `route` `require` `cite` | Signed, frozen, auditable documents (`history`/`revision` are machine-managed, not tier members) |
+| **contract** (8) | `track` `approve` `sign` `freeze` `certify` `amendment` `route` `require` | Signed, frozen, auditable documents (`history`/`revision` are machine-managed, not tier members) |
 | **data** (3) | `headers` `row` `metric` | Structured tabular / metric data |
 | **print** (7) | `toc` `page` `header` `footer` `watermark` `style` `break` | Print / PDF layout |
 

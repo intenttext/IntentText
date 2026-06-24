@@ -19,7 +19,7 @@ right-to-left, and seal the final version so it can be verified later.
 | Headings & prose             | `#`, `##`, bare text             | `section:` / `sub:`, bare text (`text:` is optional) |
 | Bold / italic / code         | Yes                              | Yes — same inline syntax                    |
 | Numbered, captioned figures  | No (raw `![]()` only)            | `figure:` — numbered, captioned, referenceable |
-| Citations / bibliography     | No                               | `cite:` builds a bibliography               |
+| Citations / bibliography     | No                               | `cite:` — queryable custom citation block (`keyword=cite`) |
 | Footnotes, epigraphs, byline | Extension-dependent              | `x-writer:` (`footnote`, `epigraph`, `byline`, `dedication`) |
 | Print / PDF layout           | No                               | `page:` / `font:` / `header:` / `footer:` → real PDF |
 | Themes                       | Depends on the renderer          | 8 built-in (editorial, warm, minimal, …)    |
@@ -38,12 +38,11 @@ You don't need to memorize the full language. Writers reach for these handful fi
 | Section heading    | `section:` |
 | Subsection heading | `sub:`     |
 | Quotation          | `quote:`   |
-| Citation           | `cite:`    |
 | Task item          | `task:`    |
 
 These are canonical keywords with guaranteed meaning. There are **no synonym aliases** — so any word that isn't reserved (like `note:`, `aside:`, `verse:`) is reliably *your own* custom block, never silently reinterpreted. That's the open vocabulary: invent a keyword and it's yours, collision-free.
 
-The canonical keywords also have **33 Arabic (localized) keyword names** (`عنوان:` for `title:`, `نص:` for `text:`, `اقتباس:` for `quote:`, …) — first-class names that resolve to the same canonical keyword and are re-emitted exactly as you wrote them, so an Arabic manuscript stays Arabic. See the [Keywords Reference](../reference/keywords/aliases).
+The canonical keywords also have **32 Arabic (localized) keyword names** (`عنوان:` for `title:`, `نص:` for `text:`, `اقتباس:` for `quote:`, …) — first-class names that resolve to the same canonical keyword and are re-emitted exactly as you wrote them, so an Arabic manuscript stays Arabic. See the [Keywords Reference](../reference/keywords/aliases).
 
 ## Write an article
 
@@ -67,7 +66,7 @@ cite: Open Formats in Enterprise | url: https://openstandards.org/example | auth
 
 ## Write in Arabic — a first-class manuscript story
 
-IntentText isn't English-with-a-translation-layer. The canonical keywords have **33 Arabic
+IntentText isn't English-with-a-translation-layer. The canonical keywords have **32 Arabic
 (localized) keyword names**, and they **round-trip as written** — an Arabic manuscript stays
 Arabic through parse, edit, and save (and a sealed Arabic document keeps its hash). Direction
 handles itself: set `dir: rtl` (or just use Arabic) and headers, two-sided rows, and lists flip.
@@ -163,7 +162,9 @@ The `font:` block sets the body `family`, `size`, and `leading`; `page:` sets th
 
 ## Citations and sources
 
-`cite:` blocks create a bibliography:
+`cite:` is a recommended custom keyword (it parses as a typed `custom` block, not a reserved
+keyword). Use it for citations and authority references — they render as labeled `[cite]`
+blocks and stay queryable by `keyword=cite`, so you can collect them across documents:
 
 ```intenttext
 cite: The Pragmatic Programmer | author: Hunt, Thomas | date: 2019 | url: https://pragprog.com/titles/tpp20/

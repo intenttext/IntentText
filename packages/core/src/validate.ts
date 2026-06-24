@@ -350,17 +350,6 @@ export function validateDocumentSemantic(
       }
     }
 
-    // cite: should have either content (title) or a url
-    if (block.type === "cite" && !block.content && !block.properties?.url) {
-      issues.push({
-        blockId: block.id,
-        blockType: "cite",
-        type: "warning",
-        code: "CITE_MISSING_TITLE",
-        message: "cite block has no title and no url",
-      });
-    }
-
     // input: should have a name (content)
     if (eType === "input" && !block.content) {
       issues.push({

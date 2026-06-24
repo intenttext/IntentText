@@ -23,7 +23,7 @@ manual install.
 ### Syntax highlighting
 
 IntentText keywords and template markers are highlighted with semantic coloring. Only
-**reserved** words are colored — the 41 canonical keywords, the 33 Arabic localized keyword
+**reserved** words are colored — the 40 canonical keywords, the 32 Arabic localized keyword
 names, and the namespaced extension keywords. The Latin synonym aliases older versions shipped
 (`note`, `warning`, `tip`, `columns`, …) have been removed, so they highlight as ordinary
 custom keywords — which is exactly what they now are:
@@ -31,7 +31,7 @@ custom keywords — which is exactly what they now are:
 | Category          | Color  | Keywords                                                                               |
 | ----------------- | ------ | -------------------------------------------------------------------------------------- |
 | Document identity | Blue   | title, summary, meta, track                                                            |
-| Content           | Green  | text, info, quote, code, image, link, cite, task, done (+ x-doc/x-writer: def, figure, contact) |
+| Content           | Green  | text, info, quote, code, image, link, task, done (+ x-doc/x-writer: def, figure, contact) |
 | Structure         | Purple | section, sub, break, toc (+ x-doc: ref, deadline)                                       |
 | Data              | Orange | headers, row, metric (+ x-form: input, output)                                         |
 | Agent             | Red    | context, ask, step, decision, gate, trigger, result, policy, audit (+ x-agent: memory, prompt, tool, error) |

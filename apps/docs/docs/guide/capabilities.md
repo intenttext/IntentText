@@ -19,9 +19,9 @@ trail. No second system to keep in sync.
 
 | Capability | What it is | Docs |
 | --- | --- | --- |
-| **Keyword model** | 41 canonical keywords give every line a purpose; tiered core / agent / contract / data / print | [Concepts](./concepts) · [Keywords](../reference/keywords/index.md) |
+| **Keyword model** | 40 canonical keywords give every line a purpose; tiered core / agent / contract / data / print | [Concepts](./concepts) · [Keywords](../reference/keywords/index.md) |
 | **Bare prose** | `text:` is optional — write natural prose, reach for keywords only when a line needs meaning | [Bare prose](../reference/keywords/content#bare-prose--text-is-optional) |
-| **Arabic keywords** | 33 localized keyword names (`عنوان:`, `مهمة:`) that resolve to the canonical keyword and round-trip as written | [Localized keywords](../reference/keywords/aliases) |
+| **Arabic keywords** | 32 localized keyword names (`عنوان:`, `مهمة:`) that resolve to the canonical keyword and round-trip as written | [Localized keywords](../reference/keywords/aliases) |
 | **Custom keywords** | Any non-reserved `word: …` line parses as a typed `custom` block — never an error, never reinterpreted (zero synonym aliases = collision-free) | [Concepts §2](./concepts) |
 | **Sections** | `section:` (H2) / `sub:` (H3) group blocks; `toc:` builds a table of contents | [Structure](../reference/keywords/structure) |
 | **Inline formatting** | `*bold*`, `_italic_`, `~strike~`, `` `code` ``, dates, mentions, tags, footnote refs | [Style properties](../reference/style-properties#inline-formatting) |

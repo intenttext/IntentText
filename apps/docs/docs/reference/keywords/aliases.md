@@ -7,8 +7,8 @@ title: Localized (Arabic) Keywords
 
 IntentText has **no Latin synonym aliases**. There is no `note:` that secretly means `text:`,
 no `columns:` that secretly means `headers:`, no `warning:` keyword. The only reserved words
-are the [41 canonical English keywords](../keywords), the [namespaced extension keywords](../keywords#extension-keywords)
-(`x-writer:`/`x-doc:`/`x-agent:`/`x-form:`/`x-layout:`/`x-exp:`), and the **33 Arabic
+are the [40 canonical English keywords](../keywords), the [namespaced extension keywords](../keywords#extension-keywords)
+(`x-writer:`/`x-doc:`/`x-agent:`/`x-form:`/`x-layout:`/`x-exp:`), and the **32 Arabic
 localized keyword names** documented on this page. Every other word you write is reliably
 **your own custom block** — collision-free, never silently reinterpreted as something else.
 
@@ -40,7 +40,7 @@ block's `type` is literally `custom`. See [Custom keywords](../keywords#extensio
 
 ## Write a document in Arabic
 
-The canonical keywords ship with **33 registered Arabic localized names**. An Arabic document gets
+The canonical keywords ship with **32 registered Arabic localized names**. An Arabic document gets
 full canonical semantics, and the serializer re-emits keywords **as written** — so Arabic
 documents stay Arabic through a parse → serialize cycle, and a sealed Arabic document keeps its
 hash.
@@ -66,7 +66,7 @@ Every line above is a fully typed block: `عنوان` is a `title`, `مهمة` i
 used, so an Arabic document stays Arabic through a parse → serialize cycle — and a sealed Arabic
 document keeps its hash. Table keywords (`أعمدة`/`صف`) are preserved too.
 
-## The 33 Arabic localized keyword names
+## The 32 Arabic localized keyword names
 
 Each Arabic name resolves to the canonical keyword shown beside it. Two Arabic names
 (`جهة` and `تواصل`) both localize `contact:`, which is why 33 names cover 32 distinct
@@ -82,15 +82,14 @@ targets.
 | `نص:`      | `text:`      | | `صفحة:`    | `page:`     |
 | `تنبيه:`   | `info:`      | | `ترويسة:`  | `header:`   |
 | `اقتباس:`  | `quote:`     | | `تذييل:`   | `footer:`   |
-| `استشهاد:` | `cite:`      | | `علامة:`   | `watermark:`|
-| `شيفرة:`   | `code:`      | | `نمط:`     | `style:`    |
-| `صورة:`    | `image:`     | | `فاصل:`    | `break:`    |
-| `رابط:`    | `link:`      | | `مهلة:`    | `deadline:` |
-| `مهمة:`    | `task:`      | | `جهة:`     | `contact:`  |
-| `منجز:`    | `done:`      | | `تواصل:`   | `contact:`  |
-| `أعمدة:`   | `headers:`   | | `تعريف:`   | `def:`      |
-| `صف:`      | `row:`       | | `مرجع:`    | `ref:`      |
-| `مؤشر:`    | `metric:`    | |            |             |
+| `شيفرة:`   | `code:`      | | `علامة:`   | `watermark:`|
+| `صورة:`    | `image:`     | | `نمط:`     | `style:`    |
+| `رابط:`    | `link:`      | | `فاصل:`    | `break:`    |
+| `مهمة:`    | `task:`      | | `مهلة:`    | `deadline:` |
+| `منجز:`    | `done:`      | | `جهة:`     | `contact:`  |
+| `أعمدة:`   | `headers:`   | | `تواصل:`   | `contact:`  |
+| `صف:`      | `row:`       | | `تعريف:`   | `def:`      |
+| `مؤشر:`    | `metric:`    | | `مرجع:`    | `ref:`      |
 
 Beyond these localized names, **keywords and property keys are Unicode words** — any Arabic (or
 any-script) domain keyword parses as a typed `custom` block: `مصروف: كراسي مكتب | المورد: ايكيا | فئة: أثاث`

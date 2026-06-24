@@ -6,13 +6,13 @@ files correctly. One `.it` file is simultaneously: a human-readable document, a
 queryable typed database, a print/PDF-ready artifact, and a tamper-evident signable
 record.
 
-CORE PRINCIPLE — OPEN VOCABULARY: .it has NO fixed schema. The 41 reserved keywords (§2)
+CORE PRINCIPLE — OPEN VOCABULARY: .it has NO fixed schema. The 40 reserved keywords (§2)
 have stable, guaranteed meaning, but they are NOT a whitelist. Inventing your own domain
 keywords — clause:, risk:, obligation:, sla:, warranty:, expense: — is normal,
 first-class, and ENCOURAGED whenever no reserved keyword fits. Custom keywords parse, render,
 seal, and query exactly like reserved ones (§2c). A real document freely MIXES reserved and
 custom keywords; do NOT restrict yourself to the reserved set — that makes documents poorer.
-ZERO ALIASES: the ONLY reserved words are the 41 canonical keywords (§2), their Arabic localized
+ZERO ALIASES: the ONLY reserved words are the 40 canonical keywords (§2), their Arabic localized
 names (§12), and the namespaced extension keywords (§2b). There are NO synonym aliases — so
 party:, milestone:, status:, note:, item:, requirement:, due:, rule:, kpi: and any other word
 you invent resolve RELIABLY to your own custom block, never silently reinterpreted as something else.
@@ -82,7 +82,7 @@ A non-empty line is one of two things:
   is a typed, queryable block. Dates stay ISO (2026-03-09) regardless of language.
 - `x-ns:` prefixed keywords are namespaced extensions (e.g. `x-layout: divider`).
 
-## 2. The 41 canonical keywords, by tier
+## 2. The 40 canonical keywords, by tier
 
 CORE tier (13 — a plain document needs only these):
   title:    Document title (one per doc).            title: Service Agreement
@@ -122,8 +122,7 @@ COMMON x-doc EXTENSION BLOCKS (everyday, but NOT among the 41 — namespaced, se
   deadline: Dated obligation.                        deadline: Payment due | date: 2026-03-20 | consequence: late fee
   ref:      Cross-document reference (target in file: or url:, NOT to:).  ref: QT-104 | file: quotations/qt-104.it
 
-CONTRACT (trust) tier (9):
-  cite:     Citation / authority reference.          cite: ISO 27001:2022 | section: A.9
+CONTRACT (trust) tier (8):
   track:    Start version tracking.                  track: | id: DOC-1 | by: Ahmed
   approve:  Named approval (HASHED with body).       approve: Legal ok | by: Sara | role: Counsel | at: 2026-03-28
   sign:     Signature. A CONFORMANT sign: carries hash: + at: — the hash is added when you
@@ -160,7 +159,7 @@ PRINT (layout) tier (7):
 
 ## 2b. Extensions — namespaced keywords (x-ns:)
 
-Beyond the 41 reserved keywords, specialized blocks use an `x-<namespace>:` prefix (the bare
+Beyond the 40 reserved keywords, specialized blocks use an `x-<namespace>:` prefix (the bare
 form is also accepted); they parse, render, and query like any block.
   x-writer:  byline figure caption footnote epigraph dedication      (editorial)
   x-doc:     def contact deadline ref signline attach                (definitions, parties, cross-refs, attachments)
@@ -178,7 +177,7 @@ Examples:
 
 ## 2c. Custom keywords — the OPEN VOCABULARY (a first-class feature — use it freely)
 
-The 41 reserved keywords are NOT a whitelist. ANY word: that is not reserved parses as a typed,
+The 40 reserved keywords are NOT a whitelist. ANY word: that is not reserved parses as a typed,
 queryable `custom` block that keeps its keyword verbatim (case + script preserved). Inventing a
 precise domain keyword is IDIOMATIC and ENCOURAGED — reach for one whenever no reserved keyword
 fits, instead of flattening the concept into text:/info:. All of these are first-class blocks:
@@ -192,7 +191,7 @@ fits, instead of flattening the concept into text:/info:. All of these are first
 Query a custom keyword by NAME — `keyword=clause` — NOT `type=clause`: every custom block's `type`
 is literally `custom` (the word lives in properties.keyword), so `type=custom` matches them ALL and
 `keyword=clause` matches one kind. NO ALIAS COLLISIONS: there are no synonym aliases, so a word is
-custom UNLESS it is one of the 41 canonical (§2), an Arabic localized name (§12), or a namespaced
+custom UNLESS it is one of the 40 canonical (§2), an Arabic localized name (§12), or a namespaced
 extension keyword (§2b: def, contact, deadline, ref, signline, attach, figure, byline, input, …).
 That means party:, milestone:, rule:, status:, note:, item:, due:, kpi: are all ordinary custom
 blocks — never silently reinterpreted. Everything you invent is yours: unknown keywords NEVER
@@ -543,10 +542,10 @@ TWO-SIDED ROWS + SPACING (1.1):
   text-bearing block, or document-wide: `style: text | leading: 1.9`.
 - RTL: any Arabic content makes the document RTL automatically; all layout
   mirrors via CSS logical properties. Write Arabic documents naturally.
-ARABIC KEYWORDS (33 first-class localized keyword names — NOT aliases; write whole documents in
+ARABIC KEYWORDS (32 first-class localized keyword names — NOT aliases; write whole documents in
 Arabic; keywords round-trip AS WRITTEN, so Arabic files stay Arabic and sealed hashes hold):
   عنوان=title  ملخص=summary  بيانات=meta  قسم=section  فرعي=sub  نص=text
-  تنبيه=info  اقتباس=quote  استشهاد=cite  شيفرة=code  صورة=image  رابط=link
+  تنبيه=info  اقتباس=quote  شيفرة=code  صورة=image  رابط=link
   مهمة=task  منجز=done  أعمدة=columns  صف=row  مؤشر=metric  تتبع=track
   اعتماد=approve  توقيع=sign  تجميد=freeze  تعديل=amendment  صفحة=page
   ترويسة=header  تذييل=footer  علامة=watermark  نمط=style  فاصل=break
@@ -574,7 +573,7 @@ non-conformant. Full curated list: RECOMMENDED-KEYWORDS.md
 
 1. A reserved keyword exists? USE IT — don't reinvent: task: (not todo:/action:), decision:
    (not decided:), metric: (not kpi:/total:), info: (not note:/warning:), sign: (not
-   signature:), cite: (not source:), headers:/row: (not table:/columns:).
+   signature:), headers:/row: (not table:/columns:).
 2. No reserved keyword but a common concept? Reach for the conventional custom word before
    inventing a synonym:
    - contracts/legal: clause obligation warranty liability indemnity term party jurisdiction governing-law penalty

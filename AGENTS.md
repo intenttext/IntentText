@@ -59,7 +59,7 @@ task: Send invoice | owner: Finance | due: 2026-07-01
 6. **Never invent syntax.** Any `word: …` you don't find below still parses as a typed
    `custom` block (the *unknown-keyword guarantee*) — so domain keywords are safe, but use
    the canonical keyword when one fits. There are **zero synonym aliases**: a word is custom
-   UNLESS it is one of the 41 canonical keywords, one of the 33 Arabic (localized) keyword
+   UNLESS it is one of the 40 canonical keywords, one of the 32 Arabic (localized) keyword
    names, or a namespaced extension keyword — so `party:`, `milestone:`, `note:`, `status:`, `due:`,
    `kpi:` reliably resolve to *your* block, never silently reinterpreted (collision-free).
 7. **NEVER reformat an existing `.it` file.** See §6 — the bytes are sacred.
@@ -68,13 +68,13 @@ task: Send invoice | owner: Finance | due: 2026-07-01
 
 ## 3. The complete keyword set
 
-**41 canonical keywords**, by category. Use these first.
+**40 canonical keywords**, by category. Use these first.
 
 | Category | Keywords |
 | --- | --- |
 | **Identity** | `title:` `summary:` `meta:` `context:` |
 | **Structure** | `section:` `sub:` `toc:` |
-| **Content** | `text:` `info:` `quote:` `cite:` `code:` `image:` `link:` |
+| **Content** | `text:` `info:` `quote:` `code:` `image:` `link:` |
 | **Tasks** | `task:` `done:` `ask:` |
 | **Data** | `headers:` `row:` `metric:` |
 | **Agent/workflow** | `step:` `decision:` `gate:` `trigger:` `result:` `policy:` `audit:` `route:` `require:` |
@@ -89,7 +89,7 @@ history), `revision:` (a history entry), `---` (divider).
 set `loop:` `parallel:` `retry:` `wait:` `handoff:` `call:` `checkpoint:` `error:`, and the
 `x-writer:` / `x-doc:` / `x-agent:` namespaces.
 
-**Localized keyword names** resolve to canonical and **round-trip as written** — the 33 Arabic
+**Localized keyword names** resolve to canonical and **round-trip as written** — the 32 Arabic
 (localized) keyword names (`عنوان:`→`title`, `مهمة:`→`task`, `صف:`→`row`, `توقيع:`→`sign`, …).
 There are **NO synonym aliases**: words like `todo:`, `note:`, `warning:`, `tip:`, `danger:`,
 `success:`, `milestone:`, `due:`, `columns:` are ordinary `custom` blocks, NOT shorthands.

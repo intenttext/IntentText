@@ -147,10 +147,11 @@ quote: All documents should be machine-readable from birth. | by: IntentText Man
 
 ---
 
-## `cite:`
+## `cite:` (recommended custom keyword)
 
-**Category:** Content
-**Arabic:** `استشهاد:`
+**Category:** Content (recommended convention)
+
+`cite:` is a **recommended custom keyword** (see [RECOMMENDED-KEYWORDS.md](https://github.com/intenttext/IntentText/blob/main/RECOMMENDED-KEYWORDS.md)), **not** a reserved/canonical keyword — it was demoted from the canonical set in core 3.0.0. It parses as a typed `custom` block (`type: "custom"`, `keyword: "cite"`), renders as a `[cite]` labeled block, and stays queryable by `keyword=cite`.
 
 Bibliographic citation with author, date, and URL.
 

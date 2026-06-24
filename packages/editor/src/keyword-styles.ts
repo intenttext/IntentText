@@ -118,12 +118,6 @@ export const KEYWORD_STYLES: Record<string, StyleRule[]> = {
     direct("padding", "paddingLeft"),
     direct("bgcolor", "backgroundColor"),
   ],
-  cite: [
-    direct("align", "textAlign"),
-    direct("color", "color"),
-    direct("size", "fontSize"),
-    { property: "style", css: "fontStyle" },
-  ],
   def: [
     direct("color", "color"),
     direct("bgcolor", "backgroundColor"),

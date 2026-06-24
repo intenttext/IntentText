@@ -4,11 +4,12 @@ import { renderHTML } from "../src/renderer";
 import { effectiveField } from "../src/defaults";
 
 describe("v2.13 Language registry — new block types", () => {
-  it("parses cite: as its own block type with properties", () => {
+  it("parses cite: as a custom block (demoted to a recommended keyword in 3.0.0)", () => {
     const doc = parseIntentText(
       "cite: The Pragmatic Programmer | author: Hunt | date: 2019",
     );
-    expect(doc.blocks[0].type).toBe("cite");
+    expect(doc.blocks[0].type).toBe("custom");
+    expect(doc.blocks[0].properties?.keyword).toBe("cite");
     expect(doc.blocks[0].content).toBe("The Pragmatic Programmer");
     expect(doc.blocks[0].properties?.author).toBe("Hunt");
     expect(doc.blocks[0].properties?.date).toBe("2019");
@@ -147,14 +148,14 @@ describe("v2.13 Language registry — {label} inline syntax", () => {
 });
 
 describe("v2.13 Language registry — renderer", () => {
-  it("renders cite: block with expected classes", () => {
+  it("renders cite: as a custom block with its keyword label (demoted in 3.0.0)", () => {
     const doc = parseIntentText(
       "cite: The Art of War | author: Sun Tzu | url: https://example.com",
     );
     const html = renderHTML(doc);
-    expect(html).toContain("it-cite");
-    expect(html).toContain("it-cite-title");
-    expect(html).toContain("it-cite-author");
+    expect(html).toContain("intent-custom-cite");
+    expect(html).toContain("[cite]");
+    expect(html).toContain("The Art of War");
   });
 
   it("renders input: block with expected classes", () => {

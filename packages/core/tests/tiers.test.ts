@@ -32,8 +32,8 @@ describe("keyword tiers (v4.1)", () => {
   });
 
   it("honors per-keyword overrides", () => {
-    const cite = LANGUAGE_REGISTRY.find((k) => k.canonical === "cite")!;
-    expect(tierOf(cite)).toBe("contract"); // override: content -> contract
+    const route = LANGUAGE_REGISTRY.find((k) => k.canonical === "route")!;
+    expect(tierOf(route)).toBe("contract"); // override: agent -> contract
     const task = LANGUAGE_REGISTRY.find((k) => k.canonical === "task")!;
     expect(tierOf(task)).toBe("core"); // override: agent -> core
   });

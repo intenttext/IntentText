@@ -30,8 +30,8 @@ IntentText is a plain-text document format that uses **keywords** to give every 
 
 ## What you get
 
-- **Canonical + extension language model** — 41 stable canonical keywords, plus localized keyword names and namespaced extension keywords
-- **Localized keyword names** — 33 Arabic keywords (`عنوان:`, `مهمة:`, `صف:`, …) ship in core, resolve to the canonical keyword, and round-trip as written
+- **Canonical + extension language model** — 40 stable canonical keywords, plus localized keyword names and namespaced extension keywords
+- **Localized keyword names** — 32 Arabic keywords (`عنوان:`, `مهمة:`, `صف:`, …) ship in core, resolve to the canonical keyword, and round-trip as written
 - **Zero synonym aliases** — any non-reserved word is reliably *your* custom keyword, never silently reinterpreted; the open vocabulary is collision-free by design
 - **8 built-in themes** — corporate, minimal, warm, technical, print, legal, editorial, dark
 - **Full trust system** — approve, sign, seal, verify, certify, amend; a seal that survives restyling

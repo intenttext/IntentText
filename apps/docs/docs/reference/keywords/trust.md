@@ -5,14 +5,13 @@ title: Trust Keywords
 
 # Trust Keywords
 
-The canonical **contract** tier holds 9 keywords for document integrity, authority, and
+The canonical **contract** tier holds 8 keywords for document integrity, authority, and
 in-file approval routing: `track:`, `approve:`, `sign:`, `freeze:`, `amendment:`, `certify:`,
-`route:`, `require:`, and `cite:`. This page documents the trust and routing keywords —
+`route:`, and `require:`. This page documents the trust and routing keywords —
 tracking versions, recording approvals, signing with hash verification, sealing against
 modification, formally amending sealed documents, certifying an authority identity, and
-declaring an in-file approval policy with `route:`/`require:`. (`cite:` is documented with
-[content keywords](./content); the machine-managed `x-trust: history`/`x-trust: revision`
-blocks live below the audit-log boundary.)
+declaring an in-file approval policy with `route:`/`require:`. (The machine-managed
+`x-trust: history`/`x-trust: revision` blocks live below the audit-log boundary.)
 
 ## `track:`
 

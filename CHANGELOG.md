@@ -6,13 +6,33 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
-### Planned — next major (`@dotit/core` 3.0.0)
+## [3.0.0] — 2026-06-24 — the final major
 
-- **Demote `cite` → recommended custom keyword** (see `RECOMMENDED-KEYWORDS.md`). It is the
-  thinnest reserved keyword — only a trivial presence-warning and no styling — so it costs
-  nothing in the core. Deferred from 2.0.x because removing a reserved word is **breaking**
-  (`type=cite` queries → `keyword=cite`) and not worth a standalone major; it will ship in the
-  next 3.0.0, dropping the count **41 → 40** (contract tier 9 → 8) and its Arabic name (33 → 32).
+The format is frozen here. From now on, changes ship as **3.x minor/patch** — there is no
+planned 4.0.0 except a possible future Rust→WASM engine (see
+`assessment/RUST-WASM-CORE-PLAN.md`), which would be 4.0.0.
+
+### Changed (breaking)
+
+- **Demoted `cite` → a recommended custom keyword.** The reserved set is now **40 canonical**
+  (contract tier 8) + **32 Arabic localized names**. `cite:` still parses — as a `custom` block,
+  queryable by `keyword=cite`, rendered `[cite]` — and is listed in `RECOMMENDED-KEYWORDS.md`,
+  but it is no longer reserved, so `type=cite` queries become `keyword=cite`. cite was the
+  thinnest reserved keyword (one presence-warning, no styling); this is the single deliberate
+  breaking change the freeze allowed, done now because a final format has no "later major" to
+  defer it to. Seals are unaffected (the seal hashes source bytes, which don't change).
+
+### Added / fixed (non-breaking, folded into the major)
+
+- Friendlier `INVALID_PROPERTY_SEGMENT` diagnostics — they now suggest escaping a literal pipe
+  as `\|`.
+- `@dotit/editor` escapes a literal `|`/`\` typed in body text (idempotent), so a typed pipe
+  round-trips as `\|` instead of silently splitting the line.
+
+### Ecosystem
+
+- `@dotit/core`, `@dotit/sign`, `@dotit/pdf`, `@dotit/editor`, `@dotit/mcp` all published at
+  **3.0.0**; dependents re-pinned to `^3.0.0`; the VSCode extension rebuilt against core 3.0.0.
 
 ## [2.0.0 – 2.0.5] — 2026-06-24
 

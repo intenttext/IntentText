@@ -53,7 +53,7 @@ A person reads that at a glance. A machine sees typed blocks — the `deadline:`
 one command — **no database, no export step** — and that same file can be sealed with a
 SHA-256 hash anyone can recompute to prove it hasn't changed.
 
-**The format is small and open:** 13 everyday core keywords (41 reserved in total across
+**The format is small and open:** 13 everyday core keywords (40 reserved in total across
 opt-in profiles), and **any other word is a valid keyword too** — `expense:`, `risk:`,
 `مصروف:` all parse as typed, queryable blocks. With **zero synonym aliases**, any word that
 isn't reserved is reliably *yours* — `party:`, `milestone:`, `note:`, `status:` are never
@@ -152,7 +152,7 @@ A single `.it` file is simultaneously **five** things:
   word stays a typed, queryable `custom` block** — so domain vocabularies (`مصروف:`, `risk:`,
   `skill:`) are first-class without bloating the format.
 
-And it is **Arabic-native**: 33 Arabic (localized) keyword names (`عنوان`→title, `مهمة`→task,
+And it is **Arabic-native**: 32 Arabic (localized) keyword names (`عنوان`→title, `مهمة`→task,
 `توقيع`→sign, …), automatic RTL, and keywords round-trip **as written** — a sealed Arabic
 document keeps its hash, and one query (`--type task`) finds tasks across languages.
 
@@ -338,7 +338,7 @@ The TypeScript core is the single canonical implementation of the grammar (see
 
 ## Status
 
-`@dotit/core` is **1.x** and the format is **frozen** at this line: **13 core / 41 reserved
+`@dotit/core` is **1.x** and the format is **frozen** at this line: **13 core / 40 reserved
 keywords**, `SEAL_SPEC = 4`, with CI gates that fail the build on any keyword-count or
 SEAL_SPEC drift, any registry↔grammar mismatch, a round-trip/byte-preservation regression, or a
 sealed example whose seal no longer verifies. Documents that parsed under earlier versions parse

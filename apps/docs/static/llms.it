@@ -1,11 +1,11 @@
 // it-format: 1.0
 title: IntentText (.it) — Format Reference for LLMs
 summary: The canonical machine reference, written in the format it documents (.it). A faithful companion to /llms.txt.
-meta: | type: reference | audience: llm | format: it | spec: 4 | canonical-keywords: 41
+meta: | type: reference | audience: llm | format: it | spec: 4 | canonical-keywords: 40
 
 After reading this file you can author, edit, and reason about `.it` files correctly. One `.it` file is simultaneously a human-readable document, a queryable typed database, a print/PDF-ready artifact, and a tamper-evident signable record. This is the SAME reference as /llms.txt, expressed in IntentText itself — every example below is real `.it`.
 
-info: OPEN VOCABULARY — .it has NO fixed schema. The 41 reserved keywords have stable, guaranteed meaning, but they are NOT a whitelist. Inventing your own domain keywords (clause:, risk:, obligation:, sla:, warranty:, expense:) is normal, first-class, and ENCOURAGED whenever no reserved keyword fits. ZERO ALIASES: the only reserved words are the 41 canonical keywords, their 33 Arabic localized names, and the namespaced extension keywords — every other word resolves RELIABLY to your own custom block, never silently reinterpreted. | type: success
+info: OPEN VOCABULARY — .it has NO fixed schema. The 40 reserved keywords have stable, guaranteed meaning, but they are NOT a whitelist. Inventing your own domain keywords (clause:, risk:, obligation:, sla:, warranty:, expense:) is normal, first-class, and ENCOURAGED whenever no reserved keyword fits. ZERO ALIASES: the only reserved words are the 40 canonical keywords, their 32 Arabic localized names, and the namespaced extension keywords — every other word resolves RELIABLY to your own custom block, never silently reinterpreted. | type: success
 
 link: Companion plain-text reference | to: https://dotit.uts.qa/llms.txt
 Site https://dotit.uts.qa · npm @dotit/core · Editor https://editor.uts.qa · Verify https://verify.uts.qa (UTS certification service api.uts.qa)
@@ -38,7 +38,7 @@ A non-empty line is either PLAIN PROSE — a bare line of body text (type `text`
 - Unknown keywords NEVER error — they parse as `type: custom` with the keyword preserved, queryable. You can — and SHOULD — invent precise domain keywords freely.
 - Keywords and property keys are UNICODE words; Arabic domain keywords work exactly like ASCII ones. Dates stay ISO (2026-03-09) regardless of language.
 
-section: 2. The 41 canonical keywords, by tier
+section: 2. The 40 canonical keywords, by tier
 
 sub: CORE tier (13)
 title summary meta section sub text info quote code image link task done — a plain document needs only these.
@@ -70,11 +70,10 @@ headers: Description | Qty | Total
 row: Consulting | 40 | 6000
 ```
 
-sub: CONTRACT (trust) tier (9) — cite track approve sign freeze amendment certify route require
+sub: CONTRACT (trust) tier (8) — track approve sign freeze amendment certify route require
 A conformant sign: carries hash: (added by sealing) + at:. For recorded pre-seal sign-offs use approve:; a bare `sign: Name` (no hash:) is flagged by checkConformance. history:/revision: live below the audit-log boundary (machine-managed, not tier members).
 
 ```intenttext
-cite: ISO 27001:2022 | section: A.9
 track: | id: DOC-1 | by: Ahmed
 approve: Legal ok | by: Sara | role: Counsel | at: 2026-03-28
 freeze: | at: 2026-03-30 | hash: sha256:... | status: locked
@@ -268,7 +267,7 @@ section: 11. Generation rules (follow these exactly)
 
 1. ` | ` (space-pipe-space) is the property delimiter. For a LITERAL pipe escape it `\|` (literal backslash `\\`). Colons inside content/values need no escaping.
 2. One intent per line. No HTML, no Markdown headings (#), no raw CSS.
-3. Use semantic keywords over text: — a task is task:, a decision is decision:, money totals are metric:. When a concept is precise but has NO reserved keyword, INVENT a domain one (clause:, risk:, obligation:, sla:, warranty:) — custom keywords are idiomatic, typed, queryable; never a last resort. Lean on the open vocabulary; don't confine output to the 41.
+3. Use semantic keywords over text: — a task is task:, a decision is decision:, money totals are metric:. When a concept is precise but has NO reserved keyword, INVENT a domain one (clause:, risk:, obligation:, sla:, warranty:) — custom keywords are idiomatic, typed, queryable; never a last resort. Lean on the open vocabulary; don't confine output to the 40.
 4. Dates: ISO 8601 (2026-04-01 or 2026-04-01T09:00:00Z).
 5. Tables: keep header and rows the same column count; pad a short row with an empty cell `| |`; each: goes on the header row.
 6. Styled spans use `;` between props.
@@ -277,13 +276,13 @@ section: 11. Generation rules (follow these exactly)
 9. Don't invent style values (only §4 keys) or trust hashes/sigs (only sealDocument()/@dotit/sign compute valid ones; verify with verifyDocument()/verifyCryptoSignatures()/verifyCertifications()).
 10. Receipts: `page: | size: 80mm auto | margin: 4mm`, 2-3 narrow columns.
 
-section: 12. Arabic — first-class localized keyword names (33)
+section: 12. Arabic — first-class localized keyword names (32)
 
 The Arabic names are NOT aliases — they are localized keyword NAMES that resolve to the same canonical keyword, with the same rendering, query semantics, and seal coverage. Write a whole document in Arabic and still get full canonical behavior; one cross-language query (type=task) finds tasks in any language. Keywords round-trip AS WRITTEN, so Arabic files stay Arabic and sealed hashes hold. Property keys stay English (owner:, due:, value:); dates stay ISO.
 
 ```text
 عنوان=title  ملخص=summary  بيانات=meta  قسم=section  فرعي=sub  نص=text
-تنبيه=info  اقتباس=quote  استشهاد=cite  شيفرة=code  صورة=image  رابط=link
+تنبيه=info  اقتباس=quote  شيفرة=code  صورة=image  رابط=link
 مهمة=task  منجز=done  أعمدة=headers  صف=row  مؤشر=metric  تتبع=track
 اعتماد=approve  توقيع=sign  تجميد=freeze  تعديل=amendment  صفحة=page
 ترويسة=header  تذييل=footer  علامة=watermark  نمط=style  فاصل=break
@@ -303,7 +302,7 @@ section: 13. Recommended keywords (best practice — NOT reserved, NOT required)
 
 The keyword set is open, so for cross-document query interop teams should converge on the SAME word for the same concept. This is convention only — ignoring it never makes a document non-conformant. Full curated list: RECOMMENDED-KEYWORDS.md.
 
-- A reserved keyword exists? USE IT, don't reinvent: task: (not todo:), decision: (not decided:), metric: (not kpi:), info: (not note:), sign: (not signature:), cite: (not source:), headers:/row: (not table:).
+- A reserved keyword exists? USE IT, don't reinvent: task: (not todo:), decision: (not decided:), metric: (not kpi:), info: (not note:), sign: (not signature:), headers:/row: (not table:).
 - No reserved keyword but a common concept? Reach for the conventional word: contracts/legal — clause, obligation, warranty, liability, indemnity, term, party, jurisdiction, governing-law, penalty; projects — milestone, deliverable, dependency, blocker, scope, objective, assumption, constraint, requirement, risk; risk/compliance — control, finding, mitigation, incident; service/finance — sla, stakeholder, payment, expense, fee; agent memory — fact, entity, preference, belief, question, lesson, skill; meetings — attendee, agenda.
 - Genuinely domain-specific? Invent freely — lowercase, hyphen-joined, singular (delivery-term, not delivery_term or DeliveryTerms).
 

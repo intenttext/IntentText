@@ -801,21 +801,6 @@ function renderBlock(block: IntentBlock): string {
       return `<blockquote class="intent-quote"><p>${content}</p>${attribution}</blockquote>`;
     }
 
-    case "cite": {
-      const citeAuthor = props.author
-        ? `<span class="it-cite-author">${escapeHtml(String(props.author))}</span>`
-        : "";
-      const citeDate = props.date
-        ? `<span class="it-cite-date">${escapeHtml(String(props.date))}</span>`
-        : "";
-      const citeUrl = props.url
-        ? ` href="${escapeHtml(sanitizeUrl(String(props.url)))}"`
-        : "";
-      const citeTitle = citeUrl
-        ? `<a class="it-cite-title"${citeUrl} target="_blank" rel="noopener noreferrer">${content}</a>`
-        : `<span class="it-cite-title">${content}</span>`;
-      return `<div class="it-cite">${citeTitle}${citeAuthor ? ` — ${citeAuthor}` : ""}${citeDate ? `, ${citeDate}` : ""}</div>`;
-    }
 
     case "image":
       const imgSrc = escapeHtml(

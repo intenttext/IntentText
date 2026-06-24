@@ -44,7 +44,7 @@ browser are marked.
 7. `sealDocument` freezes the **content** under a versioned SHA-256 hash anyone can
    recompute (presentation is excluded — restyling never breaks a seal);
    `verifyDocument` detects any later content, signature, or seal-metadata edit.
-8. Arabic is native: 33 Arabic keyword aliases, automatic RTL, bidi-isolated values,
+8. Arabic is native: 32 Arabic keyword aliases, automatic RTL, bidi-isolated values,
    byte-stable round-trips.
 9. A folder of `.it` files is a database: `dotit query ./contracts --type deadline`.
 10. Everything is MIT, plain text, diffable, greppable, versionable in git.
@@ -89,13 +89,13 @@ keyword: content | prop: value | prop: value
 - Keywords and property keys are Unicode words: Arabic (or any-script) domain
   keywords work exactly like ASCII ones. `x-ns:` prefixes are namespaced extensions.
 
-### 2.2 The reserved keywords — 13 core + opt-in profiles (41 total), by tier
+### 2.2 The reserved keywords — 13 core + opt-in profiles (40 total), by tier
 
 | Tier | Keywords | Use for |
 | --- | --- | --- |
 | **core** | `title` `summary` `meta` `section` `sub` `text` `info` `quote` `code` `image` `link` `task` `done` | Everyday documents |
 | **data** | `headers` `row` `metric` | Tables, KPIs, invoice totals |
-| **contract** | `track` `approve` `sign` `freeze` `certify` `amendment` `route` `require` `cite` | Signed, sealed, auditable + routed-approval documents |
+| **contract** | `track` `approve` `sign` `freeze` `certify` `amendment` `route` `require` | Signed, sealed, auditable + routed-approval documents |
 | **agent** | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` | AI / workflow documents |
 | **print** | `page` `header` `footer` `watermark` `style` `break` `toc` | Print & PDF layout |
 
@@ -251,7 +251,7 @@ braces are fine (`{{ amount|currency:QAR }}`).
 
 ### 2.8 Arabic and bidi
 
-Whole documents can be written in Arabic — 33 registered aliases give Arabic
+Whole documents can be written in Arabic — 32 registered aliases give Arabic
 keywords full canonical semantics, and the serializer re-emits the keyword **as
 written**, so Arabic files stay Arabic and sealed hashes survive round-trips:
 
@@ -266,7 +266,7 @@ written**, so Arabic files stay Arabic and sealed hashes survive round-trips:
 ```
 
 Alias table: `عنوان`=title `ملخص`=summary `بيانات`=meta `قسم`=section `فرعي`=sub
-`نص`=text `تنبيه`=info `اقتباس`=quote `استشهاد`=cite `شيفرة`=code `صورة`=image
+`نص`=text `تنبيه`=info `اقتباس`=quote `شيفرة`=code `صورة`=image
 `رابط`=link `مهمة`=task `منجز`=done `أعمدة`=columns `صف`=row `مؤشر`=metric
 `تتبع`=track `اعتماد`=approve `توقيع`=sign `تجميد`=freeze `تعديل`=amendment
 `صفحة`=page `ترويسة`=header `تذييل`=footer `علامة`=watermark `نمط`=style

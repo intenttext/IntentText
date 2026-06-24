@@ -8,14 +8,14 @@
 > authors — a search for `obligation:` finds obligations everywhere, instead of missing the
 > ones someone wrote as `duty:` or `covenant:`.
 >
-> Appendix to [SPEC.md](SPEC.md). The 41 **reserved** keywords are defined there; this file
+> Appendix to [SPEC.md](SPEC.md). The 40 **reserved** keywords are defined there; this file
 > is about the *un*reserved words people use most.
 
 ---
 
 ## The rule of thumb
 
-1. **Is there a reserved keyword for it? Use that.** Don't reinvent the 41 — see the table
+1. **Is there a reserved keyword for it? Use that.** Don't reinvent the 40 — see the table
    below. A to-do is `task:`, not `todo:`; a choice already made is `decision:`, not
    `decided:`; a KPI/total is `metric:`, not `kpi:`; a callout is `info:`, not `note:`.
 2. **No reserved keyword, but a common concept? Use the conventional word below.** Reach for
@@ -36,7 +36,6 @@
 | `table:` `columns:` | `headers:` + `row:` (or markdown `\| … \|`) |
 | `signature:` | `sign:` |
 | `attachment:` | `attach:` |
-| `reference:` `source:` | `cite:` |
 
 ## Conventional custom keywords (by domain)
 
@@ -45,7 +44,7 @@ over invented synonyms.
 
 **Contracts & legal**
 `clause:` · `obligation:` · `warranty:` · `liability:` · `indemnity:` · `term:` ·
-`party:` · `jurisdiction:` · `governing-law:` · `penalty:` · `exclusion:` · `definition:`
+`party:` · `jurisdiction:` · `governing-law:` · `penalty:` · `exclusion:` · `definition:` · `cite:`
 
 **Projects & delivery**
 `milestone:` · `deliverable:` · `dependency:` · `blocker:` · `scope:` · `objective:` ·

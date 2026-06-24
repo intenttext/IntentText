@@ -82,7 +82,6 @@ export type BlockType =
   | "done"
   | "ask"
   | "quote"
-  | "cite"
   | "image"
   | "link"
   | "ref"

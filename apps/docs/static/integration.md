@@ -96,7 +96,7 @@ keyword: content | prop: value | prop: value
 | --- | --- | --- |
 | **core** | `title` `summary` `meta` `section` `sub` `text` `info` `quote` `code` `image` `link` `task` `done` | Everyday documents |
 | **data** | `headers` `row` `metric` | Tables, KPIs, invoice totals |
-| **contract** | `track` `approve` `sign` `freeze` `certify` `amendment` `route` `require` `cite` | Signed, sealed, auditable + routed-approval documents |
+| **contract** | `track` `approve` `sign` `freeze` `certify` `amendment` `route` `require` | Signed, sealed, auditable + routed-approval documents |
 | **agent** | `step` `decision` `gate` `trigger` `result` `policy` `audit` `ask` `context` | AI / workflow documents |
 | **print** | `page` `header` `footer` `watermark` `style` `break` `toc` | Print & PDF layout |
 
@@ -267,7 +267,7 @@ written**, so Arabic files stay Arabic and sealed hashes survive round-trips:
 ```
 
 Alias table: `عنوان`=title `ملخص`=summary `بيانات`=meta `قسم`=section `فرعي`=sub
-`نص`=text `تنبيه`=info `اقتباس`=quote `استشهاد`=cite `شيفرة`=code `صورة`=image
+`نص`=text `تنبيه`=info `اقتباس`=quote `شيفرة`=code `صورة`=image
 `رابط`=link `مهمة`=task `منجز`=done `أعمدة`=columns `صف`=row `مؤشر`=metric
 `تتبع`=track `اعتماد`=approve `توقيع`=sign `تجميد`=freeze `تعديل`=amendment
 `صفحة`=page `ترويسة`=header `تذييل`=footer `علامة`=watermark `نمط`=style

@@ -10,6 +10,11 @@ requirement the TS core can't meet. Until then, nothing further is needed.
 This plan assumes the format is **frozen** (no grammar changes) — which is what makes a second
 engine safe to attempt: there is no moving target to chase.
 
+**Version roadmap.** Core **3.0.0** (the cite demotion) is the **final format major**; everything
+after is **3.x minor/patch**. This Rust→WASM engine, if it is ever built, is the **only** planned
+**4.0.0** — adopting it reverses the "one TS implementation" stance (see §0) and is the one thing
+that would justify another major.
+
 ---
 
 ## 0. Prior art & authority — read this first
