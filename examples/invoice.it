@@ -12,7 +12,9 @@ footer: INV-2026-0114 · Page {{page}} of {{pages}}
 
 section: Bill To
 text: **Acme Corporation** | end: Issued 2026-06-12
-text: Pearl Boulevard, Doha, Qatar
+// plain prose needs no keyword — a bare line is a text block (reach for text: only when
+// the line carries pipe-props, like the | end: above):
+Pearl Boulevard, Doha, Qatar
 contact: Accounts Payable | email: ap@acme.com | phone: +974 4444 0000
 
 section: Line Items

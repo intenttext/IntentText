@@ -25,10 +25,10 @@
 
 Every document is either **prose** (for people) or **data** (for machines). You normally
 pick one and lose the other — a beautiful PDF a database can't read, or a JSON blob no one
-wants to. A `.it` file is **both at once**. Every line begins with a keyword that declares
-its meaning — a `task:` is always a task, a `sign:` is always a signature, an `invoice`
-line is always an invoice line — so any tool can read, query, validate, render, and *act on*
-your documents without guessing at free-form text.
+wants to. A `.it` file is **both at once**. Every line is *typed* — a `task:` is always a
+task, a `sign:` is always a signature, an `invoice` line is always an invoice line (and a
+line you just write plainly is prose) — so any tool can read, query, validate, render, and
+*act on* your documents without guessing at free-form text.
 
 ```intenttext
 // it-format: 1.0

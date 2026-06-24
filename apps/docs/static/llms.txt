@@ -46,19 +46,34 @@ Everything is built on the SAME parser/hash, so a doc authored anywhere verifies
 
 ## 1. Line grammar — everything is one line, one intent
 
-Every non-empty line is: `keyword: content | prop: value | prop: value`
+A non-empty line is one of two things:
+  (a) PLAIN PROSE — a bare line of body text (type `text`). You do NOT need `text:`
+      for ordinary paragraphs; just write the sentence. This is the clean, preferred
+      style for narrative prose.
+  (b) A TYPED BLOCK — `keyword: content | prop: value | prop: value`.
 
-- The text before the first `:` is the keyword (block type).
-- Content is everything after `:` up to the first ` | `.
+- A line is a typed block ONLY when it starts with a single keyword-token — a word of
+  letters/hyphens (any language), no spaces, beginning with a letter — immediately
+  followed by `:`. That token is the keyword (block type); content is everything after
+  the `:` up to the first ` | `. Everything else is prose. So `Pay by: cash`,
+  `Ratio is 3:2`, `See https://x.io for docs`, and any line with a mid-sentence colon
+  are TEXT, but `Note: …` (one leading token) becomes a custom `Note` block.
+- Two gotchas when writing prose bare:
+    · A line that starts `Word:` is read as a keyword. To force literal prose that
+      starts that way, prefix it: `text: Note: remember the deadline`.
+    · A bare URL alone on a line (`https://…`) parses as a custom `https` block — use
+      `link: Label | to: https://…`, or keep the URL inline within a sentence.
 - Pipe properties are `key: value` pairs separated by ` | `. The `|` character is
   RESERVED as the property delimiter — it cannot appear inside content or values.
   Every OTHER character is literal in content: Unicode punctuation (– × ≤ β ΔE),
   symbols, accents, and RTL/Arabic text need no escaping. Only `|` is special.
-- Blank lines separate blocks. They ARE significant between consecutive prose
-  (`text:`) lines: without a blank line, adjacent `text:` lines merge into one
+- Blank lines separate blocks. They ARE significant between consecutive prose lines
+  (bare or `text:`): without a blank line, adjacent prose lines merge into one
   paragraph and only the FIRST line's pipe properties are kept. Put a blank line
   between paragraphs that each carry their own properties.
 - `// comment` lines are comments.
+- No indentation or nesting rules — blocks are a FLAT sequence; hierarchy comes from
+  document order plus `section:`/`sub:` headings, never from leading whitespace.
 - Unknown keywords NEVER error — they parse as type:"custom" with the keyword
   preserved (`computer: mac | ram: 16GB` is valid and queryable). This means you can —
   and SHOULD — invent precise domain keywords freely; it is idiomatic, not a workaround.
@@ -77,7 +92,8 @@ CORE tier (13 — a plain document needs only these):
             (e.g. type, ref, client, sponsor, prepared-for, prepared-by, date).
   section:  H2-level heading.                        section: Scope
   sub:      H3-level heading.                        sub: Payment Terms
-  text:     Body paragraph.                          text: Plain prose here.
+  text:     Body paragraph — OPTIONAL: a bare line is already text. Use text: only
+            when the paragraph needs pipe-props/styling.   text: Net 30 | end: 2026-06-12
   info:     Callout. type: tip|info|warning|danger|success.  info: Check this | type: warning
   quote:    Quotation.                               quote: Stay hungry | by: Jobs
   code:     Code. Prefer fenced: ```lang … ```
@@ -93,7 +109,8 @@ CORE tier (13 — a plain document needs only these):
 DATA tier (3):
   metric:   KPI or document total.                   metric: Total Due | value: 17325 | unit: QAR
             Plain metric renders as a label→value total row (invoice style); with
-            ANY ONE of target:/trend:/period: it renders as a KPI card. MONEY: put the
+            ANY ONE of target:/trend:/period: it renders as a KPI card. trend: must be one
+            of: up | down | stable | at-risk (other words fail strict). MONEY: put the
             bare magnitude in value: and the ISO-4217 code in unit: (queryable, typed);
             the inline "17,325 QAR" form also parses but is less machine-friendly.
   headers:, row:  Tabular data. `headers:` is the table-header keyword (`columns:` is NOT
@@ -311,7 +328,7 @@ without touching the stored bytes.
 A form is `meta: | type: form` + `input:` fields. Two-party trust: the AUTHOR seals the blank
 form's structure; the FILLER signs the answers.
   input: Full name | key: name | type: text | required: yes
-  input: Country | key: country | type: select | options: SA, QA, AE
+  input: Country | key: country | type: choice | options: SA, QA, AE   (type: text|choice|checkbox|signature|number|date — choice renders the options:)
   input: VAT number | key: vat | show-if: country == SA            (conditional — shows/counts only when true)
   input: Qty | key: qty | type: number
   input: Total | key: total | type: number | compute: qty * unit_price   (derived; the filler never types it)
@@ -340,7 +357,10 @@ approval SEQUENCE tamper-evident (no insert/delete/reorder without detection).
 
   checkConformance(source, { level: "lax" | "strict" }) → { conformant, errors, warnings, issues }
   lax (default): no error-level issues. Unknown keywords are NOT errors (the open vocabulary is conformant by design).
-  strict: no errors AND no warnings (e.g. every date ISO 8601) — the level a publisher certifies for a spotless document.
+  strict: no errors AND no warnings — the level a publisher certifies for a spotless document.
+  Common strict-only warnings (none of these block lax): non-ISO dates; metric `trend:`
+  outside up|down|stable|at-risk; `policy:` with no condition (if:/always:/never:); `gate:`
+  with no approver:; `figure:` with no caption:; `sign:` with no hash:.
 
 ## 7. Rendering and PDFs
 
@@ -483,11 +503,14 @@ data, {signer}) for sealed PDF bytes. Validate output with validateDocumentSeman
    content or a value, escape it: `\|` (literal backslash: `\\`). Colons inside
    content/values need no escaping (`quote: He said: watch this` is fine).
 2. One intent per line. No HTML, no Markdown headings (#), no raw CSS anywhere.
-3. Use semantic keywords over text: — a task is `task:`, a decision is `decision:`,
-   money totals are `metric: Label | value: …`. When a concept is precise but has NO
-   reserved keyword, INVENT a domain one (clause:, risk:, obligation:, sla:, warranty:) rather
-   than burying it in text: — custom keywords are idiomatic, typed, and queryable (§2c),
-   never a last resort. Lean on the open vocabulary; don't confine output to the 41.
+3. Prose bare, structure keyworded. Write ordinary narrative paragraphs as BARE prose
+   (no `text:` needed) — it is cleaner and is the preferred style; keep `text:` for a
+   paragraph that carries pipe-props (`| end:`, styling) or must literally start `Word:`.
+   But never bury STRUCTURE in prose: a task is `task:`, a decision is `decision:`, money
+   totals are `metric: Label | value: …`. When a concept is precise but has NO reserved
+   keyword, INVENT a domain one (clause:, risk:, obligation:, sla:, warranty:) rather than
+   flattening it into prose — custom keywords are idiomatic, typed, and queryable (§2c).
+   Lean on the open vocabulary; don't confine output to the 41.
 4. Dates: ISO format (2026-04-01 or 2026-04-01T09:00:00Z).
 5. Tables: keep header and rows the same column count — pad a short row (e.g. a
    subtotal that doesn't fill every column) with an empty cell `| |`; `each:` goes on the header row.
@@ -504,7 +527,7 @@ data, {signer}) for sealed PDF bytes. Validate output with validateDocumentSeman
 
 Simplest:                       Agent workflow (every then:/else: must point at a real id:):
   title: Hello                    title: Onboarding Agent
-  text: World.                    step: Validate form | tool: validate | id: s1
+  Hello, world                    step: Validate form | tool: validate | id: s1
                                   decision: Valid? | then: s2 | else: s3
 Meeting notes:                    step: Provision | tool: infra | id: s2
   title: Sprint Planning          step: Notify failure | tool: email | id: s3
