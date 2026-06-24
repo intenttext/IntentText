@@ -24,7 +24,6 @@ browser are marked.
 | `@dotit/mcp` | **2.0.1** | MCP server exposing the IntentText toolset — parse/render/query/seal + **convert tools** (`markdown_to_intenttext`, `intenttext_to_markdown`, `html_to_intenttext`) — to any AI agent (stdio + HTTP). | `npx @dotit/mcp` |
 | VS Code extension | `intenttext.intenttext` | Highlighting, live preview, diagnostics, completion, hover docs. | VS Code Marketplace |
 | GitHub Action | `intenttext/intenttext-action@v1` | Validate (and optionally verify seals of) every `.it` file in CI. | workflow yaml |
-| `intenttext` (PyPI) | experimental | Thin Python wrapper that shells out to the core CLI — never re-implements the grammar. | `pip install intenttext` |
 
 ---
 

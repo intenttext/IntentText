@@ -14,7 +14,6 @@
   <a href="https://hub.dotit.uts.qa">Hub</a> ·
   <a href="https://editor.uts.qa">Editor</a> ·
   <a href="https://npmjs.com/package/@dotit/core">npm</a> ·
-  <a href="https://pypi.org/project/intenttext/">PyPI</a> ·
   <a href="https://dotit.uts.qa/llms.txt">llms.txt</a> ·
   <a href="https://x.com/IntentText">Twitter</a>
 </p>
@@ -326,7 +325,7 @@ A read-only yes/no a producer can gate on. Unknown keywords are **not** errors �
 | `apps/` | — | Web editor, Electron desktop app, docs site, verify portal, hub. |
 
 The TypeScript core is the single canonical implementation of the grammar (see
-[ARCHITECTURE.md](ARCHITECTURE.md)). The Python client (`intenttext` on PyPI) is a thin CLI wrapper.
+[ARCHITECTURE.md](ARCHITECTURE.md)).
 
 ## Learn more
 

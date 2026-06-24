@@ -19,5 +19,3 @@ packages:
   - 'services/*'
   # Demos (runnable integration examples)
   - 'demo/erp-integration'
-  # Non-JS package (python) — managed by pip / pyproject.toml, not pnpm
-  # packages/python  → managed by pip / pyproject.toml

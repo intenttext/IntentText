@@ -142,7 +142,6 @@ const sidebars: SidebarsConfig = {
     "ecosystem/cli",
     "ecosystem/mcp-server",
     "ecosystem/vscode-extension",
-    "ecosystem/python",
     "ecosystem/core-api",
     { type: "doc", id: "ecosystem/erp-integration", label: "ERP / App Integration" },
   ],

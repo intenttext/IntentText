@@ -63,5 +63,4 @@ court (PAdES) or an archive (PDF/A).
 | Tool                       | Description                                      |
 | -------------------------- | ------------------------------------------------ |
 | [MCP Server](./mcp-server) | `@dotit/mcp` — Model Context Protocol server for AI agents |
-| [Python Package](./python) | Thin Python client over the core CLI (experimental) |
 | [ERP / App Integration](./erp-integration) | Use IntentText as a print/report engine in your app — template + data → HTML/PDF |
