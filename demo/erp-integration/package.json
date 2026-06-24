@@ -8,6 +8,6 @@
     "start": "node run.mjs"
   },
   "dependencies": {
-    "@dotit/core": "*"
+    "@dotit/core": "^2.0.2"
   }
 }

@@ -36,7 +36,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@dotit/core": "^2.0.0",
+    "@dotit/core": "^2.0.2",
     "pdf-lib": "^1.17.1"
   },
   "peerDependencies": {
