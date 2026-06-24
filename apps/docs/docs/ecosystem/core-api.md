@@ -959,12 +959,28 @@ const result = await submitForm(filledForm, {
 
 ### `convertMarkdownToIntentText(markdown)`
 
-Convert Markdown to `.it` format.
+Convert Markdown → `.it`. Headings become `title:`/`section:`/`sub:`, fenced code and tables
+map across, and ordinary paragraphs become clean **bare prose** (no `text:` prefix — `text:`
+is added only when a line would otherwise parse as a keyword).
 
 ```typescript
 import { convertMarkdownToIntentText } from "@dotit/core";
 
 const itSource = convertMarkdownToIntentText("# My Doc\n\nSome text");
+```
+
+### `convertIntentTextToMarkdown(source, opts?)`
+
+Convert `.it` → clean GitHub-flavored Markdown (the inverse of the above). Headings, prose,
+lists, task lists, tables, fenced code, blockquotes, images and links map 1:1; typed and
+custom blocks (`metric:`, `clause:`, `sign:`, …) degrade to readable `**keyword:**` labeled
+lines so no content is lost; document-metadata and print/layout directives are dropped. The
+shared subset round-trips: `md → it → md` is byte-stable.
+
+```typescript
+import { convertIntentTextToMarkdown } from "@dotit/core";
+
+const markdown = convertIntentTextToMarkdown("title: My Doc\n\nSome text");
 ```
 
 ### `convertHtmlToIntentText(html)`
@@ -1012,8 +1028,11 @@ const itSource = convertDocxToIntentText(readFileSync("contract.docx"));
 const docxBytes = convertIntentTextToDocx(itSource);
 ```
 
-All four converters are also exposed on the CLI via `dotit convert <in> <out>`
-(extension pair dispatch — see [CLI › Convert existing files](./cli#convert-existing-files)).
+All of these converters are also exposed on the CLI via `dotit convert <in> <out>`
+(extension-pair dispatch — `.md`/`.html`/`.xlsx`/`.docx` → `.it` and `.it` → `.md`/`.xlsx`/`.docx`;
+see [CLI › Convert existing files](./cli#convert-existing-files)), and the text converters
+(md↔it, html→it) are MCP tools (`markdown_to_intenttext`, `intenttext_to_markdown`,
+`html_to_intenttext`).
 
 ## E-invoice (UBL)
 

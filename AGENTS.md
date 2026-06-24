@@ -207,8 +207,9 @@ const html = await renderMathInHtml(coreHtml);
 
 ### `@dotit/mcp` — drive everything over MCP (best for tool-using agents)
 Exposes snake_case tools: `parse_intent_text`, `seal_document`, `verify_document`,
-`compute_hash`, `get_document_history`, plus query / render / diff / merge / validate /
-workflow / sign / source tools. Point your MCP client at the server and call them directly —
+`compute_hash`, `get_document_history`, the convert tools `markdown_to_intenttext` /
+`intenttext_to_markdown` / `html_to_intenttext`, plus query / render / diff / merge /
+validate / workflow / sign / source tools. Point your MCP client at the server and call them directly —
 no code. See [`apps/docs/docs/ecosystem/mcp-server.md`](apps/docs/docs/ecosystem/mcp-server.md).
 
 ### `@dotit/editor` — embeddable React WYSIWYG editor over plain `.it` source

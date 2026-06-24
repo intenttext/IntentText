@@ -6,6 +6,41 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [2.0.0 – 2.0.4] — 2026-06-24
+
+### Changed — `@dotit/core` 2.0.0: zero aliases (breaking)
+
+- **Eliminated all 81 Latin keyword aliases.** The only reserved words are now the 41
+  canonical keywords, their 33 Arabic localized names, and namespaced `x-` extensions —
+  so any other word resolves **reliably** to your own `custom` block and can never be
+  silently reinterpreted (e.g. `party:`, `note:`, `rule:`, `columns:` are plain custom
+  blocks). The 33 Arabic names were **promoted to first-class localized keyword names**;
+  callout variants collapsed to `info: … | type: warning`. Tests + grammar updated.
+
+### Added
+
+- **`it→md` converter** (`convertIntentTextToMarkdown`) — the missing direction. Clean
+  GitHub-flavored Markdown; typed/custom blocks degrade to `**keyword:**` labeled lines.
+  `md → it → md` round-trips byte-stable. Exposed on the CLI (`dotit convert in.it out.md`)
+  and as MCP tools (`markdown_to_intenttext`, `intenttext_to_markdown`, `html_to_intenttext`).
+- **Bare prose is first-class.** A keyword-less line is a `text` block and round-trips
+  byte-identical — the preferred style for narrative; `text:` is reserved for prose that
+  carries pipe-props. The importers (md/html/docx → it) now emit bare prose.
+- **Markdown-compatible inline marks.** `**bold**` / `__bold__` → bold and `~~strike~~` →
+  strikethrough are accepted alongside native `*bold*` / `~strike~`. Parse/render only —
+  source bytes are untouched, so seals are unaffected.
+- **`RECOMMENDED-KEYWORDS.md`** appendix — non-binding best-practice conventions for the
+  open vocabulary, to reduce synonym drift. `SPEC.md` moved to the repo root.
+
+### Fixed
+
+- **Converters emitted `note:`** for paragraphs (a custom block since aliases were removed)
+  and **md→it lost fenced code** (`code:`/`end:`); both fixed — paragraphs are bare prose,
+  Markdown fences re-emit verbatim, inline code stays single-backtick.
+- **Validator false-positives:** runtime print tokens `{{page}}`/`{{pages}}`/`{{date}}`/
+  `{{year}}` no longer flagged as unresolved (2.0.1); `RESULT_NOT_TERMINAL` no longer fires
+  on legitimately **branched** agent workflows (2.0.2).
+
 ## [1.25.0] — 2026-06-23
 
 ### Changed — `@dotit/core` 1.25.0: the format freeze (see `assessment/FORMAT-REVIEW.md`)

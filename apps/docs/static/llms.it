@@ -13,14 +13,14 @@ Site https://dotit.uts.qa · npm @dotit/core · Editor https://editor.uts.qa · 
 section: 0. The @dotit/* toolchain (one ecosystem)
 
 ```text
-@dotit/core   2.0.0  Parser, HTML/print renderers, query, template merge, trust (SEAL_SPEC 4:
+@dotit/core   2.0.4  Parser, HTML/print renderers, query, template merge, trust (SEAL_SPEC 4:
                      seal/sign/verify, appearance hash, CRLF-stable, certify-as-claim), themes,
-                     lossless text<->JSON, DB-safe storage, converters (MD/HTML + XLSX/DOCX),
-                     EN 16931/UBL e-invoice export, and the `dotit` CLI. Zero deps; Node + browser.
+                     lossless text<->JSON, DB-safe storage, converters (Markdown<->it incl. it->md,
+                     HTML->it, XLSX/DOCX both ways), e-invoice export (EN 16931/UBL), `dotit` CLI.
 @dotit/sign   2.0.0  Ed25519 signatures (provable "who signed") + UTS certifications. Offline.
 @dotit/pdf    2.0.0  Server PDF bytes: merge -> seal -> real PDF in one call (issuePDF); PAdES.
 @dotit/pades  1.0.1  PAdES (Adobe/court-recognized) PDF signatures — X.509/CMS + RFC-3161 stamps.
-@dotit/mcp    2.0.0  MCP server — IntentText as an agent tool surface (parse/render/query/seal/...).
+@dotit/mcp    2.0.1  MCP server — agent tool surface (parse/render/query/seal + md<->it convert tools).
 @dotit/editor 2.0.0  Embeddable React WYSIWYG editor — Word-like pages, ribbon, trust stamp.
 ```
 

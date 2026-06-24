@@ -67,10 +67,11 @@ dotit convert contract.docx contract.it # Word document → IntentText
 dotit convert notes.md notes.it         # Markdown / HTML → IntentText
 dotit convert report.it report.xlsx     # IntentText → spreadsheet (each table → a sheet)
 dotit convert contract.it contract.docx # IntentText → Word document
+dotit convert report.it report.md        # IntentText → Markdown
 ```
 
-Supported pairs: `.md` / `.html` / `.xlsx` / `.docx` → `.it`, and `.it` → `.xlsx` / `.docx`.
-The same four binary converters are available programmatically — see
+Supported pairs: `.md` / `.html` / `.xlsx` / `.docx` → `.it`, and `.it` → `.md` / `.xlsx` / `.docx`.
+The same converters are available programmatically — see
 [Core API › Conversion](./core-api#conversion).
 
 ## Templates and document generation

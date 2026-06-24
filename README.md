@@ -175,7 +175,8 @@ npm install -g @dotit/core     # installs the `dotit` command
 dotit contract.it                          # parse → JSON
 dotit contract.it --html --theme corporate # render HTML
 dotit contract.it --print                  # print-ready HTML (PDF via browser)
-dotit notes.md --to-it                     # convert Markdown → .it
+dotit notes.md --to-it                     # import Markdown/HTML → .it
+dotit convert report.it report.md          # export .it → Markdown (also → .docx/.xlsx)
 dotit query ./contracts --type deadline    # query a folder like a database
 dotit seal contract.it --signer "Fahad Al-Thani" --role "Managing Director"
 dotit verify contract.it                   # tamper check (exit 1 if modified)

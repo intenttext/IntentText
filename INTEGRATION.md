@@ -15,13 +15,13 @@ browser are marked.
 
 | Package | Version | What it is | Install |
 | --- | --- | --- | --- |
-| `@dotit/core` | **1.24.0** | Parser, HTML/print renderers, query engine, template merge (+ `Intl` display filters), trust (versioned **SEAL_SPEC 4** seal/sign/verify — appearance hash, CRLF-stable, certify-as-claim), **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers, EN 16931/UBL e-invoice export, doc-metadata extraction**, themes, converters, CLI. Zero runtime deps; Node + browser. | `npm i @dotit/core` |
-| `@dotit/editor` | **1.16.1** | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`** (edit/fill/review/view), ribbon, trust banner, form builder, document/form/template flow, version history, attachment fill UI, version-compare, WYSIWYG PDF. Browser-only. | `npm i @dotit/editor` |
-| `@dotit/pdf` | **1.2.1** | Server-side PDF bytes: merge → seal → PDF; **PDF/A-oriented archival** (`toPdfA`; veraPDF gate on demand); tagged (accessible) PDF by default; PAdES-signed PDF (`renderSignedPDF`). Puppeteer is an *optional* peer. | `npm i @dotit/pdf puppeteer` |
-| `@dotit/pades` | **1.0.0** | **PAdES** (Adobe/court-recognized) PDF signatures — ECDSA P-256 + X.509 + CMS; CSR/CA issuance; RFC-3161 timestamps; CLI. | `npm i @dotit/pades` |
-| `@dotit/sign` | **1.4.1** | Ed25519 signatures (provable *who signed*) + UTS certifications + root→intermediate chain. Offline, self-verifying. | `npm i @dotit/sign` |
+| `@dotit/core` | **2.0.4** | Parser, HTML/print renderers, query engine, template merge (+ `Intl` display filters), trust (versioned **SEAL_SPEC 4** seal/sign/verify — appearance hash, CRLF-stable, certify-as-claim), **forms, redline/compare, redaction, attachments, two-party form trust, conditional/computed fields, math markers, EN 16931/UBL e-invoice export, doc-metadata extraction**, themes, **bare-prose authoring, Markdown↔IntentText (incl. `it→md`) + HTML/DOCX/XLSX converters**, CLI. Zero runtime deps; Node + browser. | `npm i @dotit/core` |
+| `@dotit/editor` | **2.0.0** | Embeddable React editor — **all modes in one `<IntentTextWorkbench>`** (edit/fill/review/view), ribbon, trust banner, form builder, document/form/template flow, version history, attachment fill UI, version-compare, WYSIWYG PDF. Browser-only. | `npm i @dotit/editor` |
+| `@dotit/pdf` | **2.0.0** | Server-side PDF bytes: merge → seal → PDF; **PDF/A-oriented archival** (`toPdfA`; veraPDF gate on demand); tagged (accessible) PDF by default; PAdES-signed PDF (`renderSignedPDF`). Puppeteer is an *optional* peer. | `npm i @dotit/pdf puppeteer` |
+| `@dotit/pades` | **1.0.1** | **PAdES** (Adobe/court-recognized) PDF signatures — ECDSA P-256 + X.509 + CMS; CSR/CA issuance; RFC-3161 timestamps; CLI. | `npm i @dotit/pades` |
+| `@dotit/sign` | **2.0.0** | Ed25519 signatures (provable *who signed*) + UTS certifications + root→intermediate chain. Offline, self-verifying. | `npm i @dotit/sign` |
 | `@dotit/math` | **0.1.0** | Render core's math placeholders → MathML (dependency-free lite) or full **KaTeX** (optional peer). | `npm i @dotit/math` |
-| `@dotit/mcp` | **1.1.1** | MCP server exposing the IntentText toolset to any AI agent (stdio + HTTP). | `npx @dotit/mcp` |
+| `@dotit/mcp` | **2.0.1** | MCP server exposing the IntentText toolset — parse/render/query/seal + **convert tools** (`markdown_to_intenttext`, `intenttext_to_markdown`, `html_to_intenttext`) — to any AI agent (stdio + HTTP). | `npx @dotit/mcp` |
 | VS Code extension | `intenttext.intenttext` | Highlighting, live preview, diagnostics, completion, hover docs. | VS Code Marketplace |
 | GitHub Action | `intenttext/intenttext-action@v1` | Validate (and optionally verify seals of) every `.it` file in CI. | workflow yaml |
 | `intenttext` (PyPI) | experimental | Thin Python wrapper that shells out to the core CLI — never re-implements the grammar. | `pip install intenttext` |
@@ -1114,6 +1114,7 @@ dotit file.it --html [--theme NAME]    # render styled HTML
 dotit file.it --print                  # print-ready HTML (browser → PDF)
 dotit file.it --output                 # save HTML next to source
 dotit notes.md --to-it                 # Markdown → .it  (also: file.html --to-it)
+dotit convert file.it out.md           # .it → Markdown  (also: .it → .xlsx/.docx)
 dotit tpl.it --data d.json             # merge → JSON
 dotit tpl.it --data d.json --html      # merge → HTML
 dotit tpl.it --data d.json --print     # merge → print HTML

@@ -26,7 +26,7 @@ Verify portal: https://verify.uts.qa (UTS certification service: api.uts.qa)
                        display filters {{amount|currency:QAR}}), trust — versioned
                        SEAL_SPEC 4 (seal/sign/verify; appearance hash, CRLF-stable,
                        certify-as-claim), themes, lossless text↔JSON, DB-safe storage,
-                       converters (Markdown/HTML + XLSX/DOCX both ways), doc-metadata
+                       converters (Markdown↔IntentText incl. it→md, HTML→it, XLSX/DOCX both ways), doc-metadata
                        extraction, EN 16931/UBL e-invoice export, and the `dotit` CLI.
                        Zero deps; Node + browser.         npm i @dotit/core
   @dotit/sign   2.0.0  Ed25519 signatures (provable "who signed") + UTS certifications
