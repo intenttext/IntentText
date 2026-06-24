@@ -25,6 +25,24 @@ describe("IntentText Parser", () => {
     );
   });
 
+  it("accepts Markdown-compatible double marks (**bold** / __bold__ / ~~strike~~)", () => {
+    const b = parseIntentText("text: **Acme Corp** and __also bold__ and ~~struck~~")
+      .blocks[0];
+    const marks = (b.inline ?? []).filter((n) => n.type !== "text");
+    expect(marks.map((n) => `${n.type}:${n.value}`)).toEqual([
+      "bold:Acme Corp",
+      "bold:also bold",
+      "strike:struck",
+    ]);
+    // native single marks still work and are not double-bound
+    const s = parseIntentText("text: *native* _it_ ~st~").blocks[0];
+    expect((s.inline ?? []).filter((n) => n.type !== "text").map((n) => n.type)).toEqual([
+      "bold",
+      "italic",
+      "strike",
+    ]);
+  });
+
   it("should parse pipe metadata", () => {
     const input = "task: Database migration | owner: Ahmed | due: Sunday";
     const result = parseIntentText(input);

@@ -150,7 +150,7 @@ title: Quarterly Report
 
 section: 3. Inline formatting (inside content)
 
-`*bold*` `_italic_` `~strike~` `^highlight^` `` `code` `` `[text](https://url)` `[[side note]]` `@mention` `#tag` `@2026-05-01` (date) `{Label}` (badge pill).
+`*bold*` `_italic_` `~strike~` `^highlight^` `` `code` `` `[text](https://url)` `[[side note]]` `@mention` `#tag` `@2026-05-01` (date) `{Label}` (badge pill). Markdown-style `**bold**`/`__bold__` and `~~strike~~` are also accepted and render the same.
 
 Styled span — style PART of a line with the same style keys as block props, but SEMICOLON-separated (`|` is reserved for line props):
 

@@ -484,6 +484,28 @@ function parseInlineNodes(text: string): {
       continue;
     }
 
+    // Markdown-compatible DOUBLE marks: **bold** / __bold__ → bold, ~~strike~~ → strike.
+    // A double delimiter binds before the single marks below, so a stray Markdown-style
+    // `**x**` renders bold instead of two empty markers around plain text. Native single
+    // marks (*bold* _italic_ ~strike~) are unaffected. Source bytes are untouched, so this
+    // never alters a seal's content hash.
+    if (
+      text.startsWith("**", i) ||
+      text.startsWith("__", i) ||
+      text.startsWith("~~", i)
+    ) {
+      const delim = text.slice(i, i + 2);
+      const end = text.indexOf(delim, i + 2);
+      if (end > i + 2) {
+        addNode({
+          type: delim === "~~" ? "strike" : "bold",
+          value: text.slice(i + 2, end),
+        });
+        i = end + 2;
+        continue;
+      }
+    }
+
     // Check for bold/italic/strike/highlight with */_/~/^
     const ch = text[i];
     if (ch === "*" || ch === "_" || ch === "~" || ch === "^") {

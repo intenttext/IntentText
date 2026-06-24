@@ -129,6 +129,9 @@ the colon: `freeze: | at: … | status: locked`, `page: | size: A4`, `toc: | dep
 
 Within content: `*bold*`, `_italic_`, `~strike~`, `` `code` ``, `@mention`,
 `#tag`, `[label](href)`, dates, and footnote refs parse into `inline` nodes.
+**Markdown-compatible doubles are also accepted:** `**bold**` / `__bold__` → bold and
+`~~strike~~` → strikethrough (a double delimiter binds before the single marks). This is a
+parse/render convenience — it never changes the source bytes, so it cannot affect a seal.
 
 An **inline styled span** `[text]{ key: value; key: value }` styles part of a line with
 the same keys as block-level style props (see [style-properties](apps/docs/docs/reference/style-properties.md)),
