@@ -1615,8 +1615,17 @@ function renderBlock(block: IntentBlock): string {
         const tex = escapeHtml(String(block.content ?? ""));
         return `<div class="it-math-block" data-tex="${tex}">${tex}</div>`;
       }
-      return `<div class="intent-unknown">
-        <small class="intent-unknown-type">[${block.type}]</small> ${content}
+      // The open vocabulary is first-class: show the author's OWN keyword (not a generic
+      // "custom"), expose it via data-keyword, and add a per-keyword class so CSS/`style:`
+      // can target it. e.g. `clause:` → [clause], `.intent-custom-clause`, data-keyword="clause".
+      const kw = props.keyword != null ? String(props.keyword) : block.type;
+      const kwLabel = escapeHtml(kw);
+      const kwClass = kw
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      return `<div class="intent-unknown${kwClass ? ` intent-custom-${kwClass}` : ""}" data-keyword="${kwLabel}">
+        <small class="intent-unknown-type">[${kwLabel}]</small> ${content}
       </div>`;
     }
 

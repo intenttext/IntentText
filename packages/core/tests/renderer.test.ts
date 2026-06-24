@@ -116,6 +116,19 @@ row: Ahmed | 30 | Dubai`;
     expect(html).toContain("Who owns this?");
   });
 
+  it("renders a custom block with its OWN keyword (open vocabulary is first-class)", () => {
+    const html = renderHTML(parseIntentText("clause: No refunds after 30 days"));
+    // shows [clause], not a generic [custom]; exposes data-keyword + a per-keyword class
+    expect(html).toContain("[clause]");
+    expect(html).not.toContain("[custom]");
+    expect(html).toContain('data-keyword="clause"');
+    expect(html).toContain("intent-custom-clause");
+    // Unicode keywords keep the label + data-keyword (no ASCII class)
+    const ar = renderHTML(parseIntentText("مصروف: كراسي مكتب"));
+    expect(ar).toContain("[مصروف]");
+    expect(ar).toContain('data-keyword="مصروف"');
+  });
+
   it("should render images with captions", () => {
     const input = "image: Logo | at: logo.png | caption: Company Logo";
     const parsed = parseIntentText(input);

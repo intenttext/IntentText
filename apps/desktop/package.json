@@ -15,7 +15,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@dotit/core": "^2.0.3",
+    "@dotit/core": "^2.0.5",
     "@dotit/editor": "^2.0.0",
     "@dotit/pades": "^1.0.1",
     "@dotit/sign": "^2.0.0",
