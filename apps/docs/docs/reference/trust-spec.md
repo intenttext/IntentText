@@ -15,7 +15,7 @@ implementations (and enterprise/legal reviewers) can rely on. It complements the
 > verifier applies exactly that version forever, so a rule change can never silently break
 > a historical seal — see [Versioning & backward compatibility](#9-versioning--backward-compatibility).
 > The canonical, byte-level definition is
-> [SPEC §4](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md); this
+> [SPEC §4](https://github.com/intenttext/IntentText/blob/main/SPEC.md); this
 > page is the reference summary.
 
 The key words MUST, SHOULD, and MAY are used as in RFC 2119.

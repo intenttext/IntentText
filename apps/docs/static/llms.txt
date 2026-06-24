@@ -563,3 +563,24 @@ Property KEYS stay English for now (owner:, due:, value:). Dates stay ISO.
 BIDI (mixed Arabic/English): rendered values (table cells, dates, amounts,
 owners) are direction-isolated automatically (dir="auto") — never reorder or
 pad mixed-language values. Force document direction with `meta: | dir: rtl`.
+
+## 13. Recommended keywords (best practice — NOT reserved, NOT required)
+
+The keyword set is open, so for cross-document query interop, teams should converge on the
+SAME word for the same concept. This is CONVENTION only — ignoring it never makes a document
+non-conformant. Full curated list: RECOMMENDED-KEYWORDS.md
+(https://github.com/intenttext/IntentText/blob/main/RECOMMENDED-KEYWORDS.md). Rule of thumb:
+
+1. A reserved keyword exists? USE IT — don't reinvent: task: (not todo:/action:), decision:
+   (not decided:), metric: (not kpi:/total:), info: (not note:/warning:), sign: (not
+   signature:), cite: (not source:), headers:/row: (not table:/columns:).
+2. No reserved keyword but a common concept? Reach for the conventional custom word before
+   inventing a synonym:
+   - contracts/legal: clause obligation warranty liability indemnity term party jurisdiction governing-law penalty
+   - projects/delivery: milestone deliverable dependency blocker scope objective assumption constraint requirement risk
+   - risk/compliance: risk control finding mitigation incident
+   - service/finance: sla stakeholder payment expense fee
+   - agent memory: fact entity preference belief question lesson skill
+   - meetings: attendee agenda
+3. Genuinely domain-specific? Invent freely — lowercase, hyphen-joined, singular
+   (`delivery-term:`, not `delivery_term:` or `DeliveryTerms:`).

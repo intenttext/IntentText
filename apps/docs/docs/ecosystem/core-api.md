@@ -395,7 +395,7 @@ verification applies exactly that version forever, so a future rule change can n
 break a historical seal. A v4 seal also records a separate **`appearance:`** hash that flags a
 hidden-content restyle (e.g. `opacity: 0`) without invalidating the seal — content is intact,
 but `verifyDocument` sets `appearanceChanged`. Preserving exact bytes is **storage hygiene**,
-not what the seal enforces. See [SPEC §4](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md).
+not what the seal enforces. See [SPEC §4](https://github.com/intenttext/IntentText/blob/main/SPEC.md).
 
 ### `sealDocument(source, options)`
 

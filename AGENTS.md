@@ -7,7 +7,7 @@ the whole toolchain. If you read and follow only this file, you will produce val
 and never break a seal.
 
 Canonical, deeper sources (this file is the agent-facing summary of them):
-the byte-level spec is [`packages/core/SPEC.md`](packages/core/SPEC.md); the full docs are at
+the byte-level spec is [`SPEC.md`](SPEC.md); the full docs are at
 **https://dotit.uts.qa**; the per-package API is [`apps/docs/docs/ecosystem/core-api.md`](apps/docs/docs/ecosystem/core-api.md).
 
 ---
@@ -254,4 +254,4 @@ If all boxes hold, the document is compliant and trustworthy.
 ---
 
 *This file is the canonical agent reference. To make it fetchable by external agents, publish
-it at `https://dotit.uts.qa/llms.txt`. Keep it in sync with `packages/core/SPEC.md`.*
+it at `https://dotit.uts.qa/llms.txt`. Keep it in sync with `SPEC.md`.*

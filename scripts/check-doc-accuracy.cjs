@@ -48,7 +48,7 @@ const EXPLICIT_FILES = [
   "AGENTS.md",
   "INTEGRATION.md",
   "ARCHITECTURE.md",
-  "packages/core/SPEC.md",
+  "SPEC.md",
   "apps/docs/static/llms.txt",
   "apps/docs/static/integration.md",
 ];

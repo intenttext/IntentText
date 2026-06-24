@@ -271,7 +271,7 @@ presentation** — restyling never breaks a seal ("sign content, not presentatio
 `appearance:` hash flags a post-seal restyle that *hides* content, and the hash is CRLF/whitespace-stable.
 `amendment:` records changes to a frozen doc without breaking its seal; `certify:` is an authority
 claim verified above the hash with the issuer's key. This is honest **tamper-evidence, not PKI** —
-the full model is in [SPEC §4](packages/core/SPEC.md).
+the full model is in [SPEC §4](SPEC.md).
 
 ### Forms, review & compliance (closes the PDF/Word gap)
 - **Forms** — `meta: type: form` + `input:` fields (conditional `show-if:`, computed `compute:`,
@@ -330,7 +330,9 @@ The TypeScript core is the single canonical implementation of the grammar (see
 ## Learn more
 
 - **Docs** — guide, reference, cookbook: [dotit.uts.qa](https://dotit.uts.qa)
-- **Spec** — the canonical grammar: [packages/core/SPEC.md](packages/core/SPEC.md)
+- **Spec** — the canonical grammar: [SPEC.md](SPEC.md)
+- **Recommended keywords** — best-practice conventions for the open vocabulary (non-binding):
+  [RECOMMENDED-KEYWORDS.md](RECOMMENDED-KEYWORDS.md)
 - **For LLMs** — [dotit.uts.qa/llms.txt](https://dotit.uts.qa/llms.txt)
 - **Changelog** — [CHANGELOG.md](CHANGELOG.md)
 

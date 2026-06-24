@@ -35,7 +35,7 @@ const html = renderHTML(doc); // Styled HTML output
 
 > Pure TypeScript — no native or WASM dependency. Runs unchanged in Node and the
 > browser. (The earlier Rust/WASM engine was removed in v4; the TS parser is the
-> single canonical implementation. See [SPEC.md](./SPEC.md).)
+> single canonical implementation. See [SPEC.md](../../SPEC.md).)
 
 ## API
 
@@ -145,7 +145,7 @@ signatureMatchesContent(source, sig); // spec-aware: still valid for current con
 
 Trust tiers are `draft`, `signed`, `sealed` (indigo), `certified`, `root-certified`,
 `template`, and `broken` (red) — see `TrustTier` / `TIER_STYLES`. The hashing rules are
-open and documented in [SPEC.md](./SPEC.md) §4, so anyone with the library can verify
+open and documented in [SPEC.md](../../SPEC.md) §4, so anyone with the library can verify
 independently.
 
 #### The certification stamp (integrity gate)

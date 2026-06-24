@@ -280,7 +280,7 @@ Editing in the visual editor preserves trust lines verbatim, so a normal save ne
 perturbs the hash. Every seal/signature stamps a **`spec:` version**, and verification
 applies exactly that version forever — a future rule change can never silently break a
 historical seal. The exact, byte-level spec — with a reference reimplementation that
-reproduces the core hash — is **[SPEC §4](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md)**.
+reproduces the core hash — is **[SPEC §4](https://github.com/intenttext/IntentText/blob/main/SPEC.md)**.
 :::
 
 ## Storing sealed documents in a database

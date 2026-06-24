@@ -45,7 +45,7 @@ three are stable contract-tier keywords. The `history:` boundary and `revision:`
 **not** tier members: they live below the audit-log boundary as machine-managed `x-trust:`
 blocks. The exact, authoritative set is exported from `@dotit/core` as `KEYWORD_TIERS` and
 `CANONICAL_KEYWORDS` (with `CORE_KEYWORDS` for the everyday core tier). See the canonical
-[SPEC](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md).
+[SPEC](https://github.com/intenttext/IntentText/blob/main/SPEC.md).
 
 ## Format version stamp (optional)
 

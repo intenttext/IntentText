@@ -299,4 +299,12 @@ text: The Arabic names are NOT aliases — they are localized keyword NAMES that
 مؤشر: الإجمالي المستحق | value: 10200 | unit: QAR
 ```
 
+section: 13. Recommended keywords (best practice — NOT reserved, NOT required)
+
+The keyword set is open, so for cross-document query interop teams should converge on the SAME word for the same concept. This is convention only — ignoring it never makes a document non-conformant. Full curated list: RECOMMENDED-KEYWORDS.md.
+
+- A reserved keyword exists? USE IT, don't reinvent: task: (not todo:), decision: (not decided:), metric: (not kpi:), info: (not note:), sign: (not signature:), cite: (not source:), headers:/row: (not table:).
+- No reserved keyword but a common concept? Reach for the conventional word: contracts/legal — clause, obligation, warranty, liability, indemnity, term, party, jurisdiction, governing-law, penalty; projects — milestone, deliverable, dependency, blocker, scope, objective, assumption, constraint, requirement, risk; risk/compliance — control, finding, mitigation, incident; service/finance — sla, stakeholder, payment, expense, fee; agent memory — fact, entity, preference, belief, question, lesson, skill; meetings — attendee, agenda.
+- Genuinely domain-specific? Invent freely — lowercase, hyphen-joined, singular (delivery-term, not delivery_term or DeliveryTerms).
+
 text: This document is itself valid IntentText — open it in the editor (editor.uts.qa), render it to PDF, query it, or seal it. The reference and the format are one and the same.

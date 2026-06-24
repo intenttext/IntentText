@@ -1,9 +1,9 @@
-# IntentText Specification (v4.1)
+# IntentText Specification (v4.4)
 
 The canonical, single-source grammar for the `.it` format. Where any README, doc
 page, or tool disagrees with this file, **this file wins**. The reserved keyword set
 is derived from
-[`src/language-registry.ts`](src/language-registry.ts) (`LANGUAGE_REGISTRY`) — never
+[`src/language-registry.ts`](packages/core/src/language-registry.ts) (`LANGUAGE_REGISTRY`) — never
 hand-maintained elsewhere; the `keywords:check` and `parity:check` gates enforce that.
 
 ---
@@ -36,7 +36,11 @@ that matches wins:
    extension, or boundary).
 6. **Custom keyword** — a `word: ...` line whose `word` is **not** a reserved
    keyword is preserved verbatim as `type: "custom"` with `keyword` retained.
-7. **Implicit text** — any remaining non-empty line becomes a `text` block.
+7. **Implicit (bare) text** — any remaining non-empty line is a `text` block. Writing
+   prose **bare** (no `text:` keyword) is first-class and the **preferred style for
+   narrative**; a keyword-less line round-trips byte-identical and never gains a `text:`
+   prefix (§5.1). Reach for explicit `text:` only when a prose line carries pipe-properties
+   (e.g. `| end:`) or must literally begin with a `word:` token.
 
 **Document-metadata lifting.** `meta:`, `track:`, `agent:`, `model:`, and `context:`
 lines that appear **before the first `section:`** are lifted into document metadata (and
@@ -127,7 +131,7 @@ Within content: `*bold*`, `_italic_`, `~strike~`, `` `code` ``, `@mention`,
 `#tag`, `[label](href)`, dates, and footnote refs parse into `inline` nodes.
 
 An **inline styled span** `[text]{ key: value; key: value }` styles part of a line with
-the same keys as block-level style props (see [style-properties](../../apps/docs/docs/reference/style-properties.md)),
+the same keys as block-level style props (see [style-properties](apps/docs/docs/reference/style-properties.md)),
 but **`;`-separated** — `|` is reserved for the line-level property delimiter and cannot
 appear inside a line. Spans parse into a `styled` inline node and render to `<span
 style="…">` via the same property→CSS mapping as block props, so partial styling is
@@ -154,6 +158,13 @@ Everything else is an opt-in **profile**. Tiering is contract metadata — the p
 recognizes every keyword regardless of tier; profiles signal document intent and
 drive tooling/validation. Non-reserved keywords always pass through as `custom`, so
 the reserved surface can stay small without losing extensibility.
+
+> **Conventional keywords (non-normative).** Because any word is a valid custom keyword,
+> teams interoperate faster when they reach for the *same* words. A curated, **non-reserved
+> and non-required** best-practice list — the words real documents use most (`clause:`,
+> `obligation:`, `sla:`, `risk:`, `milestone:`, …) — lives in the appendix,
+> [RECOMMENDED-KEYWORDS.md](RECOMMENDED-KEYWORDS.md). It is convention to reduce synonym
+> drift, never a schema: ignoring it never makes a document non-conformant.
 
 | Tier | Keywords | Use for |
 | --- | --- | --- |
@@ -210,7 +221,7 @@ Every seal/signature stamps a **`spec:` version** recording WHICH byte-rules pro
 hash; verification applies exactly that version **forever**, so a future rule change can
 never silently break a historical seal. The current version is **`SEAL_SPEC = 4`**.
 
-Versions (each frozen once shipped — `CANONICALIZERS` in [`src/trust.ts`](src/trust.ts)):
+Versions (each frozen once shipped — `CANONICALIZERS` in [`src/trust.ts`](packages/core/src/trust.ts)):
 
 | spec | rules |
 | ---- | ----- |
@@ -297,7 +308,7 @@ verified result (`@dotit/sign`); otherwise the document shows its locally-verifi
   under v4.1. Tiering and the v4.1 cleanup added no breaking grammar changes.
 - **Unknown keywords never error** — they become `custom` blocks, preserved verbatim.
 - **One implementation.** The TypeScript core is canonical (see
-  [`ARCHITECTURE.md`](../../ARCHITECTURE.md)). No other language re-implements the
+  [`ARCHITECTURE.md`](ARCHITECTURE.md)). No other language re-implements the
   grammar.
 
 ### 5.1 Lossless text ↔ JSON interchange
@@ -323,11 +334,12 @@ are inverses at the information level. Concretely:
   their original per-line form in `_merged` so they re-emit unchanged).
 
 **What is *not* guaranteed:** byte-preservation of *arbitrary* author formatting. The
-**first** serialize pass may normalize representation — a markdown `| a | b |` table
-becomes the canonical `headers:`/`row:` form, and bare prose gains its implicit `text:`
-prefix. After that single canonicalizing pass, text ↔ JSON round-trip exactly (byte-for-
-byte for text, deep-equal for JSON). The guarantee is **canonical-form + information
-losslessness**, not preservation of every incidental keystroke.
+**first** serialize pass may normalize representation — e.g. a markdown `| a | b |` table
+becomes the canonical `headers:`/`row:` form. (**Bare prose, by contrast, IS preserved** —
+a keyword-less line round-trips byte-identical and never gains a `text:` prefix; see §2.7.)
+After that single canonicalizing pass, text ↔ JSON round-trip exactly (byte-for-byte for
+text, deep-equal for JSON). The guarantee is **canonical-form + information losslessness**,
+not preservation of every incidental keystroke.
 
 ### 5.2 Format version stamp (optional)
 
@@ -351,7 +363,7 @@ collide with content. Only the header comment block is honored (never body or co
 Documents are made queryable across a folder tree by a per-folder, shallow `.it-index`
 cache (the `.it` files remain the source of truth). Recursive search composes per-folder
 indexes explicitly; the index is kept fresh by lazy self-healing on query. Full model:
-[INDEXING.md](./INDEXING.md).
+[INDEXING.md](packages/core/INDEXING.md).
 
 ## 7. Governance
 

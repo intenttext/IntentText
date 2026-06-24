@@ -127,6 +127,12 @@ demo/**/out.*
 # Internal business strategy (pricing, revenue, GTM) — keep OUT of the public repo
 docs-internal/
 
+# LLM / benchmark test corpora — internal teachability evidence, NOT curated public
+# examples. Kept on disk + in git history; scripts/check-examples.mjs already skips them.
+# (examples/ keeps only the curated showcase + templates/.)
+examples/test/
+examples/llms/
+
 # Secrets / keys / local data — never commit
 !.env.example
 *.pem

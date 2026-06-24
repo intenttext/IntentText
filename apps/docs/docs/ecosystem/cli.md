@@ -276,7 +276,7 @@ Being precise about this matters more than sounding impressive.
 **What it is:** a **SHA-256 content hash** of the canonicalized document body,
 plus **recorded signer identity** (name, role, timestamp as plain text on the
 `sign:` line). The algorithm is deliberately tiny and fully specified in
-[SPEC §4.1](https://github.com/intenttext/IntentText/blob/main/packages/core/SPEC.md) —
+[SPEC §4.1](https://github.com/intenttext/IntentText/blob/main/SPEC.md) —
 anyone with the file and any SHA-256 implementation can recompute the hash and
 check it, in any language, with no vendor and no service. That gives you
 **tamper-evidence**: if the file you received doesn't hash to the value on its

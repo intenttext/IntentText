@@ -79,3 +79,9 @@ x-exp: assert | expr: total > 0
 ```
 
 Some extension blocks (notably `x-trust:` history entries) are machine-managed — don't edit them by hand. Bare legacy forms may still parse for compatibility, but the namespaced form is canonical.
+
+## Custom keywords & recommended conventions
+
+Beyond the 41 canonical keywords and the `x-` extensions, **any word you write before a `:` is a valid keyword** — it parses as a typed, queryable `custom` block, so domain vocabulary never makes a document non-conformant (`risk:`, `clause:`, `مصروف:`). Because the set is open, teams interoperate best when they converge on the *same* word for the same concept.
+
+The **[Recommended Keywords appendix](https://github.com/intenttext/IntentText/blob/main/RECOMMENDED-KEYWORDS.md)** is a curated, **non-binding** best-practice list of the words real documents use most (`clause:`, `obligation:`, `sla:`, `risk:`, `milestone:`, …) — convention to reduce synonym drift across a folder of documents, never a schema. Ignoring it never makes a document non-conformant.

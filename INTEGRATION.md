@@ -10,7 +10,7 @@ browser are marked.
 
 - Docs site: https://dotit.uts.qa · Format reference for LLMs: https://dotit.uts.qa/llms.txt
 - This file, servable: https://dotit.uts.qa/integration.md
-- Spec (canonical grammar): [`packages/core/SPEC.md`](packages/core/SPEC.md)
+- Spec (canonical grammar): [`SPEC.md`](SPEC.md)
 - Source: https://github.com/intenttext/IntentText (MIT)
 
 | Package | Version | What it is | Install |
@@ -64,7 +64,7 @@ Markdown for free-form prose with no data inside.
 ## 2. The format crash course
 
 Read this section and you can author any valid `.it` document. The canonical
-grammar is [`packages/core/SPEC.md`](packages/core/SPEC.md); where anything
+grammar is [`SPEC.md`](SPEC.md); where anything
 disagrees, the spec wins.
 
 ### 2.1 Line grammar
