@@ -22,139 +22,104 @@
 
 ## What is IntentText?
 
-Every document is either **prose** (for people) or **data** (for machines). You normally
-pick one and lose the other — a beautiful PDF a database can't read, or a JSON blob no one
-wants to. A `.it` file is **both at once**. Every line is *typed* — a `task:` is always a
-task, a `sign:` is always a signature, an `invoice` line is always an invoice line (and a
-line you just write plainly is prose) — so any tool can read, query, validate, render, and
-*act on* your documents without guessing at free-form text.
+Every business runs on documents — invoices, contracts, reports, forms — and each one is
+**stuck on one side of a wall.** As a Word file or PDF it looks right to a person but is
+opaque to software. As a database row or JSON it's perfect for software but unreadable to
+people. For decades you've had to pick a side and lose the other.
+
+**A `.it` file lives on both sides at once.** It reads like something you'd type by hand, yet
+every line is *typed data* — so the file a colleague reads is also a database a machine can
+query, a document you can print, and a record you can cryptographically seal. One file. No
+conversions, no second copy drifting out of date.
 
 ```intenttext
-// it-format: 1.0
 title: Service Agreement — Acme Gulf Trading
 meta: | ref: CON-2026-014 | status: active
 
 section: Scope
-text: Managed hosting, 99.9% uptime SLA, monthly reporting.
+Managed hosting, 99.9% uptime, monthly reporting.
 deadline: First invoice due | date: 2026-07-01 | consequence: 2% late fee
-
-contact: Acme Gulf Trading WLL | email: ops@acmegulf.qa | role: Client
-approve: Legal review complete | by: Sara Haddad | role: Counsel | at: 2026-06-01
+sign: Sara Haddad | role: Counsel | at: 2026-06-01
 ```
 
-A person reads that at a glance. A machine sees typed blocks — the `deadline:` line is:
+A colleague reads that at a glance. Software sees clean, typed data — the `deadline:` line *is*:
 
 ```json
 { "type": "deadline", "content": "First invoice due",
   "properties": { "date": "2026-07-01", "consequence": "2% late fee" } }
 ```
 
-…so a folder of these answers *"every deadline before October, across all contracts"* with
-one command — **no database, no export step** — and that same file can be sealed with a
-SHA-256 hash anyone can recompute to prove it hasn't changed.
+So a folder of these answers *"every deadline before October, across all our contracts"* with
+**one command and no database**, and the file can be **sealed** so anyone can prove it hasn't
+been touched. The document *is* the system of record.
 
-**The format is small and open:** 13 everyday core keywords (40 reserved in total across
-opt-in profiles), and **any other word is a valid keyword too** — `expense:`, `risk:`,
-`مصروف:` all parse as typed, queryable blocks. With **zero synonym aliases**, any word that
-isn't reserved is reliably *yours* — `party:`, `milestone:`, `note:`, `status:` are never
-silently reinterpreted. You never outgrow it.
+## You're never boxed in — write the words your work already uses
 
----
+Most formats hand you a rigid schema and force you to bend your content to fit it.
+**IntentText is the opposite.** Its 40 built-in keywords are a *floor, not a cage*: **any
+other word you write is instantly valid, typed, and queryable.** Contracts get `clause:` and
+`obligation:` lines, invoices get `invoice:` lines, a risk log gets `risk:` lines — you just
+write them, in any language (`مصروف:` works exactly the same). Nothing is ever reserved
+against you, and you never outgrow the format.
 
-## Where `.it` shines — pick your lens
+That openness is also why **AI writes it perfectly.** Hand any model a single reference file
+and it produces correct `.it` with no fine-tuning and no SDK — we tested four frontier LLMs
+cold, and they got it right **38 times out of 39**, inventing exactly the right domain words
+on their own.
 
-<table>
-<tr><td width="50%" valign="top">
+## Retire the Word + PDF + DocuSign pipeline
 
-### 🏢 Enterprise
-**Invoices · contracts · quotations · receipts · finance reports.**
-One template → merge data → render print/PDF → **seal** → export **EN 16931 / UBL**
-e-invoice. The sealed `.it` is the verifiable record; the PDF is just a view.
+The everyday enterprise stack — a Word template, mail-merge, a PDF export, a signing service,
+and a database to find anything afterwards — collapses into one file:
 
-```intenttext
-headers: Item | Qty | Unit | Total
-row: Hosting | 12 | 900 | 10800
-metric: Total Due | value: 10800 | unit: QAR
-sign: Acme Billing | at: 2026-07-01T09:00:00Z
-freeze: | hash: sha256:… | spec: 4 | status: locked
-```
+- **Template once, generate forever.** Write an invoice or contract template with
+  `{{placeholders}}`, merge your data, and render a branded, paginated **PDF** — identical every time.
+- **Seal it like a contract.** A built-in SHA-256 seal makes it tamper-evident, and **anyone can
+  re-verify it offline** — no DocuSign, no vendor. The sealed `.it` is the record of truth; the
+  PDF is just a view of it.
+- **Query a folder like a database.** Filter contracts by party, invoices by due date, tasks by
+  owner — across thousands of files, **with no backend**.
+- **Export when you must.** It still converts to Word, Excel, Markdown, or an EN-16931 e-invoice
+  on demand — so nothing is ever locked in.
 
-</td><td width="50%" valign="top">
+## Easy enough to learn in a minute
 
-### 🤖 AI agents
-**Memory · workflows · skills · tool manifests.**
-Agents read/write `.it` as structured, queryable, **hash-chained** state — and run
-in-file approval workflows. Point any LLM at `llms.txt`, or drive it over **MCP**.
-
-```intenttext
-trigger: invoice received
-step: extract line items | tool: ocr
-decision: total > 100000 | if: amount > 100000
-route: sequential
-require: finance | when: amount > 100000
-```
-
-</td></tr>
-<tr><td width="50%" valign="top">
-
-### 👤 Humans & teams
-**Notes · plans · READMEs · reports · meeting minutes.**
-As easy to write as Markdown — but every line is typed, so your notes become a
-**queryable, print-ready** record. RTL & Arabic are native.
+If you can write a shopping list, you already know the syntax: **`label: value`, one thing per
+line.** Plain sentences need no label at all. There's nothing to install to read it, no brackets
+to balance, no build step — it's just text you can open anywhere, today.
 
 ```intenttext
 title: Sprint Planning
-task: Ship auth | owner: Ahmed | priority: high | due: 2026-06-20
-done: Deploy staging | at: 2026-06-01
-ask: Do we need SSO for launch?
+Ship the auth work before the public demo.
+task: Ship auth | owner: Ahmed | due: 2026-06-20
+done: Deploy staging
+risk: SSO not ready for launch | severity: high
 ```
-
-</td><td width="50%" valign="top">
-
-### 🏛️ Government & archives
-**Official records · long-term archives · archive conversion.**
-Plain UTF-8 / NFC / LF, **version-stamped** and **offline-verifiable for decades** —
-no vendor, no runtime. Convert PDF/Word/Excel archives *into* `.it`.
-
-```intenttext
-// it-format: 1.0
-meta: | type: record | retention: 2046-01-01
-certify: National Archives | at: 2026-06-01T00:00:00Z
-freeze: | hash: sha256:… | spec: 4 | status: locked
-```
-
-</td></tr>
-</table>
-
-…and it also shines anywhere a document needs to be **both readable and computable**:
-fillable forms, redline review, audit trails, dashboards, definitions/glossaries, and
-cross-document reference graphs — all in the *same* format, so nothing is ever locked in a
-silo. See the persona guides: [for organizations](https://dotit.uts.qa/docs/guide/for-organizations) ·
-[for agents](https://dotit.uts.qa/docs/guide/for-agents) ·
-[for writers](https://dotit.uts.qa/docs/guide/for-writers).
 
 ---
 
-## Why one file can do all that
+## One file, five jobs
 
-A single `.it` file is simultaneously **five** things:
+At the same time, with no conversion step, every `.it` file is:
 
-- **A human-readable text file.** Plain UTF-8, diffable, greppable, git-versionable. No
-  binary format, no lock-in — the file is yours.
-- **A queryable database.** Every line is typed data. Filter by type, owner, status, or ISO
-  date range across a whole folder tree (`dotit query`), or ask in natural language (`dotit ask`).
-- **A print-ready document.** `page:`/`header:`/`footer:`/`watermark:`, themes, and templates
-  render to print HTML with running page numbers and multi-page tables — or server-side PDF.
-- **A cryptographically sealable record.** `seal` hashes the *content* (presentation is
-  excluded, so restyling never breaks a seal) and freezes it; `verify` detects any later edit.
-  Tamper-evidence anyone can recompute — no vendor required.
-- **An open vocabulary.** Reserved keywords give you semantics out of the box; **any unknown
-  word stays a typed, queryable `custom` block** — so domain vocabularies (`مصروف:`, `risk:`,
-  `skill:`) are first-class without bloating the format.
+- **A document** people read — plain UTF-8, diffable, git-friendly, **RTL & Arabic native**.
+- **A database** you query — every line is typed data, filterable across a whole folder
+  (`dotit query`), or asked in plain language (`dotit ask`).
+- **A print-ready page** — themes, headers/footers, running page numbers, multi-page tables →
+  print HTML or server-side **PDF**.
+- **A sealed record** — a content hash makes it tamper-evident and offline-verifiable; restyling
+  never breaks the seal, no vendor required.
+- **An open vocabulary** — your domain's own words are first-class, never bolted on.
 
-And it is **Arabic-native**: 32 Arabic (localized) keyword names (`عنوان`→title, `مهمة`→task,
-`توقيع`→sign, …), automatic RTL, and keywords round-trip **as written** — a sealed Arabic
-document keeps its hash, and one query (`--type task`) finds tasks across languages.
+It's just as natural for **AI agents** — queryable, hash-chained memory and in-file approval
+workflows, drivable over **MCP** — and for **government archives**: version-stamped and
+offline-verifiable for decades, with PDF/Word/Excel archives converting *into* `.it`. And it's
+**Arabic-native**: 32 localized keyword names, automatic RTL, and a sealed Arabic document keeps
+its hash.
+
+See the guides: [for organizations](https://dotit.uts.qa/docs/guide/for-organizations) ·
+[for agents](https://dotit.uts.qa/docs/guide/for-agents) ·
+[for writers](https://dotit.uts.qa/docs/guide/for-writers).
 
 > **Building dotit into your software?** → **[INTEGRATION.md](INTEGRATION.md)** — the complete
 > developer / AI-agent guide: format crash course, ERP & archive recipes, every package, full

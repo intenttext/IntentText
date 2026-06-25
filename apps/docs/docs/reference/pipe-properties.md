@@ -37,7 +37,7 @@ code: ```fetch("/api/data")``` | lang: js
 
 ```intenttext
 task: Review the A \| B comparison | owner: Ada
-text: Windows path: C:\\Users\\ahmed\\docs
+Windows path: C:\\Users\\ahmed\\docs
 metric: Margin | value: 40\|60 split
 ```
 
@@ -47,7 +47,7 @@ The parser unescapes `\|` and `\\` anywhere in content and property values, and 
 
 ```intenttext
 quote: He said: watch this | by: Ada
-text: Schedule — 09:00: standup, 14:30: review
+Schedule — 09:00: standup, 14:30: review
 ```
 
 The only edge case: starting a line's *prose* with something that looks like a keyword. `total: 50` on its own line would parse as a custom `total` block — if you mean it as text, say so explicitly:
@@ -279,7 +279,7 @@ It is a **lint only** — it never changes parsing, so it cannot affect a seal. 
 escape the literal pipe as `\|`:
 
 ```intenttext
-text: Compare plan A \| plan B side by side
+Compare plan A \| plan B side by side
 ```
 
 Recognized prose keys (which do **not** trigger the warning) include the style/layout props

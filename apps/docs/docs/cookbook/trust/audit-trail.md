@@ -18,7 +18,7 @@ title: Service Agreement v2.1
 meta: | type: contract | track: true
 
 section: Terms
-text: Payment within 30 days of invoice.
+Payment within 30 days of invoice.
 
 section: Signatures
 approve: Legal review | by: Sarah Chen | role: General Counsel | at: 2026-03-20

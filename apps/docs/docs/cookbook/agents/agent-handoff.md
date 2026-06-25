@@ -22,7 +22,7 @@ meta: | type: research | agent: research-agent
 
 section: Findings
 
-text: The cloud services market grew 22% YoY in Q1 2026.
+The cloud services market grew 22% YoY in Q1 2026.
 cite: Gartner Cloud Report 2026 | author: Gartner | url: https://gartner.com/cloud-2026
 
 metric: Market size | value: 540 | unit: billion USD | trend: up

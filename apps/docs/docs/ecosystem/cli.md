@@ -146,7 +146,7 @@ summary: Managed hosting for Acme Gulf Trading WLL
 meta: | ref: CON-2026-014 | status: active
 
 section: Scope
-text: Managed Kubernetes hosting, 99.9% uptime SLA, monthly reporting.
+Managed Kubernetes hosting, 99.9% uptime SLA, monthly reporting.
 deadline: First invoice due | date: 2026-07-01 | consequence: 2% late fee
 
 section: Approvals

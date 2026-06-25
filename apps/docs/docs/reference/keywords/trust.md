@@ -480,7 +480,7 @@ contact: Ahmed Al-Rashid | role: CEO | email: ahmed@acme.com
 contact: Sarah Chen | role: General Counsel | email: sarah@acme.com
 
 section: Terms
-text: Full contract terms...
+Full contract terms...
 
 track: | version: 1.0 | by: Ahmed Al-Rashid
 approve: Legal review complete | by: Sarah Chen | role: General Counsel | at: 2026-03-05

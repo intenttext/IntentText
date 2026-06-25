@@ -53,9 +53,9 @@ sub: heading text
 ```intenttext
 section: Payment Terms
 sub: Invoice Schedule
-text: Invoices are issued on the 1st of each month.
+Invoices are issued on the 1st of each month.
 sub: Late Fees
-text: A fee of 1.5% per month applies to overdue payments.
+A fee of 1.5% per month applies to overdue payments.
 ```
 
 ---
@@ -87,7 +87,7 @@ toc:
 
 section: Scope of Work
 sub: Deliverables
-text: ...
+...
 ```
 
 ---

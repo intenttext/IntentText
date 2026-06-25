@@ -52,11 +52,11 @@ summary: Why plain text formats are making a comeback
 meta: | author: Elena Vasquez | date: 2026-03-15 | tags: opinion, technology
 
 section: The Problem
-text: Every organization stores critical information in formats that can’t be searched, can’t be queried, and can’t be verified.
-text: A contract in Word is just a blob of styled text. The deadline on page 12? Good luck finding it.
+Every organization stores critical information in formats that can’t be searched, can’t be queried, and can’t be verified.
+A contract in Word is just a blob of styled text. The deadline on page 12? Good luck finding it.
 
 section: The Solution
-text: Structured plain text — where every line declares its intent — is the answer that’s been hiding in plain sight.
+Structured plain text — where every line declares its intent — is the answer that’s been hiding in plain sight.
 quote: The best format is the one you can still read in 50 years. | by: Knuth, 1984
 
 section: Sources
@@ -106,7 +106,7 @@ Use `def:` near the first use of a term, or gather definitions in a glossary sec
 **Inline (near first use):**
 
 ```intenttext
-text: The document enters the sealed state after freeze.
+The document enters the sealed state after freeze.
 def: Sealed | meaning: A document whose content hash has been locked with a SHA-256 seal. Any content modification breaks the seal; restyling and comments do not.
 ```
 
@@ -224,7 +224,7 @@ def greet(name):
 **Inline code** — use triple backticks within any text block:
 
 ````intenttext
-text: Run ```npm install``` to set up the project.
+Run ```npm install``` to set up the project.
 ````
 
 ## The editorial workflow

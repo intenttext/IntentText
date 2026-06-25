@@ -9,18 +9,19 @@ Nine ideas that explain everything in IntentText.
 
 ## 1. One line, one intent
 
-Every block in a `.it` file follows one pattern:
+Write plain prose as you normally would — a bare line is simply text. When a line carries a
+*specific* meaning, give it a keyword:
 
 ```
 keyword: value | property: x | property: y
 ```
 
 ```intenttext
-text: This is a text block
+This is a plain paragraph — no keyword needed.
 task: Review the contract | owner: Ahmed | due: 2026-04-15
 ```
 
-No nesting. No indentation rules. No closing tags. The keyword tells you what the line _is_. The value after the colon is the content. Properties follow pipes.
+No nesting, no indentation rules, no closing tags. A keyword tells you what the line _is_; the value after the colon is its content; properties follow the pipes. Prose needs no keyword at all.
 
 **Even code follows this rule.** Triple backticks delimit the value — think of it like a stringified JSON object placed as the keyword's value:
 
@@ -85,7 +86,7 @@ Sections organize blocks into groups:
 
 ```intenttext
 section: Scope
-text: The project covers phases 1 through 3.
+The project covers phases 1 through 3.
 
 section: Timeline
 deadline: Phase 1 complete | date: 2026-06-01
@@ -100,7 +101,7 @@ The `history:` keyword separates the document from its history:
 
 ```intenttext
 title: Consulting Agreement
-text: Terms and conditions...
+Terms and conditions...
 
 approve: Reviewed | by: Sarah Chen | role: Legal
 sign: Ahmed Al-Rashid | role: CEO

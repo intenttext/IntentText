@@ -23,15 +23,15 @@ footer: © 2026 Acme Corp — Subscribe at acme.co/newsletter
 
 section: Lead Story
 
-text: *AI-Powered Quality Control Goes Live*
+*AI-Powered Quality Control Goes Live*
 
 figure: Assembly line monitoring system | src: /images/ai-quality-control.jpg | num: 1 | caption: The new AI monitoring system inspects 2,000 units per hour with 99.7% accuracy | source: Internal photography, March 2026
 
-text: After 18 months of development, our AI quality control system is live on Production Line 3. The system uses computer vision to inspect manufactured components, flagging defects that human inspectors miss at speed.
+After 18 months of development, our AI quality control system is live on Production Line 3. The system uses computer vision to inspect manufactured components, flagging defects that human inspectors miss at speed.
 
 quote: We're not replacing inspectors — we're giving them superpowers. The AI catches the subtle defects that slip through at full line speed. | by: Sarah Chen | role: VP Manufacturing
 
-text: Early results show a ^47% reduction^ in defect escape rate and a ~12-minute~ 8-minute average inspection cycle time. The team plans to roll out to all six production lines by Q3.
+Early results show a ^47% reduction^ in defect escape rate and a ~12-minute~ 8-minute average inspection cycle time. The team plans to roll out to all six production lines by Q3.
 
 cite: McKinsey Global Institute | url: https://mckinsey.com/ai-manufacturing | note: AI quality inspection reduces defect rates by 30-50% across manufacturing sectors
 
@@ -39,19 +39,19 @@ section: Team Spotlight
 
 figure: Engineering team at the March hackathon | src: /images/hackathon-team.jpg | num: 2 | caption: The Acme engineering team during the 2026 spring hackathon
 
-text: *Meet the Cloud Migration Team*
+*Meet the Cloud Migration Team*
 
 contact: Ahmed Al-Rashid | role: Team Lead | email: ahmed@acme.co
 contact: James Miller | role: Senior Engineer | email: james@acme.co
 contact: Maria Santos | role: DevOps Engineer | email: maria@acme.co
 
-text: This team completed the full cloud migration 2 weeks ahead of schedule and $12K under budget. Their approach — migrating service by service with zero-downtime cutover — is now the standard playbook for future migrations.
+This team completed the full cloud migration 2 weeks ahead of schedule and $12K under budget. Their approach — migrating service by service with zero-downtime cutover — is now the standard playbook for future migrations.
 
 quote: The key was treating each service as an independent migration project. Small batches, fast feedback. | by: Ahmed Al-Rashid
 
 section: Q2 Roadmap
 
-text: Three major initiatives for the next quarter:
+Three major initiatives for the next quarter:
 
 deadline: API Platform GA | date: 2026-04-15 | status: in-progress
 deadline: Mobile SDK Alpha | date: 2026-06-01 | status: planning

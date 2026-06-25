@@ -23,7 +23,7 @@ text: content | style-properties
 ### Examples
 
 ```intenttext
-text: The project is on track for a June delivery.
+The project is on track for a June delivery.
 text: Total contract value: USD 24,000 | weight: bold
 text: Please review by end of week | color: #dc2626 | italic: true
 ```
@@ -224,8 +224,8 @@ WHERE active = true
 To include code inline within any text block, use triple backticks:
 
 ````intenttext
-text: Call the ```render()``` function to generate output.
-text: Set ```NODE_ENV=production``` before deploying.
+Call the ```render()``` function to generate output.
+Set ```NODE_ENV=production``` before deploying.
 ````
 
 ### Notes

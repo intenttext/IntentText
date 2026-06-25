@@ -120,7 +120,7 @@ later prove a redaction covered exactly a given text, without the document revea
 
 ```intenttext
 math: E = mc^2                 # a display equation
-text: mass-energy [E = mc^2]{math: tex} is famous.   # inline
+mass-energy [E = mc^2]{math: tex} is famous.   # inline
 ```
 
 Core marks math (a dependency-free `data-tex` placeholder); render it with

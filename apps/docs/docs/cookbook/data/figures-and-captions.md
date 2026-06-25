@@ -26,9 +26,9 @@ You have images in documents with no captions, no numbering, and no way to refer
 ### Using `image:`
 
 ```intenttext
-text: Our office is located in downtown San Francisco.
+Our office is located in downtown San Francisco.
 image: Office building | src: /images/office.jpg
-text: We've been at this location since 2015.
+We've been at this location since 2015.
 ```
 
 Simple. Inline. No number or caption.
@@ -65,13 +65,13 @@ meta: | type: report | domain: research
 
 section: Market Overview
 
-text: The global cloud services market reached $540B in Q1 2026, representing 22% year-over-year growth. Three providers — AWS, Azure, and GCP — continue to hold 67% combined market share.
+The global cloud services market reached $540B in Q1 2026, representing 22% year-over-year growth. Three providers — AWS, Azure, and GCP — continue to hold 67% combined market share.
 
 figure: Cloud market size 2022–2026 | src: /images/market-size.png | num: 1 | caption: Cloud services market grew from $380B to $540B over four years | source: Gartner Cloud Infrastructure Report 2026
 
 section: Competitive Landscape
 
-text: AWS maintained its lead at 31% market share, though Azure narrowed the gap to 7 percentage points — the smallest ever.
+AWS maintained its lead at 31% market share, though Azure narrowed the gap to 7 percentage points — the smallest ever.
 
 figure: Market share by provider | src: /images/market-share.png | num: 2 | caption: AWS 31%, Azure 24%, GCP 12%, Others 33% | source: Synergy Research Group
 
@@ -79,7 +79,7 @@ section: Growth Segments
 
 figure: Growth rate by segment | src: /images/segment-growth.png | num: 3 | caption: AI/ML services grew fastest at 47% YoY, followed by edge computing at 35% | source: IDC Cloud Tracker
 
-text: AI/ML cloud services were the fastest-growing segment for the third consecutive quarter.
+AI/ML cloud services were the fastest-growing segment for the third consecutive quarter.
 
 figure: Regional growth comparison | src: /images/regional-growth.png | num: 4 | caption: APAC led growth at 28% YoY, compared to 20% in North America and 18% in EMEA | source: IDC Cloud Tracker
 ```

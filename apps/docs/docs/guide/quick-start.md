@@ -28,7 +28,7 @@ title: Project Kickoff
 summary: Planning meeting notes for Atlas project
 
 section: Decisions
-text: Launch date confirmed for June 15
+Launch date confirmed for June 15
 text: Budget approved at USD 180,000 | weight: bold
 
 section: Tasks
@@ -104,7 +104,7 @@ import { parseIntentText, renderHTML } from "@dotit/core";
 
 const source = `
 title: Quick Example
-text: This is structured text.
+This is structured text.
 task: Review document | owner: Ahmed | due: 2026-04-01
 `;
 

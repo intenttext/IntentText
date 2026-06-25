@@ -11,7 +11,7 @@ TypeScript/JavaScript API reference for `@dotit/core`.
 npm install @dotit/core
 ```
 
-Current version: **2.0.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
+Current version: **3.0.0**. (Formerly published as `@intenttext/core` — those packages are deprecated with pointers; same code, same format.)
 
 ## Parser
 
@@ -27,7 +27,7 @@ title: Quarterly Report
 meta: | author: Finance Team | date: 2026-03-31 | period: Q1
 
 section: Revenue
-text: Revenue grew 12% year-over-year.
+Revenue grew 12% year-over-year.
 metric: Revenue | value: $4.2M | target: $4.0M | status: above
 `);
 
@@ -347,7 +347,7 @@ import { parseIntentText, mergeData } from "@dotit/core";
 
 const template = parseIntentText(`
 title: Invoice {{number}}
-text: Amount due: {{amount}}
+Amount due: {{amount}}
 `);
 
 const merged = mergeData(template, { number: "INV-2847", amount: "$5,000" });

@@ -66,9 +66,9 @@ The braces carry the **same style keys** as block props, but separated by **`;`*
 alongside the semantic marks (`*bold*`, `_italic_`, `~strike~`, `` `code` ``):
 
 ```intenttext
-text: Payment is [overdue]{ color: #c00; weight: bold } — please act _now_.
+Payment is [overdue]{ color: #c00; weight: bold } — please act _now_.
 metric: Total Due | value: [17,325 QAR]{ size: 1.2em; weight: bold }
-text: A [combined]{ color: blue; weight: bold; italic: true; underline: true } word.
+A [combined]{ color: blue; weight: bold; italic: true; underline: true } word.
 ```
 
 Spans render to `<span style="…">` using the exact same mapping as block props, so a
@@ -179,8 +179,8 @@ IntentText supports inline formatting within any content string. These follow Wh
 ### Examples
 
 ````intenttext
-text: The deadline is *tomorrow* at _5pm_. Contact @sarah for details.
-text: Use the ```render()``` function to generate output. See #api-reference.
-text: Revenue is ^up 12%^ this quarter — exceeding our ~original~ revised target.
-text: Read the [full report](https://example.com/report) for details.
+The deadline is *tomorrow* at _5pm_. Contact @sarah for details.
+Use the ```render()``` function to generate output. See #api-reference.
+Revenue is ^up 12%^ this quarter — exceeding our ~original~ revised target.
+Read the [full report](https://example.com/report) for details.
 ````

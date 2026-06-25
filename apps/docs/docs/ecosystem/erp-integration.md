@@ -207,7 +207,7 @@ section: Items
 section: Totals
 metric: Total | value: {{totals.total}}
 metric: Paid | value: {{totals.paid}}
-text: Thank you · {{company.name}}
+Thank you · {{company.name}}
 ```
 
 Keep receipt tables to **2–3 narrow columns** so they fit the roll width. `size:` also

@@ -186,7 +186,7 @@ The `history:` keyword separates the document from machine-managed history:
 
 ```intenttext
 title: Consulting Agreement
-text: Terms and conditions...
+Terms and conditions...
 freeze: | status: locked
 
 history:

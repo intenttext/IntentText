@@ -19,8 +19,8 @@ summary: Annual IT support contract
 meta: | type: contract | domain: legal | track: true
 
 section: Terms
-text: Provider shall deliver monthly IT support services...
-text: Payment within 30 days of invoice.
+Provider shall deliver monthly IT support services...
+Payment within 30 days of invoice.
 
 section: Approval Chain
 

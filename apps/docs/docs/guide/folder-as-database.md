@@ -61,7 +61,7 @@ title: Mutual NDA — Falcon Logistics
 meta: | ref: CON-2026-021 | status: draft
 
 section: Terms
-text: Confidentiality period of 24 months from the effective date.
+Confidentiality period of 24 months from the effective date.
 task: Send for signature | owner: Fahad | due: 2026-06-18 | priority: medium
 ```
 

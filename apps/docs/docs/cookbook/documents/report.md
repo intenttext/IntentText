@@ -24,7 +24,7 @@ watermark: DRAFT | color: rgba(0,0,0,0.06)
 
 section: Executive Summary
 
-text: Engineering delivered 3 of 4 planned initiatives on schedule. Cloud migration completed ahead of timeline. API platform launch delayed by 2 weeks due to security review findings. Team grew from 42 to 48 engineers.
+Engineering delivered 3 of 4 planned initiatives on schedule. Cloud migration completed ahead of timeline. API platform launch delayed by 2 weeks due to security review findings. Team grew from 42 to 48 engineers.
 
 section: Key Metrics
 
@@ -50,11 +50,11 @@ figure: Incident response times | src: /images/mttr-chart.png | num: 2 | caption
 
 section: Analysis
 
-text: The 40% improvement in deployment frequency directly correlates with the CI/CD pipeline rebuild completed in January. Teams are now shipping smaller, more frequent changes.
+The 40% improvement in deployment frequency directly correlates with the CI/CD pipeline rebuild completed in January. Teams are now shipping smaller, more frequent changes.
 
 cite: State of DevOps Report 2025 | author: DORA Team | url: https://dora.dev/report | note: Elite performers deploy multiple times per day with sub-hour recovery times. Our metrics now meet elite performer benchmarks.
 
-text: Customer-reported bugs dropped 40% quarter-over-quarter, tracking with the code coverage increase from 82% to 91%.
+Customer-reported bugs dropped 40% quarter-over-quarter, tracking with the code coverage increase from 82% to 91%.
 
 section: Risks
 

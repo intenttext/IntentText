@@ -205,12 +205,12 @@ invisible in web output and forces a new page in print/PDF.
 
 ```intenttext
 section: Chapter One
-text: Introduction material...
+Introduction material...
 
 break:
 
 section: Chapter Two
-text: New chapter starts on a fresh page.
+New chapter starts on a fresh page.
 ```
 
 ### Advanced: scoped break rules

@@ -49,8 +49,8 @@ contact: {{client_name}} | role: Client | email: {{client_email}}
 contact: {{provider_name}} | role: Provider | email: {{provider_email}}
 
 section: Terms
-text: This {{document_type}} is effective as of {{effective_date}}.
-text: {{terms}}
+This {{document_type}} is effective as of {{effective_date}}.
+{{terms}}
 
 section: Deliverables
 | Description | Due Date | Amount | each: deliverables |

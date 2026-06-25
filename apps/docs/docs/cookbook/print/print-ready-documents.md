@@ -36,8 +36,8 @@ contact: GlobalTech Industries | role: Client | email: contracts@globaltech.co
 
 section: Terms
 
-text: Provider shall deliver monthly IT support services for the duration of the Term.
-text: Payment within 30 days of each monthly invoice.
+Provider shall deliver monthly IT support services for the duration of the Term.
+Payment within 30 days of each monthly invoice.
 
 section: Financial Summary
 

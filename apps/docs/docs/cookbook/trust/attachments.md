@@ -22,7 +22,7 @@ title: Vendor Onboarding — Acme
 meta: | type: form
 
 section: Documents
-text: Commercial registration attached below.
+Commercial registration attached below.
 
 attach: cr | name: cr-300012345.pdf | mime: application/pdf | size: 10 | data: Q1IgT04gRklMRQ==
 ```
