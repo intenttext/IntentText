@@ -74,13 +74,28 @@ and a database to find anything afterwards — collapses into one file:
 
 - **Template once, generate forever.** Write an invoice or contract template with
   `{{placeholders}}`, merge your data, and render a branded, paginated **PDF** — identical every time.
-- **Seal it like a contract.** A built-in SHA-256 seal makes it tamper-evident, and **anyone can
-  re-verify it offline** — no DocuSign, no vendor. The sealed `.it` is the record of truth; the
-  PDF is just a view of it.
+- **Seal & sign like a contract.** A built-in SHA-256 seal makes it tamper-evident and
+  **offline-verifiable** — no vendor — and you can export a **court-recognized PAdES-signed PDF**
+  when a counterparty needs one. The sealed `.it` is the record of truth; the PDF is just a view.
+- **Redline & review.** Track changes and threaded comments like Word — but every edit and comment
+  is itself typed, diffable, and part of a tamper-evident history.
 - **Query a folder like a database.** Filter contracts by party, invoices by due date, tasks by
   owner — across thousands of files, **with no backend**.
 - **Export when you must.** It still converts to Word, Excel, Markdown, or an EN-16931 e-invoice
   on demand — so nothing is ever locked in.
+
+## Forms that come back as data
+
+A `.it` file isn't only something you *generate* — it's something people can *fill in*. Mark a
+file as a form, add `input:` fields, and it becomes a **fillable, signable** record:
+
+- **Built in plain text** — fields for text, choice, number, date, **signature**, tables, and
+  file attachments; `show-if:` reveals a field only when it's relevant, and `compute:` totals
+  things up automatically (a safe evaluator — never `eval`).
+- **Two-party trust, built in** — you seal the blank form's *structure*; whoever fills it seals
+  their *answers* — so neither the questions nor the responses can be altered undetected.
+- **Answers come back as structured data** — queryable, not a flat PDF you re-key by hand. One
+  file replaces a Word form, a web form, *and* the e-signature step.
 
 ## Easy enough to learn in a minute
 
@@ -116,6 +131,9 @@ workflows, drivable over **MCP** — and for **government archives**: version-st
 offline-verifiable for decades, with PDF/Word/Excel archives converting *into* `.it`. And it's
 **Arabic-native**: 32 localized keyword names, automatic RTL, and a sealed Arabic document keeps
 its hash.
+
+Prefer a visual editor? Drop the **`<IntentTextWorkbench>`** React component into any app for a
+Word-like **edit / fill / review / sign** experience — same engine, same files, WYSIWYG PDF.
 
 See the guides: [for organizations](https://dotit.uts.qa/docs/guide/for-organizations) ·
 [for agents](https://dotit.uts.qa/docs/guide/for-agents) ·
