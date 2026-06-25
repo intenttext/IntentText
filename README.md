@@ -15,6 +15,7 @@
   <a href="https://editor.uts.qa">Editor</a> ·
   <a href="https://npmjs.com/package/@dotit/core">npm</a> ·
   <a href="https://dotit.uts.qa/llms.txt">llms.txt</a> ·
+  <a href="https://dotit.uts.qa/llms.it">llms.it</a> ·
   <a href="https://x.com/IntentText">Twitter</a>
 </p>
 
@@ -22,15 +23,17 @@
 
 ## What is IntentText?
 
-Every business runs on documents — invoices, contracts, reports, forms — and each one is
-**stuck on one side of a wall.** As a Word file or PDF it looks right to a person but is
-opaque to software. As a database row or JSON it's perfect for software but unreadable to
-people. For decades you've had to pick a side and lose the other.
+The most important documents in your business are also the most useless to your software. A
+contract worth millions is a Word file — a bag of fonts. The invoice your system just issued is a
+PDF — a photo of a table. The information is right there for a person and invisible to code, so you
+stand up a *second* system to hold the "real" data, the two copies drift, and someone's whole job
+becomes keeping them in sync. We decided that was insane.
 
-**A `.it` file lives on both sides at once.** It reads like something you'd type by hand, yet
-every line is *typed data* — so the file a colleague reads is also a database a machine can
-query, a document you can print, and a record you can cryptographically seal. One file. No
-conversions, no second copy drifting out of date.
+**IntentText ends that split.** A `.it` file is one plain-text file a person reads like a memo and
+software reads like a database — the *same* file, no second copy. Every line declares what it is:
+a `task:` is a task, a `deadline:` is a deadline, an `invoice:` line is an invoice line. You write
+it as easily as jotting a note; code queries it, validates it, merges it into a branded PDF, and
+**seals it with a hash anyone can verify offline, forever.**
 
 ```intenttext
 title: Service Agreement — Acme Gulf Trading
@@ -49,9 +52,14 @@ A colleague reads that at a glance. Software sees clean, typed data — the `dea
   "properties": { "date": "2026-07-01", "consequence": "2% late fee" } }
 ```
 
-So a folder of these answers *"every deadline before October, across all our contracts"* with
-**one command and no database**, and the file can be **sealed** so anyone can prove it hasn't
-been touched. The document *is* the system of record.
+So a folder of these answers *"every deadline before October, across every contract"* in **one
+command, with no database.** And the file *remembers* — every approval, signature, and edit is
+appended to a tamper-evident history that lives **inside the document**, a real audit trail instead
+of a log in some other system you have to trust.
+
+That's the whole bet: **stop flattening documents into pictures and locking your data in black
+boxes.** Keep one honest file a person can read, a machine can run, and anyone can verify — with no
+vendor standing between you and your own work. That's the last document format you adopt.
 
 ## You're never boxed in — write the words your work already uses
 
@@ -113,18 +121,19 @@ risk: SSO not ready for launch | severity: high
 
 ---
 
-## One file, five jobs
+## One file, every job
 
-At the same time, with no conversion step, every `.it` file is:
+The same `.it` file — no conversion step, no second copy — is at once:
 
 - **A document** people read — plain UTF-8, diffable, git-friendly, **RTL & Arabic native**.
 - **A database** you query — every line is typed data, filterable across a whole folder
-  (`dotit query`), or asked in plain language (`dotit ask`).
-- **A print-ready page** — themes, headers/footers, running page numbers, multi-page tables →
-  print HTML or server-side **PDF**.
-- **A sealed record** — a content hash makes it tamper-evident and offline-verifiable; restyling
-  never breaks the seal, no vendor required.
-- **An open vocabulary** — your domain's own words are first-class, never bolted on.
+  (`dotit query`) or asked in plain language (`dotit ask`).
+- **A form** people fill and sign — `input:` fields, conditional logic, two-party trust.
+- **A print-ready PDF** — themes, headers/footers, page numbers, multi-page tables, plus
+  accessible (tagged) and PDF/A-archival output.
+- **A sealed, self-auditing record** — tamper-evident and offline-verifiable, with a
+  hash-chained history of every approval, signature, and change.
+- **A config file** — a readable, commentable, *signable* alternative to YAML/JSON.
 
 It's just as natural for **AI agents** — queryable, hash-chained memory and in-file approval
 workflows, drivable over **MCP** — and for **government archives**: version-stamped and
@@ -316,7 +325,7 @@ The TypeScript core is the single canonical implementation of the grammar (see
 - **Spec** — the canonical grammar: [SPEC.md](SPEC.md)
 - **Recommended keywords** — best-practice conventions for the open vocabulary (non-binding):
   [RECOMMENDED-KEYWORDS.md](RECOMMENDED-KEYWORDS.md)
-- **For LLMs** — [dotit.uts.qa/llms.txt](https://dotit.uts.qa/llms.txt)
+- **For LLMs** — [dotit.uts.qa/llms.txt](https://dotit.uts.qa/llms.txt) · [llms.it](https://dotit.uts.qa/llms.it) (the same reference, written in `.it`)
 - **Changelog** — [CHANGELOG.md](CHANGELOG.md)
 
 ## Status
