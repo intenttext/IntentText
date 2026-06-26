@@ -80,6 +80,8 @@ The same `.it` file — no conversion step, no second copy — is at once:
 - **A document** people read — plain UTF-8, diffable, git-friendly, **RTL & Arabic native**.
 - **A database** you query — every line is typed data, filterable across a whole folder
   (`dotit query`) or asked in plain language (`dotit ask`).
+- **A template** you fill from data — `{{placeholders}}`, repeating rows (`each:`), and dot paths;
+  merge JSON to generate invoices, contracts, or letters by the thousand.
 - **A form** people fill and sign — `input:` fields, conditional logic, two-party trust.
 - **A print-ready PDF** — themes, headers/footers, page numbers, multi-page tables, plus
   accessible (tagged) and PDF/A-archival output.
