@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>A document format where the document itself is the structured data.</b><br>
-  Write it like Markdown. Query it like a database. Seal it like a contract. Hand it to an AI.
+  Write it like a note. Search it like a spreadsheet. Lock it like a contract. Hand it to an AI.
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
 
 <div align="center">
 
-| Format | Humans | Software | Trust |
+| Format | People can read it | Computers can use it | Tamper-proof |
 |---|:---:|:---:|:---:|
 | Word | ✅ | ❌ | ❌ |
 | PDF | ✅ | ❌ | ⚠️ |
@@ -33,19 +33,25 @@
 
 </div>
 
+<p align="center">
+  <b>Free &amp; open source (MIT)</b> — an open, documented, frozen format, not a proprietary trap.
+  Already running in production as the engine inside a commercial ERP.<br>
+  <b>Not a developer?</b> Try it free in your browser, nothing to install → <a href="https://editor.uts.qa"><b>editor.uts.qa</b></a>
+</p>
+
 ---
 
 ## What is IntentText?
 
 A signed contract and the database row that tracks it describe the same agreement — yet they're
-two separate things someone has to keep in sync. Same with an invoice PDF and its ERP record, a
-report and its dashboard. **IntentText collapses each pair into a single file:** readable like a
-document, queryable like a database, with no second copy to drift.
+two separate things someone has to keep in sync. Same with an invoice PDF and its accounting
+record, a report and its dashboard. **IntentText collapses each pair into a single file:** readable
+like a document, searchable like a database, with no second copy to drift.
 
 The trick is that **every line declares what it is** — a `task:` is a task, a `deadline:` is a
-deadline, an `invoice:` line is an invoice line. You write it as easily as jotting a note; code
-queries it, validates it, merges it into a branded PDF, and **seals it with a hash anyone can
-verify offline, forever.**
+deadline, an `invoice:` line is an invoice line. You write it as easily as jotting a note; software
+can then search it, check it, turn it into a branded PDF, and **stamp it with a tamper-proof
+fingerprint anyone can verify — no internet, no special software — forever.**
 
 ```intenttext
 title: Service Agreement — Acme Gulf Trading
@@ -57,7 +63,9 @@ deadline: First invoice due | date: 2026-07-01 | consequence: 2% late fee
 sign: Sara Haddad | role: Counsel | at: 2026-06-01
 ```
 
-A colleague reads that at a glance. Software sees clean, typed data — the `deadline:` line *is*:
+A colleague reads that at a glance. To software, the `deadline:` line isn't a sentence — it's
+structured information it can sort, filter, and total automatically (here's the same line, *as a
+computer sees it*):
 
 ```json
 { "type": "deadline", "content": "First invoice due",
@@ -65,38 +73,44 @@ A colleague reads that at a glance. Software sees clean, typed data — the `dea
 ```
 
 So a folder of these answers *"every deadline before October, across every contract"* in **one
-command, with no database.** And the file *remembers* — every approval, signature, and edit is
-appended to a tamper-evident history that lives **inside the document**, a real audit trail instead
-of a log in some other system you have to trust.
+step, with no database.** And the file *remembers* — every approval, signature, and edit is added
+to a tamper-proof history that lives **inside the document**, a real audit trail instead of a log
+in some other system you have to trust.
 
-That's the whole bet: **stop flattening documents into pictures and locking your data in black
-boxes.** Keep one honest file a person can read, a machine can run, and anyone can verify — with no
-vendor standing between you and your own work. That's the last document format you adopt.
+That's the whole idea: **stop flattening documents into pictures and locking your information away
+in systems only software can open.** Keep one honest file a person can read, software can use, and
+anyone can verify — with no vendor standing between you and your own work. That's the last document
+format you adopt.
 
 ## One file, every job
 
 The same `.it` file — no conversion step, no second copy — is at once:
 
-- **A document** people read — plain UTF-8, diffable, git-friendly, **RTL & Arabic native**.
-- **A database** you query — every line is typed data, filterable across a whole folder
-  (`dotit query`) or asked in plain language (`dotit ask`).
-- **A template** you fill from data — `{{placeholders}}`, repeating rows (`each:`), and dot paths;
-  merge JSON to generate invoices, contracts, or letters by the thousand.
-- **A form** people fill and sign — `input:` fields, conditional logic, two-party trust.
-- **A print-ready PDF** — themes, headers/footers, page numbers, multi-page tables, plus
-  accessible (tagged) and PDF/A-archival output.
-- **A sealed, self-auditing record** — tamper-evident and offline-verifiable, with a
-  hash-chained history of every approval, signature, and change.
-- **A config file** — a readable, commentable, *signable* alternative to YAML/JSON.
+- **A document** people read — plain text that opens in any app, shows exactly what changed between
+  versions, and reads naturally in Arabic and other right-to-left languages.
+- **A database** you can search — every line is labelled information, so you can filter or total it
+  across a whole folder, or simply ask a plain-English question.
+- **A template** you fill from data — write it once with `{{placeholders}}`, then merge in a
+  spreadsheet or database to generate invoices, contracts, or letters by the thousand.
+- **A form** people fill in and sign — fields, drop-downs, logic that shows the right questions, and
+  a signature; the answers come back as data, not a flat PDF.
+- **A print-ready PDF** — branded themes, headers and footers, page numbers, multi-page tables, plus
+  screen-reader-accessible and long-term-archival PDFs.
+- **A sealed, self-auditing record** — tamper-proof and checkable by anyone offline, with a built-in,
+  un-editable log of every approval, signature, and change.
+- **A settings file** — a readable, commentable, even signable alternative to the configuration
+  files software normally hides in (YAML/JSON).
 
-It's just as natural for **AI agents** — queryable, hash-chained memory and in-file approval
-workflows, drivable over **MCP** — and for **government archives**: version-stamped and
-offline-verifiable for decades, with PDF/Word/Excel archives converting *into* `.it`. And it's
-**Arabic-native**: 32 localized keyword names, automatic RTL, and a sealed Arabic document keeps
-its hash.
+It's just as natural for **AI assistants** — they can read, write, search, and verify these files
+directly (over the emerging tool standard, MCP) and use them as dependable memory — and for
+**governments and archives**: stamped with a version and checkable offline for decades, with your
+existing PDF, Word, and Excel files converting *into* `.it`. And it's **Arabic-native**: keywords
+work in Arabic, text flows right-to-left automatically, and a sealed Arabic document keeps its
+fingerprint.
 
-Prefer a visual editor? Drop the **`<IntentTextWorkbench>`** React component into any app for a
-Word-like **edit / fill / review / sign** experience — same engine, same files, WYSIWYG PDF.
+Prefer a visual editor? There's a **Word-like editor** your team can use to write, fill, review, and
+sign — same files underneath, with live PDF preview. Try it free at
+[editor.uts.qa](https://editor.uts.qa) — nothing to install.
 
 See the guides: [for organizations](https://dotit.uts.qa/docs/guide/for-organizations) ·
 [for agents](https://dotit.uts.qa/docs/guide/for-agents) ·
@@ -104,53 +118,53 @@ See the guides: [for organizations](https://dotit.uts.qa/docs/guide/for-organiza
 
 ## You're never boxed in — write the words your work already uses
 
-Most formats hand you a rigid schema and force you to bend your content to fit it.
-**IntentText is the opposite.** Its 40 built-in keywords are a *floor, not a cage*: **any
-other word you write is instantly valid, typed, and queryable.** Contracts get `clause:` and
-`obligation:` lines, invoices get `invoice:` lines, a risk log gets `risk:` lines — you just
-write them, in any language (`مصروف:` works exactly the same). **No reserved words against you.
-No schema to outgrow.**
+Most formats hand you a rigid template and force you to bend your content to fit it.
+**IntentText is the opposite.** Its 40 built-in keywords are a *floor, not a cage*: **any other word
+you write is instantly valid, understood, and searchable.** Contracts get `clause:` and
+`obligation:` lines, invoices get `invoice:` lines, a risk log gets `risk:` lines — you just write
+them, in any language (`مصروف:` works exactly the same). **No reserved words against you. Nothing to
+outgrow.**
 
-That openness is also why **AI writes it perfectly.** Hand any model a single reference file
-and it produces correct `.it` with no fine-tuning and no SDK — we tested four frontier LLMs
-cold, and they got it right **38 times out of 39**, inventing exactly the right domain words
-on their own.
+That openness is also why **AI writes it perfectly.** Hand any model a single example file and it
+produces correct `.it` with no setup — we tested four leading AI models cold, and they got it right
+**38 times out of 39**, inventing exactly the right words for the job on their own.
 
-## Retire the Word + PDF + DocuSign pipeline
+## Retire the Word + PDF + DocuSign workflow
 
-The everyday enterprise stack — a Word template, mail-merge, a PDF export, a signing service,
-and a database to find anything afterwards — collapses into one file:
+The everyday office stack — a Word template, a mail-merge, a PDF export, a signing service, and a
+database to find anything afterwards — collapses into one file:
 
-- **Template once, generate forever.** Write an invoice or contract template with
-  `{{placeholders}}`, merge your data, and render a branded, paginated **PDF** — identical every time.
-- **Seal & sign like a contract.** A built-in SHA-256 seal makes it tamper-evident and
-  **offline-verifiable** — no vendor — and you can export a **court-recognized PAdES-signed PDF**
-  when a counterparty needs one. The sealed `.it` is the record of truth; the PDF is just a view.
-- **Redline & review.** Track changes and threaded comments like Word — but every edit and comment
-  is itself typed, diffable, and part of a tamper-evident history.
-- **Query a folder like a database.** Filter contracts by party, invoices by due date, tasks by
-  owner — across thousands of files, **with no backend**.
-- **Export when you must.** It still converts to Word, Excel, Markdown, or an EN-16931 e-invoice
-  on demand — so nothing is ever locked in.
+- **Template once, generate forever.** Write an invoice or contract template with `{{placeholders}}`,
+  merge your data, and produce a branded, paginated **PDF** — identical every time.
+- **Seal & sign like a contract.** A built-in tamper-proof fingerprint makes any change obvious, and
+  **anyone can check it offline** — no vendor. When a counterparty needs one, export a **PDF with a
+  legally-recognised digital signature** (the PAdES standard Adobe Reader and courts accept). The
+  sealed `.it` is the record of truth; the PDF is just a view of it.
+- **Redline & review.** Track changes and comments like Word — but every edit and comment is itself
+  labelled data, easy to compare, and part of an un-editable history.
+- **Find anything instantly.** Search a whole folder by party, due date, owner, or status — across
+  thousands of files, **with no database**.
+- **Export when you must.** It still converts to Word, Excel, Markdown, or a standards-compliant
+  **e-invoice** (EN 16931, used across the EU) on demand — so nothing is ever locked in.
 
 ## Forms that come back as data
 
-A `.it` file isn't only something you *generate* — it's something people can *fill in*. Mark a
-file as a form, add `input:` fields, and it becomes a **fillable, signable** record:
+A `.it` file isn't only something you *generate* — it's something people can *fill in*. Mark a file
+as a form, add fields, and it becomes a **fillable, signable** record:
 
-- **Built in plain text** — fields for text, choice, number, date, **signature**, tables, and
-  file attachments; `show-if:` reveals a field only when it's relevant, and `compute:` totals
-  things up automatically (a safe evaluator — never `eval`).
-- **Two-party trust, built in** — you seal the blank form's *structure*; whoever fills it seals
-  their *answers* — so neither the questions nor the responses can be altered undetected.
-- **Answers come back as structured data** — queryable, not a flat PDF you re-key by hand. One
-  file replaces a Word form, a web form, *and* the e-signature step.
+- **Built in plain text** — fields for text, choice, dates, numbers, **signatures**, tables, and file
+  attachments; questions can appear only when they're relevant, and totals add themselves up.
+- **Trust on both sides.** The sender locks the questions; whoever fills it in locks their answers —
+  so neither the questions nor the responses can be changed unnoticed.
+- **Answers come back as data** — searchable, not a flat PDF you re-type by hand. One file replaces a
+  Word form, a web form, *and* the e-signature step.
 
 ## Easy enough to learn in a minute
 
 If you can write a shopping list, you already know the syntax: **`label: value`, one thing per
-line.** Plain sentences need no label at all. There's nothing to install to read it, no brackets
-to balance, no build step — it's just text you can open anywhere, today.
+line.** Plain sentences need no label at all. There's nothing to install to read it, no brackets to
+balance, no build step — it's just text you can open anywhere, today. **You don't need to be a
+developer to *use* `.it` — only to build it into software.**
 
 ```intenttext
 title: Sprint Planning
@@ -168,9 +182,12 @@ risk: SSO not ready for launch | severity: high
 
 ---
 
-## Quick start
+## For developers
 
-### CLI
+Everything below is for building `.it` *into software*. If you only want to write documents, you're
+already done — [open the editor](https://editor.uts.qa) and start typing.
+
+### Quick start — CLI
 
 ```bash
 npm install -g @dotit/core     # installs the `dotit` command
@@ -244,7 +261,7 @@ renderPrint(parseAndMerge(template, data, { missing: "blank" }));
 ```
 
 ### Money & typed values
-`value:` holds the bare number; `unit:` the currency (ISO-4217) or unit — the arithmetic-friendly
+`value:` holds the bare number; `unit:` the currency (ISO-4217 code) or unit — the arithmetic-friendly
 form the e-invoice export consumes. Read it typed (no string-parsing):
 
 ```js
@@ -256,6 +273,10 @@ metricTypedValue(block); // { number: 10800, currency: "QAR", kind: "money" }
 Three layers of **constrained** style keys (never arbitrary CSS, so content stays queryable):
 **themes** (`meta: | theme: corporate`, 8 built-in), document-wide **`style:` rules**, and
 per-line props / `[text]{ key: value; … }` spans.
+
+### Authoring extras
+`def:` glossary terms · `figure:` numbered, captioned figures · `ref:` cross-document references ·
+`toc:` an auto-built table of contents · plus inline **mentions**, **tags**, and **footnotes**.
 
 ### Print
 ```intenttext
@@ -287,6 +308,7 @@ the full model is in [SPEC §4](SPEC.md).
   approve; `workflowState()` derives `{ pending, next, complete }` live from the file (no database),
   and the renderer draws an approval-route panel. Executable agent flows use `step:`/`decision:`/`gate:`.
 - **Redline & compare** — `compareVersions(a, b)` diffs two versions into an accept/reject redline; track-changes + comments.
+- **Co-authoring** — `mergeThreeWay` merges two people's independent edits and surfaces conflicts (async collaboration, no live server needed).
 - **Redaction** — legally *remove* content, leaving a tamper-evident, provable marker.
 - **Legal signatures & archival** — export a sealed `.it` as a **PAdES** PDF (`@dotit/pades`) or a
   **PDF/A-oriented** archival PDF (`@dotit/pdf`). **Math** — `math: E = mc^2` → MathML/KaTeX (`@dotit/math`).
@@ -356,4 +378,4 @@ byte-preservation gate.
 
 ## License
 
-MIT
+MIT — free and open source. Use it commercially, fork it, build on it; the format is yours.
