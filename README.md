@@ -5,7 +5,7 @@
 <h1 align="center">IntentText (.it)</h1>
 
 <p align="center">
-  <b>One plain-text file that is readable by people, queryable by machines, print-ready, and cryptographically sealable.</b><br>
+  <b>A document format where the document itself is the structured data.</b><br>
   Write it like Markdown. Query it like a database. Seal it like a contract. Hand it to an AI.
 </p>
 
@@ -18,6 +18,20 @@
   <a href="https://dotit.uts.qa/llms.it">llms.it</a> ·
   <a href="https://x.com/IntentText">Twitter</a>
 </p>
+
+---
+
+<div align="center">
+
+| Format | Humans | Software | Trust |
+|---|:---:|:---:|:---:|
+| Word | ✅ | ❌ | ❌ |
+| PDF | ✅ | ❌ | ⚠️ |
+| JSON / YAML | ❌ | ✅ | ❌ |
+| Markdown | ✅ | ⚠️ | ❌ |
+| **IntentText (.it)** | ✅ | ✅ | ✅ |
+
+</div>
 
 ---
 
@@ -61,14 +75,41 @@ That's the whole bet: **stop flattening documents into pictures and locking your
 boxes.** Keep one honest file a person can read, a machine can run, and anyone can verify — with no
 vendor standing between you and your own work. That's the last document format you adopt.
 
+## One file, every job
+
+The same `.it` file — no conversion step, no second copy — is at once:
+
+- **A document** people read — plain UTF-8, diffable, git-friendly, **RTL & Arabic native**.
+- **A database** you query — every line is typed data, filterable across a whole folder
+  (`dotit query`) or asked in plain language (`dotit ask`).
+- **A form** people fill and sign — `input:` fields, conditional logic, two-party trust.
+- **A print-ready PDF** — themes, headers/footers, page numbers, multi-page tables, plus
+  accessible (tagged) and PDF/A-archival output.
+- **A sealed, self-auditing record** — tamper-evident and offline-verifiable, with a
+  hash-chained history of every approval, signature, and change.
+- **A config file** — a readable, commentable, *signable* alternative to YAML/JSON.
+
+It's just as natural for **AI agents** — queryable, hash-chained memory and in-file approval
+workflows, drivable over **MCP** — and for **government archives**: version-stamped and
+offline-verifiable for decades, with PDF/Word/Excel archives converting *into* `.it`. And it's
+**Arabic-native**: 32 localized keyword names, automatic RTL, and a sealed Arabic document keeps
+its hash.
+
+Prefer a visual editor? Drop the **`<IntentTextWorkbench>`** React component into any app for a
+Word-like **edit / fill / review / sign** experience — same engine, same files, WYSIWYG PDF.
+
+See the guides: [for organizations](https://dotit.uts.qa/docs/guide/for-organizations) ·
+[for agents](https://dotit.uts.qa/docs/guide/for-agents) ·
+[for writers](https://dotit.uts.qa/docs/guide/for-writers).
+
 ## You're never boxed in — write the words your work already uses
 
 Most formats hand you a rigid schema and force you to bend your content to fit it.
 **IntentText is the opposite.** Its 40 built-in keywords are a *floor, not a cage*: **any
 other word you write is instantly valid, typed, and queryable.** Contracts get `clause:` and
 `obligation:` lines, invoices get `invoice:` lines, a risk log gets `risk:` lines — you just
-write them, in any language (`مصروف:` works exactly the same). Nothing is ever reserved
-against you, and you never outgrow the format.
+write them, in any language (`مصروف:` works exactly the same). **No reserved words against you.
+No schema to outgrow.**
 
 That openness is also why **AI writes it perfectly.** Hand any model a single reference file
 and it produces correct `.it` with no fine-tuning and no SDK — we tested four frontier LLMs
@@ -120,33 +161,6 @@ risk: SSO not ready for launch | severity: high
 ```
 
 ---
-
-## One file, every job
-
-The same `.it` file — no conversion step, no second copy — is at once:
-
-- **A document** people read — plain UTF-8, diffable, git-friendly, **RTL & Arabic native**.
-- **A database** you query — every line is typed data, filterable across a whole folder
-  (`dotit query`) or asked in plain language (`dotit ask`).
-- **A form** people fill and sign — `input:` fields, conditional logic, two-party trust.
-- **A print-ready PDF** — themes, headers/footers, page numbers, multi-page tables, plus
-  accessible (tagged) and PDF/A-archival output.
-- **A sealed, self-auditing record** — tamper-evident and offline-verifiable, with a
-  hash-chained history of every approval, signature, and change.
-- **A config file** — a readable, commentable, *signable* alternative to YAML/JSON.
-
-It's just as natural for **AI agents** — queryable, hash-chained memory and in-file approval
-workflows, drivable over **MCP** — and for **government archives**: version-stamped and
-offline-verifiable for decades, with PDF/Word/Excel archives converting *into* `.it`. And it's
-**Arabic-native**: 32 localized keyword names, automatic RTL, and a sealed Arabic document keeps
-its hash.
-
-Prefer a visual editor? Drop the **`<IntentTextWorkbench>`** React component into any app for a
-Word-like **edit / fill / review / sign** experience — same engine, same files, WYSIWYG PDF.
-
-See the guides: [for organizations](https://dotit.uts.qa/docs/guide/for-organizations) ·
-[for agents](https://dotit.uts.qa/docs/guide/for-agents) ·
-[for writers](https://dotit.uts.qa/docs/guide/for-writers).
 
 > **Building dotit into your software?** → **[INTEGRATION.md](INTEGRATION.md)** — the complete
 > developer / AI-agent guide: format crash course, ERP & archive recipes, every package, full
@@ -306,14 +320,14 @@ A read-only yes/no a producer can gate on. Unknown keywords are **not** errors �
 
 | Package | Version | What it is |
 | --- | --- | --- |
-| [`@dotit/core`](https://npmjs.com/package/@dotit/core) | **2.0** | The format: parser, renderers (HTML + print/PDF), query, template merge, trust (SEAL_SPEC 4), conformance, typed values, **forms, redline/compare, redaction, attachments, math markers, EN 16931/UBL e-invoice export**, converters, themes, CLI. **Zero dependencies.** |
-| [`@dotit/editor`](https://npmjs.com/package/@dotit/editor) | **2.0** | Embeddable React editor — all modes in one `<IntentTextWorkbench>`, ribbon, trust banner, form builder, version history, attachments, version-compare. |
-| [`@dotit/pdf`](https://npmjs.com/package/@dotit/pdf) | **2.0** | Server-side PDFs — merge → seal → PDF; PDF/A-oriented archival; PAdES-signed PDF. Opt-in. |
+| [`@dotit/core`](https://npmjs.com/package/@dotit/core) | **3.0** | The format: parser, renderers (HTML + print/PDF), query, template merge, trust (SEAL_SPEC 4), conformance, typed values, **forms, redline/compare, redaction, attachments, math markers, EN 16931/UBL e-invoice export**, converters, themes, CLI. **Zero dependencies.** |
+| [`@dotit/editor`](https://npmjs.com/package/@dotit/editor) | **3.0** | Embeddable React editor — all modes in one `<IntentTextWorkbench>`, ribbon, trust banner, form builder, version history, attachments, version-compare. |
+| [`@dotit/pdf`](https://npmjs.com/package/@dotit/pdf) | **3.0** | Server-side PDFs — merge → seal → PDF; PDF/A-oriented archival; PAdES-signed PDF. Opt-in. |
 | [`@dotit/pades`](https://npmjs.com/package/@dotit/pades) | **1.0** | **PAdES** (Adobe/court-recognized) PDF signatures — X.509/ECDSA + CMS; CSR/CA issuance; timestamps. |
-| [`@dotit/sign`](https://npmjs.com/package/@dotit/sign) | **2.0** | Ed25519 signatures + UTS certification chain. Offline, self-verifying. |
+| [`@dotit/sign`](https://npmjs.com/package/@dotit/sign) | **3.0** | Ed25519 signatures + UTS certification chain. Offline, self-verifying. |
 | [`@dotit/math`](https://npmjs.com/package/@dotit/math) | **0.1** | Math rendering — dependency-free MathML + optional KaTeX. |
-| [`@dotit/mcp`](https://npmjs.com/package/@dotit/mcp) | **2.0** | MCP server — agents read, write, query, and seal `.it`. |
-| `packages/vscode` | **2.0** | VS Code extension: highlighting, snippets, diagnostics, hovers, completion. |
+| [`@dotit/mcp`](https://npmjs.com/package/@dotit/mcp) | **3.0** | MCP server — agents read, write, query, and seal `.it`. |
+| `packages/vscode` | **3.0** | VS Code extension: highlighting, snippets, diagnostics, hovers, completion. |
 | `apps/` | — | Web editor, Electron desktop app, docs site, verify portal, hub. |
 
 The TypeScript core is the single canonical implementation of the grammar (see
@@ -328,15 +342,17 @@ The TypeScript core is the single canonical implementation of the grammar (see
 - **For LLMs** — [dotit.uts.qa/llms.txt](https://dotit.uts.qa/llms.txt) · [llms.it](https://dotit.uts.qa/llms.it) (the same reference, written in `.it`)
 - **Changelog** — [CHANGELOG.md](CHANGELOG.md)
 
-## Status
+## Status — production-ready
 
-`@dotit/core` is **1.x** and the format is **frozen** at this line: **13 core / 40 reserved
+> Running in production as the embedded print/report engine of an ERP. **1,600+ tests** including
+> fuzz/property byte-preservation gates. Format **frozen** at `SEAL_SPEC 4` · 13 core / 40 reserved keywords.
+
+`@dotit/core` is **3.x** and the format is **frozen going forward**: **13 core / 40 reserved
 keywords**, `SEAL_SPEC = 4`, with CI gates that fail the build on any keyword-count or
 SEAL_SPEC drift, any registry↔grammar mismatch, a round-trip/byte-preservation regression, or a
-sealed example whose seal no longer verifies. Documents that parsed under earlier versions parse
-identically today, and unknown keywords never error. The core suite is **1,300+ tests** including
-a fuzz/property byte-preservation gate. It runs in production as the embedded print/report engine
-of an ERP.
+sealed example whose seal no longer verifies. Unknown keywords never error — open vocabulary is
+conformant by design. The core suite is **1,600+ tests** including a fuzz/property
+byte-preservation gate.
 
 ## License
 
