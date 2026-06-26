@@ -4,49 +4,49 @@ track: | version: 1.0 | by: {{author}} | note: Spec created {{created_date}}
 ---
 section: Scope
 ---
-text: Overview
-text: *System:* {{system_name}}
-text: *Agent:* {{agent_name}}
-text: *Environment:* {{environment}}
-text: *Coverage:* {{coverage_description}}
+Overview
+*System:* {{system_name}}
+*Agent:* {{agent_name}}
+*Environment:* {{environment}}
+*Coverage:* {{coverage_description}}
 ---
 section: Error Types
 ---
 error: {{name}} | severity: {{severity}} | code: {{error_code}}
-text: *Category:* {{category}}
-text: *Description:* {{description}}
-text: *Detection:* {{detection_method}}
-text: *Recovery:* {{recovery_action}}
-text: *Escalation:* {{escalation_path}}
-text: *SLA:* {{response_sla}}
+*Category:* {{category}}
+*Description:* {{description}}
+*Detection:* {{detection_method}}
+*Recovery:* {{recovery_action}}
+*Escalation:* {{escalation_path}}
+*SLA:* {{response_sla}}
 ---
 section: Error Handling Policies
 ---
 policy: {{retry_policy_name}} | scope: global
-text: *Max Retries:* {{max_retries}}
-text: *Backoff Strategy:* {{backoff_strategy}}
-text: *Circuit Breaker Threshold:* {{circuit_breaker_threshold}}
-text: *Cooldown Period:* {{cooldown_period}}
+*Max Retries:* {{max_retries}}
+*Backoff Strategy:* {{backoff_strategy}}
+*Circuit Breaker Threshold:* {{circuit_breaker_threshold}}
+*Cooldown Period:* {{cooldown_period}}
 ---
 policy: {{logging_policy_name}} | scope: global
-text: *Log Level:* {{log_level}}
-text: *Destination:* {{log_destination}}
-text: *Include Stack Trace:* {{include_stack_trace}}
-text: *PII Redaction:* {{pii_redaction}}
+*Log Level:* {{log_level}}
+*Destination:* {{log_destination}}
+*Include Stack Trace:* {{include_stack_trace}}
+*PII Redaction:* {{pii_redaction}}
 ---
 section: Escalation Matrix
 ---
-text: Escalation Rules
-text: *Severity Critical:* {{escalation_critical}}
-text: *Severity High:* {{escalation_high}}
-text: *Severity Medium:* {{escalation_medium}}
-text: *Severity Low:* {{escalation_low}}
+Escalation Rules
+*Severity Critical:* {{escalation_critical}}
+*Severity High:* {{escalation_high}}
+*Severity Medium:* {{escalation_medium}}
+*Severity Low:* {{escalation_low}}
 ---
 section: Monitoring
 ---
-text: Alerting
-text: *Dashboard:* {{dashboard_url}}
-text: *Alert Channel:* {{alert_channel}}
-text: *On-Call Rotation:* {{oncall_rotation}}
+Alerting
+*Dashboard:* {{dashboard_url}}
+*Alert Channel:* {{alert_channel}}
+*On-Call Rotation:* {{oncall_rotation}}
 ---
-text: Spec maintained by {{author}} · {{created_date}}
+Spec maintained by {{author}} · {{created_date}}

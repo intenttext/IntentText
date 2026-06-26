@@ -5,47 +5,47 @@ track: | version: 0.9 | by: Corporate Secretary | note: Draft circulated for rev
 ---
 section: Meeting Information
 ---
-text: Details
-text: *Meeting Title:* {{meeting_title}}
-text: *Date:* {{meeting_date}}
-text: *Time:* {{start_time}} — {{end_time}}
-text: *Location:* {{location}}
-text: *Called By:* {{called_by}}
+Details
+*Meeting Title:* {{meeting_title}}
+*Date:* {{meeting_date}}
+*Time:* {{start_time}} — {{end_time}}
+*Location:* {{location}}
+*Called By:* {{called_by}}
 ---
 section: Attendees
 ---
-text: {{name}}
-text: *Role:* {{role}} · *Department:* {{department}} · *Status:* {{status}}
+{{name}}
+*Role:* {{role}} · *Department:* {{department}} · *Status:* {{status}}
 ---
 section: Agenda
 ---
-text: Agenda Items
-text: {{agenda}}
+Agenda Items
+{{agenda}}
 ---
 section: Discussion Summary
 ---
-text: Key Discussion Points
-text: {{discussion_summary}}
+Key Discussion Points
+{{discussion_summary}}
 ---
 section: Decisions
 ---
-text: Decisions Reached
-text: {{decisions}}
+Decisions Reached
+{{decisions}}
 ---
 section: Action Items
 ---
-text: {{task}}
-text: *Assigned To:* {{assigned_to}} · *Deadline:* {{deadline}} · *Priority:* {{priority}}
+{{task}}
+*Assigned To:* {{assigned_to}} · *Deadline:* {{deadline}} · *Priority:* {{priority}}
 ---
 section: Next Meeting
 ---
-text: Scheduled Follow-Up
-text: *Date:* {{next_meeting_date}}
-text: *Time:* {{next_meeting_time}}
-text: *Location:* {{next_meeting_location}}
-text: *Preliminary Agenda:* {{next_meeting_agenda}}
+Scheduled Follow-Up
+*Date:* {{next_meeting_date}}
+*Time:* {{next_meeting_time}}
+*Location:* {{next_meeting_location}}
+*Preliminary Agenda:* {{next_meeting_agenda}}
 ---
-text: Minutes Prepared By
-text: {{prepared_by}} · {{prepared_date}}
+Minutes Prepared By
+{{prepared_by}} · {{prepared_date}}
 ---
 approve: Approved | by: {{chair_name}} | role: Meeting Chair | at: {{approved_date}}

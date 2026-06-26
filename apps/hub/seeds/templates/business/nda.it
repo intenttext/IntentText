@@ -3,60 +3,60 @@ meta: | type: template | domain: business | description: Mutual non-disclosure a
 ---
 section: Parties
 ---
-text: Disclosing Party
-text: *Name:* {{disclosing_party_name}}
-text: *Address:* {{disclosing_party_address}}
-text: *Representative:* {{disclosing_party_contact}} · {{disclosing_party_email}}
+Disclosing Party
+*Name:* {{disclosing_party_name}}
+*Address:* {{disclosing_party_address}}
+*Representative:* {{disclosing_party_contact}} · {{disclosing_party_email}}
 ---
-text: Receiving Party
-text: *Name:* {{receiving_party_name}}
-text: *Address:* {{receiving_party_address}}
-text: *Representative:* {{receiving_party_contact}} · {{receiving_party_email}}
+Receiving Party
+*Name:* {{receiving_party_name}}
+*Address:* {{receiving_party_address}}
+*Representative:* {{receiving_party_contact}} · {{receiving_party_email}}
 ---
 section: Purpose
 ---
-text: Purpose of Disclosure
-text: {{purpose}}
+Purpose of Disclosure
+{{purpose}}
 ---
 section: Definition of Confidential Information
 ---
-text: Confidential Information Includes
-text: {{confidential_info_definition}}
+Confidential Information Includes
+{{confidential_info_definition}}
 ---
-text: Exclusions
-text: {{exclusions}}
+Exclusions
+{{exclusions}}
 ---
 section: Obligations of Receiving Party
 ---
-text: Non-Disclosure Obligations
-text: {{obligations}}
+Non-Disclosure Obligations
+{{obligations}}
 ---
-text: Permitted Disclosures
-text: {{permitted_disclosures}}
+Permitted Disclosures
+{{permitted_disclosures}}
 ---
 section: Term and Duration
 ---
-text: Agreement Term
-text: *Effective Date:* {{effective_date}}
-text: *Disclosure Period:* {{disclosure_period}}
-text: *Confidentiality Duration:* {{confidentiality_duration}}
+Agreement Term
+*Effective Date:* {{effective_date}}
+*Disclosure Period:* {{disclosure_period}}
+*Confidentiality Duration:* {{confidentiality_duration}}
 ---
 section: Return of Materials
 ---
-text: Return or Destruction
-text: {{return_clause}}
+Return or Destruction
+{{return_clause}}
 ---
 section: Remedies
 ---
-text: Remedies for Breach
-text: {{remedies}}
+Remedies for Breach
+{{remedies}}
 ---
 section: General Provisions
 ---
-text: Governing Law and Miscellaneous
-text: *Governing Law:* {{governing_law}}
-text: *Entire Agreement:* This NDA constitutes the entire agreement between the parties regarding confidentiality and supersedes all prior discussions on the subject.
-text: *Amendment:* Modifications must be in writing and signed by both parties.
+Governing Law and Miscellaneous
+*Governing Law:* {{governing_law}}
+*Entire Agreement:* This NDA constitutes the entire agreement between the parties regarding confidentiality and supersedes all prior discussions on the subject.
+*Amendment:* Modifications must be in writing and signed by both parties.
 ---
 section: Signatures
 ---

@@ -6,65 +6,65 @@ track: | version: 0.1 | by: {{author}} | note: Initial draft circulated for feed
 ---
 section: Overview
 ---
-text: Document Information
-text: *Spec ID:* {{spec_id}}
-text: *Status:* {{status}}
-text: *Author:* {{author}} · {{author_email}}
-text: *Team:* {{team}}
-text: *Created:* {{created_date}}
-text: *Target Release:* {{target_release}}
+Document Information
+*Spec ID:* {{spec_id}}
+*Status:* {{status}}
+*Author:* {{author}} · {{author_email}}
+*Team:* {{team}}
+*Created:* {{created_date}}
+*Target Release:* {{target_release}}
 ---
-text: Problem Statement
-text: {{problem_statement}}
+Problem Statement
+{{problem_statement}}
 ---
-text: Proposed Solution
-text: {{proposed_solution}}
+Proposed Solution
+{{proposed_solution}}
 ---
 section: Requirements
 ---
-text: {{requirement_id}} — {{title}}
-text: *Priority:* {{priority}} · *Category:* {{category}}
-text: {{description}}
+{{requirement_id}} — {{title}}
+*Priority:* {{priority}} · *Category:* {{category}}
+{{description}}
 ---
 section: Design
 ---
-text: Architecture Overview
-text: {{architecture_overview}}
+Architecture Overview
+{{architecture_overview}}
 ---
-text: Data Model
-text: {{data_model}}
+Data Model
+{{data_model}}
 ---
-text: API Surface
-text: {{api_surface}}
+API Surface
+{{api_surface}}
 ---
-text: Security Considerations
-text: {{security_considerations}}
+Security Considerations
+{{security_considerations}}
 ---
 section: Implementation Plan
 ---
-text: Phases
-text: {{implementation_phases}}
+Phases
+{{implementation_phases}}
 ---
-text: Dependencies
-text: {{dependencies}}
+Dependencies
+{{dependencies}}
 ---
-text: Testing Strategy
-text: {{testing_strategy}}
+Testing Strategy
+{{testing_strategy}}
 ---
 section: Constraints
 ---
 policy: {{constraint_title}}
-text: {{constraint_body}}
+{{constraint_body}}
 ---
 section: Performance Targets
 ---
-text: Benchmarks
-text: {{performance_targets}}
+Benchmarks
+{{performance_targets}}
 ---
 section: Open Questions
 ---
-text: Unresolved Items
-text: {{open_questions}}
+Unresolved Items
+{{open_questions}}
 ---
 section: Approval
 ---

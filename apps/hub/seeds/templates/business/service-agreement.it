@@ -6,60 +6,60 @@ track: | version: 0.8 | by: Operations | note: Initial scope definition
 ---
 section: Parties
 ---
-text: Service Provider
-text: *Name:* {{provider_name}}
-text: *Address:* {{provider_address}}
-text: *Contact:* {{provider_contact}} · {{provider_email}}
-text: *Registration:* {{provider_registration}}
+Service Provider
+*Name:* {{provider_name}}
+*Address:* {{provider_address}}
+*Contact:* {{provider_contact}} · {{provider_email}}
+*Registration:* {{provider_registration}}
 ---
-text: Client
-text: *Name:* {{client_name}}
-text: *Address:* {{client_address}}
-text: *Contact:* {{client_contact}} · {{client_email}}
-text: *Registration:* {{client_registration}}
+Client
+*Name:* {{client_name}}
+*Address:* {{client_address}}
+*Contact:* {{client_contact}} · {{client_email}}
+*Registration:* {{client_registration}}
 ---
 section: Scope of Services
 ---
-text: Services Description
-text: {{services_description}}
+Services Description
+{{services_description}}
 ---
-text: Deliverables
-text: {{deliverables}}
+Deliverables
+{{deliverables}}
 ---
-text: Service Period
-text: *Effective Date:* {{effective_date}}
-text: *Term:* {{term}}
-text: *Renewal:* {{renewal_terms}}
+Service Period
+*Effective Date:* {{effective_date}}
+*Term:* {{term}}
+*Renewal:* {{renewal_terms}}
 ---
 section: Payment Terms
 ---
-text: Compensation
-text: *Total Contract Value:* {{contract_value}}
-text: *Payment Schedule:* {{payment_schedule}}
-text: *Late Payment Penalty:* {{late_penalty}}
-text: *Invoicing:* {{invoicing_terms}}
+Compensation
+*Total Contract Value:* {{contract_value}}
+*Payment Schedule:* {{payment_schedule}}
+*Late Payment Penalty:* {{late_penalty}}
+*Invoicing:* {{invoicing_terms}}
 ---
 section: Confidentiality
 ---
-text: Confidentiality Obligations
-text: {{confidentiality_clause}}
+Confidentiality Obligations
+{{confidentiality_clause}}
 ---
 section: Termination
 ---
-text: Termination Conditions
-text: *For Convenience:* {{termination_convenience}}
-text: *For Cause:* {{termination_cause}}
-text: *Effect of Termination:* {{termination_effect}}
+Termination Conditions
+*For Convenience:* {{termination_convenience}}
+*For Cause:* {{termination_cause}}
+*Effect of Termination:* {{termination_effect}}
 ---
 section: Limitation of Liability
 ---
-text: Liability Cap
-text: {{liability_clause}}
+Liability Cap
+{{liability_clause}}
 ---
 section: Governing Law
 ---
-text: Jurisdiction
-text: {{governing_law}}
+Jurisdiction
+{{governing_law}}
 ---
 section: Signatures
 ---

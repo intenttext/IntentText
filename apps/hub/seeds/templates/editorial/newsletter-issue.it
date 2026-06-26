@@ -3,19 +3,19 @@ meta: | type: template | domain: editorial | description: Newsletter issue with 
 ---
 section: Header
 ---
-text: {{newsletter_name}} · {{issue_label}}
-text: *Date:* {{publish_date}}
-text: *Editor:* {{editor_name}}
+{{newsletter_name}} · {{issue_label}}
+*Date:* {{publish_date}}
+*Editor:* {{editor_name}}
 ---
 section: Editor Introduction
 ---
-text: {{intro}}
+{{intro}}
 ---
 section: Stories
 ---
-text: {{headline}}
-text: {{summary}}
-text: *By {{author}}* · *Read time:* {{read_time}}
+{{headline}}
+{{summary}}
+*By {{author}}* · *Read time:* {{read_time}}
 ---
 section: Commentary
 ---
@@ -23,12 +23,12 @@ quote: {{commentary_quote}} | by: {{commentary_attribution}}
 ---
 section: Quick Links
 ---
-text: {{title}}
-text: {{description}} · *Source:* {{source}}
+{{title}}
+{{description}} · *Source:* {{source}}
 ---
 section: Sign-Off
 ---
-text: {{sign_off}}
-text: *{{editor_name}}, {{editor_title}}*
+{{sign_off}}
+*{{editor_name}}, {{editor_title}}*
 ---
 track: {{issue_label}} | status: {{issue_status}} | date: {{publish_date}}

@@ -3,6 +3,6 @@ meta: | type: template | domain: book | description: Glossary of terms with defi
 ---
 section: Glossary of Terms
 ---
-text: *{{book_title}}*
+*{{book_title}}*
 ---
-text: *{{term}}* — {{definition}}
+*{{term}}* — {{definition}}

@@ -25,5 +25,5 @@ metric: Tax ({{totals.taxRate}}%) | value: {{totals.tax}}
 metric: Total Due | value: {{totals.due}}
 
 section: Payment
-text: Bank {{payment.bank}} · IBAN {{payment.iban}}
+Bank {{payment.bank}} · IBAN {{payment.iban}}
 deadline: Payment due | date: {{invoice.dueDate}} | consequence: {{invoice.lateRate}}% monthly interest

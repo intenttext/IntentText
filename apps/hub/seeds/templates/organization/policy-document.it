@@ -6,56 +6,56 @@ track: | version: 0.1 | by: {{policy_owner}} | note: Initial draft
 ---
 section: Document Control
 ---
-text: Policy Information
-text: *Policy ID:* {{policy_id}}
-text: *Department:* {{department}}
-text: *Classification:* {{classification}}
-text: *Effective Date:* {{effective_date}}
-text: *Review Date:* {{next_review_date}}
-text: *Supersedes:* {{supersedes}}
+Policy Information
+*Policy ID:* {{policy_id}}
+*Department:* {{department}}
+*Classification:* {{classification}}
+*Effective Date:* {{effective_date}}
+*Review Date:* {{next_review_date}}
+*Supersedes:* {{supersedes}}
 ---
 section: Purpose
 ---
-text: Purpose
-text: {{purpose}}
+Purpose
+{{purpose}}
 ---
 section: Scope
 ---
-text: Scope
-text: {{scope}}
+Scope
+{{scope}}
 ---
 section: Definitions
 ---
-text: Key Definitions
-text: {{definitions}}
+Key Definitions
+{{definitions}}
 ---
 section: Policy Statements
 ---
-text: {{statement_title}}
-text: {{statement_body}}
+{{statement_title}}
+{{statement_body}}
 ---
 section: Responsibilities
 ---
-text: {{party_role}}
-text: {{party_responsibilities}}
+{{party_role}}
+{{party_responsibilities}}
 ---
 section: Compliance and Enforcement
 ---
-text: Compliance Requirements
-text: {{compliance_requirements}}
+Compliance Requirements
+{{compliance_requirements}}
 ---
-text: Enforcement
-text: {{enforcement}}
+Enforcement
+{{enforcement}}
 ---
 section: Exceptions
 ---
-text: Exception Process
-text: {{exception_process}}
+Exception Process
+{{exception_process}}
 ---
 section: Related Documents
 ---
-text: References
-text: {{related_documents}}
+References
+{{related_documents}}
 ---
 section: Approval
 ---

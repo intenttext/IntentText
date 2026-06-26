@@ -3,59 +3,59 @@ meta: | type: template | domain: organization | description: Vendor and supplier
 ---
 section: Assessment Overview
 ---
-text: Assessment Details
-text: *Assessment ID:* {{assessment_id}}
-text: *Vendor:* {{vendor_name}}
-text: *Vendor Contact:* {{vendor_contact}} · {{vendor_email}}
-text: *Category:* {{vendor_category}}
-text: *Assessment Date:* {{assessment_date}}
-text: *Assessor:* {{assessor}}
-text: *Assessment Method:* {{assessment_method}}
+Assessment Details
+*Assessment ID:* {{assessment_id}}
+*Vendor:* {{vendor_name}}
+*Vendor Contact:* {{vendor_contact}} · {{vendor_email}}
+*Category:* {{vendor_category}}
+*Assessment Date:* {{assessment_date}}
+*Assessor:* {{assessor}}
+*Assessment Method:* {{assessment_method}}
 ---
-text: Purpose
-text: {{purpose}}
+Purpose
+{{purpose}}
 ---
 section: Vendor Profile
 ---
-text: Company Information
-text: *Founded:* {{vendor_founded}}
-text: *Headquarters:* {{vendor_headquarters}}
-text: *Employees:* {{vendor_employees}}
-text: *Annual Revenue:* {{vendor_revenue}}
-text: *Key Certifications:* {{vendor_certifications}}
-text: *Existing Relationship:* {{existing_relationship}}
+Company Information
+*Founded:* {{vendor_founded}}
+*Headquarters:* {{vendor_headquarters}}
+*Employees:* {{vendor_employees}}
+*Annual Revenue:* {{vendor_revenue}}
+*Key Certifications:* {{vendor_certifications}}
+*Existing Relationship:* {{existing_relationship}}
 ---
 section: Evaluation Criteria
 ---
-text: {{criterion_name}} — Score: {{score}}/{{max_score}}
-text: *Weight:* {{weight}} · *Risk Rating:* {{risk_rating}}
-text: {{criterion_notes}}
+{{criterion_name}} — Score: {{score}}/{{max_score}}
+*Weight:* {{weight}} · *Risk Rating:* {{risk_rating}}
+{{criterion_notes}}
 ---
 section: Scoring Summary
 ---
-text: Overall Score
-text: *Weighted Total:* {{weighted_total}} / {{max_weighted_total}}
-text: *Overall Risk Rating:* {{overall_risk_rating}}
-text: *Rating Threshold:* {{rating_threshold}}
+Overall Score
+*Weighted Total:* {{weighted_total}} / {{max_weighted_total}}
+*Overall Risk Rating:* {{overall_risk_rating}}
+*Rating Threshold:* {{rating_threshold}}
 ---
 section: Strengths and Concerns
 ---
-text: Key Strengths
-text: {{strengths}}
+Key Strengths
+{{strengths}}
 ---
-text: Key Concerns
-text: {{concerns}}
+Key Concerns
+{{concerns}}
 ---
 section: Risk Mitigation
 ---
-text: Recommended Mitigations
-text: {{mitigations}}
+Recommended Mitigations
+{{mitigations}}
 ---
 section: Recommendation
 ---
-text: Assessment Decision
-text: *Recommendation:* {{recommendation}}
-text: *Conditions:* {{conditions}}
+Assessment Decision
+*Recommendation:* {{recommendation}}
+*Conditions:* {{conditions}}
 ---
 section: Approval
 ---

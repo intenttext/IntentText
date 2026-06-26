@@ -4,30 +4,30 @@ track: | version: 1.0 | by: Correspondence
 ---
 section: Header
 ---
-text: From
-text: *Name:* {{sender_name}}
-text: *Email:* {{sender_email}}
-text: *Date:* {{date}}
+From
+*Name:* {{sender_name}}
+*Email:* {{sender_email}}
+*Date:* {{date}}
 ---
-text: To
-text: {{recipient_name}}
-text: {{recipient_title}}
-text: {{recipient_organization}}
+To
+{{recipient_name}}
+{{recipient_title}}
+{{recipient_organization}}
 ---
 section: Letter
 ---
-text: Salutation
-text: Dear {{recipient_name}},
+Salutation
+Dear {{recipient_name}},
 ---
-text: Context & Gratitude
-text: {{gratitude_paragraph}}
+Context & Gratitude
+{{gratitude_paragraph}}
 ---
-text: Specific Appreciation
-text: {{specific_appreciation}}
+Specific Appreciation
+{{specific_appreciation}}
 ---
-text: Forward-Looking Close
-text: {{forward_looking}}
+Forward-Looking Close
+{{forward_looking}}
 ---
-text: Warm Close
-text: With sincere thanks,
-text: {{sender_name}}
+Warm Close
+With sincere thanks,
+{{sender_name}}

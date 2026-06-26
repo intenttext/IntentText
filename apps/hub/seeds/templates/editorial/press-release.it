@@ -3,38 +3,38 @@ meta: | type: template | domain: editorial | description: Press release with hea
 ---
 section: Release Header
 ---
-text: FOR IMMEDIATE RELEASE
-text: *Date:* {{release_date}}
+FOR IMMEDIATE RELEASE
+*Date:* {{release_date}}
 ---
 section: Headline
 ---
-text: {{headline}}
-text: *{{subheadline}}*
+{{headline}}
+*{{subheadline}}*
 ---
 section: Dateline and Lede
 ---
-text: {{dateline}} — {{lede}}
+{{dateline}} — {{lede}}
 ---
 section: Body
 ---
-text: {{text}}
+{{text}}
 ---
 quote: {{executive_quote}} | by: {{executive_name}}, {{executive_title}}, {{company_name}}
 ---
-text: {{text}}
+{{text}}
 ---
 quote: {{partner_quote}} | by: {{partner_name}}, {{partner_title}}, {{partner_organization}}
 ---
 section: Boilerplate
 ---
-text: About {{company_name}}
-text: {{boilerplate}}
+About {{company_name}}
+{{boilerplate}}
 ---
 section: Media Contact
 ---
-text: {{contact_name}}
-text: *Title:* {{contact_title}}
-text: *Email:* {{contact_email}}
-text: *Phone:* {{contact_phone}}
+{{contact_name}}
+*Title:* {{contact_title}}
+*Email:* {{contact_email}}
+*Phone:* {{contact_phone}}
 ---
-text: ###
+###

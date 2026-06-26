@@ -3,26 +3,26 @@ meta: | type: template | domain: editorial | description: Pre-publication checkl
 ---
 section: Publication Details
 ---
-text: {{article_title}}
-text: *Author:* {{author_name}}
-text: *Section:* {{section}}
-text: *Target Publish Date:* {{publish_date}}
-text: *Editor:* {{editor_name}}
+{{article_title}}
+*Author:* {{author_name}}
+*Section:* {{section}}
+*Target Publish Date:* {{publish_date}}
+*Editor:* {{editor_name}}
 ---
 section: Pre-Publication Checks
 ---
-text: {{task}}
-text: *Owner:* {{owner}}
-text: *Status:* {{status}}
-text: *Notes:* {{notes}}
+{{task}}
+*Owner:* {{owner}}
+*Status:* {{status}}
+*Notes:* {{notes}}
 ---
 section: Legal and Compliance
 ---
-text: Legal Review
-text: *Reviewed by:* {{legal_reviewer}}
-text: *Date:* {{legal_review_date}}
-text: *Outcome:* {{legal_outcome}}
-text: *Conditions:* {{legal_conditions}}
+Legal Review
+*Reviewed by:* {{legal_reviewer}}
+*Date:* {{legal_review_date}}
+*Outcome:* {{legal_outcome}}
+*Conditions:* {{legal_conditions}}
 ---
 section: Final Sign-Off
 ---

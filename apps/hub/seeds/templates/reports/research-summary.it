@@ -3,52 +3,52 @@ meta: | type: template | domain: business | description: Research findings repor
 ---
 section: Research Overview
 ---
-text: Study Details
-text: *Title:* {{study_title}}
-text: *Researcher:* {{lead_researcher}}
-text: *Department:* {{department}}
-text: *Date:* {{report_date}}
-text: *Commissioned By:* {{commissioned_by}}
-text: *Study Period:* {{study_period}}
+Study Details
+*Title:* {{study_title}}
+*Researcher:* {{lead_researcher}}
+*Department:* {{department}}
+*Date:* {{report_date}}
+*Commissioned By:* {{commissioned_by}}
+*Study Period:* {{study_period}}
 ---
 section: Background
 ---
-text: Context and Motivation
-text: {{background}}
+Context and Motivation
+{{background}}
 ---
 section: Methodology
 ---
-text: Research Approach
-text: {{methodology}}
+Research Approach
+{{methodology}}
 ---
-text: Data Sources
-text: *Sample Size:* {{sample_size}}
-text: *Data Collection:* {{data_collection}}
-text: *Analysis Method:* {{analysis_method}}
-text: *Limitations:* {{limitations}}
+Data Sources
+*Sample Size:* {{sample_size}}
+*Data Collection:* {{data_collection}}
+*Analysis Method:* {{analysis_method}}
+*Limitations:* {{limitations}}
 ---
 section: Key Findings
 ---
-text: {{title}}
-text: {{detail}}
-text: *Data Point:* {{data_point}} · *Confidence:* {{confidence}}
+{{title}}
+{{detail}}
+*Data Point:* {{data_point}} · *Confidence:* {{confidence}}
 ---
 quote: {{key_excerpt}} | by: {{excerpt_source}}
 ---
 section: Conclusions
 ---
-text: Summary of Conclusions
-text: {{conclusions}}
+Summary of Conclusions
+{{conclusions}}
 ---
 section: Recommendations
 ---
-text: {{title}}
-text: {{detail}}
-text: *Priority:* {{priority}} · *Effort:* {{effort}} · *Expected Impact:* {{expected_impact}}
+{{title}}
+{{detail}}
+*Priority:* {{priority}} · *Effort:* {{effort}} · *Expected Impact:* {{expected_impact}}
 ---
 section: References
 ---
-text: Sources Cited
-text: {{references}}
+Sources Cited
+{{references}}
 ---
-text: Prepared by {{lead_researcher}} · {{report_date}}
+Prepared by {{lead_researcher}} · {{report_date}}

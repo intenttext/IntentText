@@ -3,17 +3,17 @@ meta: | type: template | domain: business | description: Structured incident pos
 ---
 section: Incident Summary
 ---
-text: Incident Details
-text: *Incident ID:* {{incident_id}}
-text: *Title:* {{incident_title}}
-text: *Severity:* {{severity}}
-text: *Date:* {{incident_date}}
-text: *Duration:* {{duration}}
-text: *Status:* {{status}}
-text: *Incident Commander:* {{incident_commander}}
+Incident Details
+*Incident ID:* {{incident_id}}
+*Title:* {{incident_title}}
+*Severity:* {{severity}}
+*Date:* {{incident_date}}
+*Duration:* {{duration}}
+*Status:* {{status}}
+*Incident Commander:* {{incident_commander}}
 ---
-text: Executive Summary
-text: {{executive_summary}}
+Executive Summary
+{{executive_summary}}
 ---
 section: Timeline
 ---
@@ -21,36 +21,36 @@ text: {{timestamp}} — {{event}} | actor: {{actor}} | system: {{system}}
 ---
 section: Impact
 ---
-text: Customer Impact
-text: *Users Affected:* {{users_affected}}
-text: *Regions Affected:* {{regions_affected}}
-text: *Revenue Impact:* {{revenue_impact}}
-text: *SLA Breach:* {{sla_breach}}
+Customer Impact
+*Users Affected:* {{users_affected}}
+*Regions Affected:* {{regions_affected}}
+*Revenue Impact:* {{revenue_impact}}
+*SLA Breach:* {{sla_breach}}
 ---
-text: Technical Impact
-text: *Services Degraded:* {{services_degraded}}
-text: *Error Rate Peak:* {{error_rate_peak}}
-text: *Requests Failed:* {{requests_failed}}
+Technical Impact
+*Services Degraded:* {{services_degraded}}
+*Error Rate Peak:* {{error_rate_peak}}
+*Requests Failed:* {{requests_failed}}
 ---
 section: Root Cause
 ---
-text: Root Cause Analysis
-text: {{root_cause}}
+Root Cause Analysis
+{{root_cause}}
 ---
-text: Contributing Factors
-text: {{contributing_factors}}
+Contributing Factors
+{{contributing_factors}}
 ---
 section: Detection and Response
 ---
-text: Detection
-text: *Detected By:* {{detected_by}}
-text: *Time to Detect:* {{time_to_detect}}
-text: *Alert Fired:* {{alert_fired}}
+Detection
+*Detected By:* {{detected_by}}
+*Time to Detect:* {{time_to_detect}}
+*Alert Fired:* {{alert_fired}}
 ---
-text: Response
-text: *Time to Mitigate:* {{time_to_mitigate}}
-text: *Time to Resolve:* {{time_to_resolve}}
-text: *Rollback Performed:* {{rollback_performed}}
+Response
+*Time to Mitigate:* {{time_to_mitigate}}
+*Time to Resolve:* {{time_to_resolve}}
+*Rollback Performed:* {{rollback_performed}}
 ---
 section: Action Items
 ---
@@ -58,10 +58,10 @@ task: {{description}} | owner: {{owner}} | priority: {{priority}} | deadline: {{
 ---
 section: Lessons Learned
 ---
-text: What Went Well
-text: {{went_well}}
+What Went Well
+{{went_well}}
 ---
-text: What Went Poorly
-text: {{went_poorly}}
+What Went Poorly
+{{went_poorly}}
 ---
 approve: Approved | by: {{engineering_lead}} | role: Engineering Lead | at: {{approved_date}}

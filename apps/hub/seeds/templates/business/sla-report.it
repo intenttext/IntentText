@@ -23,11 +23,11 @@ metric: SLA Compliance Rate | value: {{compliance_rate}} | unit: % | target: {{c
 ---
 section: Notable Incidents
 ---
-text: {{incident_1_summary}}
-text: *Severity:* {{incident_1_severity}}
-text: *Duration:* {{incident_1_duration}}
-text: *Root Cause:* {{incident_1_cause}}
-text: *Resolution:* {{incident_1_resolution}}
+{{incident_1_summary}}
+*Severity:* {{incident_1_severity}}
+*Duration:* {{incident_1_duration}}
+*Root Cause:* {{incident_1_cause}}
+*Resolution:* {{incident_1_resolution}}
 ---
 section: Approval
 ---

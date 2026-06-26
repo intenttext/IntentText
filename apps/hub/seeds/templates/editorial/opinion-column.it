@@ -3,30 +3,30 @@ meta: | type: template | domain: editorial | description: Op-ed column with head
 ---
 section: Headline
 ---
-text: {{headline}}
-text: *By {{byline}}* · {{publication_date}}
+{{headline}}
+*By {{byline}}* · {{publication_date}}
 ---
 section: Opening
 ---
-text: {{opening_paragraph}}
+{{opening_paragraph}}
 ---
 section: Argument
 ---
-text: {{text}}
+{{text}}
 ---
 quote: {{supporting_quote}} | by: {{supporting_quote_source}}
 ---
 section: Counterpoint
 ---
-text: {{counterpoint}}
+{{counterpoint}}
 ---
 quote: {{counterpoint_quote}} | by: {{counterpoint_quote_source}}
 ---
 section: Conclusion
 ---
-text: {{closing_paragraph}}
+{{closing_paragraph}}
 ---
 section: About the Author
 ---
-text: {{author_bio}}
-text: *Contact:* {{author_contact}}
+{{author_bio}}
+*Contact:* {{author_contact}}

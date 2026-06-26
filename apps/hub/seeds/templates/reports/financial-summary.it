@@ -3,60 +3,60 @@ meta: | type: template | domain: business | description: Financial period summar
 ---
 section: Report Information
 ---
-text: Period Details
-text: *Company:* {{company_name}}
-text: *Period:* {{period}}
-text: *Prepared By:* {{prepared_by}}
-text: *Report Date:* {{report_date}}
-text: *Currency:* {{currency}}
+Period Details
+*Company:* {{company_name}}
+*Period:* {{period}}
+*Prepared By:* {{prepared_by}}
+*Report Date:* {{report_date}}
+*Currency:* {{currency}}
 ---
 section: Revenue
 ---
-text: {{source}}
-text: *Amount:* {{amount}} · *Prior Period:* {{prior_period}} · *Change:* {{change}} · *Notes:* {{notes}}
+{{source}}
+*Amount:* {{amount}} · *Prior Period:* {{prior_period}} · *Change:* {{change}} · *Notes:* {{notes}}
 ---
-text: Revenue Totals
-text: *Total Revenue:* {{total_revenue}}
-text: *Prior Period Revenue:* {{prior_period_revenue}}
-text: *Revenue Growth:* {{revenue_growth}}
+Revenue Totals
+*Total Revenue:* {{total_revenue}}
+*Prior Period Revenue:* {{prior_period_revenue}}
+*Revenue Growth:* {{revenue_growth}}
 ---
 section: Expenses
 ---
-text: {{category}}
-text: *Amount:* {{amount}} · *Budget:* {{budget}} · *Variance:* {{variance}} · *Notes:* {{notes}}
+{{category}}
+*Amount:* {{amount}} · *Budget:* {{budget}} · *Variance:* {{variance}} · *Notes:* {{notes}}
 ---
-text: Expense Totals
-text: *Total Expenses:* {{total_expenses}}
-text: *Budget:* {{total_budget}}
-text: *Overall Variance:* {{expense_variance}}
+Expense Totals
+*Total Expenses:* {{total_expenses}}
+*Budget:* {{total_budget}}
+*Overall Variance:* {{expense_variance}}
 ---
 section: Profitability
 ---
-text: Profit Metrics
-text: *Gross Profit:* {{gross_profit}}
-text: *Gross Margin:* {{gross_margin}}
-text: *Operating Profit:* {{operating_profit}}
-text: *Operating Margin:* {{operating_margin}}
-text: *Net Profit:* {{net_profit}}
-text: *Net Margin:* {{net_margin}}
-text: *EBITDA:* {{ebitda}}
+Profit Metrics
+*Gross Profit:* {{gross_profit}}
+*Gross Margin:* {{gross_margin}}
+*Operating Profit:* {{operating_profit}}
+*Operating Margin:* {{operating_margin}}
+*Net Profit:* {{net_profit}}
+*Net Margin:* {{net_margin}}
+*EBITDA:* {{ebitda}}
 ---
 section: Key Metrics
 ---
-text: Performance Indicators
-text: *Monthly Recurring Revenue:* {{mrr}}
-text: *Customer Acquisition Cost:* {{cac}}
-text: *Lifetime Value:* {{ltv}}
-text: *LTV/CAC Ratio:* {{ltv_cac_ratio}}
-text: *Burn Rate:* {{burn_rate}}
-text: *Runway:* {{runway}}
+Performance Indicators
+*Monthly Recurring Revenue:* {{mrr}}
+*Customer Acquisition Cost:* {{cac}}
+*Lifetime Value:* {{ltv}}
+*LTV/CAC Ratio:* {{ltv_cac_ratio}}
+*Burn Rate:* {{burn_rate}}
+*Runway:* {{runway}}
 ---
 section: Highlights and Commentary
 ---
-text: Executive Summary
-text: {{executive_summary}}
+Executive Summary
+{{executive_summary}}
 ---
-text: Risks and Outlook
-text: {{risks_outlook}}
+Risks and Outlook
+{{risks_outlook}}
 ---
 approve: Approved | by: {{cfo_name}} | role: Chief Financial Officer | at: {{cfo_approval_date}}

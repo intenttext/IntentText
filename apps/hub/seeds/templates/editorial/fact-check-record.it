@@ -3,28 +3,28 @@ meta: | type: template | domain: editorial | description: Fact-checking document
 ---
 section: Article Information
 ---
-text: {{article_title}}
-text: *Author:* {{article_author}}
-text: *Fact-Checker:* {{fact_checker}}
-text: *Date Assigned:* {{date_assigned}}
-text: *Date Completed:* {{date_completed}}
-text: *Section:* {{section}}
+{{article_title}}
+*Author:* {{article_author}}
+*Fact-Checker:* {{fact_checker}}
+*Date Assigned:* {{date_assigned}}
+*Date Completed:* {{date_completed}}
+*Section:* {{section}}
 ---
 section: Claims and Verdicts
 ---
-text: Claim — {{claim}}
-text: *Source Cited:* {{source_cited}}
-text: *Verification Source:* {{verification_source}}
-text: *Verdict:* {{verdict}}
-text: *Notes:* {{notes}}
+Claim — {{claim}}
+*Source Cited:* {{source_cited}}
+*Verification Source:* {{verification_source}}
+*Verdict:* {{verdict}}
+*Notes:* {{notes}}
 ---
 section: Overall Assessment
 ---
-text: {{overall_assessment}}
-text: *Claims Reviewed:* {{total_claims}}
-text: *Verified:* {{verified_count}}
-text: *Corrected:* {{corrected_count}}
-text: *Unverifiable:* {{unverifiable_count}}
+{{overall_assessment}}
+*Claims Reviewed:* {{total_claims}}
+*Verified:* {{verified_count}}
+*Corrected:* {{corrected_count}}
+*Unverifiable:* {{unverifiable_count}}
 ---
 section: Sign-Off
 ---

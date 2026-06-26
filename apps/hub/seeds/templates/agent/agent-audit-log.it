@@ -4,42 +4,42 @@ track: | version: {{log_version}} | by: {{recorded_by}} | note: Session {{sessio
 ---
 section: Session Metadata
 ---
-text: Session Details
-text: *Session ID:* {{session_id}}
-text: *Agent:* {{agent_name}}
-text: *Model:* {{model}}
-text: *Started:* {{session_start}}
-text: *Ended:* {{session_end}}
-text: *Duration:* {{session_duration}}
-text: *Status:* {{session_status}}
-text: *Trigger:* {{trigger_event}}
+Session Details
+*Session ID:* {{session_id}}
+*Agent:* {{agent_name}}
+*Model:* {{model}}
+*Started:* {{session_start}}
+*Ended:* {{session_end}}
+*Duration:* {{session_duration}}
+*Status:* {{session_status}}
+*Trigger:* {{trigger_event}}
 ---
 section: Execution Log
 ---
-text: Step {{step_number}} — {{action}}
-text: *Timestamp:* {{timestamp}}
-text: *Tool:* {{tool_used}}
-text: *Input Summary:* {{input_summary}}
-text: *Output Summary:* {{output_summary}}
-text: *Latency:* {{latency}}
-text: *Tokens:* {{token_count}}
-text: *Status:* {{status}}
+Step {{step_number}} — {{action}}
+*Timestamp:* {{timestamp}}
+*Tool:* {{tool_used}}
+*Input Summary:* {{input_summary}}
+*Output Summary:* {{output_summary}}
+*Latency:* {{latency}}
+*Tokens:* {{token_count}}
+*Status:* {{status}}
 ---
 section: Resource Usage
 ---
-text: Consumption Summary
-text: *Total Steps:* {{total_steps}}
-text: *Total Tokens:* {{total_tokens}}
-text: *Total Latency:* {{total_latency}}
-text: *Estimated Cost:* {{estimated_cost}}
-text: *Tools Invoked:* {{tools_invoked}}
+Consumption Summary
+*Total Steps:* {{total_steps}}
+*Total Tokens:* {{total_tokens}}
+*Total Latency:* {{total_latency}}
+*Estimated Cost:* {{estimated_cost}}
+*Tools Invoked:* {{tools_invoked}}
 ---
 section: Outcome
 ---
-text: Result
-text: {{outcome_summary}}
+Result
+{{outcome_summary}}
 ---
-text: Recorded by {{recorded_by}} · {{record_date}}
+Recorded by {{recorded_by}} · {{record_date}}
 ---
 sign: {{recorded_by}} | role: Agent Recorder | at: {{record_date}} | hash: {{document_hash}}
 ---

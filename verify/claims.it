@@ -43,7 +43,7 @@ task: The native seal carries no RFC-3161 timestamp token | owner: core | check:
 info: Provable time lives on the PAdES PDF export (@dotit/pades requestTimestampToken), not the native .it. | type: warning
 
 section: How to run
-text: From the repo root, after building the packages with `pnpm -r build`.
-text: Run the automated claim checks (27 assertions): `node verify/verify-claims.mjs`
-text: Run the property-based byte-preservation gate (thousands of random docs): `cd packages/core && npx vitest run tests/byte-preservation.test.ts`
+From the repo root, after building the packages with `pnpm -r build`.
+Run the automated claim checks (27 assertions): `node verify/verify-claims.mjs`
+Run the property-based byte-preservation gate (thousands of random docs): `cd packages/core && npx vitest run tests/byte-preservation.test.ts`
 done: This file is a .it document — it round-trips byte-for-byte through the core

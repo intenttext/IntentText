@@ -4,40 +4,40 @@ track: | version: 1.0 | by: HR Services
 ---
 section: Referee Information
 ---
-text: From
-text: *Name:* {{referee_name}}
-text: *Title:* {{referee_title}}
-text: *Organization:* {{referee_organization}}
-text: *Email:* {{referee_email}}
-text: *Phone:* {{referee_phone}}
-text: *Date:* {{date}}
+From
+*Name:* {{referee_name}}
+*Title:* {{referee_title}}
+*Organization:* {{referee_organization}}
+*Email:* {{referee_email}}
+*Phone:* {{referee_phone}}
+*Date:* {{date}}
 ---
 section: Subject
 ---
-text: Regarding
-text: *Candidate:* {{subject_name}}
-text: *Relationship:* {{relationship}}
-text: *Duration:* {{relationship_duration}}
+Regarding
+*Candidate:* {{subject_name}}
+*Relationship:* {{relationship}}
+*Duration:* {{relationship_duration}}
 ---
 section: Letter
 ---
-text: Opening
-text: {{opening}}
+Opening
+{{opening}}
 ---
-text: Professional Context
-text: {{professional_context}}
+Professional Context
+{{professional_context}}
 ---
-text: Key Strengths
-text: {{key_strengths}}
+Key Strengths
+{{key_strengths}}
 ---
-text: Specific Accomplishments
-text: {{accomplishments}}
+Specific Accomplishments
+{{accomplishments}}
 ---
-text: Character & Work Ethic
-text: {{character}}
+Character & Work Ethic
+{{character}}
 ---
-text: Recommendation
-text: {{recommendation}}
+Recommendation
+{{recommendation}}
 ---
 section: Authorization
 ---

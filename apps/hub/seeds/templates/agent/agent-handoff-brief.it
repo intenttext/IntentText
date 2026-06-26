@@ -4,45 +4,45 @@ track: | version: 1.0 | by: {{source_agent}} | note: Handoff initiated {{handoff
 ---
 section: Handoff Summary
 ---
-text: Transfer Details
-text: *From Agent:* {{source_agent}}
-text: *To Agent:* {{target_agent}}
-text: *Reason:* {{handoff_reason}}
-text: *Urgency:* {{urgency}}
-text: *Session ID:* {{session_id}}
+Transfer Details
+*From Agent:* {{source_agent}}
+*To Agent:* {{target_agent}}
+*Reason:* {{handoff_reason}}
+*Urgency:* {{urgency}}
+*Session ID:* {{session_id}}
 ---
 section: Context
 ---
 context: {{context_label}}
-text: {{context_body}}
+{{context_body}}
 ---
-text: State Snapshot
-text: *Current Phase:* {{current_phase}}
-text: *Progress:* {{progress_summary}}
-text: *Last Successful Action:* {{last_action}}
-text: *Working Data:* {{working_data_location}}
+State Snapshot
+*Current Phase:* {{current_phase}}
+*Progress:* {{progress_summary}}
+*Last Successful Action:* {{last_action}}
+*Working Data:* {{working_data_location}}
 ---
 section: Pending Tasks
 ---
 task: {{task_name}} | priority: {{priority}} | deadline: {{deadline}}
-text: *Description:* {{description}}
-text: *Acceptance Criteria:* {{acceptance_criteria}}
-text: *Dependencies:* {{dependencies}}
-text: *Notes:* {{notes}}
+*Description:* {{description}}
+*Acceptance Criteria:* {{acceptance_criteria}}
+*Dependencies:* {{dependencies}}
+*Notes:* {{notes}}
 ---
 section: Instructions for Receiving Agent
 ---
-text: Execution Guidance
-text: {{execution_instructions}}
+Execution Guidance
+{{execution_instructions}}
 ---
-text: Constraints
-text: {{constraints}}
+Constraints
+{{constraints}}
 ---
-text: Known Risks
-text: {{known_risks}}
+Known Risks
+{{known_risks}}
 ---
 section: Handoff Signal
 ---
 x-agent: signal | content: {{handoff_event}} | phase: handoff | level: info
 ---
-text: Handoff prepared by {{source_agent}} · {{handoff_timestamp}}
+Handoff prepared by {{source_agent}} · {{handoff_timestamp}}

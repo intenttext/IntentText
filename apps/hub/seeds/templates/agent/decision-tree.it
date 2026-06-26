@@ -4,37 +4,37 @@ track: | version: 1.0 | by: {{author}} | note: Decision tree defined {{created_d
 ---
 section: Decision Context
 ---
-text: Overview
-text: *Agent:* {{agent_name}}
-text: *Model:* {{model}}
-text: *Objective:* {{objective}}
-text: *Input Signal:* {{input_signal}}
-text: *Confidence Threshold:* {{confidence_threshold}}
+Overview
+*Agent:* {{agent_name}}
+*Model:* {{model}}
+*Objective:* {{objective}}
+*Input Signal:* {{input_signal}}
+*Confidence Threshold:* {{confidence_threshold}}
 ---
-text: Evaluation Criteria
-text: {{evaluation_criteria}}
+Evaluation Criteria
+{{evaluation_criteria}}
 ---
 section: Decision Nodes
 ---
 decision: {{label}} | condition: {{condition}} | weight: {{weight}}
-text: *Description:* {{description}}
-text: *Outcome if True:* {{outcome_true}}
-text: *Outcome if False:* {{outcome_false}}
-text: *Data Source:* {{data_source}}
-text: *Confidence:* {{confidence}}
+*Description:* {{description}}
+*Outcome if True:* {{outcome_true}}
+*Outcome if False:* {{outcome_false}}
+*Data Source:* {{data_source}}
+*Confidence:* {{confidence}}
 ---
 section: Fallback Path
 ---
-text: Default Outcome
-text: *Fallback Action:* {{fallback_action}}
-text: *Trigger:* {{fallback_trigger}}
-text: *Notification:* {{fallback_notification}}
+Default Outcome
+*Fallback Action:* {{fallback_action}}
+*Trigger:* {{fallback_trigger}}
+*Notification:* {{fallback_notification}}
 ---
 section: Audit Trail
 ---
-text: Logging
-text: *Log Destination:* {{log_destination}}
-text: *Retention:* {{log_retention}}
-text: *Include Reasoning:* {{include_reasoning}}
+Logging
+*Log Destination:* {{log_destination}}
+*Retention:* {{log_retention}}
+*Include Reasoning:* {{include_reasoning}}
 ---
-text: Decision tree maintained by {{author}} · {{created_date}}
+Decision tree maintained by {{author}} · {{created_date}}

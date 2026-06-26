@@ -23,6 +23,6 @@ section: Emergency Contacts
 contact: {{emergency_1_name}} | role: {{emergency_1_role}} | org: {{provider_org}} | email: {{emergency_1_email}} | phone: {{emergency_1_phone}}
 contact: {{emergency_2_name}} | role: {{emergency_2_role}} | org: {{client_org}} | email: {{emergency_2_email}} | phone: {{emergency_2_phone}}
 ---
-text: Emergency Escalation
-text: *P1 incidents:* Call the on-call engineer first, then escalate to the technical lead if no response within 15 minutes.
-text: *After hours:* Use the emergency phone numbers listed above.
+Emergency Escalation
+*P1 incidents:* Call the on-call engineer first, then escalate to the technical lead if no response within 15 minutes.
+*After hours:* Use the emergency phone numbers listed above.

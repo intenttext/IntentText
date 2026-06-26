@@ -6,77 +6,77 @@ track: | version: 0.1 | by: {{requester}} | note: Initial submission
 ---
 section: Request Summary
 ---
-text: Change Request Details
-text: *Request ID:* {{request_id}}
-text: *Priority:* {{priority}}
-text: *Category:* {{category}}
-text: *Status:* {{status}}
-text: *Requested By:* {{requester}} · {{requester_email}}
-text: *Department:* {{department}}
-text: *Date Submitted:* {{date_submitted}}
-text: *Requested Implementation Date:* {{requested_date}}
+Change Request Details
+*Request ID:* {{request_id}}
+*Priority:* {{priority}}
+*Category:* {{category}}
+*Status:* {{status}}
+*Requested By:* {{requester}} · {{requester_email}}
+*Department:* {{department}}
+*Date Submitted:* {{date_submitted}}
+*Requested Implementation Date:* {{requested_date}}
 ---
 section: Description of Change
 ---
-text: Change Description
-text: {{change_description}}
+Change Description
+{{change_description}}
 ---
-text: Business Justification
-text: {{business_justification}}
+Business Justification
+{{business_justification}}
 ---
 section: Impact Analysis
 ---
-text: Systems and Services Affected
-text: {{systems_affected}}
+Systems and Services Affected
+{{systems_affected}}
 ---
-text: User Impact
-text: {{user_impact}}
+User Impact
+{{user_impact}}
 ---
-text: Dependencies
-text: {{dependencies}}
+Dependencies
+{{dependencies}}
 ---
 section: Risk Assessment
 ---
-text: Risk Analysis
-text: *Risk Level:* {{risk_level}}
-text: *Probability of Failure:* {{failure_probability}}
-text: *Impact if Failed:* {{failure_impact}}
+Risk Analysis
+*Risk Level:* {{risk_level}}
+*Probability of Failure:* {{failure_probability}}
+*Impact if Failed:* {{failure_impact}}
 ---
-text: Risk Factors
-text: {{risk_factors}}
+Risk Factors
+{{risk_factors}}
 ---
 section: Implementation Plan
 ---
-text: Implementation Steps
-text: {{implementation_plan}}
+Implementation Steps
+{{implementation_plan}}
 ---
-text: Implementation Window
-text: *Start:* {{implementation_start}}
-text: *End:* {{implementation_end}}
-text: *Maintenance Window:* {{maintenance_window}}
+Implementation Window
+*Start:* {{implementation_start}}
+*End:* {{implementation_end}}
+*Maintenance Window:* {{maintenance_window}}
 ---
 section: Testing and Validation
 ---
-text: Test Plan
-text: {{test_plan}}
+Test Plan
+{{test_plan}}
 ---
 section: Rollback Plan
 ---
-text: Rollback Procedure
-text: {{rollback_plan}}
+Rollback Procedure
+{{rollback_plan}}
 ---
-text: Rollback Criteria
-text: {{rollback_criteria}}
+Rollback Criteria
+{{rollback_criteria}}
 ---
 section: Communication Plan
 ---
-text: Stakeholder Notifications
-text: {{communication_plan}}
+Stakeholder Notifications
+{{communication_plan}}
 ---
 section: Resource Requirements
 ---
-text: Resources and Budget
-text: {{resource_requirements}}
+Resources and Budget
+{{resource_requirements}}
 ---
 section: Approval
 ---

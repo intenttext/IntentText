@@ -3,47 +3,47 @@ meta: | type: template | domain: developer | description: Changelog and release 
 ---
 section: Release Information
 ---
-text: Release Details
-text: *Version:* {{version}}
-text: *Release Date:* {{release_date}}
-text: *Codename:* {{codename}}
-text: *Stability:* {{stability}}
-text: *Upgrade Path:* {{upgrade_path}}
+Release Details
+*Version:* {{version}}
+*Release Date:* {{release_date}}
+*Codename:* {{codename}}
+*Stability:* {{stability}}
+*Upgrade Path:* {{upgrade_path}}
 ---
-text: Summary
-text: {{release_summary}}
+Summary
+{{release_summary}}
 ---
 section: Added
 ---
-text: {{title}}
-text: {{description}}
+{{title}}
+{{description}}
 ---
 section: Changed
 ---
-text: {{title}}
-text: {{description}}
+{{title}}
+{{description}}
 ---
 section: Fixed
 ---
-text: {{title}}
-text: {{description}}
+{{title}}
+{{description}}
 ---
 section: Removed
 ---
-text: {{title}}
-text: {{description}}
+{{title}}
+{{description}}
 ---
 section: Breaking Changes
 ---
-text: Migration Notes
-text: {{breaking_changes}}
+Migration Notes
+{{breaking_changes}}
 ---
 section: Known Issues
 ---
-text: Open Issues
-text: {{known_issues}}
+Open Issues
+{{known_issues}}
 ---
 section: Contributors
 ---
-text: Acknowledgements
-text: {{contributors}}
+Acknowledgements
+{{contributors}}

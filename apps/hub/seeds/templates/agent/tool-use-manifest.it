@@ -4,23 +4,23 @@ track: | version: 1.0 | by: {{author}} | note: Manifest created {{created_date}}
 ---
 section: Agent Configuration
 ---
-text: Agent Details
-text: *Agent:* {{agent_name}}
-text: *Model:* {{model}}
-text: *Owner:* {{owner}}
-text: *Environment:* {{environment}}
-text: *Max Concurrent Tool Calls:* {{max_concurrent}}
+Agent Details
+*Agent:* {{agent_name}}
+*Model:* {{model}}
+*Owner:* {{owner}}
+*Environment:* {{environment}}
+*Max Concurrent Tool Calls:* {{max_concurrent}}
 ---
 section: Registered Tools
 ---
-text: {{name}}
-text: *Description:* {{description}}
-text: *Endpoint:* {{endpoint}}
-text: *Auth:* {{auth_method}}
-text: *Inputs:* {{inputs}}
-text: *Outputs:* {{outputs}}
-text: *Rate Limit:* {{rate_limit}}
-text: *Timeout:* {{timeout}}
+{{name}}
+*Description:* {{description}}
+*Endpoint:* {{endpoint}}
+*Auth:* {{auth_method}}
+*Inputs:* {{inputs}}
+*Outputs:* {{outputs}}
+*Rate Limit:* {{rate_limit}}
+*Timeout:* {{timeout}}
 ---
 section: Usage Policies
 ---
@@ -31,9 +31,9 @@ policy: Fallback order | always: prefer_cached_result_if_fresh | never: retry_mo
 ---
 section: Permissions Boundary
 ---
-text: Access Controls
-text: *Read Scopes:* {{read_scopes}}
-text: *Write Scopes:* {{write_scopes}}
-text: *Denied Operations:* {{denied_operations}}
+Access Controls
+*Read Scopes:* {{read_scopes}}
+*Write Scopes:* {{write_scopes}}
+*Denied Operations:* {{denied_operations}}
 ---
-text: Manifest maintained by {{author}} · {{created_date}}
+Manifest maintained by {{author}} · {{created_date}}

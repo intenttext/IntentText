@@ -3,40 +3,40 @@ meta: | type: template | domain: developer | description: API endpoint documenta
 ---
 section: Overview
 ---
-text: API Information
-text: *Base URL:* {{base_url}}
-text: *Authentication:* {{auth_method}}
-text: *Rate Limit:* {{rate_limit}}
-text: *Content-Type:* {{content_type}}
+API Information
+*Base URL:* {{base_url}}
+*Authentication:* {{auth_method}}
+*Rate Limit:* {{rate_limit}}
+*Content-Type:* {{content_type}}
 ---
-text: Description
-text: {{api_description}}
+Description
+{{api_description}}
 ---
 section: Endpoint
 ---
-text: {{method}} {{endpoint_path}}
-text: *Summary:* {{endpoint_summary}}
-text: *Authentication Required:* {{auth_required}}
-text: *Idempotent:* {{idempotent}}
+{{method}} {{endpoint_path}}
+*Summary:* {{endpoint_summary}}
+*Authentication Required:* {{auth_required}}
+*Idempotent:* {{idempotent}}
 ---
 section: Request Parameters
 ---
-text: {{name}} · {{location}}
-text: *Type:* {{type}} · *Required:* {{required}}
-text: *Description:* {{description}}
-text: *Example:* {{example}}
+{{name}} · {{location}}
+*Type:* {{type}} · *Required:* {{required}}
+*Description:* {{description}}
+*Example:* {{example}}
 ---
 section: Request Body
 ---
-text: Body Schema
-text: {{request_body_description}}
+Body Schema
+{{request_body_description}}
 ---
 code: ```{{request_body_example}}``` | lang: json
 ---
 section: Response Codes
 ---
-text: {{status}} {{status_text}}
-text: {{description}}
+{{status}} {{status_text}}
+{{description}}
 ---
 section: Success Response Example
 ---
@@ -62,5 +62,5 @@ code: ```{{javascript_example}}``` | lang: javascript
 ---
 section: Notes
 ---
-text: Additional Information
-text: {{additional_notes}}
+Additional Information
+{{additional_notes}}

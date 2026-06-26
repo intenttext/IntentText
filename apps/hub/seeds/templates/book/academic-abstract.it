@@ -7,8 +7,8 @@ text: {{name}} | affiliation: {{affiliation}}
 ---
 section: Abstract
 ---
-text: {{abstract}}
+{{abstract}}
 ---
 section: Keywords
 ---
-text: {{keyword}}
+{{keyword}}

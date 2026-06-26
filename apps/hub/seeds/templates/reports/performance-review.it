@@ -3,67 +3,67 @@ meta: | type: template | domain: business | description: Annual employee perform
 ---
 section: Review Information
 ---
-text: Details
-text: *Employee:* {{employee_name}}
-text: *Employee ID:* {{employee_id}}
-text: *Title:* {{employee_title}}
-text: *Department:* {{department}}
-text: *Manager:* {{manager_name}}
-text: *Review Period:* {{review_period}}
-text: *Review Date:* {{review_date}}
+Details
+*Employee:* {{employee_name}}
+*Employee ID:* {{employee_id}}
+*Title:* {{employee_title}}
+*Department:* {{department}}
+*Manager:* {{manager_name}}
+*Review Period:* {{review_period}}
+*Review Date:* {{review_date}}
 ---
 section: Goals Assessment
 ---
-text: {{goal}}
-text: *Weight:* {{weight}} · *Target:* {{target}} · *Actual:* {{actual}} · *Rating:* {{rating}}
-text: *Commentary:* {{commentary}}
+{{goal}}
+*Weight:* {{weight}} · *Target:* {{target}} · *Actual:* {{actual}} · *Rating:* {{rating}}
+*Commentary:* {{commentary}}
 ---
-text: Overall Goal Attainment
-text: *Weighted Score:* {{overall_goal_score}}
+Overall Goal Attainment
+*Weighted Score:* {{overall_goal_score}}
 ---
 section: Key Achievements
 ---
-text: {{title}}
-text: {{description}}
-text: *Impact:* {{impact}} · *Quarter:* {{quarter}}
+{{title}}
+{{description}}
+*Impact:* {{impact}} · *Quarter:* {{quarter}}
 ---
 section: Competency Assessment
 ---
-text: Technical Skills
-text: *Rating:* {{technical_rating}}
-text: {{technical_commentary}}
+Technical Skills
+*Rating:* {{technical_rating}}
+{{technical_commentary}}
 ---
-text: Communication and Collaboration
-text: *Rating:* {{communication_rating}}
-text: {{communication_commentary}}
+Communication and Collaboration
+*Rating:* {{communication_rating}}
+{{communication_commentary}}
 ---
-text: Leadership and Initiative
-text: *Rating:* {{leadership_rating}}
-text: {{leadership_commentary}}
+Leadership and Initiative
+*Rating:* {{leadership_rating}}
+{{leadership_commentary}}
 ---
-text: Problem Solving and Judgment
-text: *Rating:* {{problem_solving_rating}}
-text: {{problem_solving_commentary}}
+Problem Solving and Judgment
+*Rating:* {{problem_solving_rating}}
+{{problem_solving_commentary}}
 ---
 section: Overall Performance
 ---
-text: Summary
-text: *Overall Rating:* {{overall_rating}}
-text: *Recommendation:* {{recommendation}}
+Summary
+*Overall Rating:* {{overall_rating}}
+*Recommendation:* {{recommendation}}
 ---
-text: Manager Commentary
-text: {{manager_commentary}}
+Manager Commentary
+{{manager_commentary}}
 ---
 section: Development Plan
 ---
-text: Areas for Growth
-text: {{growth_areas}}
+Areas for Growth
+{{growth_areas}}
 ---
-text: Development Actions
-text: {{development_actions}}
+Development Actions
+{{development_actions}}
 ---
-text: Career Aspirations
-text: {{career_aspirations}}
+Career Aspirations
+{{career_aspirations}}
 ---
 section: Sign-Off
 ---

@@ -3,47 +3,47 @@ meta: | type: template | domain: business | description: Purchase order with ven
 ---
 section: Purchase Order Details
 ---
-text: Order Information
-text: *PO Number:* {{po_number}}
-text: *Date:* {{date}}
-text: *Required Delivery Date:* {{delivery_date}}
-text: *Payment Terms:* {{payment_terms}}
+Order Information
+*PO Number:* {{po_number}}
+*Date:* {{date}}
+*Required Delivery Date:* {{delivery_date}}
+*Payment Terms:* {{payment_terms}}
 ---
-text: Vendor
-text: {{vendor_name}}
-text: {{vendor_address}}
-text: *Contact:* {{vendor_contact}} · {{vendor_email}}
-text: *Vendor ID:* {{vendor_id}}
+Vendor
+{{vendor_name}}
+{{vendor_address}}
+*Contact:* {{vendor_contact}} · {{vendor_email}}
+*Vendor ID:* {{vendor_id}}
 ---
-text: Ship To
-text: {{ship_to_name}}
-text: {{ship_to_address}}
-text: *Attention:* {{ship_to_attention}}
-text: *Dock/Bay:* {{ship_to_dock}}
+Ship To
+{{ship_to_name}}
+{{ship_to_address}}
+*Attention:* {{ship_to_attention}}
+*Dock/Bay:* {{ship_to_dock}}
 ---
 section: Line Items
 ---
-text: {{part_number}} — {{description}}
-text: *Quantity:* {{quantity}} · *Unit:* {{unit}} · *Unit Price:* {{unit_price}} · *Amount:* {{amount}}
+{{part_number}} — {{description}}
+*Quantity:* {{quantity}} · *Unit:* {{unit}} · *Unit Price:* {{unit_price}} · *Amount:* {{amount}}
 ---
 section: Totals
 ---
-text: Order Summary
-text: *Subtotal:* {{subtotal}}
-text: *Shipping:* {{shipping}}
-text: *Total:* {{total}}
+Order Summary
+*Subtotal:* {{subtotal}}
+*Shipping:* {{shipping}}
+*Total:* {{total}}
 ---
 section: Delivery Terms
 ---
-text: Shipping and Handling
-text: *Shipping Method:* {{shipping_method}}
-text: *Incoterms:* {{incoterms}}
-text: *Special Instructions:* {{special_instructions}}
+Shipping and Handling
+*Shipping Method:* {{shipping_method}}
+*Incoterms:* {{incoterms}}
+*Special Instructions:* {{special_instructions}}
 ---
 section: Terms and Conditions
 ---
-text: Standard Terms
-text: {{terms}}
+Standard Terms
+{{terms}}
 ---
 section: Approval
 ---

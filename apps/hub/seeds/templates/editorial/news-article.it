@@ -3,16 +3,16 @@ meta: | type: template | domain: editorial | description: News article with head
 ---
 section: Headline
 ---
-text: {{headline}}
-text: *{{byline}}* · {{dateline}}
+{{headline}}
+*{{byline}}* · {{dateline}}
 ---
 section: Lede
 ---
-text: {{lede}}
+{{lede}}
 ---
 section: Body
 ---
-text: {{text}}
+{{text}}
 ---
 section: Pull Quote
 ---
@@ -20,8 +20,8 @@ quote: {{pull_quote}} | by: {{pull_quote_attribution}}
 ---
 section: Continued
 ---
-text: {{text}}
+{{text}}
 ---
 quote: {{closing_quote}} | by: {{closing_quote_attribution}}
 ---
-text: *{{tagline}}*
+*{{tagline}}*

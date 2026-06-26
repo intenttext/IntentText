@@ -3,61 +3,61 @@ meta: | type: template | domain: organization | description: Security incident r
 ---
 section: Incident Summary
 ---
-text: Incident Details
-text: *Incident ID:* {{incident_id}}
-text: *Severity:* {{severity}}
-text: *Status:* {{status}}
-text: *Date Detected:* {{date_detected}}
-text: *Date Reported:* {{date_reported}}
-text: *Date Resolved:* {{date_resolved}}
-text: *Reported By:* {{reported_by}}
-text: *Incident Commander:* {{incident_commander}}
+Incident Details
+*Incident ID:* {{incident_id}}
+*Severity:* {{severity}}
+*Status:* {{status}}
+*Date Detected:* {{date_detected}}
+*Date Reported:* {{date_reported}}
+*Date Resolved:* {{date_resolved}}
+*Reported By:* {{reported_by}}
+*Incident Commander:* {{incident_commander}}
 ---
-text: Executive Summary
-text: {{executive_summary}}
+Executive Summary
+{{executive_summary}}
 ---
 section: Timeline of Events
 ---
-text: {{timestamp}} — {{event_title}}
-text: {{event_description}}
+{{timestamp}} — {{event_title}}
+{{event_description}}
 ---
 section: Affected Systems
 ---
-text: Impacted Assets
-text: {{affected_systems}}
+Impacted Assets
+{{affected_systems}}
 ---
 section: Impact Assessment
 ---
-text: Business Impact
-text: *Data Compromised:* {{data_compromised}}
-text: *Users Affected:* {{users_affected}}
-text: *Service Downtime:* {{service_downtime}}
-text: *Financial Impact:* {{financial_impact}}
-text: *Regulatory Implications:* {{regulatory_implications}}
+Business Impact
+*Data Compromised:* {{data_compromised}}
+*Users Affected:* {{users_affected}}
+*Service Downtime:* {{service_downtime}}
+*Financial Impact:* {{financial_impact}}
+*Regulatory Implications:* {{regulatory_implications}}
 ---
 section: Root Cause Analysis
 ---
-text: Root Cause
-text: {{root_cause}}
+Root Cause
+{{root_cause}}
 ---
 section: Response Actions Taken
 ---
-text: Containment and Eradication
-text: {{containment_actions}}
+Containment and Eradication
+{{containment_actions}}
 ---
-text: Recovery
-text: {{recovery_actions}}
+Recovery
+{{recovery_actions}}
 ---
 section: Lessons Learned
 ---
-text: Key Takeaways
-text: {{lessons_learned}}
+Key Takeaways
+{{lessons_learned}}
 ---
 section: Action Items
 ---
 task: {{action_id}} — {{action_title}}
-text: *Owner:* {{action_owner}} · *Priority:* {{action_priority}} · *Due:* {{action_due_date}}
-text: {{action_description}}
+*Owner:* {{action_owner}} · *Priority:* {{action_priority}} · *Due:* {{action_due_date}}
+{{action_description}}
 ---
 section: Approval
 ---

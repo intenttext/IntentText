@@ -3,35 +3,35 @@ meta: | type: template | domain: business | description: Project kickoff documen
 ---
 section: Project Overview
 ---
-text: Project Details
-text: *Project Name:* {{project_name}}
-text: *Project Code:* {{project_code}}
-text: *Sponsor:* {{sponsor_name}}
-text: *Project Manager:* {{project_manager}}
-text: *Start Date:* {{start_date}}
-text: *Target Completion:* {{target_completion}}
-text: *Budget:* {{budget}}
+Project Details
+*Project Name:* {{project_name}}
+*Project Code:* {{project_code}}
+*Sponsor:* {{sponsor_name}}
+*Project Manager:* {{project_manager}}
+*Start Date:* {{start_date}}
+*Target Completion:* {{target_completion}}
+*Budget:* {{budget}}
 ---
 section: Goals and Objectives
 ---
-text: Strategic Goals
-text: {{strategic_goals}}
+Strategic Goals
+{{strategic_goals}}
 ---
-text: Success Criteria
-text: {{success_criteria}}
+Success Criteria
+{{success_criteria}}
 ---
 section: Scope
 ---
-text: In Scope
-text: {{in_scope}}
+In Scope
+{{in_scope}}
 ---
-text: Out of Scope
-text: {{out_of_scope}}
+Out of Scope
+{{out_of_scope}}
 ---
 section: Team
 ---
-text: {{name}}
-text: *Role:* {{role}} · *Department:* {{department}} · *Allocation:* {{allocation}} · *Contact:* {{email}}
+{{name}}
+*Role:* {{role}} · *Department:* {{department}} · *Allocation:* {{allocation}} · *Contact:* {{email}}
 ---
 section: Timeline and Milestones
 ---
@@ -43,16 +43,16 @@ info: {{description}} | type: warning | likelihood: {{likelihood}} | impact: {{i
 ---
 section: Key Decisions
 ---
-text: Decisions Made at Kickoff
-text: {{decisions}}
+Decisions Made at Kickoff
+{{decisions}}
 ---
 section: Communication Plan
 ---
-text: Cadence
-text: *Status Reports:* {{status_cadence}}
-text: *Steering Committee:* {{steering_cadence}}
-text: *Team Standups:* {{standup_cadence}}
-text: *Escalation Path:* {{escalation_path}}
+Cadence
+*Status Reports:* {{status_cadence}}
+*Steering Committee:* {{steering_cadence}}
+*Team Standups:* {{standup_cadence}}
+*Escalation Path:* {{escalation_path}}
 ---
 approve: Approved | by: {{sponsor_name}} | role: Executive Sponsor | at: {{sponsor_approval_date}}
 ---

@@ -3,66 +3,66 @@ meta: | type: template | domain: business | description: Service level agreement
 ---
 section: Parties
 ---
-text: Service Provider
-text: *Name:* {{provider_name}}
-text: *Address:* {{provider_address}}
-text: *Contact:* {{provider_contact}} · {{provider_email}}
+Service Provider
+*Name:* {{provider_name}}
+*Address:* {{provider_address}}
+*Contact:* {{provider_contact}} · {{provider_email}}
 ---
-text: Customer
-text: *Name:* {{customer_name}}
-text: *Address:* {{customer_address}}
-text: *Contact:* {{customer_contact}} · {{customer_email}}
+Customer
+*Name:* {{customer_name}}
+*Address:* {{customer_address}}
+*Contact:* {{customer_contact}} · {{customer_email}}
 ---
 section: Agreement Overview
 ---
-text: Agreement Details
-text: *Agreement ID:* {{agreement_id}}
-text: *Effective Date:* {{effective_date}}
-text: *Term:* {{term}}
-text: *Renewal:* {{renewal_terms}}
-text: *Services Covered:* {{services_covered}}
+Agreement Details
+*Agreement ID:* {{agreement_id}}
+*Effective Date:* {{effective_date}}
+*Term:* {{term}}
+*Renewal:* {{renewal_terms}}
+*Services Covered:* {{services_covered}}
 ---
 section: Service Level Metrics
 ---
-text: {{metric_name}}
-text: *Target:* {{target}} · *Measurement Period:* {{measurement_period}} · *Measurement Method:* {{measurement_method}} · *Penalty for Breach:* {{penalty}}
+{{metric_name}}
+*Target:* {{target}} · *Measurement Period:* {{measurement_period}} · *Measurement Method:* {{measurement_method}} · *Penalty for Breach:* {{penalty}}
 ---
 section: Uptime Commitment
 ---
-text: Availability
-text: *Monthly Uptime Target:* {{uptime_target}}
-text: *Scheduled Maintenance Window:* {{maintenance_window}}
-text: *Maintenance Notification:* {{maintenance_notice}}
-text: *Exclusions:* {{uptime_exclusions}}
+Availability
+*Monthly Uptime Target:* {{uptime_target}}
+*Scheduled Maintenance Window:* {{maintenance_window}}
+*Maintenance Notification:* {{maintenance_notice}}
+*Exclusions:* {{uptime_exclusions}}
 ---
 section: Incident Response
 ---
-text: Response and Resolution Times
-text: *Severity 1 (Critical):* Response within {{sev1_response}}, resolution within {{sev1_resolution}}
-text: *Severity 2 (High):* Response within {{sev2_response}}, resolution within {{sev2_resolution}}
-text: *Severity 3 (Medium):* Response within {{sev3_response}}, resolution within {{sev3_resolution}}
-text: *Severity 4 (Low):* Response within {{sev4_response}}, resolution within {{sev4_resolution}}
+Response and Resolution Times
+*Severity 1 (Critical):* Response within {{sev1_response}}, resolution within {{sev1_resolution}}
+*Severity 2 (High):* Response within {{sev2_response}}, resolution within {{sev2_resolution}}
+*Severity 3 (Medium):* Response within {{sev3_response}}, resolution within {{sev3_resolution}}
+*Severity 4 (Low):* Response within {{sev4_response}}, resolution within {{sev4_resolution}}
 ---
-text: Escalation Procedure
-text: {{escalation_procedure}}
+Escalation Procedure
+{{escalation_procedure}}
 ---
 section: Service Credits
 ---
-text: Credit Schedule
-text: {{credit_schedule}}
+Credit Schedule
+{{credit_schedule}}
 ---
-text: Credit Limitations
-text: {{credit_limitations}}
+Credit Limitations
+{{credit_limitations}}
 ---
 section: Reporting
 ---
-text: Performance Reporting
-text: {{reporting_terms}}
+Performance Reporting
+{{reporting_terms}}
 ---
 section: Review and Amendment
 ---
-text: SLA Review
-text: {{review_terms}}
+SLA Review
+{{review_terms}}
 ---
 section: Signatures
 ---

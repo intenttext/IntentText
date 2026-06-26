@@ -3,59 +3,59 @@ meta: | type: template | domain: business | description: Compliance audit report
 ---
 section: Audit Information
 ---
-text: Audit Details
-text: *Audit ID:* {{audit_id}}
-text: *Audit Title:* {{audit_title}}
-text: *Audit Type:* {{audit_type}}
-text: *Framework:* {{framework}}
-text: *Auditor:* {{auditor_name}}, {{auditor_firm}}
-text: *Audit Period:* {{audit_period}}
-text: *Report Date:* {{report_date}}
+Audit Details
+*Audit ID:* {{audit_id}}
+*Audit Title:* {{audit_title}}
+*Audit Type:* {{audit_type}}
+*Framework:* {{framework}}
+*Auditor:* {{auditor_name}}, {{auditor_firm}}
+*Audit Period:* {{audit_period}}
+*Report Date:* {{report_date}}
 ---
 section: Scope
 ---
-text: Audit Scope
-text: {{audit_scope}}
+Audit Scope
+{{audit_scope}}
 ---
-text: Standards and References
-text: {{standards_references}}
+Standards and References
+{{standards_references}}
 ---
-text: Exclusions
-text: {{exclusions}}
+Exclusions
+{{exclusions}}
 ---
 section: Executive Summary
 ---
-text: Overall Assessment
-text: *Overall Rating:* {{overall_rating}}
-text: *Critical Findings:* {{critical_count}}
-text: *High Findings:* {{high_count}}
-text: *Medium Findings:* {{medium_count}}
-text: *Low Findings:* {{low_count}}
-text: *Observations:* {{observation_count}}
+Overall Assessment
+*Overall Rating:* {{overall_rating}}
+*Critical Findings:* {{critical_count}}
+*High Findings:* {{high_count}}
+*Medium Findings:* {{medium_count}}
+*Low Findings:* {{low_count}}
+*Observations:* {{observation_count}}
 ---
-text: Summary Opinion
-text: {{summary_opinion}}
+Summary Opinion
+{{summary_opinion}}
 ---
 section: Findings
 ---
 info: {{title}} | type: warning
-text: *Finding ID:* {{finding_id}} · *Severity:* {{severity}} · *Category:* {{category}}
-text: *Description:* {{description}}
-text: *Evidence:* {{evidence}}
-text: *Risk:* {{risk}}
-text: *Recommendation:* {{recommendation}}
-text: *Management Response:* {{management_response}}
-text: *Remediation Deadline:* {{remediation_deadline}}
+*Finding ID:* {{finding_id}} · *Severity:* {{severity}} · *Category:* {{category}}
+*Description:* {{description}}
+*Evidence:* {{evidence}}
+*Risk:* {{risk}}
+*Recommendation:* {{recommendation}}
+*Management Response:* {{management_response}}
+*Remediation Deadline:* {{remediation_deadline}}
 ---
 section: Positive Observations
 ---
-text: Areas of Strength
-text: {{positive_observations}}
+Areas of Strength
+{{positive_observations}}
 ---
 section: Recommendations Summary
 ---
-text: Prioritized Actions
-text: {{recommendations_summary}}
+Prioritized Actions
+{{recommendations_summary}}
 ---
 section: Sign-Off
 ---

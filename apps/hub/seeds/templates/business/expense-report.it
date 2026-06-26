@@ -3,44 +3,44 @@ meta: | type: template | domain: business | description: Employee expense claim 
 ---
 section: Report Information
 ---
-text: Expense Report Details
-text: *Report ID:* {{report_id}}
-text: *Employee:* {{employee_name}}
-text: *Employee ID:* {{employee_id}}
-text: *Department:* {{department}}
-text: *Reporting Period:* {{period_start}} — {{period_end}}
-text: *Submission Date:* {{submission_date}}
-text: *Cost Center:* {{cost_center}}
-text: *Purpose:* {{purpose}}
+Expense Report Details
+*Report ID:* {{report_id}}
+*Employee:* {{employee_name}}
+*Employee ID:* {{employee_id}}
+*Department:* {{department}}
+*Reporting Period:* {{period_start}} — {{period_end}}
+*Submission Date:* {{submission_date}}
+*Cost Center:* {{cost_center}}
+*Purpose:* {{purpose}}
 ---
 section: Expense Items
 ---
-text: {{date}} — {{description}}
-text: *Category:* {{category}} · *Vendor:* {{vendor}} · *Amount:* {{amount}} · *Receipt:* {{receipt_status}}
+{{date}} — {{description}}
+*Category:* {{category}} · *Vendor:* {{vendor}} · *Amount:* {{amount}} · *Receipt:* {{receipt_status}}
 ---
 section: Totals
 ---
-text: Expense Summary
-text: *Total Claimed:* {{total_claimed}}
-text: *Company Card Charges:* {{company_card_total}}
-text: *Out-of-Pocket Amount:* {{out_of_pocket_total}}
-text: *Advance Received:* {{advance_received}}
-text: *Net Reimbursement Due:* {{net_reimbursement}}
+Expense Summary
+*Total Claimed:* {{total_claimed}}
+*Company Card Charges:* {{company_card_total}}
+*Out-of-Pocket Amount:* {{out_of_pocket_total}}
+*Advance Received:* {{advance_received}}
+*Net Reimbursement Due:* {{net_reimbursement}}
 ---
-text: Currency and Payment
-text: *Currency:* {{currency}}
-text: *Reimbursement Method:* {{reimbursement_method}}
+Currency and Payment
+*Currency:* {{currency}}
+*Reimbursement Method:* {{reimbursement_method}}
 ---
 section: Receipts
 ---
-text: Receipt Summary
-text: *Total Receipts Attached:* {{receipt_count}}
-text: *Missing Receipts:* {{missing_receipts}}
+Receipt Summary
+*Total Receipts Attached:* {{receipt_count}}
+*Missing Receipts:* {{missing_receipts}}
 ---
 section: Policy Compliance
 ---
-text: Compliance Notes
-text: {{compliance_notes}}
+Compliance Notes
+{{compliance_notes}}
 ---
 sign: {{employee_name}} | role: Employee | at: {{employee_signed_date}} | hash: {{document_hash}}
 ---

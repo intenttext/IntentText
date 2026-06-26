@@ -3,54 +3,54 @@ meta: | type: template | domain: business | description: Employment termination 
 ---
 section: Employee Information
 ---
-text: Employee Details
-text: *Name:* {{employee_name}}
-text: *Employee ID:* {{employee_id}}
-text: *Position:* {{position_title}}
-text: *Department:* {{department}}
-text: *Manager:* {{manager_name}}
-text: *Hire Date:* {{hire_date}}
+Employee Details
+*Name:* {{employee_name}}
+*Employee ID:* {{employee_id}}
+*Position:* {{position_title}}
+*Department:* {{department}}
+*Manager:* {{manager_name}}
+*Hire Date:* {{hire_date}}
 ---
 section: Termination Details
 ---
-text: Notice of Termination
-text: Dear {{employee_name}},
+Notice of Termination
+Dear {{employee_name}},
 
-text: This letter confirms that your employment with {{company_name}} will be terminated effective {{effective_date}}.
+This letter confirms that your employment with {{company_name}} will be terminated effective {{effective_date}}.
 ---
-text: Reason for Termination
-text: *Classification:* {{termination_type}}
-text: *Reason:* {{termination_reason}}
+Reason for Termination
+*Classification:* {{termination_type}}
+*Reason:* {{termination_reason}}
 ---
 section: Final Compensation
 ---
-text: Final Pay Details
-text: *Last Day Worked:* {{last_day_worked}}
-text: *Final Paycheck Date:* {{final_paycheck_date}}
-text: *Outstanding Salary:* {{outstanding_salary}}
-text: *Accrued Vacation Payout:* {{vacation_payout}}
-text: *Severance:* {{severance_details}}
+Final Pay Details
+*Last Day Worked:* {{last_day_worked}}
+*Final Paycheck Date:* {{final_paycheck_date}}
+*Outstanding Salary:* {{outstanding_salary}}
+*Accrued Vacation Payout:* {{vacation_payout}}
+*Severance:* {{severance_details}}
 ---
-text: Benefits Continuation
-text: {{benefits_continuation}}
+Benefits Continuation
+{{benefits_continuation}}
 ---
 section: Return of Company Property
 ---
-text: Items to Return
-text: {{property_to_return}}
+Items to Return
+{{property_to_return}}
 ---
-text: Return Deadline
-text: All company property must be returned by {{property_return_deadline}}.
+Return Deadline
+All company property must be returned by {{property_return_deadline}}.
 ---
 section: Post-Employment Obligations
 ---
-text: Ongoing Obligations
-text: {{post_employment_obligations}}
+Ongoing Obligations
+{{post_employment_obligations}}
 ---
 section: Final Acknowledgments
 ---
-text: Contact Information
-text: For questions regarding benefits continuation, contact {{hr_contact_name}} at {{hr_contact_email}}. For questions regarding final pay, contact {{payroll_contact}}.
+Contact Information
+For questions regarding benefits continuation, contact {{hr_contact_name}} at {{hr_contact_email}}. For questions regarding final pay, contact {{payroll_contact}}.
 ---
 approve: Approved | by: {{hr_approver}} | role: HR Director | at: {{hr_approval_date}}
 ---

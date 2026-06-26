@@ -4,37 +4,37 @@ track: | version: 1.0 | by: Finance
 ---
 section: Invoice Details
 ---
-text: Invoice Information
-text: *Invoice Number:* {{invoice_number}}
-text: *Date:* {{date}}
-text: *Due Date:* {{due_date}}
-text: *Payment Terms:* {{payment_terms}}
+Invoice Information
+*Invoice Number:* {{invoice_number}}
+*Date:* {{date}}
+*Due Date:* {{due_date}}
+*Payment Terms:* {{payment_terms}}
 ---
-text: From
-text: {{company_name}}
-text: {{company_address}}
-text: {{company_email}}
+From
+{{company_name}}
+{{company_address}}
+{{company_email}}
 ---
-text: Bill To
-text: {{client_name}}
-text: {{client_company}}
-text: {{client_address}}
-text: {{client_email}}
+Bill To
+{{client_name}}
+{{client_company}}
+{{client_address}}
+{{client_email}}
 ---
 section: Line Items
 ---
-text: {{description}}
-text: *Quantity:* {{quantity}} · *Unit Price:* {{unit_price}} · *Amount:* {{amount}}
+{{description}}
+*Quantity:* {{quantity}} · *Unit Price:* {{unit_price}} · *Amount:* {{amount}}
 ---
 section: Totals
 ---
-text: Summary
-text: *Subtotal:* {{subtotal}}
-text: *Tax ({{tax_rate}}):* {{tax_amount}}
-text: *Total Due:* {{total}}
+Summary
+*Subtotal:* {{subtotal}}
+*Tax ({{tax_rate}}):* {{tax_amount}}
+*Total Due:* {{total}}
 ---
-text: Payment Instructions
-text: {{payment_instructions}}
+Payment Instructions
+{{payment_instructions}}
 ---
 sign: {{authorized_by}} | role: Finance Manager | at: {{signed_date}} | hash: {{document_hash}}
 ---

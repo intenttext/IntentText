@@ -11,15 +11,15 @@ ref: {{payment_receipt_name}} | url: {{payment_receipt_url}} | rel: payment
 ---
 section: Parties
 ---
-text: Provider
-text: *Name:* {{provider_name}}
-text: *Address:* {{provider_address}}
-text: *Contact:* {{provider_email}}
+Provider
+*Name:* {{provider_name}}
+*Address:* {{provider_address}}
+*Contact:* {{provider_email}}
 ---
-text: Client
-text: *Name:* {{client_name}}
-text: *Address:* {{client_address}}
-text: *Contact:* {{client_email}}
+Client
+*Name:* {{client_name}}
+*Address:* {{client_address}}
+*Contact:* {{client_email}}
 ---
 section: Definitions
 ---

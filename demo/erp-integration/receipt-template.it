@@ -15,4 +15,4 @@ metric: Tax | value: {{totals.tax}}
 metric: Total | value: {{totals.total}}
 metric: Paid | value: {{totals.paid}}
 
-text: Thank you · {{company.name}}
+Thank you · {{company.name}}

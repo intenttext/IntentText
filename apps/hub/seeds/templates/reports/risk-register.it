@@ -5,45 +5,45 @@ track: | version: 0.9 | by: {{register_owner}} | note: Initial risk identificati
 ---
 section: Register Information
 ---
-text: Details
-text: *Project:* {{project_name}}
-text: *Project Code:* {{project_code}}
-text: *Risk Owner:* {{register_owner}}
-text: *Last Reviewed:* {{last_reviewed}}
-text: *Next Review:* {{next_review}}
-text: *Total Open Risks:* {{total_open_risks}}
+Details
+*Project:* {{project_name}}
+*Project Code:* {{project_code}}
+*Risk Owner:* {{register_owner}}
+*Last Reviewed:* {{last_reviewed}}
+*Next Review:* {{next_review}}
+*Total Open Risks:* {{total_open_risks}}
 ---
 section: Risk Summary
 ---
-text: Risk Distribution
-text: *Critical:* {{critical_count}} · *High:* {{high_count}} · *Medium:* {{medium_count}} · *Low:* {{low_count}}
-text: *Risks Mitigated This Period:* {{mitigated_count}}
-text: *New Risks Identified:* {{new_risks_count}}
+Risk Distribution
+*Critical:* {{critical_count}} · *High:* {{high_count}} · *Medium:* {{medium_count}} · *Low:* {{low_count}}
+*Risks Mitigated This Period:* {{mitigated_count}}
+*New Risks Identified:* {{new_risks_count}}
 ---
 section: Risk Register
 ---
 info: {{title}} | type: warning
-text: *Risk ID:* {{risk_id}} · *Category:* {{category}} · *Status:* {{status}}
-text: *Likelihood:* {{likelihood}} · *Impact:* {{impact}} · *Risk Score:* {{risk_score}}
-text: *Description:* {{description}}
-text: *Trigger:* {{trigger}}
-text: *Mitigation Strategy:* {{mitigation}}
-text: *Contingency Plan:* {{contingency}}
-text: *Owner:* {{owner}} · *Review Date:* {{review_date}}
+*Risk ID:* {{risk_id}} · *Category:* {{category}} · *Status:* {{status}}
+*Likelihood:* {{likelihood}} · *Impact:* {{impact}} · *Risk Score:* {{risk_score}}
+*Description:* {{description}}
+*Trigger:* {{trigger}}
+*Mitigation Strategy:* {{mitigation}}
+*Contingency Plan:* {{contingency}}
+*Owner:* {{owner}} · *Review Date:* {{review_date}}
 ---
 section: Risk Matrix
 ---
-text: Scoring Guide
-text: *5 — Critical:* Project failure or major strategic impact
-text: *4 — High:* Significant schedule or budget overrun
-text: *3 — Medium:* Manageable with active intervention
-text: *2 — Low:* Minor impact, unlikely to affect delivery
-text: *1 — Minimal:* Negligible impact
+Scoring Guide
+*5 — Critical:* Project failure or major strategic impact
+*4 — High:* Significant schedule or budget overrun
+*3 — Medium:* Manageable with active intervention
+*2 — Low:* Minor impact, unlikely to affect delivery
+*1 — Minimal:* Negligible impact
 ---
 section: Closed Risks
 ---
-text: Recently Closed
-text: {{closed_risks}}
+Recently Closed
+{{closed_risks}}
 ---
 section: Approval
 ---

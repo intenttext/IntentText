@@ -3,60 +3,60 @@ meta: | type: template | domain: business | description: Business proposal with 
 ---
 section: Cover
 ---
-text: Proposal Information
-text: *Proposal Number:* {{proposal_number}}
-text: *Date:* {{date}}
-text: *Valid Until:* {{valid_until}}
-text: *Prepared For:* {{client_name}}, {{client_company}}
-text: *Prepared By:* {{author_name}}, {{author_company}}
+Proposal Information
+*Proposal Number:* {{proposal_number}}
+*Date:* {{date}}
+*Valid Until:* {{valid_until}}
+*Prepared For:* {{client_name}}, {{client_company}}
+*Prepared By:* {{author_name}}, {{author_company}}
 ---
 section: Executive Summary
 ---
-text: Overview
-text: {{executive_summary}}
+Overview
+{{executive_summary}}
 ---
 section: Problem Statement
 ---
-text: Current Challenges
-text: {{problem_statement}}
+Current Challenges
+{{problem_statement}}
 ---
 section: Proposed Solution
 ---
-text: Solution Overview
-text: {{solution_overview}}
+Solution Overview
+{{solution_overview}}
 ---
-text: Key Benefits
-text: {{key_benefits}}
+Key Benefits
+{{key_benefits}}
 ---
 section: Pricing
 ---
-text: {{item}}
-text: *Description:* {{description}} · *Cost:* {{cost}}
+{{item}}
+*Description:* {{description}} · *Cost:* {{cost}}
 ---
-text: Pricing Summary
-text: *Total Investment:* {{total_cost}}
-text: *Payment Terms:* {{pricing_payment_terms}}
+Pricing Summary
+*Total Investment:* {{total_cost}}
+*Payment Terms:* {{pricing_payment_terms}}
 ---
 section: Timeline
 ---
-text: {{phase}}
-text: *Duration:* {{duration}} · *Deliverables:* {{deliverables}}
+{{phase}}
+*Duration:* {{duration}} · *Deliverables:* {{deliverables}}
 ---
-text: Project Duration
-text: *Estimated Start:* {{start_date}}
-text: *Estimated Completion:* {{end_date}}
+Project Duration
+*Estimated Start:* {{start_date}}
+*Estimated Completion:* {{end_date}}
 ---
 section: Why Us
 ---
-text: Our Qualifications
-text: {{qualifications}}
+Our Qualifications
+{{qualifications}}
 ---
 section: Next Steps
 ---
-text: Call to Action
-text: {{next_steps}}
+Call to Action
+{{next_steps}}
 ---
-text: Contact
-text: {{contact_name}}
-text: {{contact_title}}
-text: {{contact_email}} · {{contact_phone}}
+Contact
+{{contact_name}}
+{{contact_title}}
+{{contact_email}} · {{contact_phone}}

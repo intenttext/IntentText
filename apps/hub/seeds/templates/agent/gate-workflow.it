@@ -4,20 +4,20 @@ track: | version: 1.0 | by: {{author}} | note: Workflow created {{created_date}}
 ---
 section: Workflow Configuration
 ---
-text: Overview
-text: *Workflow ID:* {{workflow_id}}
-text: *Owner:* {{owner}}
-text: *Environment:* {{environment}}
-text: *SLA:* {{sla}}
-text: *Escalation Policy:* {{escalation_policy}}
+Overview
+*Workflow ID:* {{workflow_id}}
+*Owner:* {{owner}}
+*Environment:* {{environment}}
+*SLA:* {{sla}}
+*Escalation Policy:* {{escalation_policy}}
 ---
 section: Stages
 ---
 step: {{stage_name}} | tool: {{tool}} | timeout: {{timeout}}
-text: *Description:* {{description}}
-text: *Input:* {{input}}
-text: *Output:* {{output}}
-text: *On Failure:* {{on_failure}}
+*Description:* {{description}}
+*Input:* {{input}}
+*Output:* {{output}}
+*On Failure:* {{on_failure}}
 gate: {{gate_label}} | approver: {{approver}} | timeout: {{gate_timeout}}
 approve: {{approval_criteria}} | by: {{approver}}
 ---
@@ -28,8 +28,8 @@ approve: {{final_approval_criteria}} | by: {{final_approver}}
 ---
 section: Completion
 ---
-text: Success
-text: *Deliverable:* {{deliverable}}
-text: *Notification:* {{completion_notification}}
+Success
+*Deliverable:* {{deliverable}}
+*Notification:* {{completion_notification}}
 ---
-text: Workflow maintained by {{author}} · {{created_date}}
+Workflow maintained by {{author}} · {{created_date}}

@@ -3,57 +3,57 @@ meta: | type: template | domain: business | description: Job offer letter with r
 ---
 section: Offer Details
 ---
-text: Position Offered
-text: *Company:* {{company_name}}
-text: *Position:* {{position_title}}
-text: *Department:* {{department}}
-text: *Reporting To:* {{reporting_to}}
-text: *Employment Type:* {{employment_type}}
-text: *Start Date:* {{start_date}}
-text: *Work Location:* {{work_location}}
+Position Offered
+*Company:* {{company_name}}
+*Position:* {{position_title}}
+*Department:* {{department}}
+*Reporting To:* {{reporting_to}}
+*Employment Type:* {{employment_type}}
+*Start Date:* {{start_date}}
+*Work Location:* {{work_location}}
 ---
 section: Compensation
 ---
-text: Base Compensation
-text: *Annual Salary:* {{annual_salary}}
-text: *Pay Frequency:* {{pay_frequency}}
-text: *Signing Bonus:* {{signing_bonus}}
+Base Compensation
+*Annual Salary:* {{annual_salary}}
+*Pay Frequency:* {{pay_frequency}}
+*Signing Bonus:* {{signing_bonus}}
 ---
-text: Equity
-text: {{equity_details}}
+Equity
+{{equity_details}}
 ---
-text: Performance Bonus
-text: {{bonus_details}}
+Performance Bonus
+{{bonus_details}}
 ---
 section: Benefits
 ---
-text: Benefits Package
-text: {{benefits_summary}}
+Benefits Package
+{{benefits_summary}}
 ---
-text: Paid Time Off
-text: {{pto_details}}
+Paid Time Off
+{{pto_details}}
 ---
 section: Conditions of Employment
 ---
-text: Contingencies
-text: {{conditions}}
+Contingencies
+{{conditions}}
 ---
-text: At-Will Statement
-text: {{at_will_statement}}
+At-Will Statement
+{{at_will_statement}}
 ---
 section: Confidentiality and Non-Compete
 ---
-text: Agreements Required
-text: {{agreements}}
+Agreements Required
+{{agreements}}
 ---
 section: Acceptance
 ---
-text: Acceptance Instructions
-text: To accept this offer, please sign below and return this letter by {{acceptance_deadline}}. If we do not receive your signed acceptance by this date, this offer will expire.
+Acceptance Instructions
+To accept this offer, please sign below and return this letter by {{acceptance_deadline}}. If we do not receive your signed acceptance by this date, this offer will expire.
 ---
-text: Candidate
-text: *Name:* {{candidate_name}}
-text: *Email:* {{candidate_email}}
+Candidate
+*Name:* {{candidate_name}}
+*Email:* {{candidate_email}}
 ---
 sign: {{hiring_manager}} | role: {{hiring_manager_title}} | on behalf of: {{company_name}} | at: {{offer_date}} | hash: {{document_hash}}
 ---

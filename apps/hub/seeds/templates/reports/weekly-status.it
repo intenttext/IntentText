@@ -5,13 +5,13 @@ track: | version: 0.9 | by: {{author_name}} | note: Previous week status
 ---
 section: Report Overview
 ---
-text: Details
-text: *Project:* {{project_name}}
-text: *Team:* {{team_name}}
-text: *Reported By:* {{author_name}}
-text: *Week Of:* {{report_week}}
-text: *Sprint:* {{sprint_name}}
-text: *Overall Status:* {{overall_status}}
+Details
+*Project:* {{project_name}}
+*Team:* {{team_name}}
+*Reported By:* {{author_name}}
+*Week Of:* {{report_week}}
+*Sprint:* {{sprint_name}}
+*Overall Status:* {{overall_status}}
 ---
 section: Accomplishments
 ---
@@ -27,10 +27,10 @@ task: {{description}} | owner: {{owner}} | target: {{target_date}} | priority: {
 ---
 section: Key Metrics
 ---
-text: Sprint Progress
-text: *Story Points Completed:* {{points_completed}} / {{points_committed}}
-text: *Open Bugs:* {{open_bugs}}
-text: *Code Review Turnaround:* {{review_turnaround}}
-text: *Test Coverage:* {{test_coverage}}
+Sprint Progress
+*Story Points Completed:* {{points_completed}} / {{points_committed}}
+*Open Bugs:* {{open_bugs}}
+*Code Review Turnaround:* {{review_turnaround}}
+*Test Coverage:* {{test_coverage}}
 ---
-text: Prepared by {{author_name}} · {{report_date}}
+Prepared by {{author_name}} · {{report_date}}
