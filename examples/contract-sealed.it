@@ -7,14 +7,14 @@ summary: Fixed-term platform development agreement, sealed and tamper-evident.
 meta: | author: Legal | type: contract
 
 section: Parties
-text: **Dalil Technology LLC**, registered in Doha, Qatar ("Provider")
-text: **Acme Corporation**, registered in Doha, Qatar ("Client")
+**Dalil Technology LLC**, registered in Doha, Qatar ("Provider")
+**Acme Corporation**, registered in Doha, Qatar ("Client")
 
 section: 1. Scope
-text: The Provider shall design, build, and maintain the Client document platform as described in Schedule A.
+The Provider shall design, build, and maintain the Client document platform as described in Schedule A.
 
 section: 2. Term
-text: This agreement runs from 2026-07-01 to 2027-06-30 unless terminated under Section 4.
+This agreement runs from 2026-07-01 to 2027-06-30 unless terminated under Section 4.
 
 section: 3. Fees
 text: Monthly fee | end: 12,000 QAR
@@ -22,10 +22,10 @@ text: Payment terms | end: Net 14 days
 deadline: First invoice due | date: 2026-07-15
 
 section: 4. Termination
-text: Either party may terminate with 30 days written notice.
+Either party may terminate with 30 days written notice.
 
 section: Approvals
 approve: Legal review complete | by: Sara Hassan | role: Legal Counsel | at: 2026-06-10
 approve: Commercial terms approved | by: Fahad Al-Thani | role: Managing Director | at: 2026-06-11
-sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-12T19:28:41.022Z | hash: sha256:f0c9fdb466c91409d285b540a6ed207313b2d6989526e68876037262f5721b08
-freeze: | at: 2026-06-12T19:28:41.022Z | hash: sha256:f0c9fdb466c91409d285b540a6ed207313b2d6989526e68876037262f5721b08 | status: locked
+sign: Fahad Al-Thani | role: Managing Director | at: 2026-06-26T03:08:28.523Z | hash: sha256:6d471a3fa15f4785aa38cb1e4f6e56ba3eca1c46c7bb89d0b63947facd0d3032 | spec: 4
+freeze: | at: 2026-06-26T03:08:28.523Z | hash: sha256:b39a7e2bb3ee350e121871d278f681e9af68faec6760323ba913cac6108faf9b | spec: 4 | appearance: sha256:a7442d75a91c20fb557fe4d7973d3a327b1b1032b0434187b1c52f99ee34cc90 | status: locked
