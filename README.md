@@ -37,17 +37,15 @@
 
 ## What is IntentText?
 
-The most important documents in your business are also the most useless to your software. A
-contract worth millions is a Word file — a bag of fonts. The invoice your system just issued is a
-PDF — a photo of a table. The information is right there for a person and invisible to code, so you
-stand up a *second* system to hold the "real" data, the two copies drift, and someone's whole job
-becomes keeping them in sync. We decided that was insane.
+A signed contract and the database row that tracks it describe the same agreement — yet they're
+two separate things someone has to keep in sync. Same with an invoice PDF and its ERP record, a
+report and its dashboard. **IntentText collapses each pair into a single file:** readable like a
+document, queryable like a database, with no second copy to drift.
 
-**IntentText ends that split.** A `.it` file is one plain-text file a person reads like a memo and
-software reads like a database — the *same* file, no second copy. Every line declares what it is:
-a `task:` is a task, a `deadline:` is a deadline, an `invoice:` line is an invoice line. You write
-it as easily as jotting a note; code queries it, validates it, merges it into a branded PDF, and
-**seals it with a hash anyone can verify offline, forever.**
+The trick is that **every line declares what it is** — a `task:` is a task, a `deadline:` is a
+deadline, an `invoice:` line is an invoice line. You write it as easily as jotting a note; code
+queries it, validates it, merges it into a branded PDF, and **seals it with a hash anyone can
+verify offline, forever.**
 
 ```intenttext
 title: Service Agreement — Acme Gulf Trading
