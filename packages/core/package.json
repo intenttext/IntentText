@@ -53,8 +53,8 @@
   },
   "dependencies": {
     "fflate": "^0.8.2",
-    "node-html-parser": "7.1.0",
-    "@types/node": "^20.0.0"
+    "node-html-parser": "8.0.3",
+    "@types/node": "^26.0.1"
   },
   "engines": {
     "node": ">=18"
