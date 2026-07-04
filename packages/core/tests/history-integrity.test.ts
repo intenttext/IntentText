@@ -4,6 +4,8 @@ import {
   verifyDocument,
   verifyTrust,
   computeHistoryHash,
+  parseIntentText,
+  renderPrint,
 } from "../src/index";
 
 // A sealed contract's revision log lives BELOW the `history:` boundary, which the
@@ -107,5 +109,19 @@ describe("history integrity — committed digest", () => {
   it("computeHistoryHash is stable for empty vs present history", () => {
     expect(computeHistoryHash("title: X\nBody.")).toBe(computeHistoryHash("title: Y\nOther."));
     expect(computeHistoryHash(withHistory)).not.toBe(computeHistoryHash("title: X\nBody."));
+  });
+
+  // The print/HTML renderer verifies the trust stamp against a source. It receives a
+  // parsed document and, without help, re-serializes it (dropping the history section,
+  // since it parses without includeHistorySection) — which would paint a FALSE "SEAL
+  // BROKEN" now that history is checked. RenderOptions.source fixes it.
+  it("renderPrint stamp uses options.source (history-bearing sealed doc → SEALED, not broken)", () => {
+    const src = seal(withHistory);
+    const doc = parseIntentText(src); // parsed WITHOUT history
+    const withSrc = renderPrint(doc, { source: src });
+    expect(withSrc).toContain("SEALED");
+    expect(withSrc).not.toContain("SEAL BROKEN");
+    // Without the source hint, the re-serialization drops history → false broken.
+    expect(renderPrint(doc)).toContain("SEAL BROKEN");
   });
 });

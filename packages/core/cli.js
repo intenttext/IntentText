@@ -728,7 +728,7 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
         );
         process.exit(1);
       }
-      const printHtml = renderPrint(document, renderOpts);
+      const printHtml = renderPrint(document, { ...(renderOpts || {}), source: content });
       (async () => {
         const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
@@ -743,7 +743,7 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
 
     // Print mode
     if (printMode) {
-      const printHtml = renderPrint(document, renderOpts);
+      const printHtml = renderPrint(document, { ...(renderOpts || {}), source: content });
       if (saveFile) {
         const outputFile = inputFile.replace(/\.it$/i, "-print.html");
         fs.writeFileSync(outputFile, printHtml);
@@ -756,7 +756,7 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
 
     // HTML output
     if (outputHtml || saveFile) {
-      const html = renderHTML(document, renderOpts);
+      const html = renderHTML(document, { ...(renderOpts || {}), source: content });
       if (saveFile) {
         const outputFile = inputFile.replace(/\.it$/i, ".html");
         fs.writeFileSync(outputFile, html);

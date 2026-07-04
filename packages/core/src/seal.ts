@@ -189,10 +189,22 @@ function itMark(cx: number, cy: number, h: number, fill: string): string {
   return `<g transform="translate(${r2(cx - 499 * k)},${r2(cy + 350 * k)}) scale(${k.toFixed(4)})"><path d="${IT_PATH}" fill="${fill}"/></g>`;
 }
 
+/** Short deterministic id derived from ALL distinguishing seal inputs (FNV-1a).
+ *  Two DIFFERENT seals get disjoint <defs> ids (no collision on a shared page);
+ *  two identical seals get the same id but reference identical defs (harmless). */
+function sealUid(s: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(36);
+}
+
 // ─── The seal ────────────────────────────────────────────────────────────────
 
 export interface SealRenderOptions {
-  /** The content hash (with or without `sha256:` prefix). Drives the crown. */
+  /** The content hash (with or without `sha256:` prefix). Drives the guilloché. */
   hash: string;
   /** Trust tier → colour. Default "draft". */
   tier?: TrustTier;
@@ -200,8 +212,14 @@ export interface SealRenderOptions {
   label?: string;
   /** Pixel width/height. Default 100. */
   size?: number;
-  /** Render the arc text (label + short hash). Default true. */
+  /** Render the fingerprint + arc text. Default true. */
   text?: boolean;
+  /** Signer name — curved along the bottom of the ring (the notary stamp look). */
+  signer?: string;
+  /** Signer role — shown small under the fingerprint. */
+  role?: string;
+  /** Human date (e.g. "12 Jun 2026") — curved along the bottom with the signer. */
+  date?: string;
 }
 
 /**
@@ -222,59 +240,94 @@ export function renderSeal(opts: SealRenderOptions): string {
     .replace(/[^0-9a-fA-F]/g, "");
   const shortHash = (cleanHex.slice(0, 8) || "00000000").toUpperCase();
 
-  // A flat, rounded-square card (the reference aesthetic) — subtle, not a stamp.
+  // A circular notary-style STAMP: a double ring, arc text (label over the top,
+  // signer/date under the bottom), a hash-derived guilloché rosette inside, and the
+  // ".it" mark + short-hash fingerprint at the centre. Deterministic in `hash`.
   const dashed = tier === "template";
-  const card =
-    `<rect x="2.5" y="2.5" width="95" height="95" rx="14" fill="#ffffff" ` +
-    `stroke="${color}" stroke-width="1"${dashed ? ' stroke-dasharray="2 3"' : ""} opacity="0.85"/>`;
-  // Faint ".it" mark, bottom-right corner.
-  const mark = `<g opacity="0.5">${itMark(84, 87, 9, color)}</g>`;
-  // Tiny hash caption (the fingerprint, in words), bottom-left.
-  const cap = showText
-    ? `<text x="9.5" y="90.5" font-family="ui-monospace,Menlo,monospace" font-size="5" letter-spacing="0.6" fill="${color}" opacity="0.55">${shortHash}</text>`
-    : "";
+  const uid = sealUid(
+    [opts.hash, tier, size, label, opts.signer, opts.role, opts.date].join("|"),
+  );
+  const innerR = 31.5;
+  const ringDash = dashed ? ' stroke-dasharray="2.4 2.6"' : "";
+  const rings =
+    `<circle cx="50" cy="50" r="48" fill="#ffffff" stroke="${color}" stroke-width="1.7"${ringDash}/>` +
+    `<circle cx="50" cy="50" r="44.2" fill="none" stroke="${color}" stroke-width="0.7" opacity="0.85"/>`;
 
-  // Template — a blueprint has no meaningful content hash, so no generative
-  // pattern: just the empty dashed card + the faint mark.
+  // Template — a blueprint has no content hash: empty dashed rings + a centred mark.
   if (tier === "template") {
     return (
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${esc(label)} — not part of the trust workflow">` +
-      card +
-      mark +
+      rings +
+      itMark(50, 55, 26, color) +
       `</svg>`
     );
   }
 
-  // Hash-based LINEAR WAVE field: flowing horizontal lines whose amplitude,
-  // frequency and phase are read straight from the SHA-256 — same document →
-  // byte-identical seal, any change → a visibly different wave. Flat + subtle +
-  // unique (no crown, no kitsch).
-  const LINES = 9;
-  const x0 = 13;
-  const x1 = 87;
-  const yTop = 23;
-  const yBot = 73;
-  let waves = "";
-  for (let li = 0; li < LINES; li++) {
-    const baseY = yTop + (li / (LINES - 1)) * (yBot - yTop);
-    const amp = 2 + (b(li * 3) % 55) / 11; // ~2..7
-    const freq = 1.4 + (b(li * 3 + 1) % 100) / 40; // wave count across the width
-    const phase = (b(li * 3 + 2) / 255) * Math.PI * 2;
-    const op = (0.3 + (b(li * 3 + 1) % 45) / 100).toFixed(2); // 0.30..0.74
+  const innerDisc = `<circle cx="50" cy="50" r="${innerR}" fill="${color}" fill-opacity="0.045" stroke="${color}" stroke-width="0.6" opacity="0.85"/>`;
+
+  // Guilloché ROSETTE: concentric hash-perturbed rings, clipped to the inner disc.
+  // Amplitude / lobe-count / phase read straight from the SHA-256, so the same
+  // document yields a byte-identical rosette and any change visibly distorts it.
+  const ROSE = 6;
+  let rose = "";
+  for (let ri = 0; ri < ROSE; ri++) {
+    const baseR = 5.5 + (ri / (ROSE - 1)) * (innerR - 8);
+    const lobes = 5 + (b(ri * 4) % 9);
+    const amp = 0.7 + (b(ri * 4 + 1) % 28) / 16;
+    const phase = (b(ri * 4 + 2) / 255) * Math.PI * 2;
+    const op = (0.26 + (b(ri * 4 + 3) % 26) / 120).toFixed(2);
     const pts: string[] = [];
-    for (let x = x0; x <= x1; x += 2) {
-      const t = ((x - x0) / (x1 - x0)) * Math.PI * 2 * freq + phase;
-      pts.push(`${r2(x)},${r2(baseY + amp * Math.sin(t))}`);
+    for (let a = 0; a <= 360; a += 5) {
+      const rad = (a * Math.PI) / 180;
+      const rr = baseR + amp * Math.sin(lobes * rad + phase);
+      pts.push(`${r2(50 + rr * Math.cos(rad))},${r2(50 + rr * Math.sin(rad))}`);
     }
-    waves += `<polyline points="${pts.join(" ")}" fill="none" stroke="${color}" stroke-width="0.9" stroke-linecap="round" opacity="${op}"/>`;
+    rose += `<polyline points="${pts.join(" ")}" fill="none" stroke="${color}" stroke-width="0.45" opacity="${op}"/>`;
   }
+  const defs =
+    `<defs>` +
+    `<clipPath id="itc-${uid}"><circle cx="50" cy="50" r="${innerR - 0.6}"/></clipPath>` +
+    `<path id="itt-${uid}" d="M 17 50 A 33 33 0 0 1 83 50" fill="none"/>` +
+    `<path id="itb-${uid}" d="M 17.5 50 A 32.5 32.5 0 0 0 82.5 50" fill="none"/>` +
+    `</defs>`;
+  const guilloche = `<g clip-path="url(#itc-${uid})">${rose}</g>`;
+
+  // Centre: the ".it" mark, the short-hash fingerprint, and the role.
+  const mark = itMark(50, 40.5, 15, color);
+  const fp = showText
+    ? `<text x="50" y="58" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="6.2" font-weight="600" letter-spacing="1.3" fill="${color}">${shortHash}</text>`
+    : "";
+  const roleTxt =
+    showText && opts.role
+      ? `<text x="50" y="65" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="3.7" letter-spacing="0.4" fill="${color}" opacity="0.72">${esc(opts.role.toUpperCase())}</text>`
+      : "";
+
+  // Arc text: label over the top; signer + date under the bottom.
+  const topArc = showText
+    ? `<text font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-weight="700" font-size="7.2" letter-spacing="1.5" fill="${color}"><textPath href="#itt-${uid}" startOffset="50%" text-anchor="middle">${esc(label)}</textPath></text>`
+    : "";
+  const bottomLine = [opts.signer, opts.date].filter(Boolean).join("  ·  ");
+  const botArc =
+    showText && bottomLine
+      ? `<text font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-weight="600" font-size="4.5" letter-spacing="0.5" fill="${color}"><textPath href="#itb-${uid}" startOffset="50%" text-anchor="middle">${esc(bottomLine.toUpperCase())}</textPath></text>`
+      : "";
+  // Diamond separators at 3 & 9 o'clock, where the two arcs meet.
+  const diamond = (cx: number) =>
+    `<path d="M ${cx} 47.6 L ${r2(cx + 1.5)} 50 L ${cx} 52.4 L ${r2(cx - 1.5)} 50 Z" fill="${color}"/>`;
+  const seps = showText ? diamond(13) + diamond(87) : "";
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${esc(label)} trust seal ${shortHash}">` +
-    card +
-    waves +
+    defs +
+    rings +
+    innerDisc +
+    guilloche +
     mark +
-    cap +
+    fp +
+    roleTxt +
+    topArc +
+    botArc +
+    seps +
     `</svg>`
   );
 }
@@ -310,6 +363,12 @@ export function sealForDocument(
     size?: number;
     text?: boolean;
     tier?: TrustTier;
+    /** Arc-label override (e.g. "SEAL BROKEN"); default derived from the tier. */
+    label?: string;
+    /** Signer / role / date to inscribe on the stamp (the bottom arc + role line). */
+    signer?: string;
+    role?: string;
+    date?: string;
     /** Pass the result of a crypto certification check (@dotit/sign) so a verified
      *  certify: line can show the certified/root-certified tier; omitted ⇒ a present
      *  certify: line is treated as an unverified CLAIM (never gold by presence). */
@@ -324,9 +383,12 @@ export function sealForDocument(
   const svg = renderSeal({
     hash,
     tier,
-    label: opts?.tier ? undefined : state.label,
+    label: opts?.label ?? (opts?.tier ? undefined : state.label),
     size: opts?.size,
     text: opts?.text,
+    signer: opts?.signer,
+    role: opts?.role,
+    date: opts?.date,
   });
   return { svg, tier, label: state.label, hash };
 }
@@ -360,14 +422,20 @@ export function renderTrustBand(source: string): string {
   // (printing a valid-looking seal on a modified document would be a forgery).
   const broken = isTrustBroken(source, sigs, freeze);
 
+  const primary = sigs[0] as { signer?: string; role?: string } | undefined;
+  const dateStr = freeze?.at ? bandDate(freeze.at) : "";
+
   if (broken) {
-    const { svg } = sealForDocument(source, {
-      size: 96,
-      text: false,
-      tier: "broken",
-    });
     const what = freeze ? "SEAL BROKEN" : "SIGNATURE BROKEN";
-    const cap = [what, "Modified after sealing", "Not the certified document"]
+    const { svg } = sealForDocument(source, {
+      size: 118,
+      text: true,
+      tier: "broken",
+      label: what,
+      signer: primary?.signer,
+      date: dateStr,
+    });
+    const cap = ["Modified after sealing", "Not the certified document"]
       .map(
         (p, i) =>
           `<span class="it-trust-band__line${i === 0 ? " it-trust-band__line--alert" : ""}">${esc(p)}</span>`,
@@ -382,30 +450,37 @@ export function renderTrustBand(source: string): string {
   }
 
   const state = detectTrustState(source);
+  // The stamp itself carries the label, primary signer, date, and fingerprint.
   const { svg } = sealForDocument(source, {
-    size: 96,
-    text: false,
+    size: 118,
+    text: true,
     tier: state.tier,
+    signer: primary?.signer,
+    role: primary?.role,
+    date: dateStr,
   });
-  const who = sigs
-    .map((s) => (s.role ? `${s.signer} (${s.role})` : s.signer))
-    .join(", ");
+  // Caption = only what the stamp doesn't already show: co-signers (if any) and
+  // the longer hash for manual verification.
   const parts: string[] = [];
-  if (who) parts.push(`Signed ${who}`);
-  if (freeze) parts.push(`Sealed${freeze.at ? ` ${bandDate(freeze.at)}` : ""}`);
+  if (sigs.length > 1) {
+    const who = sigs
+      .map((s) => (s.role ? `${s.signer} (${s.role})` : s.signer))
+      .join(", ");
+    parts.push(`Signed by ${who}`);
+  }
   const hash = String(freeze?.hash || sigs[0]?.hash || "")
     .replace(/^sha256:/, "")
-    .slice(0, 10);
-  if (hash) parts.push(hash);
-  // Each caption part on its own centered line — the band stacks the stamp above
-  // the small gray caption, vertically centered with spacing (TRUST_BAND_CSS).
-  const cap = parts
-    .map((p) => `<span class="it-trust-band__line">${esc(p)}</span>`)
-    .join("");
+    .slice(0, 16);
+  if (hash) parts.push(`sha256 ${hash}…`);
+  const cap = parts.length
+    ? `<span class="it-trust-band__cap">${parts
+        .map((p) => `<span class="it-trust-band__line">${esc(p)}</span>`)
+        .join("")}</span>`
+    : "";
   return (
     `<div class="it-trust-band">` +
     `<span class="it-trust-band__seal">${svg}</span>` +
-    `<span class="it-trust-band__cap">${cap}</span>` +
+    cap +
     `</div>`
   );
 }
@@ -452,7 +527,7 @@ export const TRUST_BAND_CSS =
   // is small, gray, and faded so it certifies without competing with content.
   `.it-trust-band{display:inline-flex;flex-direction:column;align-items:center;gap:6px;` +
   `padding:8px 12px;pointer-events:none;text-align:center;}` +
-  `.it-trust-band__seal{display:inline-flex;width:54px;height:54px;flex:0 0 auto;}` +
+  `.it-trust-band__seal{display:inline-flex;width:118px;height:118px;flex:0 0 auto;}` +
   `.it-trust-band__seal svg{width:100%;height:100%;display:block;}` +
   `.it-trust-band__cap{display:flex;flex-direction:column;align-items:center;gap:2px;` +
   `font:7.5pt/1.25 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;` +

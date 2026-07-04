@@ -126,7 +126,7 @@ describe("trust visuals + per-paragraph direction (1.2.1)", () => {
     }).source;
     const signed = renderHTML(parseIntentText(src));
     expect(signed).toContain("it-trust-band"); // the band is present
-    expect(signed).toContain("Signed Ahmed (CEO)"); // who, in the band caption
+    expect(signed).toContain("AHMED"); // signer inscribed on the certification stamp
     // Check the rendered BODY past the stylesheet — the <style> defines the legacy
     // signature class and the .it-trust-band--broken selector, so a whole-string
     // match would be a false positive.

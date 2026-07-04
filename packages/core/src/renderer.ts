@@ -29,6 +29,14 @@ export interface RenderOptions {
    * styling cannot exist, so it can never hide or distort the signed content.
    */
   bare?: boolean;
+  /**
+   * The ORIGINAL document source, used to verify the trust band/stamp. The renderer
+   * only has a parsed document, and re-serializing it (documentToSource) can drop the
+   * `history:` section (parsed without includeHistorySection) — which would make the
+   * committed-history check fail and paint a false "SEAL BROKEN". Pass the exact bytes
+   * you parsed so the stamp verifies against reality. Falls back to documentToSource.
+   */
+  source?: string;
 }
 
 /**
@@ -1872,7 +1880,7 @@ export function renderHTML(
   let bandHtml = "";
   let bandCSS = "";
   if (wantBand) {
-    bandHtml = renderTrustBand(documentToSource(document));
+    bandHtml = renderTrustBand(options?.source ?? documentToSource(document));
     if (bandHtml) {
       bandCSS =
         `.intent-document{position:relative;}` +
@@ -2074,7 +2082,7 @@ export function renderPrint(
     // The unified trust band, pinned in the bottom-RIGHT corner so it repeats on
     // EVERY printed page and never takes content space (position:fixed). Shared
     // visual style with every other surface — single source of truth in core.
-    sealHtml = renderTrustBand(documentToSource(doc));
+    sealHtml = renderTrustBand(options?.source ?? documentToSource(doc));
     if (sealHtml) {
       sealCSS = TRUST_BAND_CSS + trustBandPositionCss("fixed");
     }

@@ -40,8 +40,8 @@ describe("renderSeal", () => {
     expect(svg.trim().endsWith("</svg>")).toBe(true);
     expect(svg).toContain('width="120"');
     expect(svg).toContain("<path"); // the ".it" mark
-    expect(svg).toContain("<rect"); // the rounded-square card
-    expect(svg).toContain("<polyline"); // the hash-derived wave field
+    expect(svg).toContain("<circle"); // the notary rings
+    expect(svg).toContain("<polyline"); // the hash-derived guilloché rosette
     // balanced tags (no stray < that breaks XML)
     const open = (svg.match(/</g) || []).length;
     const close = (svg.match(/>/g) || []).length;
@@ -55,12 +55,26 @@ describe("renderSeal", () => {
     );
   });
 
-  it("the seal is collision-free on one page (no shared defs ids)", () => {
-    // The flat wave design uses no <defs>/id refs, so any number of seals can
-    // coexist on a page without id collisions.
-    const svg = renderSeal({ hash: H1, tier: "certified" });
-    expect(svg).not.toContain("<defs");
-    expect(svg).not.toMatch(/\sid="/);
+  it("the seal is collision-free on one page (different seals share no defs ids)", () => {
+    // The notary stamp uses <defs> ids (arc textPath + clip). They are derived from
+    // ALL distinguishing inputs, so two DIFFERENT seals on one page never collide.
+    const a = renderSeal({
+      hash: H1,
+      tier: "certified",
+      signer: "Alice",
+      date: "1 Jan 2026",
+    });
+    const b = renderSeal({
+      hash: "sha256:" + "b".repeat(64),
+      tier: "sealed",
+      signer: "Bob",
+      date: "2 Jan 2026",
+    });
+    const idsOf = (s: string) => (s.match(/\sid="([^"]+)"/g) || []).sort();
+    const idsA = idsOf(a);
+    const idsB = idsOf(b);
+    expect(idsA.length).toBeGreaterThan(0); // it DOES use defs ids now
+    expect(idsA.some((id) => idsB.includes(id))).toBe(false); // but disjoint
   });
 
   it("omits the hash caption when text is off", () => {
@@ -85,8 +99,8 @@ describe("renderTrustBand", () => {
     const band = renderTrustBand(sealed);
     expect(band).toContain("it-trust-band");
     expect(band).toContain("it-trust-band__seal");
-    expect(band).toContain("Signed Emad (CEO)");
-    expect(band).toContain("Sealed");
+    expect(band).toContain("EMAD"); // signer inscribed on the stamp (uppercased arc)
+    expect(band).toContain("SEALED"); // the seal label on the stamp
     expect(band).toContain("<svg"); // the hash seal
     expect(band).not.toContain("--broken"); // intact → not broken
   });
