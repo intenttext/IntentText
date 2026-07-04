@@ -19,6 +19,7 @@ const {
   PREDEFINED_SCHEMAS,
   sealDocument,
   verifyDocument,
+  verifyTrust,
   computeDocumentHash,
   listBuiltinThemes,
   getBuiltinTheme,
@@ -420,52 +421,60 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
     }
 
     if (trustCommand === "verify") {
-      const result = verifyDocument(source);
+      const result = verifyTrust(source);
+      const seal = result.seal;
 
-      if (!result.frozen) {
+      if (!seal.frozen) {
         console.log("⚠️  Document is not sealed. No freeze: block found.");
         return;
       }
 
-      if (result.intact) {
-        console.log("✅  Document intact");
-        console.log(`    Sealed:   ${result.frozenAt}`);
-        if (result.signers && result.signers.length > 0) {
-          console.log(
-            "    Signers:  " +
-              result.signers
-                .map(
-                  (s) =>
-                    `${s.signer}${s.role ? ` (${s.role})` : ""} ${s.valid ? "✅" : "❌"}`,
-                )
-                .join("\n              "),
-          );
+      const signerLine = (s) =>
+        `${s.signer}${s.role ? ` (${s.role})` : ""} ${s.valid ? "✅" : "❌ signature invalid"}`;
+
+      if (result.ok) {
+        console.log("✅  Document intact — seal, history, and approval chain all verify");
+        console.log(`    Sealed:   ${seal.frozenAt}`);
+        if (seal.signers && seal.signers.length > 0) {
+          console.log("    Signers:  " + seal.signers.map(signerLine).join("\n              "));
         }
-        console.log(`    Hash:     ${result.hash} ✅ matches`);
-        // v2.11: Report amendment count
+        console.log(`    Seal:     ${seal.hash} ✅ matches`);
+        if (seal.historyIntact === true) {
+          console.log("    History:  ✅ audit log unchanged (committed digest matches)");
+        }
+        if (result.auditChain.chained > 0) {
+          console.log(`    Chain:    ✅ ${result.auditChain.chained} chained approval(s) verify in order`);
+        }
+        if (result.form) {
+          console.log(`    Form:     ${result.form.intact ? "✅ two-party structure seal intact" : "❌ structure changed"}`);
+        }
+        if (seal.appearanceChanged) {
+          console.log("    ⚠  Appearance changed since sealing — content intact, verify nothing is visually hidden.");
+        }
         const doc = parseIntentText(source);
-        const allBlocks = doc.blocks.flatMap(function walk(b) {
-          return [b, ...(b.children || []).flatMap(walk)];
-        });
-        const amendments = allBlocks.filter((b) => b.type === "amendment");
-        if (amendments.length > 0) {
-          console.log(`    Amendments: ${amendments.length}`);
-        }
+        const amendments = doc.blocks
+          .flatMap(function walk(b) { return [b, ...(b.children || []).flatMap(walk)]; })
+          .filter((b) => b.type === "amendment");
+        if (amendments.length > 0) console.log(`    Amendments: ${amendments.length}`);
       } else {
-        console.log("❌  Document has been modified since sealing");
-        console.log(`    Sealed:   ${result.frozenAt}`);
-        console.log(`    Expected: ${result.expectedHash}`);
-        console.log(`    Current:  ${result.hash}`);
-        if (result.signers && result.signers.length > 0) {
-          console.log(
-            "    Signers:  " +
-              result.signers
-                .map(
-                  (s) =>
-                    `${s.signer}${s.role ? ` (${s.role})` : ""} ${s.valid ? "✅" : "❌ signature invalid"}`,
-                )
-                .join("\n              "),
-          );
+        console.log("❌  Verification FAILED — this document is NOT trustworthy");
+        console.log(`    Sealed:   ${seal.frozenAt}`);
+        if (!seal.intact && seal.historyIntact !== false) {
+          console.log(`    Seal:     ❌ body or signature modified since sealing`);
+          console.log(`    Expected: ${seal.expectedHash}`);
+          console.log(`    Current:  ${seal.hash}`);
+        }
+        if (seal.historyIntact === false) {
+          console.log(`    History:  ❌ the audit/history log was modified since sealing`);
+        }
+        if (!result.auditChain.valid) {
+          console.log(`    Chain:    ❌ approval chain broken — ${result.auditChain.reason || "link mismatch"}`);
+        }
+        if (result.form && !result.form.intact) {
+          console.log(`    Form:     ❌ two-party structure seal broken`);
+        }
+        if (seal.signers && seal.signers.length > 0) {
+          console.log("    Signers:  " + seal.signers.map(signerLine).join("\n              "));
         }
         process.exit(1);
       }

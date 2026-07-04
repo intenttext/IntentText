@@ -641,6 +641,34 @@ export function signDocument(
   return { success: true, source: lines.join("\n") + "\n", at };
 }
 
+/**
+ * SHA-256 over the canonical HISTORY section (everything from the `history:`
+ * boundary down). The body/seal hash deliberately EXCLUDES this section, so a
+ * sealed `freeze:` line commits this digest to make the audit log tamper-evident:
+ * any edit / insert / delete / reorder / truncate of a revision, or a fake
+ * `history:` block injected below the boundary, changes it. Comments (`//`) and
+ * EOL / trailing-whitespace are normalized away (machine-managed reformatting
+ * stays safe); NFC-normalized last. A document with no history section hashes to
+ * a stable constant (the digest of the empty string), so ADDING history after a
+ * seal is detected too. Versioned to mirror the seal spec.
+ */
+export function computeHistoryHash(
+  source: string,
+  spec: number = SEAL_SPEC,
+): string {
+  const boundary = findHistoryBoundaryInSource(source);
+  const raw = boundary === -1 ? "" : source.slice(boundary);
+  const norm = raw
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((l) => l.replace(/[ \t]+$/, ""))
+    .filter((l) => !l.trim().startsWith("//"))
+    .join("\n")
+    .trim();
+  const canon = (CANONICALIZERS[spec] ?? CANONICALIZERS[SEAL_SPEC])(norm);
+  return "sha256:" + sha256Hex(canon);
+}
+
 export function sealDocument(source: string, options: SealOptions): SealResult {
   // Templates are outside the trust workflow — refuse before doing anything.
   assertNotTemplate(source, "sealed");
@@ -690,11 +718,17 @@ export function sealDocument(source: string, options: SealOptions): SealResult {
   // It is itself protected: the freeze line is in the seal-scope hash (only its own
   // `hash:` is blanked), so editing the recorded appearance value breaks the seal.
   const appearanceHash = computeAppearanceHash(source, SEAL_SPEC);
-  const freezePlaceholder = `freeze: | at: ${at} | hash:  | spec: ${SEAL_SPEC} | appearance: ${appearanceHash} | status: locked\n`;
+  // History digest — commits the audit log (which the body hash excludes) into the
+  // seal. Computed over the pre-seal `after` (the history section); stable across
+  // the seal append since freeze/sign are inserted BEFORE the boundary. Placed on
+  // the freeze line (seal scope), so editing history OR this recorded value breaks
+  // the seal.
+  const historyHash = computeHistoryHash(source, SEAL_SPEC);
+  const freezePlaceholder = `freeze: | at: ${at} | hash:  | spec: ${SEAL_SPEC} | appearance: ${appearanceHash} | history: ${historyHash} | status: locked\n`;
   const sealInput =
     before + (needsNewline ? "\n" : "") + signLine + freezePlaceholder + after;
   const sealHash = computeDocumentHash(sealInput, SEAL_SPEC, "seal");
-  const freezeLine = `freeze: | at: ${at} | hash: ${sealHash} | spec: ${SEAL_SPEC} | appearance: ${appearanceHash} | status: locked\n`;
+  const freezeLine = `freeze: | at: ${at} | hash: ${sealHash} | spec: ${SEAL_SPEC} | appearance: ${appearanceHash} | history: ${historyHash} | status: locked\n`;
 
   const updated =
     before + (needsNewline ? "\n" : "") + signLine + freezeLine + after;
@@ -703,7 +737,12 @@ export function sealDocument(source: string, options: SealOptions): SealResult {
 }
 
 export interface VerifyResult {
+  /** Overall integrity: the seal holds AND (for v4+ seals that committed one) the
+   *  audit/history log still matches. Old seals fall back to seal integrity alone. */
   intact: boolean;
+  /** The committed audit/history log is unchanged. true/false only when the seal
+   *  recorded a history digest (v4+); undefined for older seals (unverifiable). */
+  historyIntact?: boolean;
   frozen: boolean;
   frozenAt?: string;
   signers?: Array<{
@@ -762,7 +801,7 @@ export function verifyDocument(source: string): VerifyResult {
   // it. A pre-versioning seal (no spec:) falls back to trying all known versions;
   // for v0/v1 the seal scope collapses to the content scope, so historical seals
   // verify exactly as before.
-  const intact = hashMatches(source, expectedHash, freezeSpec, "seal");
+  const sealIntact = hashMatches(source, expectedHash, freezeSpec, "seal");
   const signers =
     doc.metadata.signatures?.map((sig) => {
       // A signer "approved the current version" if its signature still matches —
@@ -778,7 +817,7 @@ export function verifyDocument(source: string): VerifyResult {
         // For v0/v1 both share one scope, so the direct freeze-hash compare holds.
         valid:
           sig.spec != null && sig.spec >= 2
-            ? signedCurrentVersion && intact
+            ? signedCurrentVersion && sealIntact
             : sig.hash === expectedHash,
         signedCurrentVersion,
       };
@@ -788,7 +827,7 @@ export function verifyDocument(source: string): VerifyResult {
   // importantly, spec ≤ 1 hashes content only, so signatures aren't covered and a
   // signer could be altered without breaking the seal. Flag it (and advise re-seal)
   // so an outdated seal never reads as fully trusted.
-  const specOutdated = intact && freezeSpec != null && freezeSpec < SEAL_SPEC;
+  const specOutdated = sealIntact && freezeSpec != null && freezeSpec < SEAL_SPEC;
 
   // v4+ seals record an appearance (full-fidelity) hash. If the content is intact but
   // the styling no longer matches what was sealed, the document was RESTYLED after
@@ -803,14 +842,30 @@ export function verifyDocument(source: string): VerifyResult {
         expectedAppearance
       : undefined;
 
+  // v4+ seals commit a digest of the audit/history section (which the body hash
+  // excludes). If it no longer matches, the revision log was tampered — edited,
+  // reordered, truncated, or a fake `history:` block injected below the boundary.
+  // `undefined` for seals that recorded no history digest (then seal integrity
+  // alone stands, exactly as before).
+  const expectedHistory = (doc.metadata.freeze as { history?: string }).history;
+  const historyIntact =
+    expectedHistory != null
+      ? computeHistoryHash(source, freezeSpec ?? SEAL_SPEC) === expectedHistory
+      : undefined;
+
+  // The document is intact only if the seal holds AND its committed audit log is
+  // unchanged. Old seals (no committed digest) fall back to seal integrity alone.
+  const intact = sealIntact && historyIntact !== false;
+
   const warning = specOutdated
     ? `Sealed under ruleset v${freezeSpec}, which does not protect signatures. Re-seal to upgrade to v${SEAL_SPEC}.`
-    : intact && appearanceChanged
+    : sealIntact && appearanceChanged
       ? "Content is intact, but the document's appearance (styling) changed since sealing — verify nothing is visually hidden."
       : undefined;
 
   return {
     intact,
+    historyIntact,
     frozen: true,
     frozenAt: doc.metadata.freeze.at,
     signers,
@@ -819,7 +874,11 @@ export function verifyDocument(source: string): VerifyResult {
     spec: freezeSpec,
     specOutdated: specOutdated || undefined,
     appearanceChanged: appearanceChanged || undefined,
-    error: intact ? undefined : "Document has been modified since sealing.",
+    error: intact
+      ? undefined
+      : sealIntact && historyIntact === false
+        ? "The audit/history log has been modified since sealing."
+        : "Document has been modified since sealing.",
     warning,
   };
 }

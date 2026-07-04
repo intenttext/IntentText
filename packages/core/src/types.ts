@@ -312,6 +312,11 @@ export interface IntentDocumentMetadata {
     /** Appearance (full-fidelity, content+styling) hash recorded at seal time (v4+),
      *  so verify can detect post-seal restyling. Absent on pre-v4 seals. */
     appearance?: string;
+    /** Digest of the audit/history section, committed into the seal (v4+) so the
+     *  revision log — which the body hash excludes — is itself tamper-evident: any
+     *  edit/insert/delete/reorder/truncate of history, or a fake `history:` block
+     *  injected below the boundary, breaks it. Absent on seals made before this. */
+    history?: string;
     status: "locked";
   };
   /** v2.8.1: Free-form document metadata from meta: blocks. */

@@ -1260,7 +1260,14 @@ export function parseIntentText(
     | { version: string; by: string; active: boolean }
     | undefined;
   let freezeMeta:
-    | { at: string; hash: string; spec?: number; appearance?: string; status: "locked" }
+    | {
+        at: string;
+        hash: string;
+        spec?: number;
+        appearance?: string;
+        history?: string;
+        status: "locked";
+      }
     | undefined;
 
   // v2: auto-ID counter for step blocks without explicit id
@@ -1821,6 +1828,9 @@ export function parseIntentText(
         }),
         ...(block.properties?.appearance != null && {
           appearance: String(block.properties.appearance),
+        }),
+        ...(block.properties?.history != null && {
+          history: String(block.properties.history),
         }),
         status: "locked",
       };

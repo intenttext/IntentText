@@ -134,6 +134,7 @@ export {
   signatureMatchesContent,
   hashMatches,
   findHistoryBoundaryInSource,
+  computeHistoryHash,
   sealDocument,
   signDocument,
   verifyDocument,
@@ -209,6 +210,10 @@ export {
   verifyFormStructure,
 } from "./form-trust";
 export type { FormSeal, FormStructureVerification } from "./form-trust";
+// Aggregate trust verdict — seal + committed-history + approval chain + form
+// structure in one call. Use for any user-facing "Verify" so nothing is missed.
+export { verifyTrust } from "./verify-trust";
+export type { TrustVerification } from "./verify-trust";
 export { submitForm, buildSubmission } from "./hub-client";
 export type { SubmitOptions, SubmitResult, SubmissionPayload } from "./hub-client";
 export {
