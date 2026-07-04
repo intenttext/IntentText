@@ -234,6 +234,31 @@ function CertifiedLayer({ report }: { report: VerifyReport }) {
   );
 }
 
+/** One line of the trust breakdown: content seal / audit log / approval order.
+ *  ok=true → verified, false → tampered, undefined → not applicable to this doc. */
+function TrustRow({
+  label,
+  ok,
+  naText = "not applicable",
+}: {
+  label: string;
+  ok?: boolean;
+  naText?: string;
+}) {
+  const state = ok === true ? "pass" : ok === false ? "fail" : "na";
+  const mark = ok === true ? "✓" : ok === false ? "✗" : "–";
+  const val = ok === true ? "verified" : ok === false ? "TAMPERED" : naText;
+  return (
+    <div className={`tbreak-row ${state}`} role="listitem">
+      <span className="tbreak-mark" aria-hidden>
+        {mark}
+      </span>
+      <span className="tbreak-label">{label}</span>
+      <span className="tbreak-val">{val}</span>
+    </div>
+  );
+}
+
 export function ResultCard({ report }: { report: VerifyReport }) {
   const { integrity, signatures } = report;
   const cryptoSigs = signatures.signatures.filter((s) => s.cryptographic);
@@ -291,6 +316,19 @@ export function ResultCard({ report }: { report: VerifyReport }) {
               <CopyButton value={integrity.hash} />
             </span>
           </div>
+          {integrity.sealed && (
+            <div className="tbreak" role="list" aria-label="What was verified">
+              <TrustRow label="Contract content" ok={integrity.sealIntact} />
+              <TrustRow
+                label="Audit log (history)"
+                ok={integrity.historyIntact}
+                naText="no log committed"
+              />
+              {integrity.chainedCount ? (
+                <TrustRow label="Approval order" ok={integrity.chainValid} />
+              ) : null}
+            </div>
+          )}
           {!integrity.sealed && (
             <p style={{ margin: "6px 0 0" }}>
               This document is not sealed, so there is no frozen hash to compare

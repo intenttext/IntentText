@@ -19,7 +19,8 @@ keyword changes — the format stays frozen.
   truncated, or replaced with a forged block and still verify. Sealing now commits
   **`computeHistoryHash(source)`** — a SHA-256 of the canonical history section — as
   `history: sha256:…` on the signed `freeze:` line (seal scope), so any change to the log breaks
-  verification. `verifyDocument` gains a `historyIntact` field; `intact` now means seal AND history.
+  verification. `verifyDocument` gains `historyIntact` + `sealIntact` fields (so a UI can show
+  "contract content ✓ / audit log ✗" apart); `intact` now means seal AND history.
 - **`verifyTrust(source)`** — one aggregate verdict combining the seal, the committed history
   digest, the approval hash-chain, and (for forms) the two-party structure seal, with a single
   `ok`. `dotit verify` now uses it and reports Seal / History / Chain / Form, exiting non-zero on

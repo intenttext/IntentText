@@ -10,6 +10,7 @@ import {
   parseIntentText,
   renderPrint,
   verifyDocument,
+  verifyAuditChain,
   computeDocumentHash,
   renderSeal,
   isTemplate,
@@ -44,6 +45,16 @@ export interface IntegrityResult {
   frozenAt?: string;
   /** Any error/warning surfaced by core's verifyDocument. */
   error?: string;
+  /** The seal hash alone matches (contract body + signatures). Distinct from
+   *  `intact`, which also requires the history digest — lets the UI show them apart. */
+  sealIntact?: boolean;
+  /** The seal committed an audit-log digest (v4+) and it still matches. `false` =
+   *  the history/revision log was tampered; `undefined` = no digest to check. */
+  historyIntact?: boolean;
+  /** The approval hash-chain verifies (no undetected insert/delete/reorder/edit). */
+  chainValid?: boolean;
+  /** How many approvals carry a chain link (0 = nothing chained to check). */
+  chainedCount?: number;
 }
 
 export interface VerifyReport {
@@ -186,7 +197,16 @@ export function runVerification(source: string): VerifyReport {
       frozenHash: coreResult.expectedHash,
       frozenAt: coreResult.frozenAt,
       error: coreResult.error,
+      sealIntact: coreResult.sealIntact,
+      historyIntact: coreResult.historyIntact,
     };
+    try {
+      const chain = verifyAuditChain(source);
+      integrity.chainValid = chain.valid;
+      integrity.chainedCount = chain.chained;
+    } catch {
+      /* chain is best-effort; the seal is the primary guarantee */
+    }
   } catch (e) {
     integrity = {
       sealed: false,
@@ -231,7 +251,9 @@ export function runVerification(source: string): VerifyReport {
     // so rendering it here would let a post-seal restyle (opacity:0 / white-on-white)
     // hide content beside a green "intact" verdict. Bare strips all presentation —
     // the preview shows exactly what the seal actually covers and can never hide it.
-    previewHTML = renderPrint(doc, { bare: true });
+    // Pass the ORIGINAL source so the preview's trust stamp verifies against the
+    // real bytes (a re-serialization drops the history section → false "SEAL BROKEN").
+    previewHTML = renderPrint(doc, { bare: true, source });
   } catch (e) {
     parseError = (e as Error).message;
   }

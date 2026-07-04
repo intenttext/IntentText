@@ -740,6 +740,10 @@ export interface VerifyResult {
   /** Overall integrity: the seal holds AND (for v4+ seals that committed one) the
    *  audit/history log still matches. Old seals fall back to seal integrity alone. */
   intact: boolean;
+  /** The seal hash alone matches (contract body + signatures + freeze metadata).
+   *  Distinct from `intact`, which ALSO requires the committed history digest — so a
+   *  UI can show "content seal ✓ / history ✗" separately. */
+  sealIntact?: boolean;
   /** The committed audit/history log is unchanged. true/false only when the seal
    *  recorded a history digest (v4+); undefined for older seals (unverifiable). */
   historyIntact?: boolean;
@@ -865,6 +869,7 @@ export function verifyDocument(source: string): VerifyResult {
 
   return {
     intact,
+    sealIntact,
     historyIntact,
     frozen: true,
     frozenAt: doc.metadata.freeze.at,
