@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 
 const { execSync } = require("node:child_process");
+const path = require("node:path");
+
+// Always measure the @dotit/core package itself, regardless of where this script
+// is invoked from. CI runs `node packages/core/scripts/check-pack-footprint.cjs`
+// from the repo ROOT; without a fixed cwd, `npm pack` would pack the monorepo root
+// (thousands of files) instead of the core package and the gate would false-fail.
+const PKG_DIR = path.resolve(__dirname, "..");
 
 // Re-baselined at 1.14.0, nudged at 1.16.0. The previous limits were set at core
 // 1.5.0 (XLSX/DOCX converters); core has since legitimately grown through the
@@ -22,7 +29,7 @@ const LIMITS = {
 };
 
 const raw = execSync("npm pack --json --dry-run", {
-  cwd: process.cwd(),
+  cwd: PKG_DIR,
   encoding: "utf8",
   stdio: ["ignore", "pipe", "pipe"],
 });

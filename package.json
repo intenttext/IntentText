@@ -48,7 +48,9 @@
   "pnpm": {
     "overrides": {
       "esbuild": "0.28.0",
-      "@vitejs/plugin-react": "5.2.0"
+      "@vitejs/plugin-react": "5.2.0",
+      "prosemirror-model": "1.25.9",
+      "prosemirror-view": "1.42.0"
     },
     "onlyBuiltDependencies": [
       "electron",
