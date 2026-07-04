@@ -575,6 +575,16 @@ export function sourceToDoc(source: string): JSONContent {
     // Skip empty lines
     if (!trimmed) continue;
 
+    // The `history:` boundary and everything below it is the machine-managed audit
+    // log (registry + revisions). Capture the WHOLE section verbatim as one preserved
+    // node — docToSource re-emits itTrust.raw and the seal commits a digest of it — but
+    // never render its individual lines as editable body content (the leak this fixes).
+    if (trimmed === "history:" || trimmed === "history") {
+      const rest = lines.slice(li).join("\n").replace(/\s+$/, "");
+      result.push({ type: "itTrust", attrs: { raw: rest, keyword: "history" } });
+      break;
+    }
+
     // Document-level metadata / layout blocks (page:, meta:, font:, header:,
     // footer:, watermark:) are not body content. Render them as a subtle preserved
     // chip (not raw "| size: A4" text) and keep the exact source line for

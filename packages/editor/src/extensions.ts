@@ -647,6 +647,22 @@ export const ITTrust = Node.create({
     return [{ tag: "div[data-it-trust]" }];
   },
   renderHTML({ HTMLAttributes, node }) {
+    // The `history:` audit-log section is preserved verbatim in the document model
+    // (so the source — and the seal's history digest — round-trip unchanged) but is
+    // NEVER shown in the canvas: it is machine-managed; the trust chip and the verify
+    // surface report it instead. Hidden the same way as sign:/freeze:.
+    if (node.attrs.keyword === "history") {
+      return [
+        "div",
+        mergeAttributes(HTMLAttributes, {
+          "data-it-trust": "",
+          "data-trust": "history",
+          class: "it-doc-trust it-doc-trust--history it-doc-trust--hidden",
+          style: "display: none",
+          "aria-hidden": "true",
+        }),
+      ];
+    }
     // Ink-first typesetting, exactly mirroring core's print design
     // (document-css.ts .it-approval / .it-signature / .it-sealed-banner):
     // hairlines + small-caps labels, no colored fills - editor display = print.
