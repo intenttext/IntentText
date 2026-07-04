@@ -42,7 +42,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@dotit/core": "^3.0.0",
+    "@dotit/core": "^3.1.0",
     "@dotit/sign": "^3.0.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "express": "^4.19.2",
