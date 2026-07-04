@@ -385,11 +385,13 @@ export function VisualEditor({
       const meta = (doc.metadata as Record<string, unknown> | undefined)?.meta as
         | Record<string, unknown>
         | undefined;
-      const lang = String(
-        (doc.metadata as Record<string, unknown> | undefined)?.language || "",
-      ).toLowerCase();
+      // Direction is MANUAL in the editor: it follows only an EXPLICIT `meta: | dir:`
+      // (set by the RTL toolbar button / typed by the author), never auto-detection.
+      // So typing a stray Arabic character no longer flips the whole page to RTL and
+      // trap the caret — the author stays in control. (Core still auto-detects RTL for
+      // the rendered/exported output, so existing Arabic documents keep rendering RTL.)
       const dir = String(
-        meta?.dir || (lang === "rtl" ? "rtl" : "") || "ltr",
+        (meta?.dir as string | undefined) || "ltr",
       ).toLowerCase();
       return { header, footer, dir };
     } catch {

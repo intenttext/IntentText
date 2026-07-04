@@ -6,6 +6,19 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.1.1] — 2026-07-05 — editor: manual RTL, Simple mode, hidden history section
+
+`@dotit/editor` only (core unchanged).
+
+- **RTL is now manual in the editor.** Typing an Arabic character no longer auto-flips the whole
+  page to right-to-left (which trapped the caret and couldn't be undone). The editing canvas follows
+  only an EXPLICIT `meta: | dir: rtl` (the RTL toolbar button / typed by the author). Core still
+  auto-detects RTL for the *rendered/exported* output, so existing Arabic documents keep rendering
+  right-to-left.
+- **Web editor defaults to the Simple one-row toolbar** (the Word-style tabbed ribbon is off).
+- **The `history:` audit-log section is no longer rendered in the canvas** (it was leaking stray
+  `revision:` fragments); it is preserved verbatim and surfaced by the trust chip / verify instead.
+
 ## [3.1.0] — 2026-07-04 — tamper-evident history + a real seal stamp
 
 Additive, backward-compatible. Seals made under 3.0.0 still verify; documents sealed under 3.1.0

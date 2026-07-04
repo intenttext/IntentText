@@ -94,13 +94,10 @@ export default function App() {
   // with sample data). Defaults match the common use: fill a form, edit a template.
   const [formView, setFormView] = useState<"design" | "fill">("fill");
   const [templateView, setTemplateView] = useState<"edit" | "preview">("edit");
-  // Ribbon density (Ribbon vs Simple) — owned here so the toggle lives in the
-  // single top title bar (the editor's built-in toggle is suppressed).
-  const [ribbonMode, setRibbonMode] = useState<"ribbon" | "simple">(
-    () =>
-      (localStorage.getItem("dotit.ribbon.mode") as "ribbon" | "simple") ||
-      "ribbon",
-  );
+  // Ribbon density — default to the SIMPLE one-row toolbar (the Word-style tabbed
+  // ribbon is off by design here). A previously-stored "ribbon" preference is ignored
+  // so the editor always opens simple; the in-session toggle still works if needed.
+  const [ribbonMode, setRibbonMode] = useState<"ribbon" | "simple">("simple");
   useEffect(() => {
     localStorage.setItem("dotit.ribbon.mode", ribbonMode);
   }, [ribbonMode]);
