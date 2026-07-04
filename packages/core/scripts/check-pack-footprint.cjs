@@ -12,11 +12,13 @@ const { execSync } = require("node:child_process");
 // (conformance.{js,d.ts}) and the typed-value reader (typed-value.{js,d.ts}). Limits sit just above real size
 // so the guard still catches FUTURE accidental bloat. Bump deliberately when real
 // features grow the surface; never to wave through an accidental dependency or stray
-// src file.
+// src file. Nudged at 3.1.0 for the trust-integrity work: the committed history digest
+// (computeHistoryHash), the aggregate verifyTrust module, and the bank-grade circular
+// seal STAMP (renderSeal rewrite with arc text + guilloché).
 const LIMITS = {
-  packedBytes: 140000,
-  unpackedBytes: 640000,
-  entryCount: 109,
+  packedBytes: 145000,
+  unpackedBytes: 660000,
+  entryCount: 114,
 };
 
 const raw = execSync("npm pack --json --dry-run", {

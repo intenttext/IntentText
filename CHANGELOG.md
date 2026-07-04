@@ -6,6 +6,37 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.1.0] — 2026-07-04 — tamper-evident history + a real seal stamp
+
+Additive, backward-compatible. Seals made under 3.0.0 still verify; documents sealed under 3.1.0
+also verify under 3.0.0 (the older verifier simply ignores the new history digest). No grammar or
+keyword changes — the format stays frozen.
+
+### Added
+
+- **Tamper-evident audit log.** The `history:` section is excluded from the body/seal hash, so a
+  sealed contract's revision log previously had no integrity — it could be edited, reordered,
+  truncated, or replaced with a forged block and still verify. Sealing now commits
+  **`computeHistoryHash(source)`** — a SHA-256 of the canonical history section — as
+  `history: sha256:…` on the signed `freeze:` line (seal scope), so any change to the log breaks
+  verification. `verifyDocument` gains a `historyIntact` field; `intact` now means seal AND history.
+- **`verifyTrust(source)`** — one aggregate verdict combining the seal, the committed history
+  digest, the approval hash-chain, and (for forms) the two-party structure seal, with a single
+  `ok`. `dotit verify` now uses it and reports Seal / History / Chain / Form, exiting non-zero on
+  any failure.
+- **`RenderOptions.source`** — lets `renderHTML`/`renderPrint` verify the trust stamp against the
+  original bytes instead of a re-serialization (which dropped the history section and could paint a
+  false "SEAL BROKEN"). The CLI passes it.
+
+### Changed
+
+- **Bank-grade seal STAMP.** `renderSeal` now draws a circular notary stamp — a double ring, arc
+  text (label over the top, signer + date under the bottom), the `.it` mark + hash fingerprint +
+  role at the centre, and a hash-derived guilloché rosette — replacing the flat corner card. Tier
+  colour drives it (indigo sealed / green certified / gold root / red broken). It surfaces
+  identically on screen, print, PDF, and the editor chip. `SealRenderOptions` gains
+  `signer`/`role`/`date`; `<defs>` ids are derived from all inputs so seals never collide on a page.
+
 ## [3.0.0] — 2026-06-24 — the final major
 
 The format is frozen here. From now on, changes ship as **3.x minor/patch** — there is no
