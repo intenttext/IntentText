@@ -18,6 +18,32 @@ const INPUT = {
   ],
 };
 
+describe("G-19 #36: amounts are parsed, never silently zero-coerced", () => {
+  // A template/merge injects amounts as strings; grouped thousands must bill correctly.
+  const merged = (v: unknown) => ({
+    ...INPUT,
+    lines: [{ name: "Services", quantity: 1, unitPrice: v as unknown as number }],
+  });
+
+  it("bills a comma-grouped amount correctly (was NaN → 0)", () => {
+    const x = buildUBLInvoice(merged("5,000,000"));
+    expect(x).toContain('<cbc:LineExtensionAmount currencyID="QAR">5000000.00</cbc:LineExtensionAmount>');
+    expect(x).toContain('<cbc:PayableAmount currencyID="QAR">5250000.00</cbc:PayableAmount>'); // @5%
+    expect(x).not.toContain('>0.00</cbc:PayableAmount>');
+  });
+
+  it("handles a magnitude suffix (3.80M)", () => {
+    expect(buildUBLInvoice(merged("3.80M"))).toContain(
+      '<cbc:LineExtensionAmount currencyID="QAR">3800000.00</cbc:LineExtensionAmount>',
+    );
+  });
+
+  it("REJECTS a non-numeric amount rather than billing 0", () => {
+    expect(() => buildUBLInvoice(merged("N/A"))).toThrow(/not a valid amount/);
+    expect(() => buildUBLInvoice(merged("{{unresolved}}"))).toThrow(/not a valid amount/);
+  });
+});
+
 describe("G-19: buildUBLInvoice (EN 16931 / UBL 2.1)", () => {
   const x = buildUBLInvoice(INPUT);
 

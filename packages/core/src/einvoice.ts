@@ -20,6 +20,7 @@
 import { parseIntentText } from "./parser";
 import { extractDocumentMetadata } from "./index-builder";
 import { flattenBlocks } from "./utils";
+import { parseNumericValue } from "./typed-value";
 
 export interface UBLParty {
   /** Legal/registration name (BT-27 / BT-44). */
@@ -126,8 +127,23 @@ export function buildUBLInvoice(input: UBLInvoiceInput): string {
   let lineExtensionTotal = 0;
   const linesXml = input.lines
     .map((l, i) => {
-      const qty = Number(l.quantity) || 0;
-      const price = Number(l.unitPrice) || 0;
+      // Parse-or-THROW (finding #36). `Number("5,000,000")` is NaN, so `|| 0` silently
+      // billed a five-million line as 0.00 in structurally-valid UBL. parseNumericValue
+      // handles thousands separators + magnitude suffixes; a genuinely non-numeric amount
+      // (a bad merge like "N/A"/"{{unresolved}}") is rejected, never zero-coerced.
+      const num = (raw: unknown, field: string): number => {
+        if (raw == null || String(raw).trim() === "") return 0;
+        const n = parseNumericValue(raw as string | number);
+        if (n == null) {
+          throw new Error(
+            `e-invoice line ${l.id ?? i + 1}: ${field} "${raw}" is not a valid amount — ` +
+              `rejecting rather than billing 0. Check the merged value.`,
+          );
+        }
+        return n;
+      };
+      const qty = num(l.quantity, "quantity");
+      const price = num(l.unitPrice, "unitPrice");
       const lineAmount = Math.round(qty * price * 100) / 100;
       lineExtensionTotal += lineAmount;
       const unit = l.unit || "EA";

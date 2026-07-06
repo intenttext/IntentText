@@ -335,6 +335,21 @@ function processCodeBlock(node: SimpleNode, lines: string[]): void {
 /**
  * Process a table element.
  */
+/**
+ * Make a cell value safe for a `| … |` markdown row (findings #24, #25): collapse
+ * intra-cell line breaks (a `<br>`/newline would split the row across physical lines and
+ * silently DROP the whole data row) to a single space, and escape `\`/`|` so a literal
+ * pipe in the cell doesn't shift every downstream column (the parser unescapes `\|`).
+ */
+function escapeCell(text: string): string {
+  return text
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/\\/g, "\\\\")
+    .replace(/\|/g, "\\|")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function processTable(node: SimpleNode, lines: string[]): void {
   const rows = node.querySelectorAll("tr");
   let isFirstRow = true;
@@ -344,7 +359,7 @@ function processTable(node: SimpleNode, lines: string[]): void {
     const tdCells = row.querySelectorAll("td");
     const cells = thCells.length > 0 ? thCells : tdCells;
 
-    const values = cells.map((c: SimpleNode) => getInlineText(c).trim());
+    const values = cells.map((c: SimpleNode) => escapeCell(getInlineText(c)));
     if (values.length === 0) continue;
 
     if (isFirstRow && thCells.length > 0) {

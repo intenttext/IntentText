@@ -6,6 +6,23 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.3.2] — 2026-07-06 — bank-readiness P1 (wave 3): converter data-loss
+
+Correctness fixes in the converters/parser, no API change. `@dotit/core` **3.3.2**.
+
+### Fixed
+
+- **E-invoice zero-coercion** (#36). `buildUBLInvoice` billed `Number("5,000,000")` (NaN) as `0.00`
+  in structurally-valid UBL. Amounts now parse through `parseNumericValue` (thousands separators,
+  magnitude suffixes) and a genuinely non-numeric amount is REJECTED, never zero-coerced.
+- **HTML table row dropped on `<br>`** (#24). A cell containing a `<br>`/newline split the emitted
+  `| … |` row across physical lines, so the parser silently dropped the whole data row (e.g. every
+  transaction on an imported statement). Intra-cell line breaks are now collapsed to a space.
+- **Table-cell pipe escaping** (#25). The markdown-table parser split on every `|`, ignoring the
+  `\|` the converters emit for a literal pipe — shifting every downstream column. It now splits on
+  UNESCAPED `|` and unescapes cells (via the existing `splitTableRow`); the HTML converter escapes
+  pipes to match docx/xlsx.
+
 ## [3.3.1] — 2026-07-06 — bank-readiness P1 (wave 2): cert issuer-scope + CSS-injection
 
 Security fixes, no API change. `@dotit/core` **3.3.1**, `@dotit/sign` **3.2.1**.

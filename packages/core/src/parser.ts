@@ -1661,11 +1661,11 @@ export function parseIntentText(
     // Pattern: | col1 | col2 | or | --- | --- |
     const mdTableMatch = trimmed.match(/^\|(.+)\|$/);
     if (mdTableMatch && trimmed.includes("|")) {
-      const cells = trimmed
-        .split("|")
-        .slice(1, -1) // Remove empty first and last
-        .map((cell) => cell.trim())
-        .filter((cell) => cell !== "");
+      // Split on UNESCAPED '|' and unescape cells (finding #25). A raw split("|") broke
+      // on a `\|` a converter emitted for a literal pipe inside a cell, shifting every
+      // downstream column and leaving a stray backslash. splitTableRow honors the escape
+      // (and drops the empty leading/trailing cells from the surrounding `| … |`).
+      const cells = splitTableRow(trimmed);
 
       // Check if it's a separator row (| --- | --- |)
       const isSeparator = cells.every((cell) => /^[-:]+$/.test(cell));
