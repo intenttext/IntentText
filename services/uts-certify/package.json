@@ -18,7 +18,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@dotit/core": "^3.6.0",
+    "@dotit/core": "^3.7.0",
     "@dotit/pades": "workspace:^",
     "@dotit/sign": "^1.4.4",
     "express": "^4.21.2",

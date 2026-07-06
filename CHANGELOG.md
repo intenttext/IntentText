@@ -6,6 +6,36 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [core 3.7.0 / pdf 3.2.0] — 2026-07-06 — PDF/A font embedding (closes #27/#28)
+
+`@dotit/core` **3.7.0**, `@dotit/pdf` **3.2.0**. Closes the last open bank-readiness
+finding — the PDF/A font-embedding gap (G-07) — so the audit roadmap has no remaining
+in-scope items.
+
+### Added
+
+- **`renderPrint(doc, { embedFonts: true })`** (core). Serves subsetted open fonts
+  (Noto Serif, Noto Naskh Arabic — with Arabic shaping, Noto Sans Mono, Noto Sans
+  Symbols 2; all SIL OFL 1.1) as self-contained `@font-face` **woff2 data URIs**, and
+  forces every print surface onto them (`!important`, incl. headings a theme styles).
+  A Chrome-rendered PDF then embeds a per-document subset — **no glyph references a
+  non-embedded system font**, the last requirement for PDF/A. Off by default (adds
+  ~290 KB to the print HTML); `printFontFaceCSS()` is exported. Fonts + the OFL license
+  ship in the package (`resources/OFL.txt`); regenerate via `scripts/build-print-fonts`.
+- **`PdfRenderOptions.embedFonts`** (pdf). Auto-ON whenever `pdfA` is requested, OFF
+  otherwise. `renderPDF`/`issuePDF`/`createPdfRenderer` thread it through, and the
+  render now awaits `document.fonts.ready` before printing so Chrome embeds the real
+  glyphs (not a fallback face).
+
+### Verified
+
+- End-to-end through **real Chrome**: a document exercising Latin + Arabic (RTL
+  shaping) + a table + a task list (ballot boxes ☐☑) + a code block renders with
+  **0 non-embedded fonts, 0 Type-3, 0 system fonts** (poppler `pdffonts`), and every
+  font descriptor carries an embedded program (pdf-lib walk, in the package test —
+  skipped when no Chrome). Full ISO 19005 conformance is certified by veraPDF in
+  `.github/workflows/pdfa-verify.yml`.
+
 ## [core 3.6.0 / sign 3.4.0 / pdf 3.1.1] — 2026-07-06 — bank-readiness P2 (batch 4): remaining findings
 
 `@dotit/core` **3.6.0**, `@dotit/sign` **3.4.0**, `@dotit/pdf` **3.1.1**. Closes the remaining

@@ -11,6 +11,7 @@ import {
 } from "./seal";
 import { documentToSource } from "./source";
 import { deriveWorkflowState, WorkflowState } from "./workflow-state";
+import { printFontFaceCSS } from "./print-fonts";
 
 export interface RenderOptions {
   /** Theme name (built-in) or IntentTheme object */
@@ -47,6 +48,15 @@ export interface RenderOptions {
    * are user-initiated and never gated. (#44)
    */
   allowRemoteResources?: boolean;
+  /**
+   * Embed open fonts (subsets of Noto Serif / Naskh Arabic / Mono / Symbols, SIL
+   * OFL) directly into the PRINT output as `@font-face` data URIs, and force every
+   * print surface onto them. This makes a Chrome-rendered PDF **PDF/A-embeddable**:
+   * no glyph references a non-embedded system font (finding #27/#28). Adds ~290 KB
+   * (woff2) to the emitted HTML, so it is OFF by default — `@dotit/pdf` turns it on
+   * for archival output. Only honoured by `renderPrint`. See `print-fonts.ts`.
+   */
+  embedFonts?: boolean;
 }
 
 /**
@@ -2185,6 +2195,12 @@ export function renderPrint(
     }
   }
 
+  // PDF/A: embed open fonts and force every print surface onto them, so a
+  // Chrome-rendered PDF has NO glyph referencing a non-embedded system font
+  // (#27/#28). Off unless requested; suppressed in bare mode (which drops fonts).
+  const fontFaceCSS =
+    options?.embedFonts && !BARE_RENDER ? printFontFaceCSS() : "";
+
   return `<!DOCTYPE html><html ${direction}><head><meta charset="utf-8"><style>
 ${dynamicCSS}
 ${DOCUMENT_CSS}
@@ -2253,6 +2269,7 @@ body.it-print .it-contact{border:none;padding:0;margin:0.3em 0;}
 body.it-print .it-deadline{border-inline-start:3pt solid #000;padding-inline-start:8pt;margin:0.5em 0;}
 body.it-print .it-deadline-date{font-weight:bold;text-decoration:underline;}
 ${BARE_RENDER ? BARE_RESET_CSS : ""}
+${fontFaceCSS}
 </style></head><body class="${bodyClass}"><div class="intent-document${BARE_RENDER ? " intent-bare" : ""}">${watermarkHtml}${sealHtml}${html}</div></body></html>`;
   } finally {
     BARE_RENDER = prevBare;

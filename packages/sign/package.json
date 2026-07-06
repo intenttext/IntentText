@@ -37,7 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@dotit/core": "^3.6.0",
+    "@dotit/core": "^3.7.0",
     "@noble/curves": "^1.8.1"
   },
   "peerDependencies": {

@@ -42,6 +42,12 @@ export default defineConfig({
         "@tauri-apps/api/app": shim("app"),
         "@tauri-apps/api/menu": shim("menu"),
         "@tauri-apps/plugin-dialog": shim("dialog"),
+        // @dotit/sign lazily imports @dotit/pades (Node-only: pkijs + node:crypto
+        // webcrypto) for OPTIONAL trusted timestamps the renderer never uses. Alias
+        // it to an empty stub so it isn't pulled into the browser bundle (the real
+        // package runs in the main process). Without this the renderer build fails on
+        // `webcrypto is not exported by __vite-browser-external`.
+        "@dotit/pades": resolve(__dirname, "src/renderer/src/pades-empty.ts"),
       },
     },
     optimizeDeps: {

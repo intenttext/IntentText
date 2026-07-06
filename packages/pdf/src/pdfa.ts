@@ -12,13 +12,13 @@
  *
  * The OTHER requirements depend on how the PDF was PRODUCED, not on this pass:
  *   • No transparency / JS / encryption — our render path already avoids these.
- *   • ALL fonts embedded — this is the one KNOWN gap for a green veraPDF run (G-07):
- *     the default print CSS uses system families (Georgia/Times/…) that Chrome may
- *     reference WITHOUT embedding on a headless Linux CI box, which PDF/A forbids. The
- *     fix lives in the render path, not here: serve an `@font-face` web font (a subset
- *     of an open font like Noto/Liberation) as the body family so Chrome embeds a
- *     subset. Until that lands AND `.github/workflows/pdfa-verify.yml` is green, treat
- *     the output as **PDF/A-oriented**, not certified — the docs say exactly that.
+ *   • ALL fonts embedded (G-07) — CLOSED: `renderPrint(doc, { embedFonts: true })`
+ *     now serves subsetted open fonts (Noto Serif / Naskh Arabic / Mono / Symbols,
+ *     SIL OFL) as `@font-face` data URIs and forces every print surface onto them,
+ *     so Chrome embeds a per-document subset and NO glyph references a system font.
+ *     `@dotit/pdf` turns this on automatically whenever `pdfA` is requested. Verified
+ *     with poppler `pdffonts` (0 non-embedded, 0 Type-3, 0 system) in the package
+ *     tests and end-to-end by `.github/workflows/pdfa-verify.yml` (veraPDF).
  * This pass DOES guarantee the metadata is internally consistent (Info ↔ XMP), the
  * OutputIntent/ICC is present, and the /ID exists — the post-processing requirements.
  */

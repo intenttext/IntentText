@@ -37,6 +37,7 @@ export {
   parseIntentTextSafe,
 } from "./parser";
 export { renderHTML } from "./renderer";
+export { printFontFaceCSS } from "./print-fonts";
 export { validateDocumentSemantic } from "./validate";
 export { checkConformance } from "./conformance";
 export type { ConformanceLevel, ConformanceReport } from "./conformance";

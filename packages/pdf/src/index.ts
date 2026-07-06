@@ -35,6 +35,7 @@ export type { PdfAOptions, PdfAConformance };
 interface ChromePage {
   setContent(html: string, opts?: Record<string, unknown>): Promise<void>;
   pdf(opts?: Record<string, unknown>): Promise<Buffer | Uint8Array>;
+  evaluate<T>(fn: () => T | Promise<T>): Promise<T>;
   close(): Promise<void>;
 }
 interface ChromeBrowser {
@@ -60,6 +61,13 @@ export interface PdfRenderOptions {
    * src/pdfa.ts and the README.
    */
   pdfA?: PdfAOptions;
+  /**
+   * Embed open fonts (Noto subsets) into the PDF so NO glyph references a
+   * non-embedded system font — the last requirement for a green PDF/A run
+   * (#27/#28). Defaults to ON whenever `pdfA` is set, OFF otherwise (embedding
+   * adds ~290 KB to the render). Set explicitly to force either way.
+   */
+  embedFonts?: boolean;
 }
 
 export interface IssueOptions extends PdfRenderOptions {
@@ -186,6 +194,7 @@ export function issueDocument(
   }
   const html = renderPrint(parseIntentText(seal.source), {
     theme: options.theme ?? "corporate",
+    embedFonts: embedFontsFor(options),
   });
   return { source: seal.source, hash: seal.hash, at: seal.at, html };
 }
@@ -200,6 +209,14 @@ async function pageToPdf(
   const page = await browser.newPage();
   try {
     await page.setContent(html, { waitUntil: "networkidle0" });
+    // Guarantee every @font-face (incl. the embedded PDF/A fonts) is parsed and
+    // ready before printing, so Chrome renders — and embeds — the real glyphs
+    // rather than painting a fallback face first (#27/#28).
+    await page.evaluate(() => {
+      const d = (globalThis as { document?: { fonts?: { ready?: Promise<unknown> } } })
+        .document;
+      return d?.fonts?.ready ?? Promise.resolve();
+    });
     const bytes = await page.pdf({
       printBackground: true,
       preferCSSPageSize: true,
@@ -241,8 +258,14 @@ export async function renderPDF(
 ): Promise<Buffer> {
   const html = renderPrint(parseIntentText(source), {
     theme: options.theme ?? "corporate",
+    embedFonts: embedFontsFor(options),
   });
   return htmlToPDF(html, options);
+}
+
+/** Resolve whether to embed fonts: explicit wins, else default ON for PDF/A. */
+function embedFontsFor(options: PdfRenderOptions): boolean {
+  return options.embedFonts ?? !!options.pdfA;
 }
 
 /**
@@ -349,6 +372,7 @@ export async function createPdfRenderer(options: PdfRenderOptions = {}): Promise
       const merged = { ...options, ...opts };
       const html = renderPrint(parseIntentText(source), {
         theme: merged.theme ?? "corporate",
+        embedFonts: embedFontsFor(merged),
       });
       return pageToPdf(browser, html, merged);
     },
