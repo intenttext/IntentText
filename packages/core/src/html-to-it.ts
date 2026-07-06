@@ -268,11 +268,25 @@ function getInlineText(node: SimpleNode): string {
 /**
  * Process list items (<ul> or <ol>).
  */
+/** The <li>'s OWN inline text, EXCLUDING nested <ul>/<ol> (those become separate items,
+ *  not concatenated into the parent — finding #53). */
+function liDirectText(li: SimpleNode): string {
+  return li.childNodes
+    .filter((n) => {
+      const t = (n.tagName || "").toLowerCase();
+      return t !== "ul" && t !== "ol";
+    })
+    .map(getInlineText)
+    .join("");
+}
+
 function processListItems(
   node: SimpleNode,
   lines: string[],
   type: "ordered" | "unordered",
+  depth = 0,
 ): void {
+  const indent = "  ".repeat(depth);
   let index = 1;
   for (const child of node.childNodes) {
     if (child.nodeType !== 1) continue;
@@ -289,22 +303,27 @@ function processListItems(
 
     if (cb) {
       const checked = cb.getAttribute("checked") !== undefined;
-      const text = getInlineText(child)
+      const text = liDirectText(child)
         .replace(/^\s*\[.\]\s*/, "")
         .trim();
-      if (checked) {
-        lines.push(`done: ${text}`);
-      } else {
-        lines.push(`task: ${text}`);
-      }
+      lines.push(`${indent}${checked ? "done" : "task"}: ${text}`);
     } else {
-      const text = getInlineText(child).trim();
+      const text = liDirectText(child).trim();
       if (type === "ordered") {
-        lines.push(`${index}. ${text}`);
+        lines.push(`${indent}${index}. ${text}`);
         index++;
       } else {
-        lines.push(`- ${text}`);
+        lines.push(`${indent}- ${text}`);
       }
+    }
+
+    // Recurse into any nested lists inside this <li> — emitted as separate, indented
+    // items rather than flattened into the parent's text.
+    for (const gc of child.childNodes) {
+      if (gc.nodeType !== 1) continue;
+      const t = (gc.tagName || "").toLowerCase();
+      if (t === "ul") processListItems(gc, lines, "unordered", depth + 1);
+      else if (t === "ol") processListItems(gc, lines, "ordered", depth + 1);
     }
   }
 }

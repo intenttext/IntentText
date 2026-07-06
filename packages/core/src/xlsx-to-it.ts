@@ -61,8 +61,54 @@ interface CellValue {
   text: string;
 }
 
+/**
+ * Convert an Excel serial date to an ISO string. The `-25569` offset is the days from the
+ * Excel 1900 epoch to the Unix epoch (1970-01-01) and already accounts for Excel's 1900
+ * leap-year bug, so dates after 1900-02-28 are correct. Whole serials → `YYYY-MM-DD`;
+ * fractional (a time component) → full ISO. (#55)
+ */
+function excelSerialToISO(serial: number): string {
+  if (!Number.isFinite(serial)) return String(serial);
+  const d = new Date(Math.round((serial - 25569) * 86400000));
+  if (Number.isNaN(d.getTime())) return String(serial);
+  return serial % 1 === 0
+    ? d.toISOString().slice(0, 10)
+    : d.toISOString().slice(0, 19) + "Z";
+}
+
+/**
+ * Read xl/styles.xml → a boolean per cellXfs index: does that style render a DATE/TIME?
+ * Built-in numFmtIds 14–22 / 45–47 are date/time; a custom numFmt whose format code (with
+ * quoted literals stripped) contains a d/m/y/h/s token is too. Cells with a date style
+ * carry an Excel serial in `<v>` that must be converted, not shown as "45000". (#55)
+ */
+function parseDateStyles(stylesXml: string): boolean[] {
+  if (!stylesXml) return [];
+  const BUILTIN_DATE = new Set([14, 15, 16, 17, 18, 19, 20, 21, 22, 45, 46, 47]);
+  const customDate = new Set<number>();
+  for (const nf of findElements(stylesXml, "numFmt")) {
+    const id = Number(attr(nf.open, "numFmtId"));
+    const code = (attr(nf.open, "formatCode") || "").toLowerCase();
+    const bare = code.replace(/"[^"]*"/g, "").replace(/\\./g, ""); // drop quoted literals + escapes
+    if (!Number.isNaN(id) && /[dmyhs]/.test(bare)) customDate.add(id);
+  }
+  const out: boolean[] = [];
+  const cellXfs = findElements(stylesXml, "cellXfs")[0];
+  if (cellXfs) {
+    for (const xf of findElements(cellXfs.inner, "xf")) {
+      const numFmtId = Number(attr(xf.open, "numFmtId") || "0");
+      out.push(BUILTIN_DATE.has(numFmtId) || customDate.has(numFmtId));
+    }
+  }
+  return out;
+}
+
 /** Parse one worksheet's rows into a grid of string cells. */
-function parseSheet(xml: string, shared: string[]): string[][] {
+function parseSheet(
+  xml: string,
+  shared: string[],
+  dateStyles: boolean[] = [],
+): string[][] {
   const rows: string[][] = [];
   const rowEls = findElements(xml, "row");
   for (const rowEl of rowEls) {
@@ -89,6 +135,12 @@ function parseSheet(xml: string, shared: string[]): string[][] {
         // number, formula cached value (<f>…</f><v>…</v>), or "str"
         const v = findElements(c.inner, "v")[0];
         text = v ? decodeXmlEntities(v.inner).trim() : "";
+        // A date/time-formatted cell holds an Excel serial in <v> — convert it, so the
+        // .it carries "2023-03-15" not "45000". (#55)
+        const styleIdx = Number(attr(c.open, "s") || "-1");
+        if (dateStyles[styleIdx] && text !== "" && /^-?\d+(?:\.\d+)?$/.test(text)) {
+          text = excelSerialToISO(Number(text));
+        }
       }
       cells.push({ col, text });
     }
@@ -182,6 +234,7 @@ export function convertXlsxToIntentText(
 ): string {
   const parts = unzip(data);
   const shared = parseSharedStrings(partText(parts, "xl/sharedStrings.xml"));
+  const dateStyles = parseDateStyles(partText(parts, "xl/styles.xml"));
   const sheets = resolveSheets(parts);
 
   const out: string[] = [];
@@ -192,7 +245,7 @@ export function convertXlsxToIntentText(
 
   for (const sheet of sheets) {
     const xml = partText(parts, sheet.path);
-    const grid = xml ? parseSheet(xml, shared) : [];
+    const grid = xml ? parseSheet(xml, shared, dateStyles) : [];
     out.push(`section: ${escapeCell(sectionName(sheet.name))}`);
     if (grid.length === 0 || grid.every((r) => r.every((c) => c === ""))) {
       out.push("text: (empty sheet)");

@@ -6,6 +6,20 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.5.1] — 2026-07-06 — bank-readiness P2 (batch 2): converter fidelity
+
+Correctness fixes, no API change. `@dotit/core` **3.5.1**.
+
+### Fixed
+
+- **XLSX date cells became serial numbers** (#55). A date/time-formatted cell stores an Excel
+  serial (e.g. `45000`) in `<v>`; the importer read it raw, so `.it` got `45000` instead of the
+  date. It now reads `xl/styles.xml` (built-in date numFmtIds + custom date format codes) and
+  converts serials in date-formatted cells to ISO (`2023-03-15`), with the 1900 leap-year offset.
+- **Nested HTML lists were flattened** (#53). A `<ul>/<ol>` inside an `<li>` was concatenated into
+  the parent item's text ("Parent AChild A1Child A2"). Nested lists now emit as SEPARATE, indented
+  list items.
+
 ## [@dotit/mcp 3.1.0] — 2026-07-06 — bank-readiness P2: authenticate the HTTP transport (#58)
 
 `@dotit/mcp` **3.1.0** (deps `@dotit/core` ^3.5.0). Secure-by-default change below.
