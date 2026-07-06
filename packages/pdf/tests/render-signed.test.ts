@@ -4,6 +4,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { renderSignedPDF } from "../src/index";
+import { sealDocument } from "@dotit/core";
 
 /** Find a Chrome/Chromium binary (puppeteer cache or system) for the render step. */
 function findChrome(): string | undefined {
@@ -35,6 +36,28 @@ it("renderSignedPDF export exists", () => {
   expect(typeof renderSignedPDF).toBe("function");
 });
 
+// #57: renderSignedPDF must NOT produce a "legally-recognized signed PDF" for a tampered
+// .it — the guard runs BEFORE the (Chrome) render step, so these are deterministic.
+describe("renderSignedPDF refuses to sign tampered/unsealed content (#57)", () => {
+  const signer = { certPem: "x", privateKeyPem: "y", name: "T" };
+
+  it("throws when a sealed .it has a broken seal (tampered body)", async () => {
+    const sealed = sealDocument("title: Invoice\n\ntext: Pay USD 100.", {
+      signer: "CFO",
+    }).source;
+    const tampered = sealed.replace("USD 100", "USD 999999");
+    await expect(renderSignedPDF(tampered, { signer })).rejects.toThrow(
+      /refusing to sign/i,
+    );
+  });
+
+  it("throws with requireSeal when the .it is not sealed", async () => {
+    await expect(
+      renderSignedPDF("title: Draft\n\ntext: hi.", { signer, requireSeal: true }),
+    ).rejects.toThrow(/not sealed/i);
+  });
+});
+
 // The render+sign path uses CJS require.resolve + dynamic ESM import, which behave
 // correctly in real Node but not under vitest's Vite transform — so exercise the
 // BUILT dist in a real Node process.
@@ -48,7 +71,9 @@ describe.skipIf(!chrome || !distBuilt || !padesBuilt)(
         const padesDist = resolve(__dirname, "../../pades/dist/index.js");
         const script = `
           const { renderSignedPDF } = require(${JSON.stringify(pdfDist)});
-          const sealed = "title: Invoice INV-3003\\nmeta: | author: Dalil\\nfooter: Page {{page}} of {{pages}}\\npage: | size: A4\\nsection: Items\\ntext: Consulting | end: 1,200.00\\nsign: Dalil | at: 2026-06-15T00:00:00.000Z | hash: sha256:abc\\nfreeze: | at: 2026-06-15T00:00:00.000Z | hash: sha256:abc | status: locked\\n";
+          const core = require("@dotit/core");
+          // A REAL seal (renderSignedPDF now refuses a broken/fake seal — finding #57).
+          const sealed = core.sealDocument("title: Invoice INV-3003\\npage: | size: A4\\nsection: Items\\ntext: Consulting | end: 1,200.00\\n", { signer: "Dalil" }).source;
           (async () => {
             const pades = await import(${JSON.stringify(padesDist)});
             const id = await pades.generateSelfSignedCert({ commonName: "Dalil Technology", organization: "Dalil" });

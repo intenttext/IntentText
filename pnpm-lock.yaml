@@ -469,8 +469,8 @@ importers:
   packages/pdf:
     dependencies:
       '@dotit/core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.4.1
+        version: 3.4.1
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1

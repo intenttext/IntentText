@@ -21,6 +21,8 @@ import {
   documentToSource,
   renderPrint,
   sealDocument,
+  verifyDocument,
+  isSealed,
 } from "@dotit/core";
 import { toPdfA, type PdfAOptions, type PdfAConformance } from "./pdfa";
 
@@ -291,8 +293,24 @@ async function importPades(): Promise<typeof import("@dotit/pades")> {
  */
 export async function renderSignedPDF(
   source: string,
-  options: PdfRenderOptions & { signer: PdfSigner },
+  options: PdfRenderOptions & { signer: PdfSigner; requireSeal?: boolean },
 ): Promise<Uint8Array> {
+  // Never let the PAdES signature vouch for TAMPERED content (finding #57). If the .it
+  // carries a native seal, it MUST verify intact before we sign the rendered PDF —
+  // otherwise a modified document would become a "legally-recognized signed PDF".
+  if (isSealed(source)) {
+    const v = verifyDocument(source);
+    if (!v.intact) {
+      throw new Error(
+        `@dotit/pdf: refusing to sign — the .it seal is broken (${v.error ?? "modified since sealing"}). ` +
+          `A signed PDF must not vouch for tampered content.`,
+      );
+    }
+  } else if (options.requireSeal) {
+    throw new Error(
+      "@dotit/pdf: renderSignedPDF was called with requireSeal, but this .it document is not sealed.",
+    );
+  }
   const pdf = await renderPDF(source, options);
   let pades: typeof import("@dotit/pades");
   try {

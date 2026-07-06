@@ -6,6 +6,17 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [@dotit/pdf 3.1.0] — 2026-07-06 — bank-readiness P2: refuse to sign tampered content (#57)
+
+Security fix. `@dotit/pdf` **3.1.0** (deps `@dotit/core` ^3.4.1).
+
+### Fixed
+
+- **`renderSignedPDF` signed whatever it was given** (#57). A tampered `.it` became a "legally-
+  recognized signed PDF" whose PAdES signature vouched for modified content. It now calls
+  `verifyDocument` first: if the `.it` carries a native seal, that seal MUST verify intact or the
+  request is refused. New `requireSeal` option to also refuse an unsealed document.
+
 ## [3.4.1] — 2026-07-06 — bank-readiness P2 (batch 1): converter/parser data integrity
 
 Correctness fixes, no API change. `@dotit/core` **3.4.1**.
