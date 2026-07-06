@@ -69,17 +69,17 @@
     "@tiptap/pm": "^3.20.1",
     "@tiptap/react": "^3.20.1",
     "@tiptap/starter-kit": "^3.20.1",
-    "lucide-react": "^0.577.0"
+    "lucide-react": "^1.23.0"
   },
   "devDependencies": {
     "@testing-library/dom": "10.4.0",
     "@testing-library/react": "16.1.0",
-    "@types/react": "^19.2.14",
+    "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "5.2.0",
+    "@vitejs/plugin-react": "6.0.3",
     "happy-dom": "15.11.7",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
     "vitest": "3.2.6"
