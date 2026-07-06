@@ -323,6 +323,11 @@ export interface IntentDocumentMetadata {
      *  edit/insert/delete/reorder/truncate of history, or a fake `history:` block
      *  injected below the boundary, breaks it. Absent on seals made before this. */
     history?: string;
+    /** Approval-chain anchor committed into the seal: the head hash and length of the
+     *  approval chain at seal time, so removing the most recent approval is detected as a
+     *  truncation (not just a generic "modified"). Absent on seals made before this. */
+    chainHead?: string;
+    chainLen?: number;
     status: "locked";
   };
   /** v2.8.1: Free-form document metadata from meta: blocks. */

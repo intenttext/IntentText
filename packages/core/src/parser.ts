@@ -1840,6 +1840,12 @@ export function parseIntentText(
         ...(block.properties?.history != null && {
           history: String(block.properties.history),
         }),
+        ...(block.properties?.["chain-head"] != null && {
+          chainHead: String(block.properties["chain-head"]),
+        }),
+        ...(block.properties?.["chain-len"] != null && {
+          chainLen: Number(block.properties["chain-len"]),
+        }),
         status: "locked",
       };
       // Still emit freeze: as a block for rendering

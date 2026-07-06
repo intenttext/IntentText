@@ -6,6 +6,20 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.4.0] — 2026-07-06 — bank-readiness P1: audit-chain truncation anchor
+
+Additive and backward-compatible (new seals still verify under older verifiers — the anchor
+lives inside the seal-scope hash). `@dotit/core` **3.4.0**.
+
+### Added
+
+- **Audit-chain tail-truncation anchor (`@dotit/core`)** (#8). The seal now commits the approval
+  chain's head hash + length (`chain-head:`/`chain-len:` on the freeze line). Deleting the most
+  recent approval — which leaves the surviving `prev:` links internally consistent, so
+  `verifyAuditChain` alone still reports "valid" — is now caught PRECISELY: `verifyDocument` returns
+  `chainTruncated: true` and the error reads "the audit trail was truncated — an approval was removed
+  since sealing" instead of a generic "document modified". New export: `auditAnchor`.
+
 ## [@dotit/sign 3.3.0] — 2026-07-06 — bank-readiness P1: trusted timestamps (RFC-3161)
 
 New feature, additive. Closes the last actionable P1 finding.

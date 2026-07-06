@@ -109,8 +109,19 @@ export type {
 // Hash-chained audit trail — the approval SEQUENCE is tamper-evident (no insert/
 // delete/reorder without detection). appendApproval chains each approval to the
 // prior audit event via prev:; verifyAuditChain recomputes the chain.
-export { appendApproval, verifyAuditChain, auditTrail, eventHash } from "./audit-chain";
-export type { AuditEvent, AuditChainResult, AuditKind } from "./audit-chain";
+export {
+  appendApproval,
+  verifyAuditChain,
+  auditTrail,
+  eventHash,
+  auditAnchor,
+} from "./audit-chain";
+export type {
+  AuditEvent,
+  AuditChainResult,
+  AuditKind,
+  AuditAnchor,
+} from "./audit-chain";
 // Source-preserving edit reconciliation — keep unchanged blocks' exact original
 // bytes so an edit touches only what changed (a sealed doc keeps its hash).
 export { reconcileEdit } from "./reconcile";

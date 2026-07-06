@@ -491,6 +491,9 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
           const n = seal.hiddenContentItems ? seal.hiddenContentItems.length : 0;
           console.log(`    Hidden:   ❌ ${n} block(s) concealed by styling — what is shown is NOT everything that was signed`);
         }
+        if (seal.chainTruncated) {
+          console.log(`    Chain:    ❌ the audit trail was TRUNCATED — an approval was removed since sealing`);
+        }
         if (!result.auditChain.valid) {
           console.log(`    Chain:    ❌ approval chain broken — ${result.auditChain.reason || "link mismatch"}`);
         }

@@ -101,6 +101,33 @@ function readPrev(line: string): string | undefined {
   return m ? m[1] : undefined;
 }
 
+/** Events that form the pre-seal APPROVAL chain. Excludes the freeze line (the seal
+ *  commits its own metadata) and history-section revisions (the committed history digest
+ *  already covers those). */
+const CHAIN_ANCHOR_KINDS = new Set<AuditKind>(["approve", "sign"]);
+
+export interface AuditAnchor {
+  /** Hash of the LAST approval-chain event (or the genesis anchor when there are none). */
+  head: string;
+  /** Count of approval-chain events. */
+  len: number;
+}
+
+/**
+ * The chain's tail commitment: the head hash + length of the approval chain. Recorded in
+ * the seal (freeze line, seal-scope) so DELETING the most recent approval — which leaves
+ * the surviving links internally consistent, so `verifyAuditChain` alone still reports
+ * "valid" — is caught as a length/head mismatch, yielding a PRECISE "audit trail
+ * truncated" verdict instead of a generic "document modified". (finding #8)
+ */
+export function auditAnchor(source: string, spec: number = SEAL_SPEC): AuditAnchor {
+  const events = auditTrail(source).filter((e) => CHAIN_ANCHOR_KINDS.has(e.kind));
+  const len = events.length;
+  const head =
+    len === 0 ? auditGenesis(source, spec) : eventHash(events[len - 1].line, spec);
+  return { head, len };
+}
+
 /** Extract the ordered audit events (across the body and the history section). */
 export function auditTrail(source: string): AuditEvent[] {
   const events: AuditEvent[] = [];

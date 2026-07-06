@@ -4,6 +4,9 @@ import { parseIntentText } from "./parser";
 import { assertNotTemplate } from "./template";
 import { ALIAS_MAP } from "./language-registry";
 import { findHiddenContent, HiddenContentItem } from "./visibility";
+// Runtime-only use inside sealDocument/verifyDocument (both call it lazily), so the
+// trust ↔ audit-chain cycle resolves fine under ESM live bindings.
+import { auditAnchor } from "./audit-chain";
 
 // ─── Hash Computation ───────────────────────────────────────────────────────
 
@@ -732,11 +735,19 @@ export function sealDocument(source: string, options: SealOptions): SealResult {
   // the freeze line (seal scope), so editing history OR this recorded value breaks
   // the seal.
   const historyHash = computeHistoryHash(source, SEAL_SPEC);
-  const freezePlaceholder = `freeze: | at: ${at} | hash:  | spec: ${SEAL_SPEC} | appearance: ${appearanceHash} | history: ${historyHash} | status: locked\n`;
+  // Audit-chain tail anchor — the head hash + length of the approval chain (over the body
+  // WITH the new sign: line, excluding the freeze). Committed on the freeze line (seal
+  // scope) so deleting the last approval is detected precisely as a truncation. (finding #8)
+  const anchor = auditAnchor(
+    before + (needsNewline ? "\n" : "") + signLine + after,
+    SEAL_SPEC,
+  );
+  const chainMeta = ` | chain-head: ${anchor.head} | chain-len: ${anchor.len}`;
+  const freezePlaceholder = `freeze: | at: ${at} | hash:  | spec: ${SEAL_SPEC} | appearance: ${appearanceHash} | history: ${historyHash}${chainMeta} | status: locked\n`;
   const sealInput =
     before + (needsNewline ? "\n" : "") + signLine + freezePlaceholder + after;
   const sealHash = computeDocumentHash(sealInput, SEAL_SPEC, "seal");
-  const freezeLine = `freeze: | at: ${at} | hash: ${sealHash} | spec: ${SEAL_SPEC} | appearance: ${appearanceHash} | history: ${historyHash} | status: locked\n`;
+  const freezeLine = `freeze: | at: ${at} | hash: ${sealHash} | spec: ${SEAL_SPEC} | appearance: ${appearanceHash} | history: ${historyHash}${chainMeta} | status: locked\n`;
 
   const updated =
     before + (needsNewline ? "\n" : "") + signLine + freezeLine + after;
@@ -826,6 +837,14 @@ export interface VerifyResult {
    * identity. `undefined` when every signer is cryptographic (or there are none).
    */
   identityAsserted?: boolean;
+  /**
+   * The seal committed an approval-chain anchor (head + length) and the current chain is
+   * SHORTER than what was sealed — an approval was removed from the audit trail. `intact`
+   * is already false (the deleted approval is in the body hash), but this gives the
+   * precise forensic verdict: the trail was TRUNCATED, not merely "modified". `undefined`
+   * for seals with no committed anchor. (finding #8)
+   */
+  chainTruncated?: boolean;
 }
 
 /**
@@ -913,6 +932,15 @@ export function verifyDocument(source: string): VerifyResult {
       ? computeHistoryHash(source, freezeSpec ?? SEAL_SPEC) === expectedHistory
       : undefined;
 
+  // Approval-chain truncation (finding #8): the seal committed the chain's head+length.
+  // If the current chain is SHORTER, an approval was removed — a precise "truncated"
+  // verdict on top of the (already failing) seal. `undefined` for seals with no anchor.
+  const expectedChainLen = (doc.metadata.freeze as { chainLen?: number }).chainLen;
+  const chainTruncated =
+    expectedChainLen != null
+      ? auditAnchor(source, freezeSpec ?? SEAL_SPEC).len < expectedChainLen
+      : undefined;
+
   // The document is intact only if the seal holds AND its committed audit log is
   // unchanged. Old seals (no committed digest) fall back to seal integrity alone.
   const intact = sealIntact && historyIntact !== false;
@@ -947,11 +975,14 @@ export function verifyDocument(source: string): VerifyResult {
     hiddenContent: hiddenScan.hidden || undefined,
     hiddenContentItems: hiddenScan.hidden ? hiddenScan.items : undefined,
     identityAsserted: identityAsserted || undefined,
+    chainTruncated: chainTruncated || undefined,
     error: intact
       ? undefined
-      : sealIntact && historyIntact === false
-        ? "The audit/history log has been modified since sealing."
-        : "Document has been modified since sealing.",
+      : chainTruncated
+        ? "The audit trail was truncated — an approval was removed since sealing."
+        : sealIntact && historyIntact === false
+          ? "The audit/history log has been modified since sealing."
+          : "Document has been modified since sealing.",
     warning,
   };
 }
