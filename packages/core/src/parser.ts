@@ -845,6 +845,21 @@ function parseLine(
           const key = propMatch[1].trim();
           const rawValue = propMatch[2].trim();
 
+          // An empty key (`| : value`) would be stored as properties[""] and then
+          // silently DROPPED on round-trip (data loss, finding #48). Keep the segment as
+          // literal text instead — same as the malformed-segment branch below.
+          if (key === "") {
+            ctx.diagnostics.push({
+              severity: "warning",
+              code: "INVALID_PROPERTY_SEGMENT",
+              message: `Empty property key in '${segment.trim()}' — kept as literal text. A '|' in prose must be escaped as '\\|'.`,
+              line: ctx.lineNumber,
+              column: 1,
+            });
+            content += ` | ${unescapeIntentText(segment)}`;
+            continue;
+          }
+
           // v1 policy: property keys are not escapable (keep simple + deterministic).
           if (
             key.includes("\\") ||

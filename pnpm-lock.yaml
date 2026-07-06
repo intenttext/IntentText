@@ -127,8 +127,8 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.6)
       '@dotit/core':
-        specifier: ^3.4.0
-        version: 3.4.0
+        specifier: ^3.4.1
+        version: 3.4.1
       '@dotit/editor':
         specifier: ^3.2.0
         version: 3.2.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -161,8 +161,8 @@ importers:
   apps/hub:
     dependencies:
       '@dotit/core':
-        specifier: ^3.4.0
-        version: 3.4.0
+        specifier: ^3.4.1
+        version: 3.4.1
       mongodb:
         specifier: ^7.1.0
         version: 7.2.0(socks@2.8.9)
@@ -213,8 +213,8 @@ importers:
   apps/verify:
     dependencies:
       '@dotit/core':
-        specifier: ^3.4.0
-        version: 3.4.0
+        specifier: ^3.4.1
+        version: 3.4.1
       '@dotit/sign':
         specifier: ^3.3.0
         version: 3.3.0(@dotit/pades@1.1.0(pdfkit@0.10.0))
@@ -1834,8 +1834,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@dotit/core@3.4.0':
-    resolution: {integrity: sha512-ebiFg7ijDOEfS2A0K9MhRDKhYGl3pwk4a+bP9Q/9nTjpGmD6rDFTFVTTMucJA7WzyR4sfs//84znt//qerMx+w==}
+  '@dotit/core@3.4.1':
+    resolution: {integrity: sha512-2ql0xpe9drmrB9t3YpOoyXDiRPvyz9QowFPejaYboRgP9eVUhkD3lICQqQXIcnrKBQzEoNu4WtGv5GHAU7TxyQ==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -12377,7 +12377,7 @@ snapshots:
       fflate: 0.8.3
       node-html-parser: 7.1.0
 
-  '@dotit/core@3.4.0':
+  '@dotit/core@3.4.1':
     dependencies:
       '@types/node': 20.19.43
       fflate: 0.8.3
@@ -12438,7 +12438,7 @@ snapshots:
 
   '@dotit/sign@3.0.0':
     dependencies:
-      '@dotit/core': 3.4.0
+      '@dotit/core': 3.4.1
       '@noble/curves': 1.9.7
 
   '@dotit/sign@3.1.0':
@@ -12448,7 +12448,7 @@ snapshots:
 
   '@dotit/sign@3.3.0(@dotit/pades@1.1.0(pdfkit@0.10.0))':
     dependencies:
-      '@dotit/core': 3.4.0
+      '@dotit/core': 3.4.1
       '@noble/curves': 1.9.7
     optionalDependencies:
       '@dotit/pades': 1.1.0(pdfkit@0.10.0)

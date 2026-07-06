@@ -6,6 +6,19 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.4.1] — 2026-07-06 — bank-readiness P2 (batch 1): converter/parser data integrity
+
+Correctness fixes, no API change. `@dotit/core` **3.4.1**.
+
+### Fixed
+
+- **Empty property key discarded data** (#48). A segment whose key trims to empty (`| : value`)
+  was stored as `properties[""]` and then silently dropped on round-trip. It is now kept as literal
+  text (with a warning), so the value is never lost.
+- **Control characters corrupted DOCX/XLSX** (#54). `escapeXml` now strips XML-1.0-forbidden control
+  characters (all C0 controls except tab/LF/CR, plus U+FFFE/U+FFFF and unpaired surrogates) so the
+  emitted OOXML is well-formed and the file actually opens.
+
 ## [3.4.0] — 2026-07-06 — bank-readiness P1: audit-chain truncation anchor
 
 Additive and backward-compatible (new seals still verify under older verifiers — the anchor

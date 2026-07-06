@@ -54,12 +54,22 @@ export function decodeXmlEntities(text: string): string {
 
 /** Escape a string for safe inclusion in XML text/attribute content. */
 export function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
+  return (
+    text
+      // Strip characters XML 1.0 FORBIDS (all C0 controls except tab/LF/CR, plus the
+      // U+FFFE/U+FFFF noncharacters) and unpaired surrogates — otherwise the emitted
+      // DOCX/XLSX is not well-formed XML and the file won't open (finding #54).
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFE\uFFFF]/g, "")
+      .replace(
+        /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g,
+        "",
+      )
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;")
+  );
 }
 
 /**
