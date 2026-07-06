@@ -120,29 +120,44 @@ export interface PdfSignatureInfo extends CmsVerifyResult {
   present: boolean;
   /** True if the /ByteRange spans the whole file (no content appended after signing). */
   coversWholeFile: boolean;
+  /** How many signatures the PDF carries. When > 1, this result is only the FIRST —
+   *  use verifyAllPdfSignatures to verify every approver (finding #41). */
+  signatureCount?: number;
+}
+
+type RawSig = { byteRange: number[]; signedBytes: Uint8Array; cms: Uint8Array };
+
+/** Parse EVERY signature's /ByteRange + /Contents from a signed PDF (in file order). */
+function extractAllSignatures(pdf: Uint8Array): RawSig[] {
+  const latin1 = Buffer.from(pdf).toString("latin1");
+  const buf = Buffer.from(pdf);
+  const re = /\/ByteRange\s*\[\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*\]/g;
+  const out: RawSig[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(latin1)) !== null) {
+    const a = +m[1],
+      b = +m[2],
+      c = +m[3],
+      d = +m[4];
+    const signedBytes = Buffer.concat([
+      buf.subarray(a, a + b),
+      buf.subarray(c, c + d),
+    ]);
+    // /Contents <hex…> lives in the gap between the two ranges.
+    const hexMatch = buf.subarray(a + b, c).toString("latin1").match(/<([0-9A-Fa-f]+)>/);
+    if (!hexMatch) continue;
+    out.push({
+      byteRange: [a, b, c, d],
+      signedBytes: new Uint8Array(signedBytes),
+      cms: new Uint8Array(Buffer.from(hexMatch[1], "hex")),
+    });
+  }
+  return out;
 }
 
 /** Parse the FIRST signature's /ByteRange + /Contents from a signed PDF. */
-function extractSignature(
-  pdf: Uint8Array,
-): { byteRange: number[]; signedBytes: Uint8Array; cms: Uint8Array } | null {
-  const latin1 = Buffer.from(pdf).toString("latin1");
-  const m = latin1.match(
-    /\/ByteRange\s*\[\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*\]/,
-  );
-  if (!m) return null;
-  const a = +m[1],
-    b = +m[2],
-    c = +m[3],
-    d = +m[4];
-  const buf = Buffer.from(pdf);
-  const signedBytes = Buffer.concat([buf.subarray(a, a + b), buf.subarray(c, c + d)]);
-  // /Contents <hex…> lives in the gap between the two ranges.
-  const gap = buf.subarray(a + b, c).toString("latin1");
-  const hexMatch = gap.match(/<([0-9A-Fa-f]+)>/);
-  if (!hexMatch) return null;
-  const cms = Buffer.from(hexMatch[1], "hex"); // trailing zero-padding is ignored by the DER parser
-  return { byteRange: [a, b, c, d], signedBytes: new Uint8Array(signedBytes), cms: new Uint8Array(cms) };
+function extractSignature(pdf: Uint8Array): RawSig | null {
+  return extractAllSignatures(pdf)[0] ?? null;
 }
 
 /**
@@ -157,8 +172,53 @@ export async function verifyPdfSignature(
   if (!sig) {
     return { present: false, coversWholeFile: false, valid: false, reason: "no signature found" };
   }
+  const all = extractAllSignatures(pdf);
   const [a, b, c, d] = sig.byteRange;
   const coversWholeFile = a === 0 && c + d === pdf.byteLength;
   const cms = await verifyDetachedCms(sig.signedBytes, sig.cms, opts);
-  return { present: true, coversWholeFile, ...cms };
+  return { present: true, coversWholeFile, signatureCount: all.length, ...cms };
+}
+
+export interface PdfMultiSignatureInfo {
+  present: boolean;
+  /** Number of signatures found. */
+  count: number;
+  /** Every signature verifies (CMS math) AND covers the whole file. */
+  allValid: boolean;
+  /** Per-signature verdict, in file order (approver 1, 2, …). */
+  signatures: PdfSignatureInfo[];
+}
+
+/**
+ * Verify EVERY signature in a PDF — not just the first (finding #41). A multi-approver
+ * PDF (several `sign:` parties) carries one signature dictionary per approver, each with
+ * its own /ByteRange; `verifyPdfSignature` checks only the first, so a later approver's
+ * broken/appended signature would go unnoticed. This verifies each and reports per-signer.
+ */
+export async function verifyAllPdfSignatures(
+  pdf: Uint8Array,
+  opts?: { trustedRoots?: pkijs.Certificate[] },
+): Promise<PdfMultiSignatureInfo> {
+  const sigs = extractAllSignatures(pdf);
+  if (sigs.length === 0) {
+    return { present: false, count: 0, allValid: false, signatures: [] };
+  }
+  const signatures: PdfSignatureInfo[] = [];
+  for (const s of sigs) {
+    const [a, b, c, d] = s.byteRange;
+    const coversWholeFile = a === 0 && c + d === pdf.byteLength;
+    const cms = await verifyDetachedCms(s.signedBytes, s.cms, opts);
+    signatures.push({
+      present: true,
+      coversWholeFile,
+      signatureCount: sigs.length,
+      ...cms,
+    });
+  }
+  return {
+    present: true,
+    count: signatures.length,
+    allValid: signatures.every((r) => r.valid && r.coversWholeFile),
+    signatures,
+  };
 }

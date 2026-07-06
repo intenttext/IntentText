@@ -17,8 +17,17 @@ export {
 } from "./crypto.js";
 export type { GeneratedCert, CmsVerifyResult } from "./crypto.js";
 
-export { signPdf, signPdfWithPem, verifyPdfSignature } from "./pdf.js";
-export type { SignPdfOptions, PdfSignatureInfo } from "./pdf.js";
+export {
+  signPdf,
+  signPdfWithPem,
+  verifyPdfSignature,
+  verifyAllPdfSignatures,
+} from "./pdf.js";
+export type {
+  SignPdfOptions,
+  PdfSignatureInfo,
+  PdfMultiSignatureInfo,
+} from "./pdf.js";
 
 export {
   requestTimestampToken,

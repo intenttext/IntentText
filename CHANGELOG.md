@@ -6,6 +6,22 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [@dotit/pades 1.2.0] — 2026-07-06 — bank-readiness P2: PAdES verification hardening
+
+`@dotit/pades` **1.2.0**.
+
+### Fixed / Added
+
+- **Certificate validity is verified** (#43). `verifyDetachedCms`/`verifyPdfSignature` never checked
+  the signing cert's validity window or keyUsage, so a signature from an EXPIRED cert read as valid.
+  They now expose `certExpired` (checked at the trusted-timestamp time when one verifies — LTV-lite —
+  else now) and `keyUsageValid` (digitalSignature / nonRepudiation), with a clear `reason`. `valid`
+  stays the CMS math; a trust decision should require `!certExpired && keyUsageValid` (like `chainValid`).
+- **Every signature is verified, not just the first** (#41). A multi-approver PDF carries one
+  signature dictionary per approver; `verifyPdfSignature` checked only the first. New
+  `verifyAllPdfSignatures` enumerates every `/ByteRange`, verifies each, and returns per-signer
+  results + `allValid`. `verifyPdfSignature` now reports `signatureCount`.
+
 ## [@dotit/editor 3.3.0] — 2026-07-06 — bank-readiness P2: honest trust banner (#63)
 
 `@dotit/editor` **3.3.0** (deps `@dotit/core` ^3.4.1).

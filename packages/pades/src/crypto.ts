@@ -524,6 +524,13 @@ export interface CmsVerifyResult {
   timestampTime?: string;
   /** When trusted roots are supplied: did the cert chain validate to one? */
   chainValid?: boolean;
+  /** The signing certificate was OUTSIDE its validity window at signing time (the trusted
+   *  timestamp's genTime if one verifies — LTV-lite — else now). `valid` is the CMS math;
+   *  a trust decision must reject an expired cert. (finding #43) */
+  certExpired?: boolean;
+  /** The signing certificate's keyUsage permits signing (digitalSignature or
+   *  nonRepudiation), or it carries no keyUsage restriction. False = wrong key purpose. */
+  keyUsageValid?: boolean;
   reason?: string;
 }
 
@@ -610,6 +617,26 @@ export async function verifyDetachedCms(
       timestampTime = tsv.valid ? tsv.genTime : undefined;
     }
 
+    // Certificate validity (finding #43): a signature from an EXPIRED cert, or one whose
+    // keyUsage forbids signing, is not trustworthy. Checked at the trusted-timestamp time
+    // when a token verifies (LTV-lite) else now. Exposed (not folded into `valid`, which
+    // is the CMS math) so a bank verdict can require it — like `chainValid`.
+    let certExpired: boolean | undefined;
+    let keyUsageValid: boolean | undefined;
+    if (cert instanceof pkijs.Certificate) {
+      const at =
+        timestampValid && timestampTime ? new Date(timestampTime) : new Date();
+      certExpired = at < cert.notBefore.value || at > cert.notAfter.value;
+      const kuExt = cert.extensions?.find((e) => e.extnID === "2.5.29.15");
+      const bits = (
+        kuExt?.parsedValue as { valueBlock?: { valueHexView?: Uint8Array } }
+      )?.valueBlock?.valueHexView;
+      keyUsageValid =
+        !kuExt || !bits || bits.length === 0
+          ? true // no restriction, or unparseable → don't fail solely on keyUsage
+          : (bits[0] & 0x80) !== 0 || (bits[0] & 0x40) !== 0; // digitalSignature | nonRepudiation
+    }
+
     return {
       valid: !!verified,
       signerCommonName,
@@ -619,6 +646,15 @@ export async function verifyDetachedCms(
       timestampTrusted,
       timestampTime,
       chainValid,
+      certExpired,
+      keyUsageValid,
+      reason: !verified
+        ? "signature does not verify over the signed bytes"
+        : certExpired
+          ? "signing certificate was outside its validity window at signing time"
+          : keyUsageValid === false
+            ? "signing certificate's keyUsage does not permit signing"
+            : undefined,
     };
   } catch (e) {
     return { valid: false, reason: e instanceof Error ? e.message : String(e) };
