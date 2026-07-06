@@ -407,8 +407,8 @@ importers:
   packages/mcp:
     dependencies:
       '@dotit/core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.5.0
+        version: 3.5.0
       '@dotit/sign':
         specifier: ^3.0.0
         version: 3.0.0

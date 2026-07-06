@@ -1,6 +1,6 @@
 {
   "name": "@dotit/mcp",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "mcpName": "io.github.intenttext/intenttext-mcp",
   "description": "MCP server for IntentText — parse, validate, query, and render .it documents from any AI agent",
   "main": "dist/index.js",
@@ -42,7 +42,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@dotit/core": "^3.1.0",
+    "@dotit/core": "^3.5.0",
     "@dotit/sign": "^3.0.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "express": "^4.19.2",

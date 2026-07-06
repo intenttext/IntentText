@@ -6,6 +6,18 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [@dotit/mcp 3.1.0] — 2026-07-06 — bank-readiness P2: authenticate the HTTP transport (#58)
+
+`@dotit/mcp` **3.1.0** (deps `@dotit/core` ^3.5.0). Secure-by-default change below.
+
+### Fixed
+
+- **HTTP MCP transport had no authentication** (#58). `POST /mcp` invokes every document tool;
+  anyone who could reach it could run them. It now requires a bearer token: set `MCP_AUTH_TOKEN` and
+  send `Authorization: Bearer <token>` (constant-time compared). With no token configured the
+  endpoint is DISABLED (503) — secure by default — and the server logs a startup warning. `/health`
+  and the public server-card stay unauthenticated.
+
 ## [3.5.0] — 2026-07-06 — bank-readiness P2: gate remote auto-loading resources (#44)
 
 `@dotit/core` **3.5.0**. Note the DEFAULT behavior change below.
