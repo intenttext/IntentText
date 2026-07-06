@@ -6,6 +6,29 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.3.0] — 2026-07-06 — bank-readiness P1 (wave 1): trusted timestamps + form authenticity
+
+Additive and backward-compatible. Closes two more high-severity findings from the audit.
+`@dotit/core` **3.3.0**, `@dotit/sign` **3.2.0**, `@dotit/pades` **1.1.0**.
+
+### Fixed
+
+- **PAdES timestamps are actually verified (`@dotit/pades`)** (#10, #11). `verifyTimestampToken`
+  was trusting the RFC-3161 message imprint ALONE — a self-minted, backdated token passed. It now
+  verifies the token's CMS SignedData signature (a tampered/forged token fails) and, when
+  `trustedRoots` are supplied, validates the TSA cert chain plus the timestamping EKU
+  (id-kp-timeStamping). `verifyDetachedCms`/`verifyPdfSignature` no longer report `timestamped:true`
+  from mere presence — they return `timestampValid` (and `timestampTrusted`) from real verification,
+  and surface the TSA's `timestampTime` ONLY when it verifies.
+
+### Added
+
+- **Key-bound form-structure seal (`@dotit/sign`)** (#21). `signFormStructure` binds a blank form's
+  structure seal to an Ed25519 key; `verifyFormStructureSignature` returns `authentic` (the signature
+  verifies over the current structure) + `publicKey`. So the reword-a-field-and-reseal-under-the-
+  author's-name attack is `authentic:false`. Core's `verifyFormStructure` now reports `cryptographic`
+  and `sealerAsserted` so a name-only seal is never presented as proven authorship.
+
 ## [3.2.0] — 2026-07-06 — bank-readiness P0: trust hardening + honest verdicts
 
 Additive and backward-compatible. Seals made under 3.0/3.1 still verify. No grammar or keyword

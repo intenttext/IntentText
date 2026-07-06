@@ -127,8 +127,8 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.6)
       '@dotit/core':
-        specifier: ^3.2.0
-        version: 3.2.0
+        specifier: ^3.3.0
+        version: 3.3.0
       '@dotit/editor':
         specifier: ^3.2.0
         version: 3.2.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -161,8 +161,8 @@ importers:
   apps/hub:
     dependencies:
       '@dotit/core':
-        specifier: ^3.2.0
-        version: 3.2.0
+        specifier: ^3.3.0
+        version: 3.3.0
       mongodb:
         specifier: ^7.1.0
         version: 7.2.0(socks@2.8.9)
@@ -213,11 +213,11 @@ importers:
   apps/verify:
     dependencies:
       '@dotit/core':
+        specifier: ^3.3.0
+        version: 3.3.0
+      '@dotit/sign':
         specifier: ^3.2.0
         version: 3.2.0
-      '@dotit/sign':
-        specifier: ^3.1.0
-        version: 3.1.0
       react:
         specifier: ^19.2.4
         version: 19.2.6
@@ -497,8 +497,8 @@ importers:
   packages/sign:
     dependencies:
       '@dotit/core':
-        specifier: ^3.2.0
-        version: 3.2.0
+        specifier: ^3.3.0
+        version: 3.3.0
       '@noble/curves':
         specifier: ^1.8.1
         version: 1.9.7
@@ -1826,6 +1826,11 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
+  '@dotit/core@3.3.0':
+    resolution: {integrity: sha512-zICaH+Txi09WIITzeCJznielbH0R+6hSRE+36zB1JfyMRiNBc12P0fSJakv5RimsG1MddxVO/KDy6krqWE7Y8A==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@dotit/editor@3.2.0':
     resolution: {integrity: sha512-Rw/gh12Vvpj40PgNKpvqU6oN/u/xmwDwiBjW10U1VrjwW7BsjQx398aLQrtGQiabatck6zo4Da9pzVtVPweMSA==}
     peerDependencies:
@@ -1846,6 +1851,10 @@ packages:
 
   '@dotit/sign@3.1.0':
     resolution: {integrity: sha512-yOLNgL0SdUn6PKa8O4aiCILmhTV5FOiZGQp/mZOkMcn1sE0fbLea2I7G7ben0Zl7DkN6ECu7NdvXeS+gcB84yw==}
+    hasBin: true
+
+  '@dotit/sign@3.2.0':
+    resolution: {integrity: sha512-coPAh2gEpB0EjOjpiyO5a6gxxppXoa2KgHC+25ZYN3LH9O8zjnxwP2Ju5/k0JMuVJ3HhTbcGUpQkuGB5b62YfA==}
     hasBin: true
 
   '@electron/asar@3.4.1':
@@ -12345,6 +12354,12 @@ snapshots:
       fflate: 0.8.3
       node-html-parser: 7.1.0
 
+  '@dotit/core@3.3.0':
+    dependencies:
+      '@types/node': 20.19.43
+      fflate: 0.8.3
+      node-html-parser: 7.1.0
+
   '@dotit/editor@3.2.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
       '@dotit/core': 3.2.0
@@ -12389,12 +12404,17 @@ snapshots:
 
   '@dotit/sign@3.0.0':
     dependencies:
-      '@dotit/core': 3.2.0
+      '@dotit/core': 3.3.0
       '@noble/curves': 1.9.7
 
   '@dotit/sign@3.1.0':
     dependencies:
       '@dotit/core': 3.2.0
+      '@noble/curves': 1.9.7
+
+  '@dotit/sign@3.2.0':
+    dependencies:
+      '@dotit/core': 3.3.0
       '@noble/curves': 1.9.7
 
   '@electron/asar@3.4.1':

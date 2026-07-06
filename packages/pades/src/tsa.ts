@@ -84,13 +84,29 @@ export function timestampTokenTime(tstDer: Uint8Array): string | undefined {
 }
 
 export interface TimestampVerification {
-  /** The token's message imprint matches SHA-256(`data`) — it really timestamps it. */
+  /** Overall verdict: the token's CMS signature verifies, its imprint binds to `data`,
+   *  and — when trusted roots were supplied — its TSA cert chains to one with the
+   *  timestamping EKU. WITHOUT trusted roots this proves the token is well-formed,
+   *  untampered, and timestamps THIS data, but NOT that the TSA is genuine (a
+   *  self-signed token is still signature+imprint valid) — supply `trustedRoots` and
+   *  read `chainTrusted` for an eIDAS-grade check. */
   valid: boolean;
+  /** The token's CMS SignedData signature verifies — it was signed by the private key
+   *  of its embedded certificate and has not been tampered with. */
+  signatureValid: boolean;
+  /** The RFC-3161 message imprint equals SHA-256(`data`) — it timestamps THIS data. */
+  imprintValid: boolean;
+  /** The TSA certificate chains to a supplied trusted root AND carries the timestamping
+   *  EKU (id-kp-timeStamping, 1.3.6.1.5.5.7.3.8). `undefined` when no roots supplied. */
+  chainTrusted?: boolean;
   /** The TSA's asserted time (ISO), if the token parsed. */
   genTime?: string;
   /** The TSA signer certificate's subject CN, best-effort. */
   tsa?: string;
 }
+
+/** id-kp-timeStamping — the EKU an RFC-3161 TSA certificate MUST carry. */
+const ID_KP_TIMESTAMPING = "1.3.6.1.5.5.7.3.8";
 
 /**
  * Verify that a TimeStampToken actually anchors `data` — i.e. its RFC-3161 message
@@ -98,13 +114,16 @@ export interface TimestampVerification {
  * can't make: it proves the token is a timestamp OF THIS content (the seal hash),
  * not some other data. Returns the asserted `genTime` and the TSA name alongside.
  *
- * NOTE: this confirms the imprint binding + parses the asserted time; it does NOT by
- * itself validate the TSA's certificate chain to a trusted root (do that against your
- * trusted-TSA list / the system trust store for a full eIDAS-grade check).
+ * This verifies three things: (1) the CMS signature over the TSTInfo (the token is
+ * untampered and signed by its embedded cert), (2) the message-imprint binding to
+ * `data`, and (3) — only when `trustedRoots` are supplied — that the TSA cert chains
+ * to a trusted root and carries the timestamping EKU. Without roots, `valid` proves
+ * (1)+(2) but cannot prove the TSA is genuine; pass `trustedRoots` for a full check.
  */
 export async function verifyTimestampToken(
   tstDer: Uint8Array,
   data: Uint8Array,
+  opts?: { trustedRoots?: pkijs.Certificate[] },
 ): Promise<TimestampVerification> {
   try {
     const ci = new pkijs.ContentInfo({
@@ -118,17 +137,59 @@ export async function verifyTimestampToken(
     });
     const genTime = tstInfo.genTime.toISOString();
 
-    // The token must use SHA-256 and its imprint must equal SHA-256(data).
+    const asBool = (r: unknown) =>
+      typeof r === "boolean"
+        ? r
+        : (r as { signatureVerified?: boolean }).signatureVerified === true;
+
+    // (1) Manual imprint check (granular reporting): SHA-256 + imprint == SHA-256(data).
     const usesSha256 =
       tstInfo.messageImprint.hashAlgorithm.algorithmId === SHA256_OID;
     const digest = new Uint8Array(await subtle.digest("SHA-256", ab(data)));
     const imprint = new Uint8Array(
       tstInfo.messageImprint.hashedMessage.valueBlock.valueHexView,
     );
-    const valid =
+    const imprintValid =
       usesSha256 &&
       digest.length === imprint.length &&
       digest.every((b, i) => b === imprint[i]);
+
+    // (2) CMS signature. For an id-ct-TSTInfo eContent, pkijs verifies BOTH the SignerInfo
+    //     signature AND the imprint binding to `data` in one call — pass the ORIGINAL
+    //     timestamped data (not the eContent). This is the authenticity check the old
+    //     code skipped: a tampered/forged-signature token now fails.
+    let signatureValid = false;
+    try {
+      signatureValid = asBool(
+        await sd.verify({ signer: 0, data: ab(data), checkChain: false }),
+      );
+    } catch {
+      signatureValid = false;
+    }
+
+    // (3) TSA cert chains to a trusted root AND carries id-kp-timeStamping — only when
+    //     trust anchors are supplied (pkijs throws on an un-buildable chain → false).
+    let chainTrusted: boolean | undefined;
+    if (opts?.trustedRoots?.length) {
+      try {
+        const chainOk = asBool(
+          await sd.verify({
+            signer: 0,
+            data: ab(data),
+            checkChain: true,
+            trustedCerts: opts.trustedRoots,
+          }),
+        );
+        const cert = sd.certificates?.[0] as pkijs.Certificate | undefined;
+        const ekuExt = cert?.extensions?.find((e) => e.extnID === "2.5.29.37");
+        const purposes =
+          (ekuExt?.parsedValue as { keyPurposes?: string[] } | undefined)
+            ?.keyPurposes ?? [];
+        chainTrusted = chainOk && purposes.includes(ID_KP_TIMESTAMPING);
+      } catch {
+        chainTrusted = false;
+      }
+    }
 
     let tsa: string | undefined;
     try {
@@ -139,8 +200,13 @@ export async function verifyTimestampToken(
       /* no/parse-less cert — leave tsa undefined */
     }
 
-    return { valid, genTime, tsa };
+    const valid =
+      signatureValid &&
+      imprintValid &&
+      (opts?.trustedRoots?.length ? !!chainTrusted : true);
+
+    return { valid, signatureValid, imprintValid, chainTrusted, genTime, tsa };
   } catch {
-    return { valid: false };
+    return { valid: false, signatureValid: false, imprintValid: false };
   }
 }

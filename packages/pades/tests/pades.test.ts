@@ -126,6 +126,9 @@ describe("PAdES PDF signing", () => {
       const info = await verifyPdfSignature(signed);
       expect(info.valid).toBe(true);
       expect(info.timestamped).toBe(true);
+      // Not just PRESENT — the embedded token actually VERIFIES (CMS signature + imprint
+      // over the signature it covers). The asserted time is only surfaced when valid.
+      expect(info.timestampValid).toBe(true);
       expect(info.timestampTime).toBeTruthy();
     },
     30_000,

@@ -26,6 +26,7 @@ import {
   SEAL_SPEC,
   verifyTrust,
   TrustVerification,
+  formStructureHash,
 } from "@dotit/core";
 
 // ─── Encoding helpers (base64url, dependency-free) ───────────────────────────
@@ -364,6 +365,159 @@ export function verifyFullTrust(source: string): FullTrustResult {
     signatures,
     authenticated,
     validSignatureCount,
+  };
+}
+
+// ─── Key-bound form-structure seal (author authenticity) ─────────────────────
+//
+// @dotit/core's sealFormStructure embeds a `form-seal:` line carrying the structure
+// hash + a sealer NAME — integrity, but the name is an unauthenticated claim: a filler
+// can reword a field, re-seal the tampered form under the bank's name, and it still
+// verifies "intact". These bind that seal to an Ed25519 key so the AUTHOR of the
+// structure is provable, exactly as signDocumentCrypto does for a record.
+
+const FORM_SEAL_RE = /^\s*form-seal:/i;
+
+/** The signed payload for a structure seal — binds the hash to the sealer identity. */
+function formSealPayload(
+  structureHash: string,
+  sealer: string,
+  role: string,
+  at: string,
+): Uint8Array {
+  return enc(`form-seal\n${structureHash}\n${sealer}\n${role}\n${at}`);
+}
+
+/** Parse a `form-seal:` line into its fields (self-contained; no core version coupling). */
+function parseFormSealLine(
+  source: string,
+): { sealer: string; structure: string; at: string; role?: string; key?: string; sig?: string } | null {
+  for (const raw of (source ?? "").split(/\r?\n/)) {
+    const t = raw.trimStart();
+    if (!FORM_SEAL_RE.test(t)) continue;
+    const rest = t.replace(/^form-seal:\s*/i, "");
+    const firstPipe = rest.indexOf("|");
+    const sealer = (firstPipe >= 0 ? rest.slice(0, firstPipe) : rest).trim();
+    const props: Record<string, string> = {};
+    if (firstPipe >= 0) {
+      for (const seg of rest.slice(firstPipe + 1).split("|")) {
+        const c = seg.indexOf(":");
+        if (c > 0) props[seg.slice(0, c).trim().toLowerCase()] = seg.slice(c + 1).trim();
+      }
+    }
+    return {
+      sealer,
+      structure: props.structure ?? "",
+      at: props.at ?? "",
+      role: props.role,
+      key: props.key,
+      sig: props.sig,
+    };
+  }
+  return null;
+}
+
+export interface FormStructureSignResult {
+  source: string;
+  publicKey: string;
+  structureHash: string;
+}
+
+/**
+ * Author-side: seal a blank form's STRUCTURE with an Ed25519 key. Unlike core's
+ * name-only sealFormStructure, this proves WHO sealed the structure — the embedded
+ * signature covers the structure hash + sealer identity, so a tampered re-seal under a
+ * different name (or the same name with a different key) is detectable.
+ */
+export function signFormStructure(
+  source: string,
+  opts: { sealer: string; role?: string; privateKey: string },
+): FormStructureSignResult {
+  // NB: a blank FORM (input: fields) is the intended input here — the author seals the
+  // structure BEFORE it is filled — so this does NOT call assertNotTemplate (which would
+  // reject `input:`), mirroring core's sealFormStructure.
+  const structureHash = formStructureHash(source);
+  const publicKey = toB64url(ed25519.getPublicKey(fromB64url(opts.privateKey)));
+  const at = new Date().toISOString();
+  const sig = ed25519.sign(
+    formSealPayload(structureHash, opts.sealer, opts.role ?? "", at),
+    fromB64url(opts.privateKey),
+  );
+  const line =
+    `form-seal: ${opts.sealer}` +
+    (opts.role ? ` | role: ${opts.role}` : "") +
+    ` | structure: ${structureHash} | at: ${at}` +
+    ` | key: ed25519:${publicKey} | sig: ${toB64url(sig)}`;
+  const lines = (source ?? "").split(/\r?\n/);
+  const idx = lines.findIndex((l) => FORM_SEAL_RE.test(l.trimStart()));
+  if (idx >= 0) {
+    lines[idx] = line;
+    return { source: lines.join("\n"), publicKey, structureHash };
+  }
+  const base = (source ?? "").replace(/\n*$/, "");
+  return { source: `${base}\n${line}\n`, publicKey, structureHash };
+}
+
+export interface FormStructureSignatureCheck {
+  /** The form carries a `form-seal:` line. */
+  sealed: boolean;
+  /** The current structure hash matches the sealed one (integrity). */
+  intact: boolean;
+  /** The seal is key-bound (carries key+sig) rather than a bare name. */
+  cryptographic: boolean;
+  /** The Ed25519 signature verifies against the CURRENT structure + sealer identity —
+   *  the sealer is authenticated. Compare `publicKey` to your trusted author key. */
+  authentic: boolean;
+  sealer?: string;
+  /** The embedded public key (ed25519:… stripped), when key-bound. */
+  publicKey?: string;
+  reason?: string;
+}
+
+/**
+ * Verify a form's structure seal cryptographically. `authentic` is true only when the
+ * seal is key-bound AND its Ed25519 signature verifies over the current structure —
+ * so the finding-#21 attack (reword a field, re-seal under the bank's name) is
+ * `authentic:false`. As with record signatures, the caller must still confirm
+ * `publicKey` is the author's trusted key.
+ */
+export function verifyFormStructureSignature(
+  source: string,
+): FormStructureSignatureCheck {
+  const seal = parseFormSealLine(source);
+  if (!seal)
+    return { sealed: false, intact: false, cryptographic: false, authentic: false };
+  const currentHash = formStructureHash(source);
+  const intact = currentHash === seal.structure;
+  const cryptographic = !!(seal.key && seal.sig);
+  let authentic = false;
+  let reason: string | undefined;
+  if (!cryptographic) {
+    reason = "form-seal is name-only (not key-bound)";
+  } else {
+    try {
+      const pub = decodeEd25519Key(
+        (seal.key as string).replace(/^ed25519:/, ""),
+        "public key",
+      );
+      authentic = ed25519.verify(
+        fromB64url(seal.sig as string),
+        formSealPayload(currentHash, seal.sealer, seal.role ?? "", seal.at),
+        pub,
+      );
+      if (!authentic) reason = "signature does not match current structure";
+    } catch (e) {
+      reason = `malformed form-seal signature: ${(e as Error).message}`;
+    }
+  }
+  return {
+    sealed: true,
+    intact,
+    cryptographic,
+    authentic,
+    sealer: seal.sealer,
+    publicKey: cryptographic ? (seal.key as string).replace(/^ed25519:/, "") : undefined,
+    reason,
   };
 }
 

@@ -34,6 +34,14 @@ export interface FormSeal {
   structureHash: string;
   /** ISO timestamp. */
   at: string;
+  /** Ed25519 public key (`ed25519:…`) when the structure seal was KEY-BOUND via
+   *  @dotit/sign (signFormStructure). Absent for a name-only seal — whose sealer name
+   *  is an unauthenticated claim anyone can forge. */
+  key?: string;
+  /** Ed25519 signature (base64url) over the structure hash + sealer identity. */
+  sig?: string;
+  /** Sealer role, when provided (bound into a key-bound signature). */
+  role?: string;
 }
 
 /**
@@ -84,7 +92,14 @@ export function extractFormSeal(source: string): FormSeal | null {
         if (c > 0) props[seg.slice(0, c).trim().toLowerCase()] = seg.slice(c + 1).trim();
       }
     }
-    return { sealer, structureHash: props.structure ?? "", at: props.at ?? "" };
+    return {
+      sealer,
+      structureHash: props.structure ?? "",
+      at: props.at ?? "",
+      key: props.key,
+      sig: props.sig,
+      role: props.role,
+    };
   }
   return null;
 }
@@ -122,6 +137,14 @@ export interface FormStructureVerification {
   structureHash?: string;
   /** The structure hash the author committed to. */
   expected?: string;
+  /** The `form-seal:` carries an Ed25519 key+sig (key-bound via @dotit/sign) rather than
+   *  a bare name. Integrity (`intact`) is a hash check either way; only a key-bound seal
+   *  proves WHO sealed the structure. The Ed25519 check itself is @dotit/sign's job. */
+  cryptographic: boolean;
+  /** The structure is sealed but the sealer is asserted by NAME ONLY — not authenticated.
+   *  A tampered form can be re-sealed under any name and still report `intact:true`, so a
+   *  bank verdict must NOT treat the sealer as proven unless `cryptographic`. */
+  sealerAsserted: boolean;
 }
 
 /**
@@ -132,13 +155,18 @@ export interface FormStructureVerification {
  */
 export function verifyFormStructure(source: string): FormStructureVerification {
   const seal = extractFormSeal(source);
-  if (!seal) return { sealed: false, intact: false };
+  if (!seal)
+    return { sealed: false, intact: false, cryptographic: false, sealerAsserted: false };
   const structureHash = formStructureHash(source);
+  const cryptographic = !!(seal.key && seal.sig);
   return {
     sealed: true,
     intact: structureHash === seal.structureHash,
     sealer: seal.sealer,
     structureHash,
     expected: seal.structureHash,
+    cryptographic,
+    // Name-only seal → the sealer is claimed, not proven.
+    sealerAsserted: !cryptographic,
   };
 }

@@ -12,7 +12,7 @@
 import * as pkijs from "pkijs";
 import * as asn1js from "asn1js";
 import { webcrypto } from "node:crypto";
-import { requestTimestampToken, timestampTokenTime } from "./tsa.js";
+import { requestTimestampToken, verifyTimestampToken } from "./tsa.js";
 
 const ID_AA_TIMESTAMP_TOKEN = "1.2.840.113549.1.9.16.2.14";
 
@@ -509,9 +509,18 @@ export interface CmsVerifyResult {
   valid: boolean;
   signerCommonName?: string;
   signedAt?: string;
-  /** True if a PAdES-T trusted timestamp (id-aa-timeStampToken) is present. */
+  /** True if a PAdES-T trusted timestamp (id-aa-timeStampToken) is PRESENT. Presence
+   *  alone is not trust — check `timestampValid`. */
   timestamped?: boolean;
-  /** The TSA's asserted time (genTime), when timestamped. */
+  /** The embedded timestamp token actually VERIFIES: its CMS signature is valid and its
+   *  imprint binds to the signature it timestamps. `false` for a forged/mismatched
+   *  token even though `timestamped` is true. */
+  timestampValid?: boolean;
+  /** The TSA cert chained to a supplied trusted root with the timestamping EKU
+   *  (`undefined` unless trusted roots were supplied). */
+  timestampTrusted?: boolean;
+  /** The TSA's asserted time (genTime) — surfaced ONLY when `timestampValid`, so an
+   *  attacker-chosen time on an unverified token is never reported as authoritative. */
   timestampTime?: string;
   /** When trusted roots are supplied: did the cert chain validate to one? */
   chainValid?: boolean;
@@ -572,17 +581,33 @@ export async function verifyDetachedCms(
       signedAt = v.toDate().toISOString();
     }
 
-    // PAdES-T trusted timestamp (unsigned attribute), if present.
+    // PAdES-T trusted timestamp (unsigned attribute), if present. Presence is NOT
+    // trust — actually verify the token: its CMS signature must be valid and its imprint
+    // must bind to the SignerInfo signature it timestamps. Only then is its genTime
+    // surfaced as authoritative (a forged/backdated token → timestampValid:false).
     let timestamped = false;
+    let timestampValid: boolean | undefined;
+    let timestampTrusted: boolean | undefined;
     let timestampTime: string | undefined;
     const tsAttr = signedData.signerInfos[0].unsignedAttrs?.attributes.find(
       (a) => a.type === ID_AA_TIMESTAMP_TOKEN,
     );
     if (tsAttr) {
       timestamped = true;
-      timestampTime = timestampTokenTime(
-        new Uint8Array((tsAttr.values[0] as asn1js.Sequence).toBER(false)),
+      const tstDer = new Uint8Array(
+        (tsAttr.values[0] as asn1js.Sequence).toBER(false),
       );
+      // A PAdES signature-timestamp covers the SignerInfo's signature value.
+      const sigValue = new Uint8Array(
+        signedData.signerInfos[0].signature.valueBlock.valueHexView,
+      );
+      const tsv = await verifyTimestampToken(tstDer, sigValue, {
+        trustedRoots: opts?.trustedRoots,
+      });
+      timestampValid = tsv.valid;
+      timestampTrusted = tsv.chainTrusted;
+      // Surface the TSA time ONLY when the token verifies (never an unverified time).
+      timestampTime = tsv.valid ? tsv.genTime : undefined;
     }
 
     return {
@@ -590,6 +615,8 @@ export async function verifyDetachedCms(
       signerCommonName,
       signedAt,
       timestamped,
+      timestampValid,
+      timestampTrusted,
       timestampTime,
       chainValid,
     };
