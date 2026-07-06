@@ -177,6 +177,20 @@ function cssValue(value: string): string {
 }
 
 /**
+ * A safe CSS length (or `auto`), else `fallback`. Used for width/height values that
+ * land inside a `style="…"` attribute — escapeHtml does NOT strip `;`, so an authored
+ * or merged value like `100%;position:fixed;top:0;background:url(https://evil/…)`
+ * would inject extra declarations (hide the signature line, beacon on open). Restricting
+ * to a length token closes that (finding #13).
+ */
+const CSS_LENGTH_RE =
+  /^(auto|0|[0-9]+(?:\.[0-9]+)?(?:px|pt|em|rem|%|vw|vh|ch|cm|mm|in))$/i;
+function cssLength(value: unknown, fallback: string): string {
+  const v = String(value ?? "").trim();
+  return CSS_LENGTH_RE.test(v) ? v : fallback;
+}
+
+/**
  * Build a CSS `content` value for an @page margin box (running header/footer).
  *
  * Two things HTML-escaping gets wrong here and this gets right:
@@ -1522,15 +1536,20 @@ function renderBlock(block: IntentBlock): string {
         : "";
       const figCaption = props.caption ? escapeHtml(String(props.caption)) : "";
       const figNum = props.num ? escapeHtml(String(props.num)) : "";
-      const figWidth = props.width
-        ? `width:${escapeHtml(String(props.width))};`
-        : "";
-      const figAlign = props.align ? String(props.align) : "center";
+      // Length-validated (finding #13): an invalid width is dropped, never injected.
+      const figW = cssLength(props.width, "");
+      const figWidth = figW ? `width:${figW};` : "";
+      // Alignment is a fixed keyword — whitelist it (an arbitrary value could inject
+      // declarations through the un-stripped `;` in escapeHtml).
+      const figAlignRaw = props.align ? String(props.align).trim().toLowerCase() : "center";
+      const figAlign = ["left", "center", "right", "justify"].includes(figAlignRaw)
+        ? figAlignRaw
+        : "center";
       const figAlt = props.alt
         ? escapeHtml(String(props.alt))
         : escapeHtml(block.content);
       const numPrefix = figNum ? `Figure ${figNum}: ` : "";
-      return `<figure class="it-figure" style="text-align:${escapeHtml(figAlign)};">
+      return `<figure class="it-figure" style="text-align:${figAlign};">
         ${figSrc ? `<img src="${figSrc}" alt="${figAlt}" style="${figWidth}max-width:100%;" />` : ""}
         <figcaption class="it-figure-caption">${numPrefix}${figCaption}</figcaption>
       </figure>`;
@@ -1542,7 +1561,8 @@ function renderBlock(block: IntentBlock): string {
         : "Signature";
       const sigRole = props.role ? escapeHtml(String(props.role)) : "";
       const sigDateLine = String(props["date-line"]) === "true";
-      const sigWidth = props.width ? escapeHtml(String(props.width)) : "60%";
+      // Length-validated (finding #13): an injected width can't hide the signature line.
+      const sigWidth = cssLength(props.width, "60%");
       return `<div class="it-signline" style="width:${sigWidth};">
         <div class="it-signline-label">${sigLabel}</div>
         <div class="it-signline-rule"></div>

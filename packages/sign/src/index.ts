@@ -735,7 +735,12 @@ export function verifyCertifications(
     if (p.ica) {
       const vr = verifyIntermediateCert(p.ica, trustedIssuers, at);
       const keyMatches = vr.intermediatePublicKey === publicKey;
-      trusted = vr.valid && keyMatches;
+      // ISSUER SCOPE (finding #6): the root scopes an intermediate to ONE issuer name
+      // (icaPayload binds it). A `certify:` line must declare that SAME issuer — else a
+      // UTS-scoped intermediate could certify as "GovCA" and verify as trusted
+      // (cross-authority forgery). Require the ICA's issuer to equal the line's issuer.
+      const issuerMatches = vr.issuer === issuer;
+      trusted = vr.valid && keyMatches && issuerMatches;
       if (vr.valid) {
         chain = {
           rootPublicKey: vr.rootPublicKey!,
@@ -749,7 +754,9 @@ export function verifyCertifications(
           ? `intermediate certificate not trusted: ${vr.reason}`
           : !keyMatches
             ? "signing key is not the key vouched for by the intermediate certificate"
-            : undefined;
+            : !issuerMatches
+              ? `intermediate is scoped to issuer '${vr.issuer}', not '${issuer}'`
+              : undefined;
     } else {
       const trustedKey = trustedIssuers[issuer];
       trusted = !!trustedKey && trustedKey === publicKey;

@@ -11,8 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@dotit/core": "^3.3.0",
-    "@dotit/sign": "^3.2.0",
+    "@dotit/core": "^3.3.1",
+    "@dotit/sign": "^3.2.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

@@ -6,6 +6,22 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.3.1] — 2026-07-06 — bank-readiness P1 (wave 2): cert issuer-scope + CSS-injection
+
+Security fixes, no API change. `@dotit/core` **3.3.1**, `@dotit/sign` **3.2.1**.
+
+### Fixed
+
+- **Cross-authority certification forgery (`@dotit/sign`)** (#6). The chained trust path verified
+  the intermediate's root signature, validity window, and key — but not that the `certify:` line's
+  issuer matched the issuer the root SCOPED the intermediate to. So a UTS-scoped intermediate could
+  certify as "GovCA" and verify as trusted. `verifyCertifications` now requires the ICA's issuer to
+  equal the certify-line issuer.
+- **CSS-declaration injection via figure/signline (`@dotit/core`)** (#13). `figure` width/align and
+  `signline` width were interpolated into a `style="…"` attribute through `escapeHtml`, which does
+  not strip `;` — so an authored/merged value could inject extra CSS (pin an overlay, hide the
+  signature line, beacon to a remote URL). Width is now length-validated and align is whitelisted.
+
 ## [3.3.0] — 2026-07-06 — bank-readiness P1 (wave 1): trusted timestamps + form authenticity
 
 Additive and backward-compatible. Closes two more high-severity findings from the audit.
