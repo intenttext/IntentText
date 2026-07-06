@@ -104,7 +104,7 @@ All tools operate on IntentText source strings — pass the `.it` text in, get J
 | ------------------ | ---------- | --------------------------------------------------------------------------- |
 | `extract_workflow` | `source`   | Extract the execution graph: steps in topological order, dependencies, parallel batches, gate positions |
 
-### Trust — integrity (SHA-256, zero-dependency)
+### Trust — integrity (SHA-256, tiny footprint)
 
 This layer answers _"has the content changed?"_
 

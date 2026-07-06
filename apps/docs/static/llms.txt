@@ -28,14 +28,15 @@ Verify portal: https://verify.uts.qa (UTS certification service: api.uts.qa)
                        certify-as-claim), themes, lossless text↔JSON, DB-safe storage,
                        converters (Markdown↔IntentText incl. it→md, HTML→it, XLSX/DOCX both ways), doc-metadata
                        extraction, EN 16931/UBL e-invoice export, and the `dotit` CLI.
-                       Zero deps; Node + browser.         npm i @dotit/core
+                       Node + browser; two small runtime deps.  npm i @dotit/core
   @dotit/sign   2.0.0  Ed25519 signatures (provable "who signed") + UTS certifications
                        (verified org identity). Offline, self-verifying.  npm i @dotit/sign
   @dotit/pdf    2.0.0  Server PDF bytes: merge → seal → real PDF in one call (issuePDF);
                        PDF/A-oriented archival; PAdES-signed PDF. Puppeteer optional peer.
                                                           npm i @dotit/pdf
-  @dotit/pades  1.0.1  PAdES (Adobe/court-recognized) PDF signatures — X.509/CMS +
-                       RFC-3161 trusted timestamps.       npm i @dotit/pades
+  @dotit/pades  1.0.1  PAdES PDF signatures (standards-conformant X.509/CMS + RFC-3161
+                       timestamps). Reader-trusted only under a trusted CA/QTSP chain;
+                       the default self-signed cert shows as untrusted.  npm i @dotit/pades
   @dotit/mcp    2.0.0  MCP server — exposes IntentText as an agent tool surface
                        (parse/render/merge/query/validate/seal/verify/sign tools)
                        over stdio + HTTP.                npx @dotit/mcp

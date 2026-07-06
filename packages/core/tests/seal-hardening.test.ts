@@ -91,9 +91,12 @@ describe("G-01: sealed content cannot be hidden without leaving a trace", () => 
       const v = verifyDocument(smuggled);
       // Content hash is intentionally styling-blind → still "intact"…
       expect(v.intact).toBe(true);
-      // …but the appearance (full-fidelity) hash catches the post-seal restyle.
+      // …but the restyle is caught TWO ways: the full-fidelity appearance hash flags
+      // the CHANGE, and the invisibility audit flags that content is now concealed.
       expect(v.appearanceChanged).toBe(true);
-      expect(v.warning).toMatch(/appearance/i);
+      expect(v.hiddenContent).toBe(true);
+      // The warning surfaces the stronger (hidden-content) signal.
+      expect(v.warning).toMatch(/hidden|hides|appearance/i);
     });
   }
 

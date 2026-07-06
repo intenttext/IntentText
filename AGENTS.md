@@ -156,7 +156,7 @@ red **SEAL BROKEN** stamp, never a clean seal.
 
 ## 5. The packages — install + the calls that matter
 
-All TypeScript/JS. `@dotit/core` is zero-dependency; the rest are opt-in layers.
+All TypeScript/JS. `@dotit/core` has two small runtime deps (fflate, node-html-parser); the rest are opt-in layers.
 
 ### `@dotit/core` — parse, render, query, merge, trust (the everything package)
 ```ts

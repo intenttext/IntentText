@@ -29,7 +29,7 @@ court (PAdES) or an archive (PDF/A).
 | Edit `.it` visually (web or embedded in your app)   | [`@dotit/editor`](./editor)                       |
 | Author `.it` in VS Code                             | [VS Code extension](./vscode-extension)           |
 | Generate real PDF bytes on a server (email/archive) | [`@dotit/pdf`](./erp-integration)                 |
-| Apply a court-recognized PDF signature              | [`@dotit/pades`](./core-api#court-recognized-pdf-signatures) |
+| Apply a standards-conformant PAdES signature        | [`@dotit/pades`](./core-api#standards-conformant-pdf-signatures-pades) |
 | Add Ed25519 signatures + an authority certify chain | [`@dotit/sign`](./core-api#cryptographic-signatures-and-certification) |
 | Use `.it` as the print/report engine inside an ERP  | [ERP / App Integration](./erp-integration)        |
 
@@ -39,7 +39,7 @@ court (PAdES) or an archive (PDF/A).
 | -------------------------- | ---------------------------------------------------- |
 | [Core Library](./core-api) | `@dotit/core` **2.0** — parse, render, query, merge, trust (versioned seal `spec: 4`), forms, approval routing + audit chain, redline/version-compare, redaction, attachments, conformance, e-invoice (UBL), math markers, convert |
 | `@dotit/pdf` **2.0**       | Server-side PDFs — merge → seal → PDF; **PDF/A** archival; PAdES-signed PDF; opt-in |
-| `@dotit/pades` **1.0**     | **PAdES** (Adobe/court-recognized) PDF signatures — X.509/ECDSA + CMS; CSR/CA issuance |
+| `@dotit/pades` **1.0**     | **PAdES** (standards-conformant X.509/ECDSA + CMS; reader-trusted under a trusted CA/QTSP chain) PDF signatures — CSR/CA issuance |
 | `@dotit/sign` **2.0**      | Ed25519 signatures + UTS certification chain |
 | `@dotit/math` **0.1**      | Math rendering — dependency-free lite MathML + optional KaTeX |
 | [CLI](./cli)               | Command-line tool for every operation                |

@@ -88,7 +88,7 @@ Puppeteer uses a headless Chromium instance to convert the print HTML to PDF. It
 
 ## Server-side PDFs: `@dotit/pdf`
 
-For programmatic PDF generation (emailing invoices, compliance archiving, batch runs), use the dedicated package — core stays zero-dependency:
+For programmatic PDF generation (emailing invoices, compliance archiving, batch runs), use the dedicated package — core keeps a tiny runtime footprint (two small deps):
 
 ```bash
 npm install @dotit/pdf

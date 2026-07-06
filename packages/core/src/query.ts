@@ -1,6 +1,7 @@
 import { IntentDocument, IntentBlock } from "./types";
 import { flattenBlocks } from "./utils";
 import { effectiveField } from "./defaults";
+import { parseNumericValue } from "./typed-value";
 
 export interface QueryClause {
   field: string;
@@ -235,17 +236,40 @@ function evaluateClause(block: IntentBlock, clause: QueryClause): boolean {
   }
 }
 
+/**
+ * Strict ISO-ish date (YYYY-MM-DD, optional time/zone). Deliberately strict so a bare
+ * number, code, or version ("30", "1.2", "QIIB-2026") is never coerced into a date the
+ * way lenient `new Date()` does (`new Date("30")` → a valid date in the year 2030).
+ */
+function isIsoDateString(v: unknown): boolean {
+  const s = String(v).trim();
+  if (
+    !/^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/.test(
+      s,
+    )
+  ) {
+    return false;
+  }
+  return !Number.isNaN(new Date(s).getTime());
+}
+
 function compareValues(a: unknown, b: unknown): number {
-  if (typeof a === "number" && typeof b === "number") {
-    return a - b;
+  // Numbers / money / percent / magnitude FIRST. Block properties are always strings,
+  // so amounts like "1,000,000", "3.80M", "45%" or a bare "9" must compare NUMERICALLY
+  // — never fall through to Date (which misreads "30" as a year) or localeCompare
+  // (where lexical "100" < "20"). parseNumericValue normalizes commas, K/M/B/T
+  // magnitude suffixes and a trailing %. This is what makes `amount>10000`,
+  // `sort:value:desc`, and "top-N by total" correct for financial data.
+  const numA = parseNumericValue(a as string | number | null | undefined);
+  const numB = parseNumericValue(b as string | number | null | undefined);
+  if (numA !== null && numB !== null) {
+    return numA - numB;
   }
-  // Try date comparison for ISO dates
-  const dateA = new Date(String(a));
-  const dateB = new Date(String(b));
-  if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
-    return dateA.getTime() - dateB.getTime();
+  // Genuine ISO dates on BOTH sides → chronological order.
+  if (isIsoDateString(a) && isIsoDateString(b)) {
+    return new Date(String(a)).getTime() - new Date(String(b)).getTime();
   }
-  // String comparison
+  // Everything else: locale-aware string comparison.
   return String(a).localeCompare(String(b));
 }
 

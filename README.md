@@ -116,7 +116,7 @@ it). Guides: [for organizations](https://dotit.uts.qa/docs/guide/for-organizatio
 Everything above is all most people need. To build `.it` *into software*:
 
 ```bash
-npm install -g @dotit/core            # the `dotit` command + zero-dependency library
+npm install -g @dotit/core            # the `dotit` command + core library (two small runtime deps)
 ```
 
 ```bash
@@ -136,8 +136,8 @@ queryDocument(doc, { type: "task", properties: { priority: "high" } });
 ERP/AI recipes) · everything `.it` can do → [Capabilities](https://dotit.uts.qa/docs/guide/capabilities)
 · teach an LLM the format in one read → [llms.txt](https://dotit.uts.qa/llms.txt).
 
-**Packages:** `@dotit/core` (parse/render/query/merge/trust/forms/convert/CLI, zero-dep) ·
-`@dotit/editor` (React editor) · `@dotit/pdf` (server PDFs, incl. court-recognized PAdES & archival
+**Packages:** `@dotit/core` (parse/render/query/merge/trust/forms/convert/CLI) ·
+`@dotit/editor` (React editor) · `@dotit/pdf` (server PDFs, incl. standards-conformant PAdES & archival
 PDF/A) · `@dotit/sign` (Ed25519) · `@dotit/pades` · `@dotit/math` · `@dotit/mcp` (AI/MCP) · VS Code
 extension. All **3.0**, MIT.
 

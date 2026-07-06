@@ -302,6 +302,12 @@ export interface IntentDocumentMetadata {
      *  pre-versioning seals → verify falls back to trying all known versions. */
     spec?: number;
     valid?: boolean;
+    /** Ed25519 public key (`ed25519:…`) when the signer signed cryptographically via
+     *  @dotit/sign. A bare seal/approval carries only signer NAME + content hash (no
+     *  key) — integrity, not authenticated identity. */
+    key?: string;
+    /** Ed25519 signature (base64url) over the content hash, paired with `key`. */
+    sig?: string;
   }>;
   /** v2.8: Freeze (seal) state from freeze: block. */
   freeze?: {

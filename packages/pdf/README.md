@@ -4,7 +4,7 @@ Server-side PDF generation for [IntentText](https://github.com/intenttext/Intent
 (`.it`) documents — for the moments **no human is at a browser**: emailing an invoice,
 archiving for compliance, month-end batch statements.
 
-`@dotit/core` stays zero-dependency; this is the opt-in enterprise companion.
+`@dotit/core` keeps a tiny runtime footprint (two small deps); this is the opt-in enterprise companion.
 
 ```bash
 npm i @dotit/pdf

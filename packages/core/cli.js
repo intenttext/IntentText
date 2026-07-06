@@ -406,6 +406,15 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
         skipSign,
       });
 
+      // Idempotent no-op: the core returns success with error:"already-sealed" and the
+      // UNCHANGED source (the requested signer is NOT applied). Never print the requested
+      // signer as if it sealed — that would fabricate an audit entry.
+      if (result.success && result.error === "already-sealed") {
+        console.log("ℹ️  Document is already sealed — no changes made.");
+        console.log("    The existing seal is preserved (re-sealing is a no-op).");
+        console.log("    To seal under a different signer, unseal it first.");
+        return;
+      }
       if (result.success) {
         fs.writeFileSync(targetFile, result.source);
         console.log("✅  Document sealed");
@@ -413,6 +422,9 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
           console.log(`    Signer:   ${signer}${role ? ` (${role})` : ""}`);
         console.log(`    Hash:     ${result.hash}`);
         console.log(`    Frozen:   ${result.at}`);
+        if (result.hiddenContentWarning) {
+          console.log(`    ⚠  ${result.hiddenContentWarning}`);
+        }
       } else {
         console.error(`❌ Seal failed: ${result.error}`);
         process.exit(1);
@@ -424,9 +436,13 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
       const result = verifyTrust(source);
       const seal = result.seal;
 
+      // Fail CLOSED: an unsealed document has no trust to verify. Exiting 0 here would
+      // let a CI/automation gate (`dotit verify f.it && approve`) be defeated by simply
+      // stripping the seal. Exit 2 (distinct from 1 = tampered) so gates fail closed.
       if (!seal.frozen) {
-        console.log("⚠️  Document is not sealed. No freeze: block found.");
-        return;
+        console.error("❌  Document is NOT sealed — nothing to verify (no freeze: block).");
+        console.error("    A verify gate must fail closed: removing the seal must not pass.");
+        process.exit(2);
       }
 
       const signerLine = (s) =>
@@ -437,6 +453,10 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
         console.log(`    Sealed:   ${seal.frozenAt}`);
         if (seal.signers && seal.signers.length > 0) {
           console.log("    Signers:  " + seal.signers.map(signerLine).join("\n              "));
+        }
+        if (seal.identityAsserted) {
+          console.log("    Identity: ⚠ signer asserted by NAME ONLY — not cryptographically verified.");
+          console.log("              Require a cryptographic signature (@dotit/sign) to authenticate the signer.");
         }
         console.log(`    Seal:     ${seal.hash} ✅ matches`);
         if (seal.historyIntact === true) {
@@ -466,6 +486,10 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
         }
         if (seal.historyIntact === false) {
           console.log(`    History:  ❌ the audit/history log was modified since sealing`);
+        }
+        if (seal.hiddenContent) {
+          const n = seal.hiddenContentItems ? seal.hiddenContentItems.length : 0;
+          console.log(`    Hidden:   ❌ ${n} block(s) concealed by styling — what is shown is NOT everything that was signed`);
         }
         if (!result.auditChain.valid) {
           console.log(`    Chain:    ❌ approval chain broken — ${result.auditChain.reason || "link mismatch"}`);

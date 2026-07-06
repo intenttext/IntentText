@@ -3,6 +3,7 @@ import { IntentDocument, RegistryEntry } from "./types";
 import { parseIntentText } from "./parser";
 import { assertNotTemplate } from "./template";
 import { ALIAS_MAP } from "./language-registry";
+import { findHiddenContent, HiddenContentItem } from "./visibility";
 
 // ─── Hash Computation ───────────────────────────────────────────────────────
 
@@ -560,6 +561,13 @@ export interface SealResult {
   source: string;
   at: string;
   error?: string;
+  /**
+   * Set when the document being sealed contains content hidden by styling (invisible
+   * text — transparent / same-as-background colour, near-zero size or opacity). The
+   * seal still succeeds (the text IS being committed), but a caller should surface
+   * this so an operator never seals a document with concealed clauses unknowingly.
+   */
+  hiddenContentWarning?: string;
 }
 
 /**
@@ -733,7 +741,17 @@ export function sealDocument(source: string, options: SealOptions): SealResult {
   const updated =
     before + (needsNewline ? "\n" : "") + signLine + freezeLine + after;
 
-  return { success: true, hash: sealHash, source: updated, at };
+  // Seal-time invisibility audit: warn (do not block) if the body being sealed hides
+  // content through styling, so an operator is never unaware they sealed a concealed
+  // clause. verifyDocument re-runs the same audit for the reader.
+  const hidden = findHiddenContent(
+    parseIntentText(source, { includeHistorySection: false }).blocks,
+  );
+  const hiddenContentWarning = hidden.hidden
+    ? `This document hides ${hidden.items.length} content ${hidden.items.length === 1 ? "block" : "blocks"} through styling (e.g. ${hidden.items[0].reason}). Review in reveal mode before relying on this seal.`
+    : undefined;
+
+  return { success: true, hash: sealHash, source: updated, at, hiddenContentWarning };
 }
 
 export interface VerifyResult {
@@ -757,6 +775,12 @@ export interface VerifyResult {
     valid: boolean;
     /** true if this signer's stored hash matches the current document hash */
     signedCurrentVersion: boolean;
+    /** This signature carries a cryptographic key+sig (@dotit/sign) rather than being
+     *  a name-asserted approval. INTEGRITY (`valid`) is a hash check either way; only a
+     *  cryptographic signature proves WHO signed. Core does not run Ed25519 (that is
+     *  @dotit/sign's job via verifyCryptoSignatures/verifyFullTrust) — this flag lets a
+     *  verdict distinguish "content unchanged" from "signer authenticated". */
+    cryptographic: boolean;
   }>;
   hash?: string;
   expectedHash?: string;
@@ -779,6 +803,29 @@ export interface VerifyResult {
    * `undefined` for pre-v4 seals that recorded no appearance hash.
    */
   appearanceChanged?: boolean;
+  /**
+   * The document contains content that its own styling renders INVISIBLE — text set
+   * to a transparent / same-as-background colour, a near-zero font size, or near-zero
+   * opacity. The content hash cannot see this (the text IS present and unchanged), so
+   * a seal can be "intact" while a clause is concealed. This flag is the independent
+   * defense for "what you see is what was signed": it is computed from the document's
+   * effective styling on EVERY verify, not from a before/after appearance comparison,
+   * so it catches content hidden at seal time — which `appearanceChanged` cannot.
+   * A user-facing verdict (`verifyTrust`) treats this as a failure.
+   */
+  hiddenContent?: boolean;
+  /** The concealed blocks (type, reason, text excerpt) when `hiddenContent` is true. */
+  hiddenContentItems?: HiddenContentItem[];
+  /**
+   * The document is sealed/signed but at least one signer is asserted by NAME ONLY —
+   * no cryptographic signature. The seal proves the content is unchanged since it was
+   * sealed, but NOT who sealed it: anyone can re-seal a modified document under any
+   * name and it verifies as "intact". Authenticating the signer requires a
+   * cryptographic signature (@dotit/sign) verified against a trusted public key. This
+   * flag is the honest signal so a UI never presents a name-only seal as a proven
+   * identity. `undefined` when every signer is cryptographic (or there are none).
+   */
+  identityAsserted?: boolean;
 }
 
 /**
@@ -824,8 +871,17 @@ export function verifyDocument(source: string): VerifyResult {
             ? signedCurrentVersion && sealIntact
             : sig.hash === expectedHash,
         signedCurrentVersion,
+        // Cryptographic iff the sign: line carries BOTH an Ed25519 key and a signature.
+        cryptographic: !!(sig as { key?: string; sig?: string }).key &&
+          !!(sig as { key?: string; sig?: string }).sig,
       };
     }) || [];
+
+  // Identity is "asserted" (not authenticated) when the doc is sealed/signed but any
+  // signer lacks a cryptographic signature — the seal proves the content is unchanged,
+  // never WHO sealed it. A bank verdict must not present that as a proven identity.
+  const identityAsserted =
+    signers.length > 0 && signers.some((s) => !s.cryptographic);
 
   // A valid seal made under an older ruleset is WEAKER than today's — most
   // importantly, spec ≤ 1 hashes content only, so signatures aren't covered and a
@@ -861,11 +917,20 @@ export function verifyDocument(source: string): VerifyResult {
   // unchanged. Old seals (no committed digest) fall back to seal integrity alone.
   const intact = sealIntact && historyIntact !== false;
 
+  // Independent invisibility audit: does the document conceal any content through
+  // styling (transparent/same-as-background colour, near-zero size/opacity)? Computed
+  // from effective styling on EVERY verify — so it catches content hidden at seal time,
+  // which the before/after appearanceChanged comparison cannot. Reported here; a
+  // user-facing verdict (verifyTrust) treats it as a failure.
+  const hiddenScan = findHiddenContent(doc.blocks);
+
   const warning = specOutdated
     ? `Sealed under ruleset v${freezeSpec}, which does not protect signatures. Re-seal to upgrade to v${SEAL_SPEC}.`
-    : sealIntact && appearanceChanged
-      ? "Content is intact, but the document's appearance (styling) changed since sealing — verify nothing is visually hidden."
-      : undefined;
+    : hiddenScan.hidden
+      ? `This document hides ${hiddenScan.items.length} content ${hiddenScan.items.length === 1 ? "block" : "blocks"} through styling (${hiddenScan.items[0].reason}) — what is shown is not everything that was signed. Review in reveal mode.`
+      : sealIntact && appearanceChanged
+        ? "Content is intact, but the document's appearance (styling) changed since sealing — verify nothing is visually hidden."
+        : undefined;
 
   return {
     intact,
@@ -879,6 +944,9 @@ export function verifyDocument(source: string): VerifyResult {
     spec: freezeSpec,
     specOutdated: specOutdated || undefined,
     appearanceChanged: appearanceChanged || undefined,
+    hiddenContent: hiddenScan.hidden || undefined,
+    hiddenContentItems: hiddenScan.hidden ? hiddenScan.items : undefined,
+    identityAsserted: identityAsserted || undefined,
     error: intact
       ? undefined
       : sealIntact && historyIntact === false

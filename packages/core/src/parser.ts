@@ -1814,6 +1814,14 @@ export function parseIntentText(
         ...(block.properties?.spec != null && {
           spec: Number(block.properties.spec),
         }),
+        // Crypto fields (present only for @dotit/sign signatures) — let verify report
+        // whether a signer is cryptographically authenticated vs. name-asserted.
+        ...(block.properties?.key != null && {
+          key: String(block.properties.key),
+        }),
+        ...(block.properties?.sig != null && {
+          sig: String(block.properties.sig),
+        }),
       });
       // Still emit sign: as a block for rendering
     }

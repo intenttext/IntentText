@@ -147,6 +147,21 @@ export {
   computeTrustDiff,
   incrementVersion,
 } from "./trust";
+export {
+  findHiddenContent,
+  styleHidesContent,
+  parseColor,
+  colorAlpha,
+  colorsMatch,
+  sizeIsInvisible,
+  DEFAULT_PAGE_BG,
+} from "./visibility";
+export type {
+  HiddenContentResult,
+  HiddenContentItem,
+  HiddenVerdict,
+  RGBA,
+} from "./visibility";
 export { upsertMetaProperty, getMetaProperty, flattenBlocks } from "./utils";
 export {
   toStorageRecord,

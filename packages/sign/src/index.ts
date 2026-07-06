@@ -24,6 +24,8 @@ import {
   computeDocumentHashLegacy,
   assertNotTemplate,
   SEAL_SPEC,
+  verifyTrust,
+  TrustVerification,
 } from "@dotit/core";
 
 // ─── Encoding helpers (base64url, dependency-free) ───────────────────────────
@@ -316,6 +318,52 @@ export function verifyDocumentSignatures(source: string): FullVerifyResult {
     signatures,
     validCount,
     allSignaturesValid: crypto.length > 0 && validCount === crypto.length,
+  };
+}
+
+export interface FullTrustResult {
+  /** The single verdict for a security-critical (bank) consumer: content integrity
+   *  AND signer authenticity both hold. */
+  ok: boolean;
+  /** Content integrity + seal/history/approval-chain/hidden-content (from @dotit/core). */
+  integrity: TrustVerification;
+  /** Per-signature cryptographic authenticity checks. */
+  signatures: SignatureCheck[];
+  /** Every signature is a cryptographic signature that VERIFIES — the signer identity
+   *  is authenticated, not merely asserted by name. */
+  authenticated: boolean;
+  /** Count of valid cryptographic signatures. */
+  validSignatureCount: number;
+}
+
+/**
+ * The authoritative trust verdict for a bank. Integrity (content unchanged since
+ * sealing) is necessary but NOT sufficient: @dotit/core's seal is a keyless hash, so a
+ * document RE-SEALED under a spoofed name is internally "intact" yet proves nothing
+ * about who sealed it. `ok` therefore requires BOTH:
+ *   1. core integrity (`verifyTrust().ok` — seal + history + approval chain + no hidden
+ *      content + form), AND
+ *   2. authenticity — there is ≥1 signature, EVERY signature is cryptographic (carries
+ *      key+sig), and all of them verify against the current content.
+ * So the classic forgery (strip signatures, edit an amount, re-seal as "Alice Chen,
+ * CFO") is `authenticated: false` and `ok: false`, even though its bare seal verifies.
+ * Prefer this over verifyDocument/verifyTrust anywhere a signer identity is trusted.
+ */
+export function verifyFullTrust(source: string): FullTrustResult {
+  const integrity = verifyTrust(source);
+  const signatures = verifyCryptoSignatures(source);
+  const crypto = signatures.filter((s) => s.cryptographic);
+  const validSignatureCount = crypto.filter((s) => s.valid).length;
+  const authenticated =
+    signatures.length > 0 &&
+    crypto.length === signatures.length &&
+    validSignatureCount === crypto.length;
+  return {
+    ok: integrity.ok && authenticated,
+    integrity,
+    signatures,
+    authenticated,
+    validSignatureCount,
   };
 }
 

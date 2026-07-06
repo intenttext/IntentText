@@ -28,6 +28,7 @@ import {
 } from "./trust";
 import { isTemplate } from "./template";
 import { parseIntentText } from "./parser";
+import { findHiddenContent } from "./visibility";
 
 export type TrustTier =
   | "draft"
@@ -472,10 +473,24 @@ export function renderTrustBand(source: string): string {
     .replace(/^sha256:/, "")
     .slice(0, 16);
   if (hash) parts.push(`sha256 ${hash}…`);
-  const cap = parts.length
-    ? `<span class="it-trust-band__cap">${parts
-        .map((p) => `<span class="it-trust-band__line">${esc(p)}</span>`)
-        .join("")}</span>`
+  // Invisibility alert: the seal is intact (content unchanged), but styling conceals
+  // content — surface it loudly so a valid seal never vouches for text the reader
+  // can't see. Rendered as an alert line above the ordinary caption.
+  const hidden = findHiddenContent(doc.blocks);
+  const capLines: string[] = [];
+  if (hidden.hidden) {
+    const n = hidden.items.length;
+    capLines.push(
+      `<span class="it-trust-band__line it-trust-band__line--alert">${esc(
+        `⚠ Hidden text: ${n} ${n === 1 ? "block" : "blocks"} concealed by styling — reveal before trusting`,
+      )}</span>`,
+    );
+  }
+  for (const p of parts) {
+    capLines.push(`<span class="it-trust-band__line">${esc(p)}</span>`);
+  }
+  const cap = capLines.length
+    ? `<span class="it-trust-band__cap">${capLines.join("")}</span>`
     : "";
   return (
     `<div class="it-trust-band">` +

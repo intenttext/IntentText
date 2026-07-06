@@ -1,5 +1,6 @@
 import { IntentBlock, IntentDocument, InlineNode, PrintLayout } from "./types";
 import { effectiveProperties } from "./defaults";
+import { colorAlpha, colorsMatch, sizeIsInvisible } from "./visibility";
 import { DOCUMENT_CSS } from "./document-css";import { IntentTheme, getBuiltinTheme, generateThemeCSS } from "./theme";
 import {
   sealForDocument,
@@ -571,24 +572,29 @@ function extractInlineStyles(
   // can't see. Bare mode already drops all presentation; here we additionally
   // neutralize only the unambiguously-invisible cases so even a styled print/PDF
   // cannot conceal signed text. Faint-but-readable styling is left untouched.
-  const normStyle = (v: unknown) =>
-    String(v).trim().toLowerCase().replace(/\s+/g, "");
-  const colorVal = normStyle(properties.color);
-  const sameColorAsBg = colorVal !== "" && colorVal === normStyle(properties.bg);
+  // Same-block invisibility signals (no inherited background is known at this call
+  // site, so we deliberately do NOT infer white-on-default here — that would risk
+  // disturbing a legit dark section. The whole-document, background-aware audit lives
+  // in visibility.ts/findHiddenContent and surfaces through verifyDocument's
+  // `hiddenContent`.) Colours are normalized (`#fff` == `white` == `rgb(255,255,255)`)
+  // and near-zero — not just exactly-zero — sizes/alpha count as invisible.
+  const colorTransparent = colorAlpha(properties.color) === 0;
+  const colorEqualsBg =
+    properties.bg !== undefined && colorsMatch(properties.color, properties.bg);
   const opacityNum =
     properties.opacity !== undefined
       ? parseFloat(String(properties.opacity))
       : NaN;
   const invisibleOpacity = !Number.isNaN(opacityNum) && opacityNum < 0.1;
-  const isZeroSize = (v: unknown) => /^0(?:px|pt|em|rem|%)?$/.test(normStyle(v));
   for (const [prop, css] of Object.entries(STYLE_PROPERTIES)) {
     // Bare/signed view keeps emphasis (bold/italic/underline/strike), drops the
     // rest (colour/size/font/bg/align/spacing/…).
     if (BARE_RENDER && !EMPHASIS_PROPS.has(prop)) continue;
     // Drop styling that would render the content invisible (see visibility guard).
-    if ((prop === "color" || prop === "bg") && sameColorAsBg) continue;
+    if (prop === "color" && (colorTransparent || colorEqualsBg)) continue;
+    if (prop === "bg" && colorEqualsBg) continue;
     if (prop === "opacity" && invisibleOpacity) continue;
-    if (prop === "size" && isZeroSize(properties[prop])) continue;
+    if (prop === "size" && sizeIsInvisible(properties[prop])) continue;
     const value = properties[prop];
     if (value === undefined || value === "") continue;
     // Values can come from merged data (e.g. `color: {{brandColor}}`) — sanitize

@@ -1320,8 +1320,9 @@ this array is a reliable, collision-free `custom` keyword of your own.
 
 ## Server-side PDFs — `@dotit/pdf`
 
-Core stays zero-dependency; real PDF **bytes** on a server (email attachments,
-compliance archiving, batch statement runs) come from the opt-in companion package:
+Core keeps a tiny runtime footprint (two small deps); real PDF **bytes** on a server
+(email attachments, compliance archiving, batch statement runs) come from the opt-in
+companion package:
 
 ```bash
 npm i @dotit/pdf
@@ -1378,11 +1379,14 @@ Issuance helpers (`certifyDocument`, `issueIntermediate`, `parseIntermediateCert
 the *verification* tools (it never holds an authority key). Full guide:
 [Trust & Signing](/docs/guide/trust-and-signing).
 
-## Court-recognized PDF signatures
+## Standards-conformant PDF signatures (PAdES)
 
 `@dotit/pades` (current **1.0.1**) applies **PAdES** (PDF Advanced Electronic Signatures,
-Adobe/court-recognized) to a rendered PDF — X.509/ECDSA + CMS, with RFC 3161 timestamping
-and CA/CSR issuance for self-hosted PKI.
+ETSI standards-conformant) to a rendered PDF — X.509/ECDSA + CMS, with RFC 3161 timestamping
+and CA/CSR issuance for self-hosted PKI. A PDF is shown as *trusted* in Adobe Reader / a
+court portal only when it is signed under a certificate chain the verifier already trusts
+(a public CA, or an eIDAS QTSP for qualified signatures); the default self-signed cert is
+standards-conformant but shows as *"identity not trusted"* until you supply a trusted chain.
 
 ```typescript
 import { signPdf, verifyPdfSignature, requestTimestampToken } from "@dotit/pades";

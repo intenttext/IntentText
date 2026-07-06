@@ -1,7 +1,11 @@
 // Bridge: IntentText source ↔ TipTap JSON document
 // Converts .it source text to TipTap-compatible JSON and back
 
-import { parseIntentText } from "@dotit/core";
+import {
+  parseIntentText,
+  reconcileEdit,
+  findHistoryBoundaryInSource,
+} from "@dotit/core";
 import type { JSONContent } from "@tiptap/core";
 
 /** A TipTap mark on a text node. */
@@ -457,6 +461,24 @@ function parsedBlockKeyword(blockType: string): string {
   return normalizeKeyword(blockType);
 }
 
+/**
+ * The effective keyword of a PARSED block. A single-word-label line (`IBAN:`, `SWIFT:`,
+ * `Beneficiary:`) parses to a block of type "custom" whose real keyword lives in
+ * `properties.keyword` — return THAT, not the literal "custom". Otherwise the consume
+ * loop's keywordsMatch(sourceKey, "custom") is always false, so the parsed block is
+ * never consumed AND is later re-emitted: the line silently duplicates and lowercases
+ * on the first edit (finding C-3). Sealed `sign:`/`IBAN:` wire fields are corrupted.
+ */
+function parsedKeywordOfBlock(
+  block: { type: string; properties?: Record<string, unknown> } | undefined,
+): string {
+  if (!block) return "";
+  if (block.type === "custom" && block.properties?.keyword != null) {
+    return normalizeKeyword(String(block.properties.keyword));
+  }
+  return normalizeKeyword(block.type);
+}
+
 function keywordsMatch(sourceKey: string, parsedKey: string): boolean {
   if (sourceKey === parsedKey) return true;
   // Some callout aliases normalize to info in parser output.
@@ -701,7 +723,7 @@ export function sourceToDoc(source: string): JSONContent {
 
         // Consume matching parsed block to keep parser index aligned.
         if (blockIdx < doc.blocks.length) {
-          const parsedKey = parsedBlockKeyword(doc.blocks[blockIdx].type);
+          const parsedKey = parsedKeywordOfBlock(doc.blocks[blockIdx]);
           if (keywordsMatch(sourceKey, parsedKey)) {
             blockIdx++;
           }
@@ -713,7 +735,7 @@ export function sourceToDoc(source: string): JSONContent {
     // If parser produced a block, only consume it when keyword matches current line.
     if (blockIdx < content.length && sourceKey) {
       const nextParsed = doc.blocks[blockIdx];
-      const parsedKey = parsedBlockKeyword(nextParsed.type);
+      const parsedKey = parsedKeywordOfBlock(nextParsed);
       if (keywordsMatch(sourceKey, parsedKey)) {
         result.push(content[blockIdx]);
         blockIdx++;
@@ -880,6 +902,37 @@ function blockToNode(block: {
 /**
  * Convert TipTap JSON back to IntentText source
  */
+/**
+ * The editor's byte-faithful save. `reconcileEdit` alone re-parses the whole document
+ * and re-serializes via documentToSource, which DROPS the `history:` audit section (it
+ * lives below the boundary the body hash excludes) — so editing a document that carries
+ * an approval trail silently DESTROYS the entire trail (finding C-4). This splits at the
+ * history boundary, reconciles ONLY the pre-history body, and re-appends the ORIGINAL
+ * history tail verbatim — so an unrelated body edit can never touch the audit log.
+ */
+export function reconcileSavePreservingHistory(
+  originalSource: string,
+  editedSource: string,
+): string {
+  const origBoundary = findHistoryBoundaryInSource(originalSource);
+  if (origBoundary === -1) {
+    // No history section to protect — plain byte-faithful reconcile.
+    return reconcileEdit(originalSource, editedSource);
+  }
+  const origBody = originalSource.slice(0, origBoundary);
+  // The blank-line separator that preceded `history:` PLUS the history tail, captured
+  // verbatim from the original — so the seam is reproduced byte-for-byte no matter how
+  // reconcileEdit normalizes the body's trailing whitespace.
+  const bodyTrimmed = origBody.replace(/\n+$/, "");
+  const separatorAndHistory = originalSource.slice(bodyTrimmed.length);
+  // Discard any history the edited model re-emitted; the ORIGINAL tail is authoritative.
+  const editBoundary = findHistoryBoundaryInSource(editedSource);
+  const editBody =
+    editBoundary === -1 ? editedSource : editedSource.slice(0, editBoundary);
+  const reconciledBody = reconcileEdit(origBody, editBody).replace(/\n+$/, "");
+  return reconciledBody + separatorAndHistory;
+}
+
 export function docToSource(doc: JSONContent): string {
   if (!doc.content) return "";
 

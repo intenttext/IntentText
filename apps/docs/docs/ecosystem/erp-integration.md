@@ -316,7 +316,8 @@ without trusting your system.
 - **Redline** — `compareVersions(a, b)` and `acceptChanges`/`rejectChanges` for
   contract negotiation; a document with no pending changes is final/sealable.
 - **PDF/A** archival and **PAdES** (`@dotit/pdf` `renderSignedPDF`, `toPdfA`) for
-  court-recognized, long-term-archivable PDF output.
+  standards-conformant, long-term-archivable PDF output (reader-trusted under a trusted
+  CA/QTSP chain).
 
 ### Embed the editor in your app
 

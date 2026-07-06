@@ -1,12 +1,19 @@
 # @dotit/pades
 
 **PAdES (PDF Advanced Electronic Signatures) for IntentText** — export a sealed
-`.it` document as a digitally-signed PDF that Adobe Reader, courts, banks, and
-government portals recognize.
+`.it` document as a **standards-conformant** digitally-signed PDF (ETSI PAdES,
+X.509 / CMS / RFC-3161).
+
+> **Trust is chain-dependent, not automatic.** A PDF is shown as *trusted* in Adobe
+> Reader / a court portal only when it is signed under a certificate chain the verifier
+> already trusts (a public CA, or an eIDAS QTSP for qualified signatures). The
+> out-of-the-box `generateSelfSignedCert()` path is standards-conformant but **self-signed**,
+> so Adobe displays *"signer's identity not trusted"* until you supply a trusted-CA
+> (or qualified) certificate. Bring your own chain for recognition.
 
 It's the **standards bridge** on top of IntentText's native trust: a `.it` stays
 Ed25519-signed and *queryable* (`@dotit/sign`); the exported **PDF** carries an
-X.509 / CMS **PAdES** signature the outside world auto-accepts. The two coexist.
+X.509 / CMS **PAdES** signature that PDF tooling can validate. The two coexist.
 
 - **Algorithm:** ECDSA P-256 + X.509 + CMS/PKCS#7 (`ETSI.CAdES.detached`).
   (Adobe doesn't validate Ed25519 PDF signatures — hence X.509 here.)

@@ -18,7 +18,12 @@ import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import { FontSize } from "./font-size";
 import { Pagination } from "./pagination";
-import { sourceToDoc, docToSource, detectUnsupportedStyling } from "./bridge";
+import {
+  sourceToDoc,
+  docToSource,
+  detectUnsupportedStyling,
+  reconcileSavePreservingHistory,
+} from "./bridge";
 import {
   ITTitle,
   ITSummary,
@@ -51,7 +56,6 @@ import {
   documentStyleCSS,
   verifyDocument,
   upsertMetaProperty,
-  reconcileEdit,
 } from "@dotit/core";
 import {
   getPageGeometry,
@@ -228,8 +232,13 @@ export function VisualEditor({
       // the source the model came from, so untouched blocks keep their EXACT bytes
       // (comments, blank lines, spacing, bare prose) and only the edited block
       // changes. A no-op edit is byte-identical — a sealed body keeps its hash —
-      // and an edit never silently reformats the rest of the document.
-      const source = reconcileEdit(lastSourceRef.current, docToSource(json));
+      // and an edit never silently reformats the rest of the document. The
+      // history-preserving variant additionally re-appends the `history:` audit tail
+      // verbatim, so editing the body never destroys the approval trail (C-4).
+      const source = reconcileSavePreservingHistory(
+        lastSourceRef.current,
+        docToSource(json),
+      );
       lastSourceRef.current = source;
       isInternalUpdate.current = true;
       // Fidelity guard: flag any styling that won't survive to .it / core print.

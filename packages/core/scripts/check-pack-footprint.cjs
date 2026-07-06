@@ -21,11 +21,14 @@ const PKG_DIR = path.resolve(__dirname, "..");
 // features grow the surface; never to wave through an accidental dependency or stray
 // src file. Nudged at 3.1.0 for the trust-integrity work: the committed history digest
 // (computeHistoryHash), the aggregate verifyTrust module, and the bank-grade circular
-// seal STAMP (renderSeal rewrite with arc text + guilloché).
+// seal STAMP (renderSeal rewrite with arc text + guilloché). Nudged at 3.2.0 for the
+// bank-readiness P0 fixes: the invisible-content defense (visibility.{js,d.ts} —
+// findHiddenContent/styleHidesContent, wired into verify + trust band) and the
+// typed-value-aware numeric query engine.
 const LIMITS = {
-  packedBytes: 145000,
-  unpackedBytes: 660000,
-  entryCount: 114,
+  packedBytes: 150000,
+  unpackedBytes: 680000,
+  entryCount: 117,
 };
 
 const raw = execSync("npm pack --json --dry-run", {

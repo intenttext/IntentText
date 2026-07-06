@@ -96,7 +96,8 @@ const result = parseAndMerge(templateString, data);
 For real PDF bytes on a server (email attachments, archiving, batch runs) use the
 opt-in companion **[`@dotit/pdf`](https://www.npmjs.com/package/@dotit/pdf)** —
 `issuePDF(template, data, { signer })` runs merge → **seal** (tamper-evident SHA-256) →
-PDF in one call. Core itself stays zero-dependency.
+PDF in one call. Core keeps a tiny runtime footprint — two small deps (`fflate` for zip,
+`node-html-parser` for HTML import).
 
 ### Querying
 

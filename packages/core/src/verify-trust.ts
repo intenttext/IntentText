@@ -17,8 +17,8 @@ import {
 
 export interface TrustVerification {
   /** The single green/red verdict for a "Verify" action: the seal is intact, its
-   *  committed audit/history log is unchanged, the approval chain is valid, and
-   *  (for a form) the two-party structure seal holds. */
+   *  committed audit/history log is unchanged, no content is hidden by styling, the
+   *  approval chain is valid, and (for a form) the two-party structure seal holds. */
   ok: boolean;
   /** Seal / signature / appearance / committed-history verdict. */
   seal: VerifyResult;
@@ -40,6 +40,7 @@ export function verifyTrust(source: string): TrustVerification {
   const ok =
     seal.frozen &&
     seal.intact &&
+    !seal.hiddenContent &&
     auditChain.valid &&
     (!form.sealed || form.intact);
   return {

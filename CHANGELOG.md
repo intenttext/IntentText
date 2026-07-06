@@ -6,6 +6,52 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.2.0] — 2026-07-06 — bank-readiness P0: trust hardening + honest verdicts
+
+Additive and backward-compatible. Seals made under 3.0/3.1 still verify. No grammar or keyword
+changes — the format stays frozen. Closes the pilot-blocking findings from the QIIB bank-readiness
+audit. `@dotit/core` **3.2.0**, `@dotit/sign` **3.1.0**, `@dotit/editor` **3.2.0**.
+
+### Added
+
+- **Invisible-content defense (`@dotit/core`).** New `visibility.ts` (`findHiddenContent`,
+  `styleHidesContent`, `parseColor`, `colorsMatch`, `sizeIsInvisible`). `verifyDocument` now reports
+  `hiddenContent` + `hiddenContentItems` when styling conceals signed text (transparent / alpha-0 /
+  same-as-background colour, near-zero size or opacity) — including hides applied via a `style:`
+  directive, caught at seal time (not only post-seal restyle). `verifyTrust().ok` goes red on hidden
+  content, the renderer's visibility guard reveals it, and the trust band shows a loud alert.
+  `sealDocument` returns a `hiddenContentWarning`.
+- **Cryptographic-authenticity signal (`@dotit/core`).** `verifyDocument` reports `cryptographic`
+  per signer and a top-level `identityAsserted`, so a keyless name-only seal is never presented as a
+  proven identity. Parser captures `key:`/`sig:` on `sign:` lines.
+- **`verifyFullTrust` (`@dotit/sign`).** The composed verdict for a security-critical consumer:
+  integrity **AND** authenticity. A document re-sealed under a spoofed name is `authenticated: false`
+  and `ok: false`, even though its bare seal is internally intact.
+- **History-preserving editor save (`@dotit/editor`).** New `reconcileSavePreservingHistory`.
+
+### Fixed
+
+- **Money/date range queries and sort (`@dotit/core`).** `compareValues` now compares numbers/money
+  numerically via `parseNumericValue` (commas, K/M/B/T, `%`), with strict ISO-date handling only —
+  `amount>10000`, `sort:value:desc`, and top-N no longer return the wrong rows (was routed through
+  `new Date()` then `localeCompare`).
+- **CLI fail-open gates (`@dotit/core`).** `dotit verify` now exits **2** on an unsealed document
+  (was 0 — a CI seal-gate could be defeated by stripping the seal) and **1** on tamper; `dotit seal`
+  on an already-sealed file no longer prints a fabricated signer.
+- **Editor wire-field corruption (`@dotit/editor`).** Single-word-label lines (`IBAN:`, `SWIFT:`,
+  `Beneficiary:`, `sign:`) no longer duplicate and lowercase on the first edit (the bridge now
+  matches a parsed custom block by its keyword, not the literal type `"custom"`).
+- **Editor history destruction (`@dotit/editor`).** Editing a document that carries a `history:`
+  audit trail no longer wipes the trail; the save splits at the history boundary and re-appends the
+  tail verbatim.
+
+### Changed
+
+- **Honest claims.** Dropped "zero-dependency" (core ships `fflate` + `node-html-parser`) and
+  qualified PAdES "court/Adobe-recognized" (the default self-signed cert shows as *untrusted*;
+  reader-recognition needs a trusted CA/QTSP chain) across all package READMEs, `llms.txt`, the
+  integration guides, and the docs site.
+
 ## [3.1.1] — 2026-07-05 — editor: manual RTL, Simple mode, hidden history section
 
 `@dotit/editor` only (core unchanged).

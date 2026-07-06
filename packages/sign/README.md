@@ -5,7 +5,7 @@
 *integrity* seal.
 
 ```
-@dotit/core  →  "has the content changed?"   SHA-256, zero-dependency
+@dotit/core  →  "has the content changed?"   SHA-256, tiny footprint
 @dotit/sign  →  "who signed it?"             Ed25519, audited crypto (@noble/curves)
 ```
 

@@ -127,11 +127,11 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.6)
       '@dotit/core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.2.0
+        version: 3.2.0
       '@dotit/editor':
-        specifier: ^3.1.1
-        version: 3.1.1(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        specifier: ^3.2.0
+        version: 3.2.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.17
@@ -161,8 +161,8 @@ importers:
   apps/hub:
     dependencies:
       '@dotit/core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.2.0
+        version: 3.2.0
       mongodb:
         specifier: ^7.1.0
         version: 7.2.0(socks@2.8.9)
@@ -213,11 +213,11 @@ importers:
   apps/verify:
     dependencies:
       '@dotit/core':
+        specifier: ^3.2.0
+        version: 3.2.0
+      '@dotit/sign':
         specifier: ^3.1.0
         version: 3.1.0
-      '@dotit/sign':
-        specifier: ^3.0.0
-        version: 3.0.0
       react:
         specifier: ^19.2.4
         version: 19.2.6
@@ -306,8 +306,8 @@ importers:
   packages/editor:
     dependencies:
       '@dotit/core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.2.0
+        version: 3.2.0
       '@tiptap/core':
         specifier: ^3.20.1
         version: 3.27.1(@tiptap/pm@3.27.1)
@@ -497,8 +497,8 @@ importers:
   packages/sign:
     dependencies:
       '@dotit/core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.2.0
+        version: 3.2.0
       '@noble/curves':
         specifier: ^1.8.1
         version: 1.9.7
@@ -1821,8 +1821,19 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
+  '@dotit/core@3.2.0':
+    resolution: {integrity: sha512-0VpoHg666gYe1APEIjrqXa62cik+8IxBUjPGoMD8nCI81prKK1BU7ayw4qlBS8UrHMdE1EUSgChTE+wzEuqaaw==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@dotit/editor@3.1.1':
     resolution: {integrity: sha512-88A/DzqrTNgij3Df0lgxuW6KPvc/41x3EmGKG4O9KI56djFbUODBdzZH/zWK/wUYm8LXDjLlDdlB77myzODeZA==}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+
+  '@dotit/editor@3.2.0':
+    resolution: {integrity: sha512-Rw/gh12Vvpj40PgNKpvqU6oN/u/xmwDwiBjW10U1VrjwW7BsjQx398aLQrtGQiabatck6zo4Da9pzVtVPweMSA==}
     peerDependencies:
       react: '>=18'
       react-dom: '>=18'
@@ -1837,6 +1848,10 @@ packages:
 
   '@dotit/sign@3.0.0':
     resolution: {integrity: sha512-IzLm6bNR3fQC/6DW5pRT49Cb3aRtFs5q2wc5UAJr7G/UmatRVnqVvrC4pEQkC2XhKAyb2KDO7BZ2uzIDgPig8Q==}
+    hasBin: true
+
+  '@dotit/sign@3.1.0':
+    resolution: {integrity: sha512-yOLNgL0SdUn6PKa8O4aiCILmhTV5FOiZGQp/mZOkMcn1sE0fbLea2I7G7ben0Zl7DkN6ECu7NdvXeS+gcB84yw==}
     hasBin: true
 
   '@electron/asar@3.4.1':
@@ -12330,9 +12345,41 @@ snapshots:
       fflate: 0.8.3
       node-html-parser: 7.1.0
 
+  '@dotit/core@3.2.0':
+    dependencies:
+      '@types/node': 20.19.43
+      fflate: 0.8.3
+      node-html-parser: 7.1.0
+
   '@dotit/editor@3.1.1(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
       '@dotit/core': 3.1.0
+      '@tiptap/core': 3.27.1(@tiptap/pm@3.27.1)
+      '@tiptap/extension-color': 3.27.1(@tiptap/extension-text-style@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1)))
+      '@tiptap/extension-font-family': 3.27.1(@tiptap/extension-text-style@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1)))
+      '@tiptap/extension-highlight': 3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))
+      '@tiptap/extension-paragraph': 3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))
+      '@tiptap/extension-placeholder': 3.27.1(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))
+      '@tiptap/extension-subscript': 3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1)
+      '@tiptap/extension-superscript': 3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1)
+      '@tiptap/extension-text-align': 3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))
+      '@tiptap/extension-text-style': 3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))
+      '@tiptap/extension-underline': 3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))
+      '@tiptap/pm': 3.27.1
+      '@tiptap/react': 3.27.1(@floating-ui/dom@1.7.6)(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@tiptap/starter-kit': 3.27.1
+      lucide-react: 0.577.0(react@19.2.6)
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
+    transitivePeerDependencies:
+      - '@floating-ui/dom'
+      - '@tiptap/extensions'
+      - '@types/react'
+      - '@types/react-dom'
+
+  '@dotit/editor@3.2.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+    dependencies:
+      '@dotit/core': 3.2.0
       '@tiptap/core': 3.27.1(@tiptap/pm@3.27.1)
       '@tiptap/extension-color': 3.27.1(@tiptap/extension-text-style@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1)))
       '@tiptap/extension-font-family': 3.27.1(@tiptap/extension-text-style@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1)))
@@ -12375,6 +12422,11 @@ snapshots:
   '@dotit/sign@3.0.0':
     dependencies:
       '@dotit/core': 3.1.0
+      '@noble/curves': 1.9.7
+
+  '@dotit/sign@3.1.0':
+    dependencies:
+      '@dotit/core': 3.2.0
       '@noble/curves': 1.9.7
 
   '@electron/asar@3.4.1':
