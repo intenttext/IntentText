@@ -848,7 +848,12 @@ export interface VerifyResult {
 }
 
 /**
- * Verify a document's integrity.
+ * Verify a document's SEAL: content + signatures + the freeze metadata, plus (for v4+
+ * seals) the committed history digest, appearance, hidden-content and chain-truncation
+ * checks. It does NOT re-run the approval hash-CHAIN (`verifyAuditChain`) or the two-party
+ * form-structure seal. For a complete trust verdict — the one a user-facing "Verify"
+ * should show — call `verifyTrust`, which aggregates this, the audit chain, and the form
+ * seal into a single `ok`. (finding #40)
  */
 export function verifyDocument(source: string): VerifyResult {
   const doc = parseIntentText(source, { includeHistorySection: false });

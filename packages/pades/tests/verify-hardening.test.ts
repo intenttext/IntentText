@@ -7,6 +7,8 @@ import {
   verifyPdfSignature,
   verifyAllPdfSignatures,
 } from "../src/index";
+import * as pkijs from "pkijs";
+import * as asn1js from "asn1js";
 
 function minimalPdf(): Uint8Array {
   const objs = [
@@ -45,6 +47,23 @@ describe("#43: certificate validity is verified", () => {
     const v = await verifyDetachedCms(data, await signDetachedCms(data, c));
     expect(v.certExpired).toBe(false);
     expect(v.keyUsageValid).toBe(true);
+  });
+
+  it("#42: keyUsage BIT STRING is DER-encoded (unusedBits declared, not 0)", async () => {
+    const c = await generateSelfSignedCert({ commonName: "T" });
+    const der = c.certDer.buffer.slice(
+      c.certDer.byteOffset,
+      c.certDer.byteOffset + c.certDer.byteLength,
+    );
+    const cert = new pkijs.Certificate({
+      schema: asn1js.fromBER(der).result,
+    });
+    const ku = cert.extensions?.find((e) => e.extnID === "2.5.29.15");
+    const bs = ku?.parsedValue as {
+      valueBlock: { unusedBits: number; valueHexView: Uint8Array };
+    };
+    expect(bs.valueBlock.unusedBits).toBe(6); // 0xc0 → 2 significant bits, 6 unused
+    expect(bs.valueBlock.valueHexView[0]).toBe(0xc0);
   });
 });
 

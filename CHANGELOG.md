@@ -6,6 +6,24 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.5.2 / pades 1.2.1] — 2026-07-06 — bank-readiness P2 (batch 3): quick wins
+
+`@dotit/core` **3.5.2**, `@dotit/pades` **1.2.1**. Small fixes + doc corrections.
+
+### Fixed
+
+- **PAdES signing-time UTCTime after 2049** (#65). The `signing-time` attribute used UTCTime
+  (2-digit year, interpreted as 1950–2049); a time in 2050+ would encode the wrong year. It now uses
+  GeneralizedTime from 2050 on.
+- **Non-DER keyUsage encoding** (#42). The self-signed cert's keyUsage BIT STRING declared 0 unused
+  bits for `0xc0`; DER requires 6. Some strict validators reject the non-DER form — now fixed.
+- **Trust API clarity** (#40). `verifyDocument`'s docs now state it checks the SEAL only and point to
+  `verifyTrust` for the full verdict (seal + approval chain + form) — so a caller never mistakes the
+  seal check for the complete trust check.
+- **Docs** (#60, #69): refreshed the stale `@dotit/*` versions in `llms.txt`; softened the
+  unsubstantiated "running in production as the embedded engine of a commercial ERP" claim in the
+  README and updated the test count.
+
 ## [3.5.1] — 2026-07-06 — bank-readiness P2 (batch 2): converter fidelity
 
 Correctness fixes, no API change. `@dotit/core` **3.5.1**.

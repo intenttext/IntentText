@@ -110,13 +110,19 @@ export async function generateSelfSignedCert(opts: {
       extnValue: new pkijs.BasicConstraints({ cA: false }).toSchema().toBER(false),
     }),
   );
-  // keyUsage: digitalSignature (bit 0) + nonRepudiation/contentCommitment (bit 1)
+  // keyUsage: digitalSignature (bit 0) + nonRepudiation/contentCommitment (bit 1).
+  // DER requires the unused-bit count to be declared: 0xc0 has 2 significant bits, so 6
+  // are unused. Encoding it with unusedBits=0 (the default) is non-DER and some strict
+  // validators reject it. (finding #42)
   const keyUsageBits = new Uint8Array([0xc0]); // 1100 0000
   cert.extensions.push(
     new pkijs.Extension({
       extnID: "2.5.29.15",
       critical: true,
-      extnValue: new asn1js.BitString({ valueHex: keyUsageBits.buffer }).toBER(false),
+      extnValue: new asn1js.BitString({
+        valueHex: keyUsageBits.buffer,
+        unusedBits: 6,
+      }).toBER(false),
     }),
   );
 
@@ -467,7 +473,17 @@ export async function signDetachedCms(
       }),
       new pkijs.Attribute({
         type: "1.2.840.113549.1.9.5", // signing-time
-        values: [new asn1js.UTCTime({ valueDate: new Date() })],
+        // RFC 5280 / CMS: UTCTime (2-digit year) is interpreted as 1950–2049, so a time
+        // in 2050+ would encode to the WRONG year. Use GeneralizedTime (4-digit) from 2050
+        // on. (finding #65)
+        values: [
+          (() => {
+            const at = new Date();
+            return at.getUTCFullYear() >= 2050
+              ? new asn1js.GeneralizedTime({ valueDate: at })
+              : new asn1js.UTCTime({ valueDate: at });
+          })(),
+        ],
       }),
       new pkijs.Attribute({
         type: "1.2.840.113549.1.9.4", // message-digest

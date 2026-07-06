@@ -141,10 +141,10 @@ ERP/AI recipes) · everything `.it` can do → [Capabilities](https://dotit.uts.
 PDF/A) · `@dotit/sign` (Ed25519) · `@dotit/pades` · `@dotit/math` · `@dotit/mcp` (AI/MCP) · VS Code
 extension. All **3.0**, MIT.
 
-## Status — production-ready
+## Status
 
-Running in production as the embedded report engine of a commercial ERP. **1,600+ tests** (including
-a fuzz/byte-preservation gate). The format is **frozen**: 13 core / 40 reserved keywords, `SEAL_SPEC 4`,
+Actively developed and **extensively tested** — **1,700+ tests**, including a fuzz / byte-preservation
+gate and red-team trust suites. The format is **frozen**: 13 core / 40 reserved keywords, `SEAL_SPEC 4`,
 with CI gates that fail on any drift. Unknown keywords never error — open vocabulary is conformant by design.
 
 ## License
