@@ -6,6 +6,19 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [@dotit/editor 3.3.0] — 2026-07-06 — bank-readiness P2: honest trust banner (#63)
+
+`@dotit/editor` **3.3.0** (deps `@dotit/core` ^3.4.1).
+
+### Fixed
+
+- **Trust banner claimed "Verified — unaltered" too readily** (#63). It only checked
+  `verifyDocument().intact` — so a sealed doc whose STYLING changed, that HIDES content, or whose
+  signer is name-only still read as fully verified. The banner now consumes the full `VerifyResult`:
+  hidden content → a red "Sealed · hidden content" caution; a post-seal restyle (`appearanceChanged`)
+  → an amber "Sealed · restyled"; and a name-only seal notes "signer identity is asserted, not
+  cryptographically verified".
+
 ## [@dotit/pdf 3.1.0] — 2026-07-06 — bank-readiness P2: refuse to sign tampered content (#57)
 
 Security fix. `@dotit/pdf` **3.1.0** (deps `@dotit/core` ^3.4.1).

@@ -33,6 +33,12 @@ interface TrustBannerProps {
   trust: TrustState;
   /** verifyDocument().intact — null when the document is not sealed. */
   intact: boolean | null;
+  /** verifyDocument().appearanceChanged — styling changed since sealing (content intact). */
+  appearanceChanged?: boolean;
+  /** verifyDocument().hiddenContent — styling conceals signed content. */
+  hiddenContent?: boolean;
+  /** verifyDocument().identityAsserted — signer asserted by name only (not cryptographic). */
+  identityAsserted?: boolean;
   /** Live `.it` source — drives the hash-based ambient seal. */
   source: string;
   /**
@@ -134,7 +140,16 @@ function BannerSeal({
 
 /** Derive the one compact status the chip shows: variant + icon + title + the
  *  longer detail (shown on hover and when expanded) + an optional verify verdict. */
-function trustStatus(trust: TrustState, intact: boolean | null, source: string) {
+function trustStatus(
+  trust: TrustState,
+  intact: boolean | null,
+  source: string,
+  flags: {
+    appearanceChanged?: boolean;
+    hiddenContent?: boolean;
+    identityAsserted?: boolean;
+  } = {},
+) {
   if (isTemplate(source)) {
     return {
       variant: "template",
@@ -176,14 +191,46 @@ function trustStatus(trust: TrustState, intact: boolean | null, source: string) 
         },
       };
     }
+    // Content is intact, but styling CONCEALS content — what's on screen is not
+    // everything that was signed. Loudest caution (red), never a clean "Verified".
+    if (intact === true && flags.hiddenContent) {
+      return {
+        variant: "broken",
+        icon: "⚠",
+        title: "Sealed · hidden content",
+        detail: `Signed by ${who(signer, role)}. ⚠ This document HIDES content through styling — what you see is not everything that was signed. Review in reveal mode before trusting it.`,
+        verify: {
+          ok: false,
+          text: "Hidden content — the visible document is incomplete.",
+        },
+      };
+    }
+    // Content is intact, but the STYLING changed since sealing (possible hidden content).
+    if (intact === true && flags.appearanceChanged) {
+      return {
+        variant: "weak",
+        icon: "⚠",
+        title: "Sealed · restyled",
+        detail: `Signed by ${who(signer, role)}${trust.sealedAt ? ` on ${trust.sealedAt}` : ""}. Content is intact, but the STYLING changed since sealing — verify nothing is visually hidden.`,
+        verify: {
+          ok: false,
+          text: "Appearance changed since sealing — content intact, styling differs.",
+        },
+      };
+    }
     return {
       variant: "sealed",
       icon: "🔒",
       title: "Sealed",
-      detail: `Signed by ${who(signer, role)}${trust.sealedAt ? ` on ${trust.sealedAt}` : ""} · read-only.`,
+      detail: `Signed by ${who(signer, role)}${trust.sealedAt ? ` on ${trust.sealedAt}` : ""} · read-only.${flags.identityAsserted ? " Signer identity is asserted by name — not cryptographically verified." : ""}`,
       verify:
         intact === true
-          ? { ok: true, text: "Verified — unaltered since sealing." }
+          ? {
+              ok: true,
+              text: flags.identityAsserted
+                ? "Verified — content unaltered (signer identity asserted, not cryptographically verified)."
+                : "Verified — unaltered since sealing.",
+            }
           : null,
     };
   }
@@ -265,13 +312,20 @@ function trustStatus(trust: TrustState, intact: boolean | null, source: string) 
 export function TrustBanner({
   trust,
   intact,
+  appearanceChanged,
+  hiddenContent,
+  identityAsserted,
   source,
   onChange,
 }: TrustBannerProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   usePopover("trust-chip", ref, open, () => setOpen(false));
-  const s = trustStatus(trust, intact, source);
+  const s = trustStatus(trust, intact, source, {
+    appearanceChanged,
+    hiddenContent,
+    identityAsserted,
+  });
   // Grey the ambient seal only when the verdict is actually BROKEN (no signature
   // covers the current version) — not for a multi-sign doc where a later signer is
   // still valid (that shows "Signed · N/M", which stays trusted).

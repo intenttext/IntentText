@@ -306,8 +306,8 @@ importers:
   packages/editor:
     dependencies:
       '@dotit/core':
-        specifier: ^3.2.0
-        version: 3.2.0
+        specifier: ^3.4.1
+        version: 3.4.1
       '@tiptap/core':
         specifier: ^3.20.1
         version: 3.27.1(@tiptap/pm@3.27.1)

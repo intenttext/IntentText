@@ -417,15 +417,19 @@ export function VisualEditor({
     }
   }, [value]);
 
-  // Hash check for the banner ("hash verified ✓") — only when sealed.
-  const sealIntact = useMemo<boolean | null>(() => {
+  // Full verify verdict for the banner — not just `intact`: a sealed doc can be
+  // intact yet have its styling changed (appearanceChanged), conceal content
+  // (hiddenContent), or carry a name-only signer (identityAsserted). The banner must
+  // reflect all of these, not claim "Verified — unaltered" (finding #63).
+  const verify = useMemo(() => {
     if (!trust.isSealed) return null;
     try {
-      return verifyDocument(value).intact;
+      return verifyDocument(value);
     } catch {
       return null;
     }
   }, [value, trust.isSealed]);
+  const sealIntact = verify ? verify.intact : null;
 
   // Sealed documents are read-only — the canvas refuses edits and the ribbon's
   // formatting groups are disabled (clear professional indication via banner).
@@ -726,6 +730,9 @@ export function VisualEditor({
         <TrustBanner
           trust={trust}
           intact={sealIntact}
+          appearanceChanged={verify?.appearanceChanged}
+          hiddenContent={verify?.hiddenContent}
+          identityAsserted={verify?.identityAsserted}
           source={value}
           onChange={locked ? undefined : onChange}
         />
