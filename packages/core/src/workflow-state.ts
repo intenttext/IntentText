@@ -64,8 +64,15 @@ export interface WorkflowState {
   pending: string[];
   /** Sequential: the first pending approver. Parallel/none: null. */
   next: string | null;
-  /** True when every active, required approver has approved. */
+  /** True when every active, required approver has approved.
+   *  For a SEQUENTIAL route this ALSO requires the approvals to have occurred in
+   *  the route's declared order (see `outOfOrder`). */
   complete: boolean;
+  /** Sequential only: true when every required approver HAS approved, but not in
+   *  the declared order (e.g. `legal` signed before `manager`). The document is
+   *  NOT complete — a downstream approver jumped the queue. Always false for a
+   *  parallel route (order is irrelevant there). */
+  outOfOrder: boolean;
 }
 
 const norm = (s: unknown): string =>
@@ -146,17 +153,24 @@ export function deriveWorkflowState(doc: IntentDocument): WorkflowState {
       pending: [],
       next: null,
       complete: true, // no policy → nothing outstanding
+      outOfOrder: false,
     };
   }
 
   const values = documentValues(doc);
 
-  // Who has actually approved — collect role and by tokens from approve: lines.
+  // Who has actually approved — collect role and by tokens from approve: lines,
+  // AND the per-approval token sets in document ORDER (for the sequential-order
+  // check below, #50).
   const approvedTokens = new Set<string>();
+  const approvalEvents: Set<string>[] = [];
   for (const b of flattenBlocks(doc.blocks)) {
     if (b.type === "approve") {
-      if (b.properties?.role) approvedTokens.add(norm(b.properties.role));
-      if (b.properties?.by) approvedTokens.add(norm(b.properties.by));
+      const toks = new Set<string>();
+      if (b.properties?.role) toks.add(norm(b.properties.role));
+      if (b.properties?.by) toks.add(norm(b.properties.by));
+      for (const t of toks) approvedTokens.add(t);
+      approvalEvents.push(toks);
     }
   }
 
@@ -168,6 +182,35 @@ export function deriveWorkflowState(doc: IntentDocument): WorkflowState {
     else if (!req.optional) pending.push(req.match);
   }
 
+  // Sequential routes enforce ORDER, not just presence (#50): each required
+  // approver must have approved AFTER the previous required approver did. A
+  // downstream approver who signs before an upstream one has jumped the queue —
+  // the route is fulfilled-but-out-of-order, and NOT complete. We walk the
+  // required approvers in declared order and, for each, consume the earliest
+  // approval event strictly after the previous one's; skipping optional
+  // requirements that were never approved (they don't gate the sequence).
+  let outOfOrder = false;
+  if (route.order === "sequential" && pending.length === 0) {
+    let cursor = -1;
+    for (const req of active) {
+      let idx = -1;
+      for (let i = cursor + 1; i < approvalEvents.length; i++) {
+        if (approvalEvents[i].has(req.match)) {
+          idx = i;
+          break;
+        }
+      }
+      if (idx === -1) {
+        // Only optional requirements may be unfulfilled here (pending is empty);
+        // an optional approver that never signed doesn't break the sequence.
+        if (req.optional) continue;
+        outOfOrder = true;
+        break;
+      }
+      cursor = idx;
+    }
+  }
+
   return {
     hasRoute: true,
     order: route.order,
@@ -176,7 +219,8 @@ export function deriveWorkflowState(doc: IntentDocument): WorkflowState {
     fulfilled,
     pending,
     next: route.order === "sequential" ? (pending[0] ?? null) : null,
-    complete: pending.length === 0,
+    complete: pending.length === 0 && !outOfOrder,
+    outOfOrder,
   };
 }
 

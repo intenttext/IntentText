@@ -9,7 +9,15 @@ export interface PropertySchema {
   pattern?: string; // regex for string validation
   min?: number; // for numbers
   max?: number; // for numbers
-  format?: "iso-date" | "iso-datetime" | "time" | "url" | "email";
+  format?:
+    | "iso-date"
+    | "iso-datetime"
+    | "time"
+    | "url"
+    | "email"
+    | "iban"
+    | "bic"
+    | "currency";
 }
 
 export interface BlockSchema {
@@ -442,10 +450,114 @@ function validateProperty(
           });
         }
         break;
+      // Financial formats (#61) — real structural validation, not just a regex:
+      // IBAN carries a mod-97 checksum, BIC has an ISO 9362 shape, currency codes
+      // are checked against the ISO 4217 active list. Banks reject malformed values
+      // downstream; catching them at author/merge time prevents a silently wrong
+      // payment instruction from ever being sealed.
+      case "iban":
+        if (!isValidIban(strValue)) {
+          errors.push({
+            blockId: "",
+            blockType: "",
+            field: fieldName,
+            message: `Property "${fieldName}" must be a valid IBAN (ISO 13616 mod-97 checksum failed)`,
+            severity: "error",
+          });
+        }
+        break;
+      case "bic":
+        if (!isValidBic(strValue)) {
+          errors.push({
+            blockId: "",
+            blockType: "",
+            field: fieldName,
+            message: `Property "${fieldName}" must be a valid BIC/SWIFT code (ISO 9362: 8 or 11 chars)`,
+            severity: "error",
+          });
+        }
+        break;
+      case "currency":
+        if (!isValidCurrencyCode(strValue)) {
+          errors.push({
+            blockId: "",
+            blockType: "",
+            field: fieldName,
+            message: `Property "${fieldName}" must be a valid ISO 4217 currency code (e.g. USD, EUR, QAR)`,
+            severity: "error",
+          });
+        }
+        break;
     }
   }
 
   return errors;
+}
+
+/**
+ * IBAN validation (ISO 13616): strip spaces, check the country/length shape, then
+ * run the mod-97 checksum (move the first 4 chars to the end, map letters A→10…Z→35,
+ * the remainder mod 97 must be 1). This catches transposed digits and typos that a
+ * plain length/format regex would pass.
+ */
+export function isValidIban(raw: string): boolean {
+  const s = raw.replace(/\s+/g, "").toUpperCase();
+  // 2 country letters + 2 check digits + up to 30 alphanumeric (max total 34).
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$/.test(s)) return false;
+  if (s.length < 5 || s.length > 34) return false;
+  // Rearrange: move the first four characters to the end.
+  const rearranged = s.slice(4) + s.slice(0, 4);
+  // Map each letter to two digits (A=10 … Z=35), digits stay as-is.
+  let remainder = 0;
+  for (const ch of rearranged) {
+    const code = ch >= "A" && ch <= "Z" ? (ch.charCodeAt(0) - 55).toString() : ch;
+    for (const d of code) {
+      remainder = (remainder * 10 + (d.charCodeAt(0) - 48)) % 97;
+    }
+  }
+  return remainder === 1;
+}
+
+/**
+ * BIC/SWIFT validation (ISO 9362): 4-letter bank code, 2-letter ISO 3166 country,
+ * 2-char (letters or digits) location, and an OPTIONAL 3-char branch — so 8 or 11
+ * characters total. Location/branch may not start with certain reserved chars in
+ * practice, but the structural check is what callers need here.
+ */
+export function isValidBic(raw: string): boolean {
+  const s = raw.replace(/\s+/g, "").toUpperCase();
+  return /^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(s);
+}
+
+/**
+ * ISO 4217 active currency codes. This is the set of currencies in active use
+ * (fund codes and precious metals like XAU/XAG included, since contracts reference
+ * them). A 3-uppercase-letter string NOT in this set is almost certainly a typo.
+ */
+const ISO_4217_CODES = new Set<string>([
+  "AED", "AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "AUD", "AWG", "AZN",
+  "BAM", "BBD", "BDT", "BGN", "BHD", "BIF", "BMD", "BND", "BOB", "BOV",
+  "BRL", "BSD", "BTN", "BWP", "BYN", "BZD", "CAD", "CDF", "CHE", "CHF",
+  "CHW", "CLF", "CLP", "CNY", "COP", "COU", "CRC", "CUC", "CUP", "CVE",
+  "CZK", "DJF", "DKK", "DOP", "DZD", "EGP", "ERN", "ETB", "EUR", "FJD",
+  "FKP", "GBP", "GEL", "GHS", "GIP", "GMD", "GNF", "GTQ", "GYD", "HKD",
+  "HNL", "HRK", "HTG", "HUF", "IDR", "ILS", "INR", "IQD", "IRR", "ISK",
+  "JMD", "JOD", "JPY", "KES", "KGS", "KHR", "KMF", "KPW", "KRW", "KWD",
+  "KYD", "KZT", "LAK", "LBP", "LKR", "LRD", "LSL", "LYD", "MAD", "MDL",
+  "MGA", "MKD", "MMK", "MNT", "MOP", "MRU", "MUR", "MVR", "MWK", "MXN",
+  "MXV", "MYR", "MZN", "NAD", "NGN", "NIO", "NOK", "NPR", "NZD", "OMR",
+  "PAB", "PEN", "PGK", "PHP", "PKR", "PLN", "PYG", "QAR", "RON", "RSD",
+  "RUB", "RWF", "SAR", "SBD", "SCR", "SDG", "SEK", "SGD", "SHP", "SLE",
+  "SOS", "SRD", "SSP", "STN", "SVC", "SYP", "SZL", "THB", "TJS", "TMT",
+  "TND", "TOP", "TRY", "TTD", "TWD", "TZS", "UAH", "UGX", "USD", "USN",
+  "UYI", "UYU", "UYW", "UZS", "VED", "VES", "VND", "VUV", "WST", "XAF",
+  "XAG", "XAU", "XCD", "XDR", "XOF", "XPD", "XPF", "XPT", "XSU", "XUA",
+  "YER", "ZAR", "ZMW", "ZWL",
+]);
+
+/** ISO 4217 currency code — 3 uppercase letters from the active list. */
+export function isValidCurrencyCode(raw: string): boolean {
+  return ISO_4217_CODES.has(raw.trim().toUpperCase());
 }
 
 function validateBlock(

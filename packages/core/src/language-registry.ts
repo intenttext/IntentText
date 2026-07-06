@@ -528,7 +528,7 @@ export const CANONICAL_KEYWORDS: string[] = LANGUAGE_REGISTRY.filter(
 ).map((k) => k.canonical);
 
 /** Total canonical keyword count — 41 (38 at the 4.3 line + route/require/certify in 4.4). */
-export const KEYWORD_COUNT = CANONICAL_KEYWORDS.length; // 41
+export const KEYWORD_COUNT = CANONICAL_KEYWORDS.length; // 40
 
 /** Total extension keyword count. */
 export const EXTENSION_COUNT = EXTENSION_REGISTRY.length;

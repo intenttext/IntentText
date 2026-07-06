@@ -173,7 +173,7 @@ export async function toPdfA(pdf: Uint8Array, opts: PdfAOptions = {}): Promise<U
   }
 
   // 3. A stable document /ID (PDF/A requires one).
-  const idHex = stableId(title || "intenttext", xmp.length);
+  const idHex = stableId(title || "intenttext", pdf);
   ctx.trailerInfo.ID = ctx.obj([PDFHexString.of(idHex), PDFHexString.of(idHex)]);
 
   // PDF/A-1 forbids object/xref streams; -2/-3 allow them. Disable for the widest
@@ -182,11 +182,17 @@ export async function toPdfA(pdf: Uint8Array, opts: PdfAOptions = {}): Promise<U
 }
 
 /** Deterministic 32-hex-char ID from inputs (no Math.random — stable across runs). */
-function stableId(seed: string, n: number): string {
+// Derive the /ID from a digest of the ACTUAL PDF bytes (finding #68): distinct documents
+// with the same title + XMP length now get distinct IDs (the old seed collided).
+function stableId(seed: string, content: Uint8Array): string {
   let h = 0x811c9dc5 >>> 0;
-  const s = `${seed}:${n}`;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
+  const prefix = `${seed}:`;
+  for (let i = 0; i < prefix.length; i++) {
+    h ^= prefix.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  for (let i = 0; i < content.length; i++) {
+    h ^= content[i];
     h = Math.imul(h, 0x01000193) >>> 0;
   }
   let out = "";

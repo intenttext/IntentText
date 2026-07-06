@@ -112,8 +112,11 @@ function signingPayload(
   signer: string,
   role: string,
   at: string,
+  spec: string,
 ): Uint8Array {
-  return enc(`${hash}\n${signer}\n${role}\n${at}`);
+  // `spec` (the canonicalization version) is bound in, so the `spec:` field on the sign
+  // line can't be downgraded to a weaker ruleset without breaking the signature. (#37)
+  return enc(`${hash}\n${signer}\n${role}\n${at}\n${spec}`);
 }
 
 // ─── Sign ────────────────────────────────────────────────────────────────────
@@ -161,7 +164,7 @@ export function signDocumentCrypto(
 
   const hash = computeDocumentHash(source);
   const sig = ed25519.sign(
-    signingPayload(hash, options.signer, role, at),
+    signingPayload(hash, options.signer, role, at, String(SEAL_SPEC)),
     fromB64url(options.privateKey),
   );
 
@@ -260,20 +263,21 @@ export function verifyCryptoSignatures(source: string): SignatureCheck[] {
     try {
       const pub = decodeEd25519Key(publicKey, "public key");
       const sig = fromB64url(sigField);
-      const payloadFor = (h: string) =>
-        signingPayload(h, signer, role ?? "", at ?? "");
+      const payloadFor = (h: string, spec: string) =>
+        signingPayload(h, signer, role ?? "", at ?? "", spec);
       // Verify against the canonicalization spec the signature RECORDED (forever
-      // stable). A pre-versioning signature (no spec:) falls back to current||legacy.
+      // stable), and bind that spec into the payload so it can't be swapped (#37). A
+      // pre-versioning signature (no spec:) verifies with an empty spec, current||legacy.
       const specRaw = (p as Record<string, string>).spec;
       const ok =
         specRaw != null
           ? ed25519.verify(
               sig,
-              payloadFor(computeDocumentHash(source, Number(specRaw))),
+              payloadFor(computeDocumentHash(source, Number(specRaw)), specRaw),
               pub,
             )
-          : ed25519.verify(sig, payloadFor(currentHash), pub) ||
-            ed25519.verify(sig, payloadFor(legacyHash), pub);
+          : ed25519.verify(sig, payloadFor(currentHash, ""), pub) ||
+            ed25519.verify(sig, payloadFor(legacyHash, ""), pub);
       out.push({
         signer,
         role,
@@ -659,8 +663,10 @@ function certPayload(
   account: string,
   entity: string,
   at: string,
+  spec: string,
 ): Uint8Array {
-  return enc(`certify\n${hash}\n${issuer}\n${account}\n${entity}\n${at}`);
+  // `spec` bound in so the certify line's canonicalization version can't be downgraded. (#37)
+  return enc(`certify\n${hash}\n${issuer}\n${account}\n${entity}\n${at}\n${spec}`);
 }
 
 export interface CertifyResult {
@@ -722,7 +728,7 @@ export function certifyDocument(
   }
   const at = options.at ?? new Date().toISOString();
   const sig = ed25519.sign(
-    certPayload(hash, options.issuer, options.account, entity, at),
+    certPayload(hash, options.issuer, options.account, entity, at, String(SEAL_SPEC)),
     fromB64url(options.issuerPrivateKey),
   );
   const line = [
@@ -830,7 +836,7 @@ export function verifyCertifications(
     try {
       signatureValid = ed25519.verify(
         fromB64url(sigField),
-        certPayload(certHash, issuer, account ?? "", entity ?? "", at ?? ""),
+        certPayload(certHash, issuer, account ?? "", entity ?? "", at ?? "", specRaw ?? ""),
         fromB64url(publicKey),
       );
     } catch {

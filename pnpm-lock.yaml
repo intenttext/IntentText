@@ -17,8 +17,8 @@ importers:
   apps/desktop:
     dependencies:
       '@dotit/core':
-        specifier: ^3.2.0
-        version: 3.2.0
+        specifier: ^3.6.0
+        version: 3.6.0
       '@dotit/editor':
         specifier: ^3.2.0
         version: 3.2.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -26,8 +26,8 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1(pdfkit@0.10.0)
       '@dotit/sign':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.4.0
+        version: 3.4.0(@dotit/pades@1.0.1(pdfkit@0.10.0))
       chokidar:
         specifier: ^4.0.1
         version: 4.0.3
@@ -81,8 +81,8 @@ importers:
         specifier: 3.10.1
         version: 3.10.1(@algolia/client-search@5.52.1)(@docusaurus/faster@3.10.1(@docusaurus/types@3.10.1(@swc/core@1.15.41(@swc/helpers@0.5.5))(postcss@8.5.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@swc/helpers@0.5.5)(postcss@8.5.15))(@mdx-js/react@3.1.1(@types/react@19.2.17)(react@19.2.6))(@rspack/core@1.7.11(@swc/helpers@0.5.5))(@swc/core@1.15.41(@swc/helpers@0.5.5))(@types/react@19.2.17)(postcss@8.5.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(search-insights@2.17.3)(typescript@5.6.3)
       '@dotit/core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.6.0
+        version: 3.6.0
       '@mdx-js/react':
         specifier: ^3.0.0
         version: 3.1.1(@types/react@19.2.17)(react@19.2.6)
@@ -127,8 +127,8 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.6)
       '@dotit/core':
-        specifier: ^3.5.2
-        version: 3.5.2
+        specifier: ^3.6.0
+        version: 3.6.0
       '@dotit/editor':
         specifier: ^3.3.0
         version: 3.3.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -161,8 +161,8 @@ importers:
   apps/hub:
     dependencies:
       '@dotit/core':
-        specifier: ^3.5.2
-        version: 3.5.2
+        specifier: ^3.6.0
+        version: 3.6.0
       mongodb:
         specifier: ^7.1.0
         version: 7.2.0(socks@2.8.9)
@@ -213,11 +213,11 @@ importers:
   apps/verify:
     dependencies:
       '@dotit/core':
-        specifier: ^3.5.2
-        version: 3.5.2
+        specifier: ^3.6.0
+        version: 3.6.0
       '@dotit/sign':
-        specifier: ^3.3.0
-        version: 3.3.0(@dotit/pades@1.1.0(pdfkit@0.10.0))
+        specifier: ^3.4.0
+        version: 3.4.0(@dotit/pades@1.2.1(pdfkit@0.10.0))
       react:
         specifier: ^19.2.4
         version: 19.2.6
@@ -247,8 +247,8 @@ importers:
   demo/erp-integration:
     dependencies:
       '@dotit/core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.6.0
+        version: 3.6.0
 
   packages/action:
     dependencies:
@@ -259,8 +259,8 @@ importers:
         specifier: ^0.4.0
         version: 0.4.0
       '@dotit/core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.6.0
+        version: 3.6.0
       minimatch:
         specifier: ^9.0.0
         version: 9.0.9
@@ -306,8 +306,8 @@ importers:
   packages/editor:
     dependencies:
       '@dotit/core':
-        specifier: ^3.4.1
-        version: 3.4.1
+        specifier: ^3.6.0
+        version: 3.6.0
       '@tiptap/core':
         specifier: ^3.20.1
         version: 3.27.1(@tiptap/pm@3.27.1)
@@ -407,11 +407,11 @@ importers:
   packages/mcp:
     dependencies:
       '@dotit/core':
-        specifier: ^3.5.0
-        version: 3.5.0
+        specifier: ^3.6.0
+        version: 3.6.0
       '@dotit/sign':
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.4.0
+        version: 3.4.0(@dotit/pades@1.2.1(pdfkit@0.10.0))
       '@modelcontextprotocol/sdk':
         specifier: ^1.0.0
         version: 1.29.0(zod@4.4.3)
@@ -469,8 +469,8 @@ importers:
   packages/pdf:
     dependencies:
       '@dotit/core':
-        specifier: ^3.4.1
-        version: 3.4.1
+        specifier: ^3.6.0
+        version: 3.6.0
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
@@ -497,8 +497,8 @@ importers:
   packages/sign:
     dependencies:
       '@dotit/core':
-        specifier: ^3.3.0
-        version: 3.3.0
+        specifier: ^3.6.0
+        version: 3.6.0
       '@noble/curves':
         specifier: ^1.8.1
         version: 1.9.7
@@ -519,8 +519,8 @@ importers:
   packages/vscode:
     dependencies:
       '@dotit/core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.6.0
+        version: 3.6.0
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -538,14 +538,14 @@ importers:
   services/uts-certify:
     dependencies:
       '@dotit/core':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.6.0
+        version: 3.6.0
       '@dotit/pades':
         specifier: workspace:^
         version: link:../../packages/pades
       '@dotit/sign':
-        specifier: ^1.3.0
-        version: 1.4.2
+        specifier: ^1.4.4
+        version: 1.4.4
       express:
         specifier: ^4.21.2
         version: 4.22.2
@@ -1819,33 +1819,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@dotit/core@3.1.0':
-    resolution: {integrity: sha512-ZUnAtAb5wwbpQ9R0IAuqnV4G0F+8DKq7FkuZpRTuk1322Ed0UQboJ7aKmvnIZDkAS6mqvxmY4VcmwpMYzXYpvA==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  '@dotit/core@3.2.0':
-    resolution: {integrity: sha512-0VpoHg666gYe1APEIjrqXa62cik+8IxBUjPGoMD8nCI81prKK1BU7ayw4qlBS8UrHMdE1EUSgChTE+wzEuqaaw==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  '@dotit/core@3.3.0':
-    resolution: {integrity: sha512-zICaH+Txi09WIITzeCJznielbH0R+6hSRE+36zB1JfyMRiNBc12P0fSJakv5RimsG1MddxVO/KDy6krqWE7Y8A==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  '@dotit/core@3.4.1':
-    resolution: {integrity: sha512-2ql0xpe9drmrB9t3YpOoyXDiRPvyz9QowFPejaYboRgP9eVUhkD3lICQqQXIcnrKBQzEoNu4WtGv5GHAU7TxyQ==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  '@dotit/core@3.5.0':
-    resolution: {integrity: sha512-RqVu+U83xoyKw4+MCu7CFVw9GQIf+zR/n+fcxamt+hjQ3rztTZ97Fc0YoWFJ1YGMy43B8sLr/COVoTxDYou4pw==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  '@dotit/core@3.5.2':
-    resolution: {integrity: sha512-Q6dyc2bbkj5nXpcTQ5PV83quSDtPviDYAmSpnzuRVpvkyphQckrRKCudPhklIuaNBXsd9lgpaflVtldPKl/y0Q==}
+  '@dotit/core@3.6.0':
+    resolution: {integrity: sha512-eAvLLfSX/fS5ofb+zjBlmnBDPNC1jVrZlDcEgRIQnTBh1vbPMYvZO1DIgT26AIs0f2JzJ3Z16gtEzAjWkkRetA==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -1869,20 +1844,16 @@ packages:
     resolution: {integrity: sha512-Qa1xIWtM8WfAOwMDLu1vhFKLuED1RXKiBxICI5e+idZ5AwTR+nkuG/0l40/7itKOEGn2UaZPS7S9CmaGzu6KXw==}
     hasBin: true
 
-  '@dotit/sign@1.4.2':
-    resolution: {integrity: sha512-L44ICTgdBGt8u47dSLVG5GGShx7WcL5tZkVV8xqVjFKNmUeAe4NaEyWoh2PYKunYkXNk0cISY2lERDIHODTqiw==}
+  '@dotit/pades@1.2.1':
+    resolution: {integrity: sha512-A+RlvShvAbfp3ToPUkx4OgoOZEGs1nPV9soehEFma1ERS4IG9Oy/aQplLSDhFLgO/mTYkEHP5BRNHJ721/gq+Q==}
     hasBin: true
 
-  '@dotit/sign@3.0.0':
-    resolution: {integrity: sha512-IzLm6bNR3fQC/6DW5pRT49Cb3aRtFs5q2wc5UAJr7G/UmatRVnqVvrC4pEQkC2XhKAyb2KDO7BZ2uzIDgPig8Q==}
+  '@dotit/sign@1.4.4':
+    resolution: {integrity: sha512-5kFIbDO7OZ7MDZ+n8qerc3cEjYnVVSsJDBu4098bKXKw2XuWBM6kc6fFasmFDZMTW7ROooZlSI1FM18QI2G5qg==}
     hasBin: true
 
-  '@dotit/sign@3.1.0':
-    resolution: {integrity: sha512-yOLNgL0SdUn6PKa8O4aiCILmhTV5FOiZGQp/mZOkMcn1sE0fbLea2I7G7ben0Zl7DkN6ECu7NdvXeS+gcB84yw==}
-    hasBin: true
-
-  '@dotit/sign@3.3.0':
-    resolution: {integrity: sha512-JB73Z9OL+6qp1/9T430tIQV8aX9f1P5tdKgu0dneD3yx7Fp4HRyMVtM9FKdljCKQExXVFceRv9ncpp8kRPwtXA==}
+  '@dotit/sign@3.4.0':
+    resolution: {integrity: sha512-68c0YlMMVmGbIqSRqwc6M6Q3VJDOhkQLQ3XWQ3lopc3L6JExAXUtkzs0/2vCcLtbBoPH3usenG35RKQQZ91WDA==}
     hasBin: true
     peerDependencies:
       '@dotit/pades': ^1.1.0
@@ -12375,37 +12346,7 @@ snapshots:
       fflate: 0.8.3
       node-html-parser: 7.1.0
 
-  '@dotit/core@3.1.0':
-    dependencies:
-      '@types/node': 20.19.43
-      fflate: 0.8.3
-      node-html-parser: 7.1.0
-
-  '@dotit/core@3.2.0':
-    dependencies:
-      '@types/node': 20.19.43
-      fflate: 0.8.3
-      node-html-parser: 7.1.0
-
-  '@dotit/core@3.3.0':
-    dependencies:
-      '@types/node': 20.19.43
-      fflate: 0.8.3
-      node-html-parser: 7.1.0
-
-  '@dotit/core@3.4.1':
-    dependencies:
-      '@types/node': 20.19.43
-      fflate: 0.8.3
-      node-html-parser: 7.1.0
-
-  '@dotit/core@3.5.0':
-    dependencies:
-      '@types/node': 20.19.43
-      fflate: 0.8.3
-      node-html-parser: 7.1.0
-
-  '@dotit/core@3.5.2':
+  '@dotit/core@3.6.0':
     dependencies:
       '@types/node': 20.19.43
       fflate: 0.8.3
@@ -12413,7 +12354,7 @@ snapshots:
 
   '@dotit/editor@3.2.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
-      '@dotit/core': 3.2.0
+      '@dotit/core': 3.6.0
       '@tiptap/core': 3.27.1(@tiptap/pm@3.27.1)
       '@tiptap/extension-color': 3.27.1(@tiptap/extension-text-style@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1)))
       '@tiptap/extension-font-family': 3.27.1(@tiptap/extension-text-style@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1)))
@@ -12439,7 +12380,7 @@ snapshots:
 
   '@dotit/editor@3.3.0(@floating-ui/dom@1.7.6)(@tiptap/extensions@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1))(@tiptap/pm@3.27.1))(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
-      '@dotit/core': 3.5.2
+      '@dotit/core': 3.6.0
       '@tiptap/core': 3.27.1(@tiptap/pm@3.27.1)
       '@tiptap/extension-color': 3.27.1(@tiptap/extension-text-style@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1)))
       '@tiptap/extension-font-family': 3.27.1(@tiptap/extension-text-style@3.27.1(@tiptap/core@3.27.1(@tiptap/pm@3.27.1)))
@@ -12485,27 +12426,36 @@ snapshots:
     transitivePeerDependencies:
       - pdfkit
 
-  '@dotit/sign@1.4.2':
+  '@dotit/pades@1.2.1(pdfkit@0.10.0)':
+    dependencies:
+      '@signpdf/placeholder-plain': 3.3.0(pdfkit@0.10.0)
+      '@signpdf/signpdf': 3.3.0
+      '@signpdf/utils': 3.3.0
+      asn1js: 3.0.10
+      pkijs: 3.4.0
+      pvutils: 1.1.5
+    transitivePeerDependencies:
+      - pdfkit
+    optional: true
+
+  '@dotit/sign@1.4.4':
     dependencies:
       '@dotit/core': 1.25.0
       '@noble/curves': 1.9.7
 
-  '@dotit/sign@3.0.0':
+  '@dotit/sign@3.4.0(@dotit/pades@1.0.1(pdfkit@0.10.0))':
     dependencies:
-      '@dotit/core': 3.5.2
-      '@noble/curves': 1.9.7
-
-  '@dotit/sign@3.1.0':
-    dependencies:
-      '@dotit/core': 3.2.0
-      '@noble/curves': 1.9.7
-
-  '@dotit/sign@3.3.0(@dotit/pades@1.1.0(pdfkit@0.10.0))':
-    dependencies:
-      '@dotit/core': 3.5.2
+      '@dotit/core': 3.6.0
       '@noble/curves': 1.9.7
     optionalDependencies:
-      '@dotit/pades': 1.1.0(pdfkit@0.10.0)
+      '@dotit/pades': 1.0.1(pdfkit@0.10.0)
+
+  '@dotit/sign@3.4.0(@dotit/pades@1.2.1(pdfkit@0.10.0))':
+    dependencies:
+      '@dotit/core': 3.6.0
+      '@noble/curves': 1.9.7
+    optionalDependencies:
+      '@dotit/pades': 1.2.1(pdfkit@0.10.0)
 
   '@electron/asar@3.4.1':
     dependencies:

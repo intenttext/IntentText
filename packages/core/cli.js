@@ -29,6 +29,7 @@ const {
   updateIndex,
   composeIndexes,
   queryComposed,
+  parseQuery,
   formatTable,
   formatJSON,
   formatCSV,
@@ -84,6 +85,8 @@ Query (v2.10):
   dotit query <dir> --type task --format table    Table output (default)
   dotit query <dir> --type task --format json     JSON output
   dotit query <dir> --type task --format csv      CSV output
+  dotit query <dir> --query "amount>100000 sort:amount:desc limit:10"
+                                                  Numeric/date/range operators across a folder
 
 Runtime Telemetry:
 
@@ -249,6 +252,12 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
       args.indexOf("--content") >= 0
         ? args[args.indexOf("--content") + 1]
         : null;
+    // Rich operator query (#45): `--query "amount>100000 due<2026-03-01 sort:due:asc limit:10"`
+    // gives a FOLDER query the same numeric/date/range/sort/limit engine as a
+    // single-document `--query`. Parsed once, applied across all composed files.
+    const queryStr =
+      args.indexOf("--query") >= 0 ? args[args.indexOf("--query") + 1] : null;
+    const parsedQuery = queryStr ? parseQuery(queryStr) : null;
     const formatIdx = args.indexOf("--format");
     const fmt = formatIdx >= 0 ? args[formatIdx + 1] : "table";
 
@@ -290,6 +299,9 @@ Built-in themes: ${listBuiltinThemes().join(", ")}
       by: byFilter || undefined,
       status: statusFilter || undefined,
       section: sectionFilter || undefined,
+      where: parsedQuery?.where,
+      sort: parsedQuery?.sort,
+      limit: parsedQuery?.limit,
     });
 
     if (fmt === "json") console.log(formatJSON(filtered));

@@ -8,8 +8,10 @@
 
 import { IntentDocument, IntentBlock } from "./types";
 import { flattenBlocks } from "./utils";
+import { sha256Hex } from "./sha256";
 import { effectiveField } from "./defaults";
 import { parseIntentText } from "./parser";
+import { compareValues, type QueryClause, type QuerySort } from "./query";
 
 // ── Types ───────────────────────────────────────────────
 
@@ -49,13 +51,12 @@ export interface ComposedResult {
 
 // ── Hashing ─────────────────────────────────────────────
 
-/** Simple hash for index invalidation (not cryptographic). */
+/** Content hash for index invalidation. SHA-256 (not a 32-bit hash), so a changed file is
+ *  never mistaken for "unchanged" on a collision — which would serve a STALE file from the
+ *  index. An old `hash:`-prefixed entry never equals the new `sha256:` value, so upgrading
+ *  simply re-indexes each file once. (finding #66) */
 function simpleHash(content: string): string {
-  let h = 0;
-  for (let i = 0; i < content.length; i++) {
-    h = (Math.imul(31, h) + content.charCodeAt(i)) | 0;
-  }
-  return "hash:" + Math.abs(h).toString(16).padStart(8, "0");
+  return "sha256:" + sha256Hex(content);
 }
 
 // ── Build ───────────────────────────────────────────────
@@ -346,7 +347,74 @@ export function composeIndexes(
 }
 
 /**
- * Query composed results with the same filter semantics as the query engine.
+ * Resolve a queryable field value from a composed index block entry — the folder
+ * counterpart of query.ts's getFieldValue. Handles the pseudo-fields (type/
+ * content/section), read-time defaults (a `done:` block answers status=done), and
+ * form fields queryable BY THEIR KEY (`input: … | key: country | value: KW` →
+ * `country=KW`). Property values are strings, so numeric/date comparison is left
+ * to compareValues.
+ */
+function getComposedFieldValue(
+  entry: IndexBlockEntry,
+  field: string,
+): string | number | boolean | undefined {
+  if (field === "type") return entry.type;
+  if (field === "content") return entry.content;
+  if (field === "section") return entry.section;
+
+  // Form-field answers are queryable by their key.
+  if (
+    entry.type === "input" &&
+    entry.properties.key === field &&
+    entry.properties.value !== undefined
+  ) {
+    return entry.properties.value;
+  }
+
+  if (entry.properties[field] !== undefined) return entry.properties[field];
+
+  // Read-time default (status=done for a done: block, etc.).
+  const def = effectiveField(entry, field);
+  return def == null ? undefined : (def as string | number | boolean);
+}
+
+/** Evaluate one operator clause against a composed index block entry (#45). */
+function evaluateComposedClause(
+  entry: IndexBlockEntry,
+  clause: QueryClause,
+): boolean {
+  const value = getComposedFieldValue(entry, clause.field);
+  switch (clause.operator) {
+    case "exists":
+      return value !== undefined;
+    case "=":
+      return String(value).toLowerCase() === String(clause.value).toLowerCase();
+    case "!=":
+      return String(value).toLowerCase() !== String(clause.value).toLowerCase();
+    case "<":
+      return compareValues(value, clause.value) < 0;
+    case ">":
+      return compareValues(value, clause.value) > 0;
+    case "<=":
+      return compareValues(value, clause.value) <= 0;
+    case ">=":
+      return compareValues(value, clause.value) >= 0;
+    case "contains":
+      return String(value).toLowerCase().includes(String(clause.value).toLowerCase());
+    case "startsWith":
+      return String(value).toLowerCase().startsWith(String(clause.value).toLowerCase());
+    default:
+      return false;
+  }
+}
+
+/**
+ * Query composed (cross-file) results. Supports the original exact-match
+ * convenience filters AND the full operator query engine (#45): `where` clauses
+ * with numeric / date / range operators (`amount>100000`, `due<2026-03-01`, `!=`,
+ * `:contains`, `?exists`), plus `sort` and `limit` — so a folder of `.it` files
+ * (e.g. returned forms) is a queryable dataset with the SAME semantics as a
+ * single-document query, not just equality filters.
  */
 export function queryComposed(
   results: ComposedResult[],
@@ -356,9 +424,16 @@ export function queryComposed(
     by?: string;
     status?: string;
     section?: string;
+    /** Operator clauses (numeric/date/range/contains/exists). Parse from a query
+     *  string with parseQuery(...).where. */
+    where?: QueryClause[];
+    /** Ordering, applied after filtering. From parseQuery(...).sort. */
+    sort?: QuerySort[];
+    /** Cap the number of results returned. From parseQuery(...).limit. */
+    limit?: number;
   },
 ): ComposedResult[] {
-  return results.filter((r) => {
+  let out = results.filter((r) => {
     if (filters.type && r.block.type !== filters.type) return false;
     if (
       filters.content &&
@@ -383,8 +458,31 @@ export function queryComposed(
         !r.block.section.toLowerCase().includes(filters.section.toLowerCase()))
     )
       return false;
+    // Operator clauses (ALL must hold).
+    if (filters.where && filters.where.length > 0) {
+      if (!filters.where.every((clause) => evaluateComposedClause(r.block, clause)))
+        return false;
+    }
     return true;
   });
+
+  // Sort (stable, multi-key) then limit — same order the query engine applies them.
+  if (filters.sort && filters.sort.length > 0) {
+    const sorts = filters.sort;
+    out = [...out].sort((a, b) => {
+      for (const s of sorts) {
+        const va = getComposedFieldValue(a.block, s.field);
+        const vb = getComposedFieldValue(b.block, s.field);
+        const cmp = compareValues(va, vb);
+        if (cmp !== 0) return s.direction === "desc" ? -cmp : cmp;
+      }
+      return 0;
+    });
+  }
+  if (typeof filters.limit === "number" && filters.limit >= 0) {
+    out = out.slice(0, filters.limit);
+  }
+  return out;
 }
 
 // ── Output Formatters ───────────────────────────────────

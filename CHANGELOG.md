@@ -6,6 +6,56 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [core 3.6.0 / sign 3.4.0 / pdf 3.1.1] — 2026-07-06 — bank-readiness P2 (batch 4): remaining findings
+
+`@dotit/core` **3.6.0**, `@dotit/sign` **3.4.0**, `@dotit/pdf` **3.1.1**. Closes the remaining
+bank-readiness P2 items (only the PDF/A font-embedding pair, which needs `fonttools` + `veraPDF`
+in CI, stays open). Every change ships with a red-team test that fails before / passes after.
+
+### Added
+
+- **Financial schema formats** (#61, core). `PropertySchema.format` gains `"iban"`, `"bic"`, and
+  `"currency"`, validated for real — IBAN by the ISO 13616 **mod-97 checksum** (a single transposed
+  digit fails), BIC by ISO 9362 structure (8/11 chars), currency against the **ISO 4217** active
+  list. A malformed payment instruction is now caught at author/merge time instead of at the bank.
+  New exports: `isValidIban`, `isValidBic`, `isValidCurrencyCode`.
+- **Folder queries get the full operator engine** (#45, core). `queryComposed` (and `dotit query
+  <dir> --query "…"`) now support the same numeric / date / range / `sort` / `limit` engine as a
+  single-document query — `amount>100000`, `due<2026-03-01`, `!=`, `:contains`, `?exists`, top-N —
+  so a folder of `.it` files (e.g. returned forms) is a queryable dataset, not just equality
+  filters. Numeric compare is by value, not lexical. Exposes `compareValues` and re-exports the
+  query types.
+- **Normative ABNF grammar** (#62). [`GRAMMAR.abnf`](GRAMMAR.abnf) — an RFC 5234 formal grammar for
+  the concrete line / property / escape / inline syntax, linked as normative from `SPEC.md §2`, with
+  the ordered-choice (first-match-wins) and byte-preservation conformance notes stated up front.
+- **`KEYWORD_COUNT` is now a public export** (#67, core), activating the previously-dead guard in the
+  keyword-consistency CI gate (asserts the canonical count = 40).
+
+### Changed
+
+- **Sequential routes enforce ORDER, not just presence** (#50, core). `workflowState` on a
+  `route: sequential` document is now `complete` only when the required approvers signed **in the
+  declared order**; a downstream approver who jumps the queue (e.g. `legal` before `manager`) is
+  reported via the new `outOfOrder` flag and the document is **not** complete. Parallel routes are
+  unaffected.
+- **Cryptographic signatures bind the seal spec** (#37, sign). The Ed25519 signing payload now
+  includes `SEAL_SPEC`, so a signature is bound to the canonicalization version it was made under and
+  cannot be replayed against a document verified under a different spec. **Breaking for existing
+  signatures** — a signature produced by `@dotit/sign` < 3.4.0 will not verify under 3.4.0 (the
+  format is pre-production, so this is intentional and safe now).
+
+### Fixed
+
+- **`signDocument` refuses an already-sealed document** (#47, core). Signing after a `freeze:` seal
+  would append a signature outside the sealed hash; `signDocument` now returns
+  `{ success: false, note: "already-sealed" }` instead, matching the seal-is-final contract.
+- **Index content hash is SHA-256** (#66, core). The folder-index invalidation hash moved from a
+  32-bit hash to `sha256:`, so a changed file can never collide to "unchanged" and serve stale
+  content. Old `hash:` entries simply re-index once on upgrade.
+- **PDF/A document `/ID` is derived from the actual PDF bytes** (#68, pdf). `stableId` previously
+  seeded off `title` + XMP length, so two distinct documents with the same title collided to one
+  `/ID`; it now folds the real PDF bytes, yielding distinct IDs. Still deterministic (no RNG).
+
 ## [3.5.2 / pades 1.2.1] — 2026-07-06 — bank-readiness P2 (batch 3): quick wins
 
 `@dotit/core` **3.5.2**, `@dotit/pades` **1.2.1**. Small fixes + doc corrections.

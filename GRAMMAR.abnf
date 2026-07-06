@@ -1,0 +1,200 @@
+; ============================================================================
+; IntentText (.it) — Normative grammar in ABNF (RFC 5234 + RFC 7405)
+;
+; Status: NORMATIVE for the concrete line/property/escape syntax of a `.it`
+;   document. This file is the formal companion to SPEC.md §2 (Line grammar);
+;   where prose and this grammar appear to disagree, that is a defect to be
+;   reconciled — neither silently overrides the other.
+;
+; Version: tracks SPEC.md (v4.4). The 40 canonical keywords are FROZEN; the
+;   grammar is stable and only additive changes are permitted (SPEC.md §5).
+;
+; ── Two conformance notes, read these first ────────────────────────────────
+;
+; 1. ORDERED ALTERNATION (PEG semantics, not pure ABNF). RFC 5234 alternation
+;    ( "/" ) is unordered: a string is in the language if ANY alternative
+;    matches. IntentText line classification is instead FIRST-MATCH-WINS in the
+;    exact order of `line` below (SPEC.md §2: "trying these forms in order; the
+;    first that matches wins"). So `--- ` is a <divider>, never a <text-line>,
+;    even though <text-line> could also match it. Read every `/` in the `line`
+;    rule as an ORDERED choice. The reference parser (packages/core/src/
+;    parser.ts) is authoritative for any residual tie-break.
+;
+; 2. BYTE PRESERVATION. A conforming parser MUST round-trip: for the canonical
+;    serializer, documentToSource(parseIntentText(s)) == s, byte for byte
+;    (SPEC.md §5.1). Trivia — blank lines, the original per-line breaks inside a
+;    merged paragraph, and leading indentation — is retained as attached
+;    metadata even though it does not change block classification. This grammar
+;    describes which bytes form which construct; it does not license a parser to
+;    normalize or drop any byte on output.
+; ============================================================================
+
+
+; ── Document ────────────────────────────────────────────────────────────────
+
+document       = *( line EOL ) [ line ]
+               ; A document is a sequence of lines. The final line need not end
+               ; in EOL. Line terminators are LF or CRLF and are preserved.
+
+EOL            = [ CR ] LF
+
+; A line is classified by trying these forms IN ORDER (see conformance note 1).
+line           = blank-line
+               / fence-line          ; opens/closes a verbatim code block
+               / divider-line
+               / table-row
+               / list-item
+               / keyword-line         ; reserved OR custom keyword (registry-resolved)
+               / text-line            ; bare prose — the preferred narrative style
+
+; Inside an OPEN code fence, lines are captured verbatim (keywords are NOT
+; interpreted) until the next fence-line; that stateful mode is described in
+; SPEC.md §2 and enforced by the parser, and is intentionally not re-expressed
+; as context-free ABNF here.
+
+
+; ── Blank, divider, fence ─────────────────────────────────────────────────
+
+blank-line     = *WSP
+               ; A blank (or whitespace-only) line flushes the current block.
+
+divider-line   = "---"
+               ; EXACTLY three hyphens after trimming surrounding whitespace
+               ; ( parser: trimmed === "---" ). Renders as a horizontal rule.
+               ; The identical token, when it immediately precedes the audit
+               ; log, is the `history:` boundary (SPEC.md §4); which role a
+               ; given "---" plays is resolved by position, not by spelling.
+
+fence-line     = "```" *CHAR
+               ; A line whose trimmed text begins with three backticks toggles a
+               ; verbatim `code` block. A closing fence MAY carry pipe-properties
+               ; ( ```  | lang: js ).
+
+
+; ── Table row and list item ───────────────────────────────────────────────
+
+table-row      = "|" *CHAR
+               ; A line whose trimmed text begins with "|" is a table row; cells
+               ; are the "|"-separated fields. A literal pipe inside a cell is
+               ; written "\|". Consecutive table-rows accrete into one `table`.
+
+list-item      = bullet SP content-text
+bullet         = "-" / "*"
+               ; "- " or "* " (bullet + at least one space) begins a list item.
+
+
+; ── Keyword line (the structural core) ────────────────────────────────────
+;
+; A keyword line is a "|"-delimited (space-pipe-space) sequence of segments. The
+; FIRST segment carries the keyword and the block content; every later segment
+; is a `key: value` property. The delimiter is ALWAYS " | " (SP "|" SP); a
+; literal "|" in content or a value is escaped as "\|".
+
+keyword-line   = keyword ":" [ SP-content ] *( DELIM property )
+
+property       = key ":" [ SP-value ]
+
+DELIM          = SP "|" SP        ; the one, line-level property delimiter
+
+; The keyword is resolved against the registry: a CANONICAL keyword (one of the
+; 40), a registered ALIAS (e.g. Arabic عنوان -> title), an `x-namespace:`
+; EXTENSION keyword, or a `history:`/boundary keyword. A `word:` that resolves to
+; NONE of these still matches `keyword-line` syntactically and is retained as a
+; `custom` block with its keyword preserved verbatim (SPEC.md §2 form 6).
+
+keyword        = word
+key            = word
+
+; Keywords and property keys are UNICODE words: an initial Unicode letter
+; ( Unicode property \p{L} ), then letters, decimal digits, "-", or "_". ABNF
+; core rules are ASCII-only, so the Unicode classes are named abstractly here;
+; the reference parser uses the \p{L}/\p{N} Unicode properties.
+word           = LETTER *( LETTER / DIGIT / "-" / "_" )
+LETTER         = ALPHA / non-ascii-letter   ; any \p{L}
+non-ascii-letter = %x80-10FFFF              ; abstract: any \p{L} beyond ASCII
+
+; Content and values run up to the next unescaped DELIM (or end of line). A
+; single leading space after the colon is a separator and is not part of the
+; value ( "task: Ship" -> content "Ship" ). Content MAY be empty, which is how a
+; properties-only line is written ( "freeze: | at: 2026-06-12" ): the keyword is
+; immediately followed by a DELIM.
+SP-content     = SP content-text
+SP-value       = SP value-text
+
+content-text   = *seg-char
+value-text     = *seg-char
+
+; A segment character is any character except a bare DELIM. A literal pipe or
+; backslash is escaped; the parser unescapes on read and the serializer
+; re-escapes on write, so round-trips are byte-stable (SPEC.md §2).
+seg-char       = escaped / plain-char
+escaped        = "\" ( "|" / "\" )         ; "\|" -> "|" , "\\" -> "\"
+plain-char     = %x20-5B / %x5D-7B / %x7D-10FFFF / colon-run
+               ; any char except "\" (%x5C) and "|" (%x7C) handled above;
+               ; ":" needs NO escaping inside content or a value (SPEC.md §2).
+colon-run      = ":"
+
+
+; ── Bare text (implicit) ──────────────────────────────────────────────────
+
+text-line      = content-text
+               ; Any non-empty line reaching this final form is a `text` block.
+               ; A keyword-less prose line round-trips byte-identical and is
+               ; NEVER given a `text:` prefix on output (SPEC.md §5.1). Reach for
+               ; explicit `text:` only when a prose line must carry pipe-
+               ; properties or must literally begin with a `word:` token.
+
+
+; ============================================================================
+; INLINE micro-grammar (applies within a block's content-text / value-text)
+;
+; Status: NORMATIVE for what each inline node is; the reference parser is
+;   authoritative for MATCH ORDER when spans could overlap (e.g. a double
+;   delimiter "**" binds before the single "*"; [label](url) and [[note]] are
+;   matched before an inline styled [text]{...} span). Inline parsing NEVER
+;   rewrites source bytes, so it cannot affect a seal (SPEC.md §2).
+; ============================================================================
+
+inline-run     = *( inline-node / literal-run )
+literal-run    = 1*CHAR
+               ; A maximal run of characters that does NOT begin any inline-node;
+               ; where a delimiter could start a node the parser prefers the node
+               ; (conformance note 1). Parser-bounded, hence not fully context-free.
+inline-node    = bold / italic / strike / code-span / mention / tag
+               / link / sidenote / styled-span / footnote-ref
+
+bold           = ( "**" text-1 "**" ) / ( "__" text-1 "__" ) / ( "*" text-1 "*" )
+italic         = "_" text-1 "_"
+strike         = ( "~~" text-1 "~~" ) / ( "~" text-1 "~" )
+code-span      = "`" *CHAR-NO-BACKTICK "`"
+mention        = "@" word
+tag            = "#" word
+link           = "[" label "]" "(" href ")"
+sidenote       = "[[" text-1 "]]"
+styled-span    = "[" label "]" "{" style-decls "}"
+footnote-ref   = "[^" word "]"
+
+style-decls    = style-decl *( ";" style-decl )
+style-decl     = *WSP key *WSP ":" *WSP value-text
+               ; Inline spans use ";" (not " | ") to separate declarations,
+               ; because the line-level DELIM can never occur inside a line.
+
+label          = *CHAR-NO-RBRACKET
+href           = *CHAR-NO-RPAREN
+text-1         = 1*CHAR                     ; non-empty inline text (parser-bounded)
+
+CHAR-NO-BACKTICK = %x00-5F / %x61-10FFFF    ; any char except "`" (%x60)
+CHAR-NO-RBRACKET = %x00-5C / %x5E-10FFFF    ; any char except "]" (%x5D)
+CHAR-NO-RPAREN   = %x00-28 / %x2A-10FFFF    ; any char except ")" (%x29)
+
+
+; ── Core rules (RFC 5234 §B.1, restated for a self-contained file) ──────────
+
+ALPHA          = %x41-5A / %x61-7A          ; A-Z / a-z
+DIGIT          = %x30-39                    ; 0-9
+CR             = %x0D
+LF             = %x0A
+SP             = %x20
+HTAB           = %x09
+WSP            = SP / HTAB
+CHAR           = %x01-10FFFF                ; any character except NUL

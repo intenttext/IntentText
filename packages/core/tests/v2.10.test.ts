@@ -14,6 +14,7 @@ import {
   updateIndex,
   composeIndexes,
   queryComposed,
+  parseQuery,
   formatTable,
   formatJSON,
   formatCSV,
@@ -306,7 +307,8 @@ describe("v2.10 index builder — buildIndexEntry", () => {
   it("produces a hash for invalidation", () => {
     const { doc, source } = makeParsed("title: Test");
     const entry = buildIndexEntry(doc, source, "2025-01-01T00:00:00Z");
-    expect(entry.hash).toMatch(/^hash:/);
+    // SHA-256 content hash (#66) — a changed file can never collide to "unchanged".
+    expect(entry.hash).toMatch(/^sha256:/);
   });
 
   it("stores modified_at timestamp", () => {
@@ -404,7 +406,7 @@ describe("v2.10 index builder — buildShallowIndex", () => {
   it("each file entry has hash and modified_at", () => {
     const files = { "test.it": makeParsed("title: Hello") };
     const index = buildShallowIndex(".", files, "2.10.0");
-    expect(index.files["test.it"].hash).toMatch(/^hash:/);
+    expect(index.files["test.it"].hash).toMatch(/^sha256:/);
     expect(index.files["test.it"].modified_at).toBe("2025-01-01T00:00:00Z");
   });
 });
@@ -653,6 +655,90 @@ describe("v2.10 index builder — queryComposed", () => {
     const composed = buildComposedFixture();
     const matches = queryComposed(composed, { content: "build" });
     expect(matches.length).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * #45 — folder queries must support the SAME operator engine as a single-document
+ * query (numeric/date/range/sort/limit), not just equality filters. Before this,
+ * `queryComposed` could only match type/content/by/status/section exactly, so a
+ * cross-file query like "invoices over 100k" or "tasks due before a date" was
+ * impossible at the folder level.
+ */
+describe("v2.10 queryComposed — operator query engine (#45)", () => {
+  function invoiceFolder(): ComposedResult[] {
+    const idx = buildShallowIndex(
+      "invoices",
+      {
+        "a.it": makeParsed(
+          "title: A\nmetric: Total | key: amount | value: 250000\nmetric: Due | key: due | value: 2026-02-01",
+        ),
+        "b.it": makeParsed(
+          "title: B\nmetric: Total | key: amount | value: 5000\nmetric: Due | key: due | value: 2026-05-01",
+        ),
+        "c.it": makeParsed(
+          "title: C\nmetric: Total | key: amount | value: 1200000\nmetric: Due | key: due | value: 2026-01-15",
+        ),
+      },
+      "2.10.0",
+    );
+    return composeIndexes([idx], ".");
+  }
+
+  it("RED-TEAM: numeric > compares as NUMBER, not string (250000 > 100000, but '5000' would beat it lexically)", () => {
+    const composed = invoiceFolder();
+    const over100k = queryComposed(composed, {
+      where: parseQuery("key=amount value>100000").where,
+    });
+    const amounts = over100k.map((r) => Number(r.block.properties.value)).sort((a, b) => a - b);
+    // Only the 250000 and 1.2M metrics — NOT 5000. A lexical compare would wrongly
+    // include "5000" (since "5" > "1") and drop "1200000".
+    expect(amounts).toEqual([250000, 1200000]);
+  });
+
+  it("date range: due before 2026-03-01 (chronological, not lexical)", () => {
+    const composed = invoiceFolder();
+    const dueSoon = queryComposed(composed, {
+      where: parseQuery("key=due value<2026-03-01").where,
+    });
+    const dates = dueSoon.map((r) => String(r.block.properties.value)).sort();
+    expect(dates).toEqual(["2026-01-15", "2026-02-01"]);
+  });
+
+  it("sort + limit: top-2 invoices by amount descending", () => {
+    const composed = invoiceFolder();
+    const top2 = queryComposed(composed, {
+      where: parseQuery("key=amount").where,
+      sort: parseQuery("sort:value:desc").sort,
+      limit: 2,
+    });
+    expect(top2.map((r) => Number(r.block.properties.value))).toEqual([1200000, 250000]);
+  });
+
+  it("form fields queryable BY KEY across a folder of returned forms", () => {
+    const idx = buildShallowIndex(
+      "forms",
+      {
+        "kw.it": makeParsed("title: F1\ninput: Country | key: country | value: KW"),
+        "qa.it": makeParsed("title: F2\ninput: Country | key: country | value: QA"),
+      },
+      "2.10.0",
+    );
+    const composed = composeIndexes([idx], ".");
+    const kw = queryComposed(composed, { where: parseQuery("country=KW").where });
+    expect(kw.length).toBe(1);
+    expect(kw[0].file).toContain("kw.it");
+  });
+
+  it("exact-match convenience filters still work alongside operators", () => {
+    const composed = invoiceFolder();
+    const both = queryComposed(composed, {
+      type: "metric",
+      where: parseQuery("key=amount value>=1000000").where,
+    });
+    // type=metric AND (key=amount AND value>=1M) narrows to the single 1.2M amount.
+    expect(both.length).toBe(1);
+    expect(Number(both[0].block.properties.value)).toBe(1200000);
   });
 });
 

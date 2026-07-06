@@ -253,7 +253,7 @@ function isIsoDateString(v: unknown): boolean {
   return !Number.isNaN(new Date(s).getTime());
 }
 
-function compareValues(a: unknown, b: unknown): number {
+export function compareValues(a: unknown, b: unknown): number {
   // Numbers / money / percent / magnitude FIRST. Block properties are always strings,
   // so amounts like "1,000,000", "3.80M", "45%" or a bare "9" must compare NUMERICALLY
   // — never fall through to Date (which misreads "30" as a year) or localeCompare

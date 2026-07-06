@@ -104,3 +104,75 @@ approve: ok | by: A | role: manager | at: 2026-03-20`;
     expect(documentToSource(parseIntentText(BASE))).toBe(BASE);
   });
 });
+
+/**
+ * #50 — a SEQUENTIAL route must enforce ORDER, not merely presence. Before this
+ * fix, `complete` was `pending.length === 0`, so a downstream approver who signed
+ * BEFORE an upstream one (legal before manager) still counted as a valid,
+ * completed sequential approval — the queue could be jumped silently.
+ */
+describe("workflowState — sequential routes enforce approval ORDER (#50)", () => {
+  const SEQ = `title: PO
+route: sequential
+require: manager
+require: finance
+require: legal`;
+
+  it("RED-TEAM: legal signs before manager → fulfilled but NOT complete (out of order)", () => {
+    // All three roles present, but in the WRONG order (legal, then manager, then finance).
+    const jumped = `${SEQ}
+approve: ok | by: L | role: legal | at: 2026-03-20
+approve: ok | by: M | role: manager | at: 2026-03-21
+approve: ok | by: F | role: finance | at: 2026-03-22`;
+    const s = workflowState(jumped);
+    expect(s.pending).toEqual([]); // every required role DID approve …
+    expect(s.outOfOrder).toBe(true); // … but out of the declared sequence …
+    expect(s.complete).toBe(false); // … so the route is NOT complete.
+  });
+
+  it("same approvals IN order → complete, not out of order", () => {
+    const inOrder = `${SEQ}
+approve: ok | by: M | role: manager | at: 2026-03-20
+approve: ok | by: F | role: finance | at: 2026-03-21
+approve: ok | by: L | role: legal | at: 2026-03-22`;
+    const s = workflowState(inOrder);
+    expect(s.outOfOrder).toBe(false);
+    expect(s.complete).toBe(true);
+  });
+
+  it("middle approver jumps ahead (finance before manager) → out of order", () => {
+    const mid = `${SEQ}
+approve: ok | by: F | role: finance | at: 2026-03-20
+approve: ok | by: M | role: manager | at: 2026-03-21
+approve: ok | by: L | role: legal | at: 2026-03-22`;
+    const s = workflowState(mid);
+    expect(s.outOfOrder).toBe(true);
+    expect(s.complete).toBe(false);
+  });
+
+  it("parallel routes ignore order entirely — b before a is fine", () => {
+    const par = `title: X
+route: parallel
+require: a
+require: b
+approve: ok | by: B | role: b | at: 2026-03-20
+approve: ok | by: A | role: a | at: 2026-03-21`;
+    const s = workflowState(par);
+    expect(s.outOfOrder).toBe(false);
+    expect(s.complete).toBe(true);
+  });
+
+  it("optional approver that never signs doesn't break the sequence", () => {
+    const withOpt = `title: X
+route: sequential
+require: manager
+require: auditor | optional: yes
+require: legal
+approve: ok | by: M | role: manager | at: 2026-03-20
+approve: ok | by: L | role: legal | at: 2026-03-21`;
+    const s = workflowState(withOpt);
+    expect(s.pending).toEqual([]);
+    expect(s.outOfOrder).toBe(false);
+    expect(s.complete).toBe(true);
+  });
+});

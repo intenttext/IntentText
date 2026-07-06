@@ -20,6 +20,14 @@ parseIntentText(source) -> { version, blocks: IntentBlock[], metadata }
 
 ## 2. Line grammar
 
+> **Formal grammar.** [`GRAMMAR.abnf`](GRAMMAR.abnf) is the **normative** ABNF
+> (RFC 5234 + RFC 7405) for the concrete line, property, escape, and inline
+> syntax described in this section. Because line classification is *first-match-
+> wins* (below), the ABNF's alternations are read as **ordered** choices (PEG
+> semantics) — see the two conformance notes at the head of that file. The prose
+> here and the ABNF are the same grammar stated twice; a disagreement is a defect
+> to reconcile, not a precedence rule.
+
 A non-blank, non-indented line is parsed by trying these forms in order; the first
 that matches wins:
 

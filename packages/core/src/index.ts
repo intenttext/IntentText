@@ -9,6 +9,7 @@ export {
   PUBLIC_KEYWORDS,
   KEYWORD_TIERS,
   CORE_KEYWORDS,
+  KEYWORD_COUNT,
   tierOf,
 } from "./language-registry";
 export type {
@@ -91,6 +92,9 @@ export {
   createSchema,
   formatValidationResult,
   PREDEFINED_SCHEMAS,
+  isValidIban,
+  isValidBic,
+  isValidCurrencyCode,
 } from "./schema";
 export type { SemanticIssue, SemanticValidationResult } from "./validate";
 export { diffDocuments } from "./diff";

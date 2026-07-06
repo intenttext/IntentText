@@ -614,9 +614,10 @@ export interface SignResult {
 
 /**
  * Add a signature (approval) to a document WITHOUT freezing it — distinct from
- * sealing. Multiple parties can sign; a frozen document can still collect
- * signatures. Idempotent: signing again as the same signer is a no-op, so
- * repeat clicks never append duplicate sign: lines.
+ * sealing. Multiple parties can sign BEFORE the document is sealed. A SEALED document is
+ * refused (`success:false, note:"already-sealed"`) — the seal committed to its exact set
+ * of signatures, so adding one would break it; unseal first. Idempotent: signing again as
+ * the same signer is a no-op, so repeat clicks never append duplicate sign: lines.
  *
  * The signature carries the current content hash, so verifyDocument can later
  * report whether each signer approved the version that was ultimately sealed.
@@ -626,6 +627,12 @@ export function signDocument(
   options: { signer: string; role?: string },
 ): SignResult {
   const at = new Date().toISOString();
+  // A SEALED document cannot collect more signatures: the seal committed to the exact set
+  // of sign: lines, so inserting another breaks it. Refuse rather than silently produce a
+  // broken seal — unseal first to add signers, then re-seal. (finding #47)
+  if (isSealed(source)) {
+    return { success: false, source, at, note: "already-sealed" };
+  }
   if (isSignedBy(source, options.signer)) {
     return { success: true, source, at, note: "already-signed" };
   }
