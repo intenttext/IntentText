@@ -38,6 +38,15 @@ export interface RenderOptions {
    * you parsed so the stamp verifies against reality. Falls back to documentToSource.
    */
   source?: string;
+  /**
+   * Allow remote (http/https) resources that AUTO-LOAD — `image:`/`figure:` src and
+   * `embed:` iframe/video/audio src. Default `false`: remote auto-loading resources are
+   * dropped (a placeholder is shown), so rendering a sealed counterparty document can't
+   * beacon "opened" to a remote host and its appearance can't depend on mutable remote
+   * bytes. Set `true` when rendering your OWN trusted content (e.g. a CDN logo). Links
+   * are user-initiated and never gated. (#44)
+   */
+  allowRemoteResources?: boolean;
 }
 
 /**
@@ -52,6 +61,12 @@ const EMPHASIS_PROPS = new Set(["weight", "italic", "underline", "strike"]);
 // single-threaded rendering → no reentrancy) and restored in a finally. Read by
 // extractInlineStyles + getAlignmentClass so every styling choke point honours it.
 let BARE_RENDER = false;
+// When false (default), remote http(s) resources that AUTO-LOAD (img / iframe / video /
+// audio src) are dropped: a sealed counterparty document can't beacon "opened" to a
+// remote host, and its rendered appearance can't depend on mutable remote bytes (which
+// would undermine tamper-evidence). Set via RenderOptions.allowRemoteResources. Links
+// (`<a href>`) are user-initiated, not auto-loading, so they are NOT gated here. (#44)
+let ALLOW_REMOTE_RESOURCES = false;
 
 // Bare view = a plain typed document: strip every box/border/background/shadow so
 // only the content + emphasis remain — no callout boxes, contact cards, coloured
@@ -302,6 +317,38 @@ function sanitizeUrl(url: string): string {
   }
 
   return "#";
+}
+
+/** True if the (sanitized) URL fetches from a remote host. */
+function isRemoteUrl(url: string): boolean {
+  const l = url.trim().toLowerCase();
+  return (
+    l.startsWith("http://") || l.startsWith("https://") || l.startsWith("//")
+  );
+}
+
+/**
+ * Sanitize a URL destined for an AUTO-LOADING resource (img / iframe / video / audio
+ * src). Unless `allowRemoteResources` is set, a remote http(s) URL is dropped (returns
+ * "") so the resource is not fetched on render — no beacon, no mutable remote appearance
+ * on a sealed document. Relative / same-document URLs pass through. (#44)
+ */
+function resourceUrl(url: string): string {
+  const clean = sanitizeUrl(url);
+  if (!ALLOW_REMOTE_RESOURCES && isRemoteUrl(clean)) return "";
+  return clean;
+}
+
+/** The placeholder shown where a remote resource was blocked (transparent to the reader
+ *  that the document TRIED to fetch from `host`). */
+function blockedResourceHtml(rawUrl: string, kind: string): string {
+  let host = "remote host";
+  try {
+    host = new URL(rawUrl.trim()).host || host;
+  } catch {
+    /* keep default */
+  }
+  return `<div class="intent-embed intent-embed--blocked" role="note">⚠ ${escapeHtml(kind)} from ${escapeHtml(host)} was blocked (remote resources are not loaded for untrusted documents).</div>`;
 }
 
 // SVG elements that can execute script or load active/external content. An
@@ -830,16 +877,21 @@ function renderBlock(block: IntentBlock): string {
     }
 
 
-    case "image":
+    case "image": {
+      const rawImgSrc = String(props.src ?? props.at ?? "");
+      // Gate remote auto-loading images (a beacon on open). Placeholder if blocked. (#44)
+      if (resourceUrl(rawImgSrc) === "" && isRemoteUrl(sanitizeUrl(rawImgSrc))) {
+        return blockedResourceHtml(rawImgSrc, "Image");
+      }
       const imgSrc = escapeHtml(
-        sanitizeUrl(String(props.src ?? props.at ?? "")) ||
-          String(props.src ?? props.at ?? content),
+        resourceUrl(rawImgSrc) || String(props.src ?? props.at ?? content),
       );
       const imgAlt = content;
       return `<figure class="intent-image">
         <img class="intent-image-img" src="${imgSrc}" alt="${imgAlt}" />
         ${props.caption ? `<figcaption class="intent-image-caption">${escapeHtml(String(props.caption))}</figcaption>` : ""}
       </figure>`;
+    }
 
     case "link":
       const href = escapeHtml(sanitizeUrl(String(props.to || content)));
@@ -876,9 +928,21 @@ function renderBlock(block: IntentBlock): string {
       const src = String(props.src || "");
       const embedContent = String(props.content || "");
 
+      // Auto-loading embeds fetch `src` on render — a remote host is a beacon. Gate it
+      // and show a transparent placeholder instead of silently fetching. (#44)
+      if (
+        (embedType === "iframe" ||
+          embedType === "video" ||
+          embedType === "audio") &&
+        resourceUrl(src) === "" &&
+        isRemoteUrl(sanitizeUrl(src))
+      ) {
+        return blockedResourceHtml(src, `Embedded ${embedType}`);
+      }
+
       switch (embedType) {
         case "iframe":
-          return `<div class="intent-embed"><iframe src="${escapeHtml(sanitizeUrl(src))}" frameborder="0" loading="lazy" style="width:100%;min-height:400px;border-radius:8px;"></iframe></div>`;
+          return `<div class="intent-embed"><iframe src="${escapeHtml(resourceUrl(src))}" frameborder="0" loading="lazy" style="width:100%;min-height:400px;border-radius:8px;"></iframe></div>`;
         case "mermaid":
           // Mermaid reads the element's textContent, so escaping is both safe
           // and correct — the library still sees the original diagram source.
@@ -887,9 +951,9 @@ function renderBlock(block: IntentBlock): string {
           // Keep the vector graphic but strip any executable content.
           return `<div class="intent-embed svg">${sanitizeSvg(embedContent)}</div>`;
         case "video":
-          return `<div class="intent-embed video"><video src="${escapeHtml(sanitizeUrl(src))}" controls style="max-width:100%;border-radius:8px;"></video></div>`;
+          return `<div class="intent-embed video"><video src="${escapeHtml(resourceUrl(src))}" controls style="max-width:100%;border-radius:8px;"></video></div>`;
         case "audio":
-          return `<div class="intent-embed audio"><audio src="${escapeHtml(sanitizeUrl(src))}" controls style="width:100%;"></audio></div>`;
+          return `<div class="intent-embed audio"><audio src="${escapeHtml(resourceUrl(src))}" controls style="width:100%;"></audio></div>`;
         default:
           return `<div class="intent-embed unknown">${escapeHtml(embedContent || src)}</div>`;
       }
@@ -1531,9 +1595,11 @@ function renderBlock(block: IntentBlock): string {
     }
 
     case "figure": {
-      const figSrc = props.src
-        ? escapeHtml(sanitizeUrl(String(props.src)))
-        : "";
+      const figRawSrc = props.src ? String(props.src) : "";
+      // Gate remote auto-loading figure images (a beacon on open). (#44)
+      const figBlocked =
+        resourceUrl(figRawSrc) === "" && isRemoteUrl(sanitizeUrl(figRawSrc));
+      const figSrc = figBlocked ? "" : escapeHtml(resourceUrl(figRawSrc));
       const figCaption = props.caption ? escapeHtml(String(props.caption)) : "";
       const figNum = props.num ? escapeHtml(String(props.num)) : "";
       // Length-validated (finding #13): an invalid width is dropped, never injected.
@@ -1550,7 +1616,7 @@ function renderBlock(block: IntentBlock): string {
         : escapeHtml(block.content);
       const numPrefix = figNum ? `Figure ${figNum}: ` : "";
       return `<figure class="it-figure" style="text-align:${figAlign};">
-        ${figSrc ? `<img src="${figSrc}" alt="${figAlt}" style="${figWidth}max-width:100%;" />` : ""}
+        ${figBlocked ? blockedResourceHtml(figRawSrc, "Figure image") : figSrc ? `<img src="${figSrc}" alt="${figAlt}" style="${figWidth}max-width:100%;" />` : ""}
         <figcaption class="it-figure-caption">${numPrefix}${figCaption}</figcaption>
       </figure>`;
     }
@@ -1864,6 +1930,8 @@ export function renderHTML(
 
   const prevBare = BARE_RENDER;
   BARE_RENDER = !!options?.bare;
+  const prevAllowRemote = ALLOW_REMOTE_RESOURCES;
+  ALLOW_REMOTE_RESOURCES = !!options?.allowRemoteResources;
   try {
   const bodyHtml = renderBlocks(document.blocks, undefined, buildRouteCtx(document));
 
@@ -1930,6 +1998,7 @@ ${html}${bandHtml}
 </div>`;
   } finally {
     BARE_RENDER = prevBare;
+    ALLOW_REMOTE_RESOURCES = prevAllowRemote;
   }
 }
 
@@ -1982,6 +2051,8 @@ export function renderPrint(
 
   const prevBare = BARE_RENDER;
   BARE_RENDER = !!options?.bare;
+  const prevAllowRemote = ALLOW_REMOTE_RESOURCES;
+  ALLOW_REMOTE_RESOURCES = !!options?.allowRemoteResources;
   try {
   const bodyHtml = renderBlocks(doc.blocks, undefined, buildRouteCtx(doc));
 
@@ -2185,5 +2256,6 @@ ${BARE_RENDER ? BARE_RESET_CSS : ""}
 </style></head><body class="${bodyClass}"><div class="intent-document${BARE_RENDER ? " intent-bare" : ""}">${watermarkHtml}${sealHtml}${html}</div></body></html>`;
   } finally {
     BARE_RENDER = prevBare;
+    ALLOW_REMOTE_RESOURCES = prevAllowRemote;
   }
 }

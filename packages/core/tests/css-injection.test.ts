@@ -13,14 +13,14 @@ const EVIL =
 
 describe("#13: CSS-declaration injection via figure/signline is neutralized", () => {
   it("figure width: an injected declaration is dropped, not emitted", () => {
-    const html = render(`figure: Logo | src: https://example.com/logo.png | width: ${EVIL}`);
+    const html = render(`figure: Logo | src: ./logo.png | width: ${EVIL}`);
     expect(html).not.toMatch(/position:\s*fixed/i);
     expect(html).not.toMatch(/evil\.example/i);
   });
 
   it("figure align: only a whitelisted keyword is emitted", () => {
     const html = render(
-      `figure: Logo | src: https://example.com/logo.png | align: center;position:fixed;top:0`,
+      `figure: Logo | src: ./logo.png | align: center;position:fixed;top:0`,
     );
     expect(html).not.toMatch(/position:\s*fixed/i);
     expect(html).toMatch(/text-align:\s*center/i); // invalid align → safe fallback
@@ -34,7 +34,7 @@ describe("#13: CSS-declaration injection via figure/signline is neutralized", ()
   });
 
   it("a VALID width is still applied (no false neutralization)", () => {
-    expect(render(`figure: Chart | src: https://example.com/c.png | width: 50%`)).toMatch(
+    expect(render(`figure: Chart | src: ./c.png | width: 50%`)).toMatch(
       /width:\s*50%/,
     );
     expect(render(`signline: Officer | width: 40%`)).toMatch(/width:\s*40%/);

@@ -6,6 +6,20 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [3.5.0] — 2026-07-06 — bank-readiness P2: gate remote auto-loading resources (#44)
+
+`@dotit/core` **3.5.0**. Note the DEFAULT behavior change below.
+
+### Changed
+
+- **Remote auto-loading resources are blocked by default** (#44). `image:`/`figure:` src and
+  `embed:` iframe/video/audio src fetch on render — so opening a sealed *counterparty* document
+  could beacon "opened" to a remote host, and its appearance could depend on mutable remote bytes
+  (undermining tamper-evidence). Remote http(s) resources are now DROPPED by default and replaced
+  with a transparent placeholder that discloses the host. Set the new `RenderOptions.allowRemoteResources: true`
+  when rendering your OWN trusted content (e.g. a CDN logo). Relative / same-document URLs and links
+  (user-initiated, not auto-loading) are unaffected.
+
 ## [@dotit/pades 1.2.0] — 2026-07-06 — bank-readiness P2: PAdES verification hardening
 
 `@dotit/pades` **1.2.0**.
