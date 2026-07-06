@@ -216,8 +216,8 @@ importers:
         specifier: ^3.3.2
         version: 3.3.2
       '@dotit/sign':
-        specifier: ^3.2.1
-        version: 3.2.1
+        specifier: ^3.3.0
+        version: 3.3.0(@dotit/pades@1.1.0(pdfkit@0.10.0))
       react:
         specifier: ^19.2.4
         version: 19.2.6
@@ -503,6 +503,9 @@ importers:
         specifier: ^1.8.1
         version: 1.9.7
     devDependencies:
+      '@dotit/pades':
+        specifier: ^1.1.0
+        version: 1.1.0(pdfkit@0.10.0)
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.43
@@ -1846,6 +1849,10 @@ packages:
     resolution: {integrity: sha512-Rlcr3/Zz7Y5S47YGKD4wXz6UNNRMxNONSvapsAxiHI7gD5EyT+cMgT9djfe5OF5Bj0ViyRJPI3qDcQYevS8ifA==}
     hasBin: true
 
+  '@dotit/pades@1.1.0':
+    resolution: {integrity: sha512-Qa1xIWtM8WfAOwMDLu1vhFKLuED1RXKiBxICI5e+idZ5AwTR+nkuG/0l40/7itKOEGn2UaZPS7S9CmaGzu6KXw==}
+    hasBin: true
+
   '@dotit/sign@1.4.2':
     resolution: {integrity: sha512-L44ICTgdBGt8u47dSLVG5GGShx7WcL5tZkVV8xqVjFKNmUeAe4NaEyWoh2PYKunYkXNk0cISY2lERDIHODTqiw==}
     hasBin: true
@@ -1858,9 +1865,14 @@ packages:
     resolution: {integrity: sha512-yOLNgL0SdUn6PKa8O4aiCILmhTV5FOiZGQp/mZOkMcn1sE0fbLea2I7G7ben0Zl7DkN6ECu7NdvXeS+gcB84yw==}
     hasBin: true
 
-  '@dotit/sign@3.2.1':
-    resolution: {integrity: sha512-ukf6LImKMCSvqBVzSDyNATybx//9qhnZQrYhDv49NyIoHHBPy88uuxaUAKqD7pri6I/l4oEM/mcxfJBFaf9iQw==}
+  '@dotit/sign@3.3.0':
+    resolution: {integrity: sha512-JB73Z9OL+6qp1/9T430tIQV8aX9f1P5tdKgu0dneD3yx7Fp4HRyMVtM9FKdljCKQExXVFceRv9ncpp8kRPwtXA==}
     hasBin: true
+    peerDependencies:
+      '@dotit/pades': ^1.1.0
+    peerDependenciesMeta:
+      '@dotit/pades':
+        optional: true
 
   '@electron/asar@3.4.1':
     resolution: {integrity: sha512-i4/rNPRS84t0vSRa2HorerGRXWyF4vThfHesw0dmcWHp+cspK743UanA0suA5Q5y8kzY2y6YKrvbIUn69BCAiA==}
@@ -12408,6 +12420,17 @@ snapshots:
     transitivePeerDependencies:
       - pdfkit
 
+  '@dotit/pades@1.1.0(pdfkit@0.10.0)':
+    dependencies:
+      '@signpdf/placeholder-plain': 3.3.0(pdfkit@0.10.0)
+      '@signpdf/signpdf': 3.3.0
+      '@signpdf/utils': 3.3.0
+      asn1js: 3.0.10
+      pkijs: 3.4.0
+      pvutils: 1.1.5
+    transitivePeerDependencies:
+      - pdfkit
+
   '@dotit/sign@1.4.2':
     dependencies:
       '@dotit/core': 1.25.0
@@ -12423,10 +12446,12 @@ snapshots:
       '@dotit/core': 3.2.0
       '@noble/curves': 1.9.7
 
-  '@dotit/sign@3.2.1':
+  '@dotit/sign@3.3.0(@dotit/pades@1.1.0(pdfkit@0.10.0))':
     dependencies:
       '@dotit/core': 3.3.2
       '@noble/curves': 1.9.7
+    optionalDependencies:
+      '@dotit/pades': 1.1.0(pdfkit@0.10.0)
 
   '@electron/asar@3.4.1':
     dependencies:

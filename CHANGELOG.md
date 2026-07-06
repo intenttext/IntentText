@@ -6,6 +6,20 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [@dotit/sign 3.3.0] — 2026-07-06 — bank-readiness P1: trusted timestamps (RFC-3161)
+
+New feature, additive. Closes the last actionable P1 finding.
+
+### Added
+
+- **RFC-3161 trusted timestamps on signatures (`@dotit/sign`)** (#34). A signature's `at:` is the
+  signer's own clock — backdatable. `addTrustedTimestamp(source, { tsaUrl })` requests an RFC-3161
+  token from a TSA over each signature's content hash and embeds it as `tst:`; `verifySignatureTimestamps(source)`
+  verifies each token (its CMS signature + imprint binding) and returns the TSA's `genTime`, so a
+  forged or backdated token is rejected. The TSA client lives in `@dotit/pades`, declared as an
+  **optional peer dependency** and loaded lazily — lean signers pull nothing extra; timestamping
+  requires the consumer to also install `@dotit/pades`.
+
 ## [3.3.2] — 2026-07-06 — bank-readiness P1 (wave 3): converter data-loss
 
 Correctness fixes in the converters/parser, no API change. `@dotit/core` **3.3.2**.

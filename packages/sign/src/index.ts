@@ -368,6 +368,121 @@ export function verifyFullTrust(source: string): FullTrustResult {
   };
 }
 
+// ─── RFC-3161 trusted timestamps (finding #34) ───────────────────────────────
+//
+// A signature's `at:` is the signer's OWN clock — it can be backdated (to predate a
+// covenant) or forward-dated (into an expired key window), and nothing anchors it. A
+// trusted timestamp anchors the signing time to an independent authority: an RFC-3161
+// TSA counter-signs the signature's CONTENT HASH, proving the signed content existed no
+// later than the TSA's genTime. Embedded as `tst:` on the sign: line.
+//
+// The TSA client lives in @dotit/pades (it carries the PKI stack), an OPTIONAL peer
+// dependency here — lean signers pull nothing extra; timestamping requires the consumer
+// to also install @dotit/pades. Loaded lazily so its absence fails ONLY the timestamp
+// path, with a clear message.
+
+async function loadPades(): Promise<typeof import("@dotit/pades")> {
+  try {
+    return await import("@dotit/pades");
+  } catch {
+    throw new Error(
+      "Trusted timestamps require the optional peer dependency @dotit/pades " +
+        "(`npm i @dotit/pades`) — it carries the RFC-3161 TSA client.",
+    );
+  }
+}
+
+export interface AddTimestampOptions {
+  /** RFC-3161 TSA endpoint. Defaults to a public TSA (DigiCert). */
+  tsaUrl?: string;
+}
+
+/**
+ * Anchor every cryptographic signature in a document to TRUSTED TIME. For each sign:
+ * line carrying a content hash (and not already timestamped), requests an RFC-3161 token
+ * over that hash from a TSA and embeds it as `tst:`. Network-bound; requires @dotit/pades.
+ * Verify with verifySignatureTimestamps.
+ */
+export async function addTrustedTimestamp(
+  source: string,
+  opts: AddTimestampOptions = {},
+): Promise<string> {
+  const pades = await loadPades();
+  const tsaUrl = opts.tsaUrl ?? pades.PUBLIC_TSA.digicert;
+  const lines = source.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trimStart();
+    if (!trimmed.startsWith("sign:")) continue;
+    const p = parseProps(trimmed);
+    if (!p.hash || p.tst) continue; // no hash to bind, or already timestamped
+    const token = await pades.requestTimestampToken(enc(p.hash), tsaUrl);
+    lines[i] = lines[i].replace(/\s+$/, "") + ` | tst: ${toB64url(token)}`;
+  }
+  return lines.join("\n");
+}
+
+export interface SignatureTimestampCheck {
+  signer: string;
+  /** The sign: line carries a `tst:` trusted timestamp. */
+  timestamped: boolean;
+  /** The token VERIFIES: its CMS signature is valid and its imprint binds to the
+   *  signature's content hash. A forged/backdated token is `false`. */
+  timestampValid: boolean;
+  /** The TSA's asserted time (genTime) — surfaced ONLY when the timestamp verifies. */
+  timestampTime?: string;
+  reason?: string;
+}
+
+/**
+ * Verify the trusted timestamps on a document's signatures (requires @dotit/pades).
+ * `timestampValid` is true only when the RFC-3161 token's CMS signature verifies AND its
+ * imprint binds to the signature's content hash — so a forged or backdated token fails.
+ */
+export async function verifySignatureTimestamps(
+  source: string,
+): Promise<SignatureTimestampCheck[]> {
+  const out: SignatureTimestampCheck[] = [];
+  let pades: typeof import("@dotit/pades") | null = null;
+  for (const raw of source.split("\n")) {
+    const line = raw.trimStart();
+    if (!line.startsWith("sign:")) continue;
+    const p = parseProps(line);
+    const signer = p.__signer || "(unknown)";
+    if (!p.tst) {
+      out.push({ signer, timestamped: false, timestampValid: false });
+      continue;
+    }
+    if (!p.hash) {
+      out.push({
+        signer,
+        timestamped: true,
+        timestampValid: false,
+        reason: "no content hash to bind the timestamp to",
+      });
+      continue;
+    }
+    try {
+      if (!pades) pades = await loadPades();
+      const tsv = await pades.verifyTimestampToken(fromB64url(p.tst), enc(p.hash));
+      out.push({
+        signer,
+        timestamped: true,
+        timestampValid: tsv.valid,
+        timestampTime: tsv.valid ? tsv.genTime : undefined,
+        reason: tsv.valid ? undefined : "timestamp token does not verify",
+      });
+    } catch (e) {
+      out.push({
+        signer,
+        timestamped: true,
+        timestampValid: false,
+        reason: `invalid timestamp: ${(e as Error).message}`,
+      });
+    }
+  }
+  return out;
+}
+
 // ─── Key-bound form-structure seal (author authenticity) ─────────────────────
 //
 // @dotit/core's sealFormStructure embeds a `form-seal:` line carrying the structure
