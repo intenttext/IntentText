@@ -237,6 +237,59 @@ describe("OOXML converters — DOCX document fidelity", () => {
   });
 });
 
+describe("OOXML converters — DOCX carries the brand theme", () => {
+  // The whole point: the same theme object drives renderPrint and the DOCX
+  // writer, so the Word file a client edits is the PDF they were sent.
+  const brand = {
+    name: "uts",
+    version: "1.0.0",
+    fonts: {
+      body: "'IBM Plex Sans Arabic', Tahoma, sans-serif",
+      heading: "'IBM Plex Sans Arabic', sans-serif",
+      mono: "Consolas, monospace",
+      size: "11pt",
+      leading: "1.7",
+    },
+    colors: {
+      text: "#1a2327",
+      heading: "#0E3A44",
+      muted: "#5a6a70",
+      accent: "#14505C",
+      border: "#d8e0e2",
+      background: "#f5f8f8",
+      "code-bg": "#f0f0f0",
+    },
+    spacing: { block: "8px", section: "16px", page: "20mm" },
+  };
+
+  it("takes the palette and the font family from a theme object", () => {
+    const xml = strFromU8(
+      unzipSync(
+        convertIntentTextToDocx("section: البنود\n| أ | ب |\n| 1 | 2 |", {
+          theme: brand,
+        }),
+      )["word/document.xml"],
+    );
+    expect(xml).toContain('w:fill="14505C"'); // accent on the table header
+    expect(xml).toContain('<w:color w:val="14505C"/>'); // and on the heading
+    expect(xml).toContain('w:ascii="IBM Plex Sans Arabic"'); // family, not the CSS stack
+  });
+
+  it("an explicit accent or font still wins over the theme", () => {
+    const xml = strFromU8(
+      unzipSync(
+        convertIntentTextToDocx("section: Terms", {
+          theme: brand,
+          accent: "#B00020",
+          font: "Georgia",
+        }),
+      )["word/document.xml"],
+    );
+    expect(xml).toContain('<w:color w:val="B00020"/>');
+    expect(xml).toContain('w:ascii="Georgia"');
+  });
+});
+
 describe("OOXML converters — DOCX inline emphasis (G-17)", () => {
   it("it->docx encodes *bold* / _italic_ / ~strike~ as real runs", () => {
     const docx = convertIntentTextToDocx(

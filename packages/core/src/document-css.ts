@@ -118,7 +118,11 @@ export const DOCUMENT_CSS = `
 .intent-inline-mention{font-weight:600;}
 .intent-inline-tag{font-weight:600;}
 /* ── Lists ─────────────────────────────────────────────── */
-ul,ol{margin:6px 0 6px 20px;padding:0;}
+/* Logical, not physical: with a left margin and zero padding the markers are
+   painted outside the content box — which in an RTL document puts every
+   bullet and clause number off the page. */
+ul,ol{margin:6px 0;padding-inline-start:22px;}
+li{padding-inline-start:2px;}
 li{margin:3px 0;color:#222;}
 /* ── v2 Agentic Workflow Blocks ────────────────────────── */
 .intent-step{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #ddd;margin:5px 0;}

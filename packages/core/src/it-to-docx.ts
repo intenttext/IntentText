@@ -35,8 +35,16 @@
 import { parseIntentText, renderableParts } from "./parser";
 import { escapeXml, zip } from "./ooxml-util";
 import { IntentBlock, IntentDocument } from "./types";
+import { IntentTheme, getBuiltinTheme } from "./theme";
 
 export interface ItToDocxOptions {
+  /**
+   * The document's theme — a built-in name or a full IntentTheme, exactly what
+   * `renderPrint` takes. Passing the same value to both is what keeps the Word
+   * file and the PDF the same document: one palette, one type, one identity.
+   * Falls back to the `meta: | theme:` line in the source.
+   */
+  theme?: string | IntentTheme;
   /**
    * Resolve an `image:` src to bytes so the picture is embedded in the .docx.
    * Left out (the browser case) images are skipped rather than emitted broken.
@@ -94,6 +102,19 @@ function hex(color: string | undefined, fallback: string): string {
   return m ? m[1].toUpperCase() : fallback;
 }
 
+function resolveTheme(ref: string | IntentTheme | undefined): IntentTheme | undefined {
+  if (ref && typeof ref === "object") return ref;
+  if (typeof ref === "string") return getBuiltinTheme(ref);
+  return undefined;
+}
+
+/** A CSS font stack is meaningless to Word; take the first real family name. */
+function firstFamily(stack: string | undefined): string | undefined {
+  if (!stack) return undefined;
+  const first = stack.split(",")[0]?.trim().replace(/^['"]|['"]$/g, "");
+  return first || undefined;
+}
+
 // ───────────────────────────── direction ─────────────────────────────
 
 // Hebrew, Arabic, Syriac, Thaana, NKo, Arabic Supplement/Extended, presentation forms.
@@ -123,6 +144,7 @@ interface Ctx {
   rtl: boolean;
   font: string;
   accent: string;
+  theme?: IntentTheme;
   styles: Record<string, StyleRule>;
   contentWidth: number; // twips available between the margins
   images: { part: string; ext: string; bytes: Uint8Array; rid: string }[];
@@ -337,8 +359,8 @@ function tableXml(headers: string[], rows: string[][], ctx: Ctx): string {
   const colWidth = Math.floor(ctx.contentWidth / cols);
   const grid = `<w:tblGrid>${Array.from({ length: cols }, () => `<w:gridCol w:w="${colWidth}"/>`).join("")}</w:tblGrid>`;
 
-  const rule = "D8E0E2";
-  const zebra = "F5F8F8";
+  const rule = themeColor(ctx, "border", "D8E0E2");
+  const zebra = themeColor(ctx, "background", "F5F8F8");
 
   const trs = all
     .map((row, rowIndex) => {
@@ -465,12 +487,13 @@ function imageXml(block: IntentBlock, ctx: Ctx): string {
 
 /** `{{page}}` / `{{pages}}` become real Word fields so the numbers are live. */
 function runsWithFields(text: string, ctx: Ctx, rtl: boolean): string {
+  const muted = themeColor(ctx, "muted", "6B7A80");
   const field = (instr: string): string =>
-    `<w:r>${runProps({ rtl, font: ctx.font, size: 16, color: "6B7A80" })}<w:fldChar w:fldCharType="begin"/></w:r>` +
-    `<w:r>${runProps({ rtl, font: ctx.font, size: 16, color: "6B7A80" })}<w:instrText xml:space="preserve"> ${instr} </w:instrText></w:r>` +
-    `<w:r>${runProps({ rtl, font: ctx.font, size: 16, color: "6B7A80" })}<w:fldChar w:fldCharType="separate"/></w:r>` +
-    `<w:r>${runProps({ rtl, font: ctx.font, size: 16, color: "6B7A80" })}<w:t>1</w:t></w:r>` +
-    `<w:r>${runProps({ rtl, font: ctx.font, size: 16, color: "6B7A80" })}<w:fldChar w:fldCharType="end"/></w:r>`;
+    `<w:r>${runProps({ rtl, font: ctx.font, size: 16, color: muted })}<w:fldChar w:fldCharType="begin"/></w:r>` +
+    `<w:r>${runProps({ rtl, font: ctx.font, size: 16, color: muted })}<w:instrText xml:space="preserve"> ${instr} </w:instrText></w:r>` +
+    `<w:r>${runProps({ rtl, font: ctx.font, size: 16, color: muted })}<w:fldChar w:fldCharType="separate"/></w:r>` +
+    `<w:r>${runProps({ rtl, font: ctx.font, size: 16, color: muted })}<w:t>1</w:t></w:r>` +
+    `<w:r>${runProps({ rtl, font: ctx.font, size: 16, color: muted })}<w:fldChar w:fldCharType="end"/></w:r>`;
 
   let out = "";
   const re = /\{\{\s*(page|pages)\s*\}\}/g;
@@ -482,22 +505,23 @@ function runsWithFields(text: string, ctx: Ctx, rtl: boolean): string {
         rtl,
         font: ctx.font,
         size: 16,
-        color: "6B7A80",
+        color: muted,
       });
     out += field(m[1] === "page" ? "PAGE" : "NUMPAGES");
     last = re.lastIndex;
   }
   if (last < text.length)
-    out += runsXml(text.slice(last), { rtl, font: ctx.font, size: 16, color: "6B7A80" });
+    out += runsXml(text.slice(last), { rtl, font: ctx.font, size: 16, color: muted });
   return out;
 }
 
 function headerFooterPart(tag: "hdr" | "ftr", text: string, ctx: Ctx): string {
   const rtl = firstStrongRtl(text) ?? ctx.rtl;
+  const line = themeColor(ctx, "border", "D8E0E2");
   const border =
     tag === "hdr"
-      ? '<w:pBdr><w:bottom w:val="single" w:sz="4" w:space="4" w:color="D8E0E2"/></w:pBdr>'
-      : '<w:pBdr><w:top w:val="single" w:sz="4" w:space="4" w:color="D8E0E2"/></w:pBdr>';
+      ? `<w:pBdr><w:bottom w:val="single" w:sz="4" w:space="4" w:color="${line}"/></w:pBdr>`
+      : `<w:pBdr><w:top w:val="single" w:sz="4" w:space="4" w:color="${line}"/></w:pBdr>`;
   const pPr = `<w:pPr>${border}${rtl ? "<w:bidi/>" : ""}<w:jc w:val="center"/></w:pPr>`;
   return (
     '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
@@ -509,6 +533,11 @@ function headerFooterPart(tag: "hdr" | "ftr", text: string, ctx: Ctx): string {
 }
 
 // ───────────────────────────── body ─────────────────────────────
+
+/** A theme colour by key, as OOXML hex. Falls back when there is no theme. */
+function themeColor(ctx: Ctx, key: string, fallback: string): string {
+  return hex(ctx.theme?.colors?.[key], fallback);
+}
 
 function styleFor(ctx: Ctx, type: string): StyleRule {
   return ctx.styles[type] ?? {};
@@ -571,7 +600,7 @@ function signlineXml(block: IntentBlock, ctx: Ctx): string {
   // The rule the pen goes on: an empty paragraph carrying a bottom border.
   out.push(
     paragraph("", ctx, {
-      borderBottom: "9AA8AC",
+      borderBottom: themeColor(ctx, "border", "9AA8AC"),
       spacingBefore: 240,
       spacingAfter: 40,
       keepNext: true,
@@ -581,12 +610,17 @@ function signlineXml(block: IntentBlock, ctx: Ctx): string {
     paragraph(inlineMarkers(block), ctx, { bold: true, size: 20, spacingAfter: 20 }),
   );
   if (props.role)
-    out.push(paragraph(String(props.role), ctx, { size: 18, color: "6B7A80" }));
+    out.push(
+      paragraph(String(props.role), ctx, {
+        size: 18,
+        color: themeColor(ctx, "muted", "6B7A80"),
+      }),
+    );
   if (String(props["date-line"]) === "true")
     out.push(
       paragraph(ctx.rtl ? "التاريخ: ………………………" : "Date: ………………………", ctx, {
         size: 18,
-        color: "6B7A80",
+        color: themeColor(ctx, "muted", "6B7A80"),
         spacingBefore: 160,
       }),
     );
@@ -625,7 +659,7 @@ function buildBody(doc: IntentDocument, ctx: Ctx): string {
             paragraph(inlineMarkers(block), ctx, {
               style: "Subtitle",
               size: 20,
-              color: "6B7A80",
+              color: themeColor(ctx, "muted", "6B7A80"),
               align: "center",
               spacingAfter: 260,
             }),
@@ -684,8 +718,8 @@ function buildBody(doc: IntentDocument, ctx: Ctx): string {
           body.push(
             paragraph(inlineMarkers(block), ctx, {
               size: 19,
-              color: "3A4A50",
-              shading: "F5F8F8",
+              color: themeColor(ctx, "text", "3A4A50"),
+              shading: themeColor(ctx, "background", "F5F8F8"),
               borderStart: ctx.accent,
               indentStart: 120,
               spacingBefore: 120,
@@ -703,7 +737,7 @@ function buildBody(doc: IntentDocument, ctx: Ctx): string {
               ctx,
               {
                 bold: false,
-                shading: "F5F8F8",
+                shading: themeColor(ctx, "background", "F5F8F8"),
                 spacingBefore: 80,
                 spacingAfter: 80,
                 indentStart: 60,
@@ -718,7 +752,12 @@ function buildBody(doc: IntentDocument, ctx: Ctx): string {
             paragraph(`*${inlineMarkers(block)}*`, ctx, { spacingAfter: 20 }),
           );
           if (bits)
-            body.push(paragraph(bits, ctx, { size: 18, color: "6B7A80" }));
+            body.push(
+              paragraph(bits, ctx, {
+                size: 18,
+                color: themeColor(ctx, "muted", "6B7A80"),
+              }),
+            );
           break;
         }
         case "break":
@@ -726,7 +765,9 @@ function buildBody(doc: IntentDocument, ctx: Ctx): string {
           break;
         case "divider":
           body.push(
-            '<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="D8E0E2"/></w:pBdr></w:pPr></w:p>',
+            '<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="' +
+              themeColor(ctx, 'border', 'D8E0E2') +
+              '"/></w:pBdr></w:pPr></w:p>',
           );
           break;
         case "meta":
@@ -805,15 +846,24 @@ export function convertIntentTextToDocx(
   const pageW = landscape ? pgH : pgW;
   const pageH = landscape ? pgW : pgH;
 
+  const theme = resolveTheme(opts.theme ?? meta.theme);
   const ctx: Ctx = {
     rtl: doc.metadata?.language === "rtl",
-    // Arial is the one family present on Windows, macOS and most Linux boxes
-    // that also carries Arabic — a missing font silently changes the document.
-    font: opts.font ?? meta.font ?? "Arial",
+    // Word needs a family name, not a CSS stack — and a font absent from the
+    // reader's machine silently changes the document, so an unresolvable theme
+    // font falls back to Arial: present on Windows, macOS and most Linux boxes,
+    // and one of the few that also carries Arabic.
+    font: opts.font ?? meta.font ?? firstFamily(theme?.fonts?.body) ?? "Arial",
     accent: hex(
-      opts.accent ?? meta.accent ?? styles.section?.color ?? styles.title?.color,
+      opts.accent ??
+        meta.accent ??
+        styles.section?.color ??
+        styles.title?.color ??
+        theme?.colors?.accent ??
+        theme?.colors?.heading,
       "1F3B45",
     ),
+    theme,
     styles,
     contentWidth: pageW - margin * 2,
     images: [],

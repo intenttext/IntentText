@@ -196,3 +196,31 @@ describe("bidi isolation (mixed Arabic/English/numbers)", () => {
     ).toBe("ltr");
   });
 });
+
+describe("print: list markers survive an RTL document", () => {
+  // A physical `margin-left` with zero padding paints the markers outside the
+  // content box — which in Arabic put every clause number off the page. A
+  // contract whose numbered articles print unnumbered is not shippable.
+  const src = [
+    "عنوان: عقد",
+    "قسم: البنود",
+    "1. البند الأول",
+    "2. البند الثاني",
+    "- ملحق أول",
+  ].join("\n");
+
+  it("numbers and bullets are laid out from the start edge, not a left margin", () => {
+    const html = renderPrint(parseIntentText(src), { theme: "corporate" });
+    expect(html).toContain("padding-inline-start");
+    expect(html).not.toContain("ul,ol{margin:6px 0 6px 20px;padding:0;}");
+  });
+
+  it("still emits real ol/ul elements so the markers are the browser's own", () => {
+    const html = renderPrint(parseIntentText(src), { theme: "corporate" });
+    expect(html).toContain("<ol");
+    expect(html).toContain("<ul");
+    // list-style:none is fine where it is deliberate (the TOC, the approval
+    // route); it must never reach the generic ul,ol rule.
+    expect(html).not.toMatch(/ul,ol\{[^}]*list-style:\s*none/);
+  });
+});
