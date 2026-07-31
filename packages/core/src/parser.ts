@@ -1182,6 +1182,28 @@ function mergePipeContinuations(lines: string[]): string[] {
 }
 
 // Main parser function
+/**
+ * Expand a block into the parts a renderer should actually emit.
+ *
+ * Consecutive prose lines are merged into one block on purpose — that is what
+ * makes a wrapped paragraph a paragraph. But the merge keeps only the FIRST
+ * line's properties on the block, stashing every line verbatim in `_merged` for
+ * serialization. A consumer that reads `block.properties` therefore sees one
+ * `end:` where the author wrote three, and renders the labels run together.
+ *
+ * So: when the merged parts carry data of their own, hand them back separately;
+ * otherwise keep the paragraph whole. Serialization is untouched either way —
+ * it reads `_merged` directly.
+ */
+export function renderableParts(block: IntentBlock): IntentBlock[] {
+  const parts = block._merged;
+  if (!parts || parts.length === 0) return [block];
+  const anyData = parts.some(
+    (p) => p.properties && Object.keys(p.properties).length > 0,
+  );
+  return anyData ? parts : [block];
+}
+
 export function parseIntentText(
   fileContent: string,
   options?: ParseOptions,

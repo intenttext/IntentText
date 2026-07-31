@@ -10,6 +10,7 @@ import {
   type TrustTier,
 } from "./seal";
 import { documentToSource } from "./source";
+import { renderableParts } from "./parser";
 import { deriveWorkflowState, WorkflowState } from "./workflow-state";
 import { printFontFaceCSS } from "./print-fonts";
 
@@ -1786,11 +1787,14 @@ function renderBlocks(
   routeCtx?: { panel: string; injected: { v: boolean } },
 ): string {
   const topBlocks = allBlocks || blocks;
+  // Consecutive prose lines carrying their own properties arrive merged into one
+  // block; renderableParts gives each line back so no `end:` value is dropped.
+  const parts = blocks.flatMap(renderableParts);
   let html = "";
   let i = 0;
 
-  while (i < blocks.length) {
-    const block = blocks[i];
+  while (i < parts.length) {
+    const block = parts[i];
 
     // Approval-route panel: inject ONCE, at the first route:/require: block in
     // document order (the blocks themselves render nothing — see renderBlock).
@@ -1822,8 +1826,8 @@ function renderBlocks(
     // Collect consecutive list-item blocks into a single <ul>
     if (block.type === "list-item") {
       html += '<ul class="intent-list">';
-      while (i < blocks.length && blocks[i].type === "list-item") {
-        html += renderBlock(blocks[i]);
+      while (i < parts.length && parts[i].type === "list-item") {
+        html += renderBlock(parts[i]);
         i++;
       }
       html += "</ul>";
@@ -1833,8 +1837,8 @@ function renderBlocks(
     // Collect consecutive step-item blocks into a single <ol>
     if (block.type === "step-item") {
       html += '<ol class="intent-list">';
-      while (i < blocks.length && blocks[i].type === "step-item") {
-        html += renderBlock(blocks[i]);
+      while (i < parts.length && parts[i].type === "step-item") {
+        html += renderBlock(parts[i]);
         i++;
       }
       html += "</ol>";
@@ -1847,8 +1851,8 @@ function renderBlocks(
     // from the trust hash — so two-column layout never affects a seal.)
     if (block.type === "input") {
       html += '<div class="it-field-row">';
-      while (i < blocks.length && blocks[i].type === "input") {
-        html += renderBlock(blocks[i]);
+      while (i < parts.length && parts[i].type === "input") {
+        html += renderBlock(parts[i]);
         i++;
       }
       html += "</div>";

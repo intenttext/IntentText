@@ -157,6 +157,86 @@ section: Data
   });
 });
 
+describe("OOXML converters — DOCX document fidelity", () => {
+  const twoSided =
+    "text: Reference | end: A-1\ntext: Offer ref | end: B-2\ntext: Third | end: C-3";
+
+  it("keeps every value of consecutive two-ended lines (they merge into one block)", () => {
+    const xml = strFromU8(
+      unzipSync(convertIntentTextToDocx(twoSided))["word/document.xml"],
+    );
+    // Before renderableParts the labels ran together and only A-1 survived.
+    for (const v of ["Reference", "A-1", "Offer ref", "B-2", "Third", "C-3"])
+      expect(xml).toContain(v);
+  });
+
+  it("emits a table grid — without it every column after the first is dropped", () => {
+    const xml = strFromU8(
+      unzipSync(convertIntentTextToDocx("| A | B | C |\n| 1 | 2 | 3 |"))[
+        "word/document.xml"
+      ],
+    );
+    expect(xml).toContain("<w:tblGrid>");
+    expect((xml.match(/<w:gridCol /g) || []).length).toBe(3);
+  });
+
+  it("marks an Arabic document right-to-left, paragraph and run", () => {
+    const xml = strFromU8(
+      unzipSync(convertIntentTextToDocx("قسم: الأطراف\nنص: هذا عقد بين الطرفين."))[
+        "word/document.xml"
+      ],
+    );
+    expect(xml).toContain("<w:bidi/>");
+    expect(xml).toContain("<w:rtl/>");
+    expect(xml).toContain('<w:jc w:val="right"/>');
+  });
+
+  it("keeps an English paragraph left-to-right inside an Arabic document", () => {
+    const xml = strFromU8(
+      unzipSync(convertIntentTextToDocx("قسم: الأطراف\ntext: Emad Jumaah — Software Manager"))[
+        "word/document.xml"
+      ],
+    );
+    expect(xml).toContain('<w:jc w:val="left"/>');
+  });
+
+  it("turns {{page}} into a live field in the running footer", () => {
+    const parts = unzipSync(
+      convertIntentTextToDocx("footer: page {{page}} of {{pages}}\ntext: body"),
+    );
+    const ftr = strFromU8(parts["word/footer1.xml"]);
+    expect(ftr).toContain("PAGE");
+    expect(ftr).toContain("NUMPAGES");
+    expect(strFromU8(parts["word/document.xml"])).toContain("footerReference");
+  });
+
+  it("honours the page: block for size and margins", () => {
+    const xml = strFromU8(
+      unzipSync(convertIntentTextToDocx("page: | size: A4 | margin: 18mm\ntext: body"))[
+        "word/document.xml"
+      ],
+    );
+    expect(xml).toContain('w:w="11906"'); // A4 width in twips
+    expect(xml).toContain('w:top="1020"'); // 18mm
+  });
+
+  it("embeds an image only when the caller can resolve its bytes", () => {
+    const png = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 73, 72, 68,
+      82, 0, 0, 0, 64, 0, 0, 0, 32,
+    ]);
+    const src = "image: Logo | src: logo.png";
+    expect(Object.keys(unzipSync(convertIntentTextToDocx(src)))).not.toContain(
+      "word/media/image1.png",
+    );
+    const withImage = unzipSync(
+      convertIntentTextToDocx(src, { resolveImage: () => ({ bytes: png }) }),
+    );
+    expect(Object.keys(withImage)).toContain("word/media/image1.png");
+    expect(strFromU8(withImage["word/document.xml"])).toContain("<w:drawing>");
+  });
+});
+
 describe("OOXML converters — DOCX inline emphasis (G-17)", () => {
   it("it->docx encodes *bold* / _italic_ / ~strike~ as real runs", () => {
     const docx = convertIntentTextToDocx(
