@@ -25,10 +25,17 @@ const PKG_DIR = path.resolve(__dirname, "..");
 // bank-readiness P0 fixes: the invisible-content defense (visibility.{js,d.ts} —
 // findHiddenContent/styleHidesContent, wired into verify + trust band) and the
 // typed-value-aware numeric query engine.
+// Re-baselined at 3.8.0. The limits had gone stale at 3.7.0, which embedded the
+// subsetted Noto print fonts as woff2 data URIs (dist/print-fonts.js alone is
+// 380 KB) and shipped anyway — npm records 3.7.0 at 118 files / 1,067,866 bytes
+// unpacked, well past the numbers this gate was still enforcing. A gate nobody
+// can pass is a gate nobody reads, so these are set just above the REAL 3.8.0
+// size. The font payload is deliberate (PDF/A needs embedded glyphs); anything
+// beyond these numbers is not, and should be justified before the limit moves.
 const LIMITS = {
-  packedBytes: 150000,
-  unpackedBytes: 680000,
-  entryCount: 117,
+  packedBytes: 460000,
+  unpackedBytes: 1120000,
+  entryCount: 118,
 };
 
 const raw = execSync("npm pack --json --dry-run", {

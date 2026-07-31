@@ -6,6 +6,58 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [core 3.8.0] — 2026-07-31 — the DOCX writer emits a document
+
+`@dotit/core` **3.8.0**. A `.it` file can now be the single source for a signed
+document: the Word file it produces is the same document as the PDF, in the same
+direction, with the same tables, the same identity — not a text dump of it.
+
+### Added
+
+- **Styled, direction-aware DOCX output** (`convertIntentTextToDocx`). Direction is
+  decided **per paragraph** from its first strong character — the rule the HTML
+  renderer already applies with `dir="auto"` — emitting `w:bidi` on the paragraph and
+  `w:rtl` on every run, so a mixed Arabic/English contract lays out line by line.
+  `page:` drives `w:sectPr` (size, margins, orientation); `header:`/`footer:` become
+  real `header1`/`footer1` parts where `{{page}}`/`{{pages}}` are **live PAGE/NUMPAGES
+  fields**; `style:` rules, filled table headers, zebra rows, callouts for
+  `info:`/`quote:`, and `signline:` as a printed signature line.
+- **`ItToDocxOptions.theme`** — the same `theme` `renderPrint` takes (a built-in name
+  or a full `IntentTheme`). Its palette and body font drive headings, table headers,
+  zebra rows, callouts, rules and the running header/footer, so **one theme keeps the
+  two formats one document**. `accent`/`font` override it; a CSS font stack is reduced
+  to its first family because Word needs a family name, and an unresolvable font falls
+  back to Arial rather than letting the reader's machine pick a different typeface.
+- **`ItToDocxOptions.resolveImage`** — `image:` blocks embed as real pictures, with the
+  intrinsic size read from the PNG/JPEG bytes. Without a resolver (the browser, which
+  has no filesystem) images are skipped rather than emitted broken.
+- **`renderableParts(block)`** — hands back the individual lines of a merged prose
+  block when they carry properties of their own.
+
+### Fixed
+
+- **Tables collapsed to a single column in the DOCX.** A `w:tbl` with no `w:tblGrid`
+  is ambiguous; Word and LibreOffice both keep the first column and silently drop the
+  rest. Every column after the first was lost.
+- **Consecutive `text: label | end: value` lines lost their values.** They merge into
+  one block that keeps only the first `end:`, so the renderer and the DOCX writer
+  printed the labels run together. The data was always in `_merged` for serialization,
+  but nothing except the serializer read it — both consumers now go through
+  `renderableParts`. Prose paragraphs still merge; seals and serialization are
+  untouched.
+- **Clause numbers and bullets were painted off the page in RTL.** The document CSS
+  used a physical `margin-left` with zero padding, so list markers fell outside the
+  content box — off the page in Arabic, printing every numbered article of a contract
+  unnumbered. Now logical `padding-inline-start`.
+- Heading bold moved from the run to the paragraph style: a bold run round-tripped
+  back through `docx-to-it` as a literal `*marker*`.
+
+### Verified
+
+A full 17-article Arabic contract (72 blocks) rendered to PDF and DOCX from one
+source with a brand theme, checked page by page. 1763 tests.
+
+
 ## [core 3.7.0 / pdf 3.2.0] — 2026-07-06 — PDF/A font embedding (closes #27/#28)
 
 `@dotit/core` **3.7.0**, `@dotit/pdf` **3.2.0**. Closes the last open bank-readiness
