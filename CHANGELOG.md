@@ -6,7 +6,7 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
-## [core 3.8.0] — 2026-07-31 — the DOCX writer emits a document
+## [core 3.8.0 / pdf 3.3.0] — 2026-08-01 — the DOCX writer emits a document
 
 `@dotit/core` **3.8.0**. A `.it` file can now be the single source for a signed
 document: the Word file it produces is the same document as the PDF, in the same
@@ -14,6 +14,11 @@ direction, with the same tables, the same identity — not a text dump of it.
 
 ### Added
 
+- **`PdfRenderOptions.theme` accepts a full `IntentTheme`** (pdf), not only a
+  built-in name. A caller can now print a document in a tenant's own identity
+  without registering a global theme first — the same value `renderPrint` and
+  `convertIntentTextToDocx` take, so one theme keeps the PDF and the Word file
+  the same document.
 - **Styled, direction-aware DOCX output** (`convertIntentTextToDocx`). Direction is
   decided **per paragraph** from its first strong character — the rule the HTML
   renderer already applies with `dir="auto"` — emitting `w:bidi` on the paragraph and

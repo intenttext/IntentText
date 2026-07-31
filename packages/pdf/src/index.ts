@@ -23,6 +23,7 @@ import {
   sealDocument,
   verifyDocument,
   isSealed,
+  type IntentTheme,
 } from "@dotit/core";
 import { toPdfA, type PdfAOptions, type PdfAConformance } from "./pdfa";
 
@@ -44,8 +45,14 @@ interface ChromeBrowser {
 }
 
 export interface PdfRenderOptions {
-  /** Theme name (corporate | legal | editorial | …). Default: corporate. */
-  theme?: string;
+  /**
+   * Theme: a built-in name (corporate | legal | editorial | …) or a full
+   * `IntentTheme`. An object is what lets a caller print a document in a
+   * tenant's own identity without registering a global theme first — the same
+   * value `renderPrint` and `convertIntentTextToDocx` take, so one theme keeps
+   * the PDF and the Word file the same document. Default: corporate.
+   */
+  theme?: string | IntentTheme;
   /** Path to a Chrome/Chromium binary (for puppeteer-core). */
   executablePath?: string;
   /** Extra args passed to Chrome (e.g. ["--no-sandbox"] in containers). */
