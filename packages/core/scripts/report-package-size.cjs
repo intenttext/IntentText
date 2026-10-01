@@ -21,12 +21,17 @@ function walk(dir) {
 }
 
 const files = fs.existsSync(distDir) ? walk(distDir) : [];
+// The embedded print fonts (`embedFonts`, PDF/A) are bundled data, not code:
+// reported — and budgeted — on their own so neither hides growth in the other.
+const isFontData = (file) => path.basename(file).startsWith("print-fonts.");
 let totalBytes = 0;
+let fontsBytes = 0;
 let mapFileCount = 0;
 const topFiles = [];
 for (const file of files) {
   const size = fs.statSync(file).size;
   totalBytes += size;
+  if (isFontData(file)) fontsBytes += size;
   if (file.endsWith(".map")) mapFileCount += 1;
   topFiles.push({
     path: path.relative(root, file),
@@ -45,6 +50,8 @@ const report = {
     fileCount: files.length,
     mapFileCount,
     totalBytes,
+    codeBytes: totalBytes - fontsBytes,
+    fontsBytes,
     totalKB: Number((totalBytes / 1024).toFixed(2)),
     totalMB: Number((totalBytes / (1024 * 1024)).toFixed(3)),
     largestFiles: topFiles.slice(0, 10),

@@ -16,20 +16,27 @@ if (!reportPath) {
   process.exit(1);
 }
 
+// Code and the embedded print fonts (opt-in PDF/A data, core 3.7.0) have separate
+// budgets: the fonts are ~390 KB of woff2 data URIs that sat inside the code limit
+// and turned this gate red, hiding any real code growth behind them.
 const LIMITS = {
-  distTotalBytes: 950000,
+  distCodeBytes: 950000,
+  distFontsBytes: 400000,
   mapFileCount: 0,
 };
 
 const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
 const distTotal = Number(report?.dist?.totalBytes || 0);
+const fontsBytes = Number(report?.dist?.fontsBytes || 0);
+const codeBytes = Number(report?.dist?.codeBytes ?? distTotal - fontsBytes);
 const mapFileCount = Number(report?.dist?.mapFileCount || 0);
 
 const failures = [];
-if (distTotal > LIMITS.distTotalBytes) {
-  failures.push(
-    `dist.totalBytes ${distTotal} exceeds limit ${LIMITS.distTotalBytes}`,
-  );
+if (codeBytes > LIMITS.distCodeBytes) {
+  failures.push(`dist.codeBytes ${codeBytes} exceeds limit ${LIMITS.distCodeBytes}`);
+}
+if (fontsBytes > LIMITS.distFontsBytes) {
+  failures.push(`dist.fontsBytes ${fontsBytes} exceeds limit ${LIMITS.distFontsBytes}`);
 }
 if (mapFileCount > LIMITS.mapFileCount) {
   failures.push(
@@ -44,5 +51,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `Core package size check passed (dist=${distTotal}, maps=${mapFileCount})`,
+  `Core package size check passed (code=${codeBytes}, fonts=${fontsBytes}, maps=${mapFileCount})`,
 );
