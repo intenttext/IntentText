@@ -469,8 +469,8 @@ importers:
   packages/pdf:
     dependencies:
       '@dotit/core':
-        specifier: ^3.7.0
-        version: 3.7.0
+        specifier: ^3.8.0
+        version: 3.8.0
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
@@ -1821,6 +1821,11 @@ packages:
 
   '@dotit/core@3.7.0':
     resolution: {integrity: sha512-iJpco8HhvOblf5Bqimi7ADQYvxYl6veCJj0g1ijyB3HiAo8Jc7ku2c/PZMEFfXzMFd/dcmPXmmsYkIAT1j/+4g==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  '@dotit/core@3.8.0':
+    resolution: {integrity: sha512-aTJYf4CFjCXjLV4glaGxvZib7j7N7D3iXzJAHo9nZwztBvxECudeL7b4XR9SEbtBNrN/cWAjH0cakDriuQG6AQ==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -4706,6 +4711,7 @@ packages:
 
   crypto-js@3.3.0:
     resolution: {integrity: sha512-DIT51nX0dCfKltpRiXV+/TVZq+Qq2NgF4644+K7Ttnla7zEzqc+kjJyiB96BHNyUTBxyjzRcZYpUdZa+QAqi6Q==}
+    deprecated: Active development of CryptoJS has been discontinued. This library is no longer maintained.
 
   crypto-random-string@4.0.0:
     resolution: {integrity: sha512-x8dy3RnvYdlUcPOjkEHqozhiwzKNSq7GcPuXFbnyMOCHxX8V3OgIg/pYuabl2sbUPfIJaeAQB7PMOK8DFIdoRA==}
@@ -12347,6 +12353,12 @@ snapshots:
       node-html-parser: 7.1.0
 
   '@dotit/core@3.7.0':
+    dependencies:
+      '@types/node': 20.19.43
+      fflate: 0.8.3
+      node-html-parser: 7.1.0
+
+  '@dotit/core@3.8.0':
     dependencies:
       '@types/node': 20.19.43
       fflate: 0.8.3
