@@ -70,6 +70,24 @@ Tables can also be written using standard Markdown pipe syntax. The parser produ
 | Cell 4   | Cell 5   | Cell 6   |
 ```
 
+### Column alignment
+
+A separator row under the headers aligns its columns, as in GitHub Markdown:
+`:---` left, `:---:` center, `---:` right, `---` the default (the document's
+start side). It works under a `headers:` line too:
+
+```intenttext
+headers: # | Description | Qty | Total
+|---|---|---:|---:|
+| 1 | Office chair | 12 | 3,000.00 |
+| 2 | Meeting table | 3 | 11,245.00 |
+```
+
+The alignment is physical, as in GFM, and the header cell follows its column. A
+right-aligned column also uses tabular figures, so money lines up on its decimal
+point in Arabic and English alike. The separator row is kept on serialization
+(one with no colon carries nothing and is dropped, as before).
+
 ### Dynamic table (templates)
 
 The `each:` property on the header row enables dynamic row expansion:

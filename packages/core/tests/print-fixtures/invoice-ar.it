@@ -1,0 +1,37 @@
+// A sales invoice as an ERP prints it: letterhead, a facts frame, the lines,
+// the totals frame. Fictional company and data (print-fidelity fixture).
+font: | family: Noto Sans Arabic, sans-serif | size: 9.5pt | leading: 1.45
+page: | size: A4 | margin: 12mm
+footer: | right: شركة الأفق للتجارة · INV-0042 | left: صفحة {{page}} من {{pages}}
+
+style: table | border: 1px solid #b8c2c7
+style: table-header | bg: #e6eef0 | color: #0f4c5c
+
+meta: | dir: rtl
+
+text: شركة الأفق للتجارة | size: 13pt | weight: 700 | space-after: 1pt
+text: هاتف 974 4400 0001+ · البريد info@example.qa · الموقع example.qa | size: 8.5pt | space-after: 0
+text: مبنى #12، شارع الكورنيش، الدوحة · السجل التجاري 123456 · ref_no_2026 | size: 8.5pt | space-after: 0
+
+divider:
+
+title: فاتورة مبيعات | size: 15pt
+headers: رقم الفاتورة | التاريخ | تاريخ الاستحقاق | طريقة الدفع
+| INV-0042 | 2026-09-15 | 2026-10-15 | آجل |
+
+headers: # | الوصف | الكمية | سعر الوحدة | الإجمالي
+|---|---|---:|---:|---:|
+| 1 | بند خدمة رقم 1 — صيانة وتوريد | 2 | 162.75 | 325.50 |
+| 2 | بند خدمة رقم 2 — صيانة وتوريد | 3 | 200.00 | 600.00 |
+| 3 | بند خدمة رقم 3 — توريد معدات | 4 | 2,811.25 | 11,245.00 |
+
+headers: المجاميع | ريال قطري
+|---|---:|
+| الإجمالي | 12,170.50 |
+| الخصم | 8,959.00 |
+| الصافي | 3,211.50 |
+| المبلغ كتابةً: ثلاثة آلاف ومئتان وأحد عشر ريالاً وخمسون درهماً | < |
+
+contact: شركة الأفق للتجارة | phone: +974 4400 0001 | email: info@example.qa | url: https://example.qa
+signline: | label: المستلِم | role: الاسم والتوقيع | width: 45%
+signline: شركة الأفق للتجارة | label: عن المنشأة | role: الختم والتوقيع | width: 45%

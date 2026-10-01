@@ -6,6 +6,9 @@ import {
   COMPAT_KEYWORDS,
 } from "./language-registry";
 
+/** A table column's alignment, from its GFM separator cell. */
+export type TableAlign = "left" | "center" | "right";
+
 export interface IntentBlock {
   id: string; // auto-generated UUID or sequential ID
   type: BlockType; // see BlockType union for all valid types
@@ -41,6 +44,15 @@ export interface IntentBlock {
     headersKeyword?: string;
     /** Keyword as written for row lines (e.g. صف) — preserved on serialize. */
     rowKeyword?: string;
+    /**
+     * Per-column alignment from a GFM separator row under the headers
+     * (`:---` left, `:---:` center, `---:` right; `---` → null). Physical, as in
+     * GFM: a right-aligned money column lines up on its decimal point in Arabic
+     * and English alike. Present only when the separator carries a colon.
+     */
+    align?: (TableAlign | null)[];
+    /** The separator row as written — re-emitted verbatim on serialize. */
+    separator?: string;
   };
 }
 

@@ -1,4 +1,4 @@
-import { IntentBlock, IntentDocument, InlineNode, PrintLayout } from "./types";
+import { IntentBlock, IntentDocument, InlineNode, PrintLayout, TableAlign } from "./types";
 import { effectiveProperties } from "./defaults";
 import { colorAlpha, colorsMatch, sizeIsInvisible } from "./visibility";
 import { DOCUMENT_CSS } from "./document-css";import { IntentTheme, getBuiltinTheme, generateThemeCSS } from "./theme";
@@ -582,6 +582,12 @@ function splitEnd(
   };
 }
 
+/** ` it-col-<align>` for a column the separator row aligned, else "". */
+function colAlignClass(align: (TableAlign | null)[] | undefined, col: number): string {
+  const a = align?.[col];
+  return a ? ` it-col-${a}` : "";
+}
+
 /**
  * Render table body rows with MERGED CELLS. A cell whose value is exactly `<`
  * merges into the cell on its left (colspan); a cell whose value is exactly `^`
@@ -589,7 +595,10 @@ function splitEnd(
  * cells (`<` / `^`) are consumed — only real cells emit a <td>. An empty string is
  * a genuine empty cell, NOT a merge.
  */
-function renderTableRows(rows: string[][]): string {
+function renderTableRows(
+  rows: string[][],
+  align?: (TableAlign | null)[],
+): string {
   const out: string[] = [];
   for (let r = 0; r < rows.length; r++) {
     const cells: string[] = [];
@@ -604,7 +613,7 @@ function renderTableRows(rows: string[][]): string {
         (colspan > 1 ? ` colspan="${colspan}"` : "") +
         (rowspan > 1 ? ` rowspan="${rowspan}"` : "");
       cells.push(
-        `<td class="intent-table-td"${attrs} dir="auto">${escapeHtml(v)}</td>`,
+        `<td class="intent-table-td${colAlignClass(align, c)}"${attrs} dir="auto">${escapeHtml(v)}</td>`,
       );
     }
     out.push(`<tr class="intent-row">${cells.join("")}</tr>`);
@@ -976,14 +985,18 @@ function renderBlock(block: IntentBlock): string {
     case "table": {
       const headers = block.table?.headers;
       const rows = block.table?.rows || [];
+      const align = block.table?.align;
 
       const thead = headers
         ? `<thead><tr>${headers
-            .map((h) => `<th class="intent-table-th" scope="col" dir="auto">${escapeHtml(h)}</th>`)
+            .map(
+              (h, c) =>
+                `<th class="intent-table-th${colAlignClass(align, c)}" scope="col" dir="auto">${escapeHtml(h)}</th>`,
+            )
             .join("")}</tr></thead>`
         : "";
 
-      const tbody = `<tbody>${renderTableRows(rows)}</tbody>`;
+      const tbody = `<tbody>${renderTableRows(rows, align)}</tbody>`;
 
       return `<table class="intent-table">${thead}${tbody}</table>`;
     }
@@ -1659,9 +1672,9 @@ function renderBlock(block: IntentBlock): string {
         <div class="it-contact-name">${content}</div>
         ${cRole ? `<div class="it-contact-role">${cRole}</div>` : ""}
         ${cOrg ? `<div class="it-contact-org">${cOrg}</div>` : ""}
-        ${cEmail ? `<div class="it-contact-email" dir="auto"><a href="mailto:${escapeHtml(cEmail)}">${escapeHtml(cEmail)}</a></div>` : ""}
-        ${cPhone ? `<div class="it-contact-phone" dir="auto"><a href="tel:${escapeHtml(cPhone)}">${escapeHtml(cPhone)}</a></div>` : ""}
-        ${cUrl2 ? `<div class="it-contact-url"><a href="${escapeHtml(sanitizeUrl(cUrl2))}">${escapeHtml(cUrl2)}</a></div>` : ""}
+        ${cEmail ? `<div class="it-contact-email"><a dir="auto" href="mailto:${escapeHtml(cEmail)}">${escapeHtml(cEmail)}</a></div>` : ""}
+        ${cPhone ? `<div class="it-contact-phone"><a dir="auto" href="tel:${escapeHtml(cPhone)}">${escapeHtml(cPhone)}</a></div>` : ""}
+        ${cUrl2 ? `<div class="it-contact-url"><a dir="auto" href="${escapeHtml(sanitizeUrl(cUrl2))}">${escapeHtml(cUrl2)}</a></div>` : ""}
       </div>`;
     }
 
@@ -2211,8 +2224,10 @@ ${DOCUMENT_CSS}
 ${themeCSS}
 ${BARE_RENDER ? "" : documentStyleCSS(doc)}
 /* Print: the page box is handled by @page margins, so neutralise the screen
-   document container's own max-width/centering/padding. */
-.intent-document{max-width:none;margin:0;padding:0;}
+   document container's own max-width/centering/padding. Keep a 1px inline gutter:
+   Chrome snaps the printed page area to whole device pixels and can cut the last
+   pixel at its inline end — the right border of every full-width table or box. */
+.intent-document{max-width:none;margin:0;padding:0 1px;}
 ${headerFooterCSS}
 ${backwardCompatCSS}
 ${breakCSS}
@@ -2270,6 +2285,7 @@ body.it-print .it-figure-caption{font-size:0.85em;font-style:italic;text-align:c
 body.it-print .it-signline{display:inline-block;width:45%;margin:2em 2%;vertical-align:top;}
 body.it-print .it-signline-rule{border-bottom:1pt solid #000;margin-bottom:4pt;}
 body.it-print .it-contact{border:none;padding:0;margin:0.3em 0;}
+body.it-print .it-contact a{color:inherit;text-decoration:none;}
 body.it-print .it-deadline{border-inline-start:3pt solid #000;padding-inline-start:8pt;margin:0.5em 0;}
 body.it-print .it-deadline-date{font-weight:bold;text-decoration:underline;}
 ${BARE_RENDER ? BARE_RESET_CSS : ""}

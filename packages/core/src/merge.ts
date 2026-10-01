@@ -262,6 +262,7 @@ function resolveBlock(
 
   // Resolve table cells
   if (newBlock.table) {
+    const { align, separator } = newBlock.table;
     newBlock.table = {
       headers: newBlock.table.headers?.map((h) => {
         const { resolved } = resolveString(h, data, agentName);
@@ -273,6 +274,8 @@ function resolveBlock(
           return resolved;
         }),
       ),
+      // Column alignment is part of the table, not data — it rides along.
+      ...(align && { align, separator }),
     };
   }
 
@@ -367,6 +370,8 @@ function expandEachRows(
 
     // Clean headers: remove the `each:` column
     const cleanHeaders = headers.slice(0, -1);
+    const { align, separator } = block.table;
+    const keepAlign = align ? { align, separator } : {};
 
     if (!Array.isArray(items) || items.length === 0) {
       // Emit header-only table with no rows
@@ -375,6 +380,7 @@ function expandEachRows(
         table: {
           headers: cleanHeaders,
           rows: [],
+          ...keepAlign,
         },
       });
       continue;
@@ -388,6 +394,7 @@ function expandEachRows(
         table: {
           headers: cleanHeaders,
           rows: [],
+          ...keepAlign,
         },
       });
       continue;
@@ -409,6 +416,7 @@ function expandEachRows(
       table: {
         headers: cleanHeaders,
         rows: expandedRows,
+        ...keepAlign,
       },
     });
   }

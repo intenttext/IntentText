@@ -6,6 +6,38 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+Print fidelity for business papers (invoices, vouchers, statements), proven on
+fictional Arabic and English invoices through real Chrome
+(`tests/print-chrome.test.ts`) as well as CI-safe tests (`tests/print-fidelity.test.ts`).
+
+### Fixed
+
+- **The right border of a full-width table was cut off in print** (core), in Arabic
+  and English alike — and with it the right edge of any bordered box. Chrome snaps
+  the printed page area to whole device pixels and can drop the last pixel at its
+  inline end; `renderPrint` now keeps a 1px inline gutter on the document, so every
+  frame prints with all four sides.
+- **Column alignment from the separator row** (core). `|---:|` under a table's
+  headers (or under a `headers:` line) was read and thrown away, so every cell
+  printed `start`-aligned and money never lined up. A separator with a colon now
+  aligns its column — `:---` left, `:---:` center, `---:` right, physical as in
+  GFM — header included; a right-aligned column uses tabular figures, so amounts
+  line up on the decimal point. The separator is kept on serialization (through
+  `mergeData` and `each:` expansion too), exported to Markdown, and exposed as
+  `table.align`. A plain `|---|` still carries nothing and is dropped as before.
+- **Contact data printed as formatting** (core). `info@example.qa` printed
+  `@example` as a bold mention, `Building #12` printed `#12` as a tag, and
+  `ref_no_2026` lost its underscores to an italic `no`. `@`/`#` now mark a word
+  only at its start and the word starts with a letter (as `GRAMMAR.abnf` already
+  says); `_` italicizes whole words only, as in CommonMark; and a run of
+  underscores — a fill-in blank like `Signature: ______` — prints as written
+  (it used to print one underscore).
+- **`contact:` printed its email and phone as underlined links** (core): the
+  contact link rule outranked the print rule that renders links as text. In print
+  they are now text (still clickable in a PDF). The values are isolated with
+  `dir="auto"` on the value instead of the whole line, so in an Arabic document
+  the lines align with the document instead of drifting left.
+
 ## [core 3.8.0 / pdf 3.3.0] — 2026-08-01 — the DOCX writer emits a document
 
 `@dotit/core` **3.8.0**. A `.it` file can now be the single source for a signed

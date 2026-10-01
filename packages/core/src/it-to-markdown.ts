@@ -11,7 +11,8 @@
  * converted to `.it` and back is structurally identical.
  */
 import { parseIntentText } from "./parser";
-import type { IntentBlock } from "./types";
+import type { IntentBlock, TableAlign } from "./types";
+import { separatorCell } from "./source";
 
 /** Fallback: convert IntentText inline marks in a RAW string → Markdown. */
 function inlineToMarkdown(s: string): string {
@@ -76,6 +77,7 @@ function propsSuffix(
 function tableToMarkdown(t: {
   headers?: string[];
   rows?: string[][];
+  align?: (TableAlign | null)[];
 }): string {
   const headers = t.headers ?? [];
   const rows = t.rows ?? [];
@@ -86,7 +88,8 @@ function tableToMarkdown(t: {
     return `| ${c.map((x) => inlineToMarkdown(String(x ?? "")).trim()).join(" | ")} |`;
   };
   const head = headers.length ? headers : Array(width).fill("");
-  const lines = [pad(head), `| ${Array(width).fill("---").join(" | ")} |`];
+  const rule = Array.from({ length: width }, (_, c) => separatorCell(t.align?.[c]));
+  const lines = [pad(head), `| ${rule.join(" | ")} |`];
   for (const r of rows) lines.push(pad(r));
   return lines.join("\n");
 }
@@ -199,7 +202,7 @@ export function convertIntentTextToMarkdown(
         return;
       case "table":
         blank();
-        push(tableToMarkdown((b as { table?: { headers?: string[]; rows?: string[][] } }).table ?? {}));
+        push(tableToMarkdown(b.table ?? {}));
         blank();
         return;
       case "divider":

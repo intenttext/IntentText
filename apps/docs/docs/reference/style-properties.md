@@ -173,6 +173,11 @@ IntentText supports inline formatting within any content string. These follow Wh
 - Inline formatting is processed within a **single line only** — no multi-line spans
 - **Non-nesting** — overlapping marks are treated as plain text
 - Unmatched delimiters are treated as literal characters
+- `@` and `#` mark a word only at its start, and the word starts with a letter:
+  `info@example.qa`, `A#B`, `Building #12` and `Invoice #42` are plain text
+- `_` italicizes whole words only, as in CommonMark: `ref_no_2026`, a URL path
+  or an email stay as written, and a run of underscores (a fill-in blank like
+  `Signature: ________`) is just text
 - Inline parsing happens _after_ pipe splitting
 - Maximum inline content length: 100K characters
 

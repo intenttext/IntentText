@@ -322,6 +322,7 @@ export type {
   IntentBlock,
   IntentDocument,
   BlockType,
+  TableAlign,
   InlineNode,
   IntentExtension,
   ParseOptions,

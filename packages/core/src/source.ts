@@ -1,4 +1,4 @@
-import { IntentDocument, IntentBlock } from "./types";
+import { IntentDocument, IntentBlock, TableAlign } from "./types";
 
 /**
  * Escape reserved characters for emission into a `.it` line: `\` → `\\` and
@@ -377,6 +377,14 @@ function serializeProperties(block: IntentBlock, exclude: string[] = []): string
     .join(" | ");
 }
 
+/** The GFM separator cell for a column alignment (`---:` right, …). */
+export function separatorCell(align: TableAlign | null | undefined): string {
+  if (align === "center") return ":---:";
+  if (align === "right") return "---:";
+  if (align === "left") return ":---";
+  return "---";
+}
+
 function serializeTable(block: IntentBlock): string {
   const lines: string[] = [];
   const table = block.table!;
@@ -387,6 +395,11 @@ function serializeTable(block: IntentBlock): string {
 
   if (table.headers && table.headers.length > 0) {
     lines.push(`${hk}: ${table.headers.join(" | ")}`);
+    // Column alignment lives in the separator row (GFM): re-emit it as written,
+    // or build one when the alignment was set without a source line.
+    if (table.align) {
+      lines.push(table.separator ?? `| ${table.align.map(separatorCell).join(" | ")} |`);
+    }
   }
 
   for (const row of table.rows) {

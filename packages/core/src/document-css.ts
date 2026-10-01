@@ -80,6 +80,11 @@ export const DOCUMENT_CSS = `
 .intent-table th,.intent-table-th{padding:6px 10px;text-align:start;font-weight:600;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;border-bottom:2px solid #333;}
 .intent-table td,.intent-table-td{padding:6px 10px;text-align:start;border-bottom:1px solid #ddd;vertical-align:top;}
 .intent-row:last-child .intent-table-td,.intent-row:last-child td{border-bottom:none;}
+/* Column alignment from the separator row. Physical, as in GFM, and above the print
+   and style: rules: a right-aligned money column lines up on its decimal point. */
+.intent-table .it-col-left{text-align:left;}
+.intent-table .it-col-center{text-align:center;}
+.intent-table .it-col-right{text-align:right;font-variant-numeric:tabular-nums;}
 /* ── Image ─────────────────────────────────────────────── */
 .intent-image{margin:12px 0;}
 .intent-image-img{max-width:100%;height:auto;border:1px solid #ddd;}

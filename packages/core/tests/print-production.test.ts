@@ -159,7 +159,11 @@ describe("two-sided rows (end:) + Word-parity spacing", () => {
     const html = renderPrint(parseIntentText("title: عقد\nquote: نص"));
     expect(html).toContain('dir="rtl"');
     expect(html).toContain("border-inline-start");
-    expect(html).not.toMatch(/[{;]text-align:left/);
+    // The one physical alignment is opt-in: a column the author aligned with a GFM
+    // separator (`:---`), which is physical by definition.
+    expect(html.replace(".intent-table .it-col-left{text-align:left;}", "")).not.toMatch(
+      /[{;]text-align:left/,
+    );
     expect(html).not.toMatch(/[{;]border-left:/);
   });
 

@@ -1,0 +1,37 @@
+// A sales invoice as an ERP prints it: letterhead, a facts frame, the lines,
+// the totals frame. Fictional company and data (print-fidelity fixture).
+font: | family: Noto Sans, sans-serif | size: 9.5pt | leading: 1.45
+page: | size: A4 | margin: 12mm
+footer: | left: Horizon Trading Co. · INV-0042 | right: Page {{page}} of {{pages}}
+
+style: table | border: 1px solid #b8c2c7
+style: table-header | bg: #e6eef0 | color: #0f4c5c
+
+meta: | dir: ltr
+
+text: Horizon Trading Co. | size: 13pt | weight: 700 | space-after: 1pt
+text: Tel +974 4400 0001 · Email info@example.qa · Web example.qa | size: 8.5pt | space-after: 0
+text: Building #12, Corniche Street, Doha · CR 123456 · ref_no_2026 | size: 8.5pt | space-after: 0
+
+divider:
+
+title: Sales Invoice | size: 15pt
+headers: Invoice No | Date | Due date | Payment
+| INV-0042 | 2026-09-15 | 2026-10-15 | On account |
+
+headers: # | Description | Qty | Unit price | Total
+|---|---|---:|---:|---:|
+| 1 | Service line 1 — maintenance | 2 | 162.75 | 325.50 |
+| 2 | Service line 2 — maintenance | 3 | 200.00 | 600.00 |
+| 3 | Service line 3 — equipment | 4 | 2,811.25 | 11,245.00 |
+
+headers: Totals | Qatari Riyal
+|---|---:|
+| Subtotal | 12,170.50 |
+| Discount | 8,959.00 |
+| Amount due | 3,211.50 |
+| Amount in words: three thousand two hundred eleven riyals and fifty dirhams | < |
+
+contact: Horizon Trading Co. | phone: +974 4400 0001 | email: info@example.qa | url: https://example.qa
+signline: | label: Received by | role: Name & signature | width: 45%
+signline: Horizon Trading Co. | label: For the company | role: Stamp & signature | width: 45%
