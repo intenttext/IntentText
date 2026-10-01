@@ -6,9 +6,21 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
-Print fidelity for business papers (invoices, vouchers, statements), proven on
-fictional Arabic and English invoices through real Chrome
-(`tests/print-chrome.test.ts`) as well as CI-safe tests (`tests/print-fidelity.test.ts`).
+## [core 3.9.0] — 2026-10-01 — print fidelity for business papers
+
+`@dotit/core` **3.9.0**. Five print defects measured on business papers
+(invoices, vouchers, statements), each reproduced first on fictional Arabic (RTL)
+and English invoices (`tests/print-fixtures/`), and proven through real Chrome
+(`tests/print-chrome.test.ts`, skips without Chrome/poppler) as well as CI-safe
+tests (`tests/print-fidelity.test.ts`). No format change, no `SEAL_SPEC` change:
+rendering and inline parsing never touch the source bytes, so no seal moves.
+`@dotit/pdf` is not republished — its `^3.8.0` range takes 3.9.0.
+
+**What changes in an existing document:** a running header/footer now prints in
+the document's font; `contact:` email/phone print as text; an email, `#12`,
+`snake_case` and a `______` blank print as written; and every printed page is
+inset by 1px (0.26mm) so its right edge is no longer cut. Everything else renders
+pixel-identical (all 27 examples compared, screen and print).
 
 ### Fixed
 
@@ -52,6 +64,14 @@ fictional Arabic and English invoices through real Chrome
   they are now text (still clickable in a PDF). The values are isolated with
   `dir="auto"` on the value instead of the whole line, so in an Arabic document
   the lines align with the document instead of drifting left.
+
+### Repository
+
+- **The core size gate is green again** (CI). It had failed on `main` since 3.7.0,
+  whose embedded PDF/A fonts (~387 KB) landed inside the 950 KB code limit — and a
+  red gate stops CI, so no later step ran. Code and the font data now have separate
+  budgets (950 KB / 400 KB; today 653 KB / 387 KB).
+- `puppeteer-core` is a dev dependency of core, for the real-Chrome print tests only.
 
 ## [core 3.8.0 / pdf 3.3.0] — 2026-08-01 — the DOCX writer emits a document
 
