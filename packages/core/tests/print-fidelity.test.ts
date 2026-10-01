@@ -80,11 +80,6 @@ describe("print: column alignment from the separator row (#2)", () => {
     });
   }
 
-  it("beats the print base rule and a style: table rule (specificity)", () => {
-    const html = renderPrint(parseIntentText(PAPERS[1].src));
-    expect(html).toContain(".intent-table .it-col-right{text-align:right;font-variant-numeric:tabular-nums;}");
-  });
-
   it("a plain separator carries no alignment and serializes as before", () => {
     const src = "headers: a | b\n|---|---|\n| 1 | 2 |\n";
     const [t] = tables(src);
@@ -118,6 +113,30 @@ describe("print: column alignment from the separator row (#2)", () => {
   it("exports the alignment to Markdown", () => {
     const md = convertIntentTextToMarkdown(PAPERS[1].src);
     expect(md).toContain("| --- | --- | ---: | ---: | ---: |");
+  });
+});
+
+describe("print: style: rules win over the built-in table rules (#7)", () => {
+  // `body.it-print th{border-bottom:2px solid #000}` outranked `style: table-header`
+  // and `style: table`, so a coloured frame always printed a black header rule. Rules
+  // are scoped under the document (as the editor scopes them), above the base CSS.
+  for (const render of [renderHTML, renderPrint]) {
+    it(`scopes style: rules under .intent-document (${render.name})`, () => {
+      const html = render(parseIntentText(PAPERS[0].src));
+      expect(html).toContain(
+        ".intent-document .intent-table-th,.intent-document .intent-table-td{border: 1px solid #b8c2c7;}",
+      );
+      expect(html).toContain(
+        ".intent-document .intent-table-th{color: #0f4c5c; background-color: #e6eef0;}",
+      );
+    });
+  }
+
+  it("a column the separator aligned still beats a document-wide style: rule", () => {
+    const html = renderPrint(parseIntentText(PAPERS[1].src));
+    expect(html).toContain(
+      ".intent-table th.it-col-right,.intent-table td.it-col-right{text-align:right;font-variant-numeric:tabular-nums;}",
+    );
   });
 });
 

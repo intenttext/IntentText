@@ -117,6 +117,20 @@ describe.skipIf(!chrome)("print through real Chrome (fixtures: ar + en invoices)
       120_000,
     );
 
+    it(`draws the header rule from style: rules, not the base black rule (${lang})`, async () => {
+      const page = await browser.newPage();
+      await page.emulateMediaType("print");
+      await page.setContent(renderPrint(parseIntentText(src)), { waitUntil: "load" });
+      // The fixtures declare `style: table | border: 1px solid #b8c2c7`.
+      const rule = await page.evaluate(() => {
+        const th = document.querySelector("th") as HTMLElement;
+        const cs = getComputedStyle(th);
+        return `${cs.borderBottomWidth} ${cs.borderBottomColor}`;
+      });
+      await page.close();
+      expect(rule).toBe("1px rgb(184, 194, 199)");
+    }, 60_000);
+
     it(`lines a |---:| money column up on its decimal point (${lang})`, async () => {
       const page = await browser.newPage();
       await page.emulateMediaType("print");

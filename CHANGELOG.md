@@ -32,6 +32,14 @@ fictional Arabic and English invoices through real Chrome
   says); `_` italicizes whole words only, as in CommonMark; and a run of
   underscores — a fill-in blank like `Signature: ______` — prints as written
   (it used to print one underscore).
+- **A `style:` rule lost to the built-in table rules** (core): a coloured frame
+  always printed a 2px black rule under its header, because `body.it-print th`
+  outranked `style: table-header` and `style: table` (on screen, `.intent-table th`
+  did the same). `renderHTML` and `renderPrint` now scope `style:` rules under
+  `.intent-document`, as the editor scopes them under its canvas, so a house rule
+  means the same thing on canvas, screen and paper (SPEC §2: rules override the
+  theme; per-line props and inline spans still override rules). A column aligned by
+  its separator row still wins over a document-wide `style: table | align:`.
 - **`contact:` printed its email and phone as underlined links** (core): the
   contact link rule outranked the print rule that renders links as text. In print
   they are now text (still clickable in a PDF). The values are isolated with

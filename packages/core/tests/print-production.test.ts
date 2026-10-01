@@ -161,7 +161,7 @@ describe("two-sided rows (end:) + Word-parity spacing", () => {
     expect(html).toContain("border-inline-start");
     // The one physical alignment is opt-in: a column the author aligned with a GFM
     // separator (`:---`), which is physical by definition.
-    expect(html.replace(".intent-table .it-col-left{text-align:left;}", "")).not.toMatch(
+    expect(html.replace("td.it-col-left{text-align:left;}", "")).not.toMatch(
       /[{;]text-align:left/,
     );
     expect(html).not.toMatch(/[{;]border-left:/);

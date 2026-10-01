@@ -712,6 +712,14 @@ function extractInlineStyles(
  * vocabulary is the same constrained STYLE_PROPERTIES set (not arbitrary CSS).
  */
 
+/**
+ * Scope of the `style:` rules in core's renderers. A rule must beat the built-in
+ * CSS it restyles — `.intent-table th` on screen, `body.it-print th` on paper —
+ * or a house rule silently loses (a coloured frame printed a black header rule).
+ * The editor scopes the same rules under its canvas for the same reason.
+ */
+const DOC_STYLE_SCOPE = ".intent-document ";
+
 /** Block types a `style:` rule may target → their selectors in core's HTML. */
 export const DOC_STYLE_TARGETS: Record<string, string[]> = {
   title: [".intent-title"],
@@ -1987,7 +1995,7 @@ export function renderHTML(
   const themeCSS = generateThemeCSS(theme, "web");
   // v4.3: scoped `style:` rules — applied after the theme so house styling wins.
   // Bare view drops them entirely (house styling is decoration).
-  const docStyleCSS = BARE_RENDER ? "" : documentStyleCSS(document);
+  const docStyleCSS = BARE_RENDER ? "" : documentStyleCSS(document, DOC_STYLE_TARGETS, DOC_STYLE_SCOPE);
 
   // Unified trust band — the single certification surface (sign:/freeze: never render
   // inline). Shown for a trusted doc, anchored bottom-right of the document; `seal:
@@ -2222,7 +2230,7 @@ export function renderPrint(
 ${dynamicCSS}
 ${DOCUMENT_CSS}
 ${themeCSS}
-${BARE_RENDER ? "" : documentStyleCSS(doc)}
+${BARE_RENDER ? "" : documentStyleCSS(doc, DOC_STYLE_TARGETS, DOC_STYLE_SCOPE)}
 /* Print: the page box is handled by @page margins, so neutralise the screen
    document container's own max-width/centering/padding. Keep a 1px inline gutter:
    Chrome snaps the printed page area to whole device pixels and can cut the last

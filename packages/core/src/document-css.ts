@@ -82,9 +82,9 @@ export const DOCUMENT_CSS = `
 .intent-row:last-child .intent-table-td,.intent-row:last-child td{border-bottom:none;}
 /* Column alignment from the separator row. Physical, as in GFM, and above the print
    and style: rules: a right-aligned money column lines up on its decimal point. */
-.intent-table .it-col-left{text-align:left;}
-.intent-table .it-col-center{text-align:center;}
-.intent-table .it-col-right{text-align:right;font-variant-numeric:tabular-nums;}
+.intent-table th.it-col-left,.intent-table td.it-col-left{text-align:left;}
+.intent-table th.it-col-center,.intent-table td.it-col-center{text-align:center;}
+.intent-table th.it-col-right,.intent-table td.it-col-right{text-align:right;font-variant-numeric:tabular-nums;}
 /* ── Image ─────────────────────────────────────────────── */
 .intent-image{margin:12px 0;}
 .intent-image-img{max-width:100%;height:auto;border:1px solid #ddd;}
