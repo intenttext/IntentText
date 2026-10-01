@@ -117,6 +117,22 @@ describe.skipIf(!chrome)("print through real Chrome (fixtures: ar + en invoices)
       120_000,
     );
 
+    it.skipIf(!hasPdftoppm)(
+      `prints the running header/footer in the document's font, not the default serif (${lang})`,
+      async () => {
+        const page = await browser.newPage();
+        await page.setContent(renderPrint(parseIntentText(src)), { waitUntil: "load" });
+        const file = join(dir, `fonts-${lang}.pdf`);
+        writeFileSync(file, await page.pdf({ preferCSSPageSize: true, printBackground: true }));
+        await page.close();
+        // The fixtures' content prints in the theme's sans stack; only the margin
+        // boxes fell back to the browser default (Times, and Geeza Pro for Arabic).
+        const fonts = spawnSync("pdffonts", [file]).stdout.toString();
+        expect(fonts).not.toMatch(/Times|Georgia|Geeza/i);
+      },
+      120_000,
+    );
+
     it(`draws the header rule from style: rules, not the base black rule (${lang})`, async () => {
       const page = await browser.newPage();
       await page.emulateMediaType("print");

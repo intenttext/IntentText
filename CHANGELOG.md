@@ -32,6 +32,13 @@ fictional Arabic and English invoices through real Chrome
   says); `_` italicizes whole words only, as in CommonMark; and a run of
   underscores — a fill-in blank like `Signature: ______` — prints as written
   (it used to print one underscore).
+- **The running header/footer printed in the browser's default serif** (core):
+  page margin boxes inherit from the page context, not from the document, so
+  `footer:`/`header:` zones (and their page numbers) printed in Times/Geeza Pro
+  while the content printed in the theme's font. The print theme now gives the page
+  context the content's font (`@page{font-family:var(--it-font-body)}`); the
+  embedded PDF/A fonts still take precedence when `embedFonts` is on. Every document
+  with a running header or footer prints it in its own font from now on.
 - **A `style:` rule lost to the built-in table rules** (core): a coloured frame
   always printed a 2px black rule under its header, because `body.it-print th`
   outranked `style: table-header` and `style: table` (on screen, `.intent-table th`

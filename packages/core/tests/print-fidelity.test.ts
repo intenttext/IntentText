@@ -140,6 +140,24 @@ describe("print: style: rules win over the built-in table rules (#7)", () => {
   });
 });
 
+describe("print: the running header/footer print in the document's font (#4)", () => {
+  // Margin boxes inherit from the page context, not from body.it-print or
+  // .intent-document, so they printed in the browser's default serif.
+  for (const { lang, src } of PAPERS) {
+    it(`gives the page context the content's font (${lang})`, () => {
+      expect(renderPrint(parseIntentText(src))).toContain("@page{font-family:var(--it-font-body);}");
+    });
+  }
+
+  it("embedded PDF/A fonts still win over it", () => {
+    const html = renderPrint(parseIntentText(PAPERS[0].src), { embedFonts: true });
+    const theme = html.indexOf("@page{font-family:var(--it-font-body);}");
+    const embedded = html.indexOf("@page{font-family:'IT Serif'");
+    expect(theme).toBeGreaterThan(-1);
+    expect(embedded).toBeGreaterThan(theme);
+  });
+});
+
 describe("print: contact data prints as written (#3)", () => {
   it("an email is not a mention", () => {
     expect(inlineTypes("Email info@example.qa now")).toEqual([]);

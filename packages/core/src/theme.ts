@@ -156,6 +156,11 @@ export function generateThemeCSS(
     }
   }
 
+  // Print: the running header/footer (page margin boxes) inherit from the page
+  // context, not from the document, so without this they print in the browser's
+  // default serif while the content prints in the theme's font.
+  if (mode === "print") css += `@page{font-family:var(--it-font-body);}\n`;
+
   // Print-specific styles
   if (mode === "print" && p) {
     const hColor = p["header-color"] ? resolveColor(p["header-color"], c) : "";
