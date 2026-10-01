@@ -24,6 +24,7 @@ import {
   verifyDocument,
   isSealed,
   type IntentTheme,
+  type RenderOptions,
 } from "@dotit/core";
 import { toPdfA, type PdfAOptions, type PdfAConformance } from "./pdfa";
 
@@ -75,6 +76,17 @@ export interface PdfRenderOptions {
    * adds ~290 KB to the render). Set explicitly to force either way.
    */
   embedFonts?: boolean;
+  /**
+   * The trust band of a signed/sealed document, as `renderPrint` takes it: `false`
+   * leaves it off; an object may carry `verifyUrl` to draw a verify QR beside the
+   * seal (a function receives the seal hash and date).
+   */
+  seal?: RenderOptions["seal"];
+  /**
+   * Where the band prints: `"page"` (default) in the corner of every page, or
+   * `"end"` once, after the last block, so it never sits over a table or totals.
+   */
+  sealPosition?: RenderOptions["sealPosition"];
 }
 
 export interface IssueOptions extends PdfRenderOptions {
@@ -199,10 +211,7 @@ export function issueDocument(
   if (!seal.success) {
     throw new Error(`@dotit/pdf: sealing failed: ${seal.error ?? "unknown error"}`);
   }
-  const html = renderPrint(parseIntentText(seal.source), {
-    theme: options.theme ?? "corporate",
-    embedFonts: embedFontsFor(options),
-  });
+  const html = printHtml(seal.source, options);
   return { source: seal.source, hash: seal.hash, at: seal.at, html };
 }
 
@@ -263,11 +272,23 @@ export async function renderPDF(
   source: string,
   options: PdfRenderOptions = {},
 ): Promise<Buffer> {
-  const html = renderPrint(parseIntentText(source), {
+  return htmlToPDF(printHtml(source, options), options);
+}
+
+/**
+ * The print HTML of a finished document. The exact `source` goes along so the
+ * trust band verifies the bytes that were sealed: re-serialized from the parsed
+ * model, a `| … |` table comes back as `row:` lines, the hash no longer matches,
+ * and a valid seal would print as SEAL BROKEN.
+ */
+function printHtml(source: string, options: PdfRenderOptions): string {
+  return renderPrint(parseIntentText(source), {
     theme: options.theme ?? "corporate",
     embedFonts: embedFontsFor(options),
+    source,
+    seal: options.seal,
+    sealPosition: options.sealPosition,
   });
-  return htmlToPDF(html, options);
 }
 
 /** Resolve whether to embed fonts: explicit wins, else default ON for PDF/A. */
@@ -377,11 +398,7 @@ export async function createPdfRenderer(options: PdfRenderOptions = {}): Promise
   return {
     async renderPDF(source, opts = {}) {
       const merged = { ...options, ...opts };
-      const html = renderPrint(parseIntentText(source), {
-        theme: merged.theme ?? "corporate",
-        embedFonts: embedFontsFor(merged),
-      });
-      return pageToPdf(browser, html, merged);
+      return pageToPdf(browser, printHtml(source, merged), merged);
     },
     async htmlToPDF(html, opts = {}) {
       return pageToPdf(browser, html, { ...options, ...opts });
