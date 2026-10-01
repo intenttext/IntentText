@@ -49,6 +49,8 @@
   },
   "devDependencies": {
     "@intenttext/core": "4.3.0",
+    "@zxing/library": "0.21.3",
+    "jsqr": "1.4.0",
     "puppeteer-core": "25.1.0",
     "typescript": "^5.0.0",
     "vitest": "^1.0.0"

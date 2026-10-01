@@ -14,7 +14,8 @@ import { existsSync, readdirSync, readFileSync, mkdtempSync, writeFileSync, rmSy
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
-import { parseIntentText, renderPrint } from "../src/index";
+import { parseIntentText, renderPrint, sealDocument } from "../src/index";
+import { decodeJsQR, decodeZXing } from "./helpers/qr-decode";
 
 function findChrome(): string | undefined {
   for (const env of [process.env.CHROME_PATH, process.env.PUPPETEER_EXECUTABLE_PATH]) {
@@ -50,16 +51,21 @@ const PAPERS = ["ar", "en"].map((lang) => ({
 const DPI = 300;
 const mm = (v: number) => Math.round((v * DPI) / 25.4);
 
-/** Darkest-column ink in a vertical strip: the length of the longest frame line there. */
-function columnInk(pgm: Buffer, fromMm: number, toMm: number): number {
+/**
+ * The longest unbroken vertical dark run in a strip: a frame's side is one long
+ * line, while letters near the margin are short strokes that never reach it.
+ */
+function frameRun(pgm: Buffer, fromMm: number, toMm: number): number {
   const header = pgm.toString("latin1", 0, 64).split(/\s+/);
   const [w, h] = [Number(header[1]), Number(header[2])];
   const data = pgm.subarray(pgm.length - w * h);
   let best = 0;
   for (let x = mm(fromMm); x <= mm(toMm); x++) {
-    let ink = 0;
-    for (let y = 0; y < h; y++) if (data[y * w + x] < 200) ink++;
-    best = Math.max(best, ink);
+    let run = 0;
+    for (let y = 0; y < h; y++) {
+      run = data[y * w + x] < 200 ? run + 1 : 0;
+      best = Math.max(best, run);
+    }
   }
   return best;
 }
@@ -109,9 +115,9 @@ describe.skipIf(!chrome)("print through real Chrome (fixtures: ar + en invoices)
         const pgm = readFileSync(`${file}-1.pgm`);
 
         // Content box: 12mm → 198mm. A frame line on one edge has its twin on the other.
-        const left = columnInk(pgm, 11, 13);
-        const right = columnInk(pgm, 197, 199);
-        expect(left).toBeGreaterThan(mm(40)); // the frames are there at all
+        const left = frameRun(pgm, 11, 13);
+        const right = frameRun(pgm, 197, 199);
+        expect(left).toBeGreaterThan(mm(15)); // the frames are there at all
         expect(right).toBeGreaterThan(left * 0.9);
       },
       120_000,
@@ -125,10 +131,11 @@ describe.skipIf(!chrome)("print through real Chrome (fixtures: ar + en invoices)
         const file = join(dir, `fonts-${lang}.pdf`);
         writeFileSync(file, await page.pdf({ preferCSSPageSize: true, printBackground: true }));
         await page.close();
-        // The fixtures' content prints in the theme's sans stack; only the margin
-        // boxes fell back to the browser default (Times, and Geeza Pro for Arabic).
+        // The content prints in the document's sans font; the margin boxes fell
+        // back to the browser's default serif — Times for the Latin page numbers.
+        // (Geeza Pro alone proves nothing: it is also macOS's sans Arabic fallback.)
         const fonts = spawnSync("pdffonts", [file]).stdout.toString();
-        expect(fonts).not.toMatch(/Times|Georgia|Geeza/i);
+        expect(fonts).not.toMatch(/Times|Georgia/i);
       },
       120_000,
     );
@@ -169,4 +176,109 @@ describe.skipIf(!chrome)("print through real Chrome (fixtures: ar + en invoices)
       for (const x of points) expect(Math.abs(x - points[0])).toBeLessThan(0.5);
     }, 60_000);
   }
+});
+
+/** A `pdftoppm -gray` page as gray pixels. */
+function readPgm(buf: Buffer) {
+  const [, w, h] = buf.toString("latin1", 0, 64).split(/\s+/).map(Number);
+  return { gray: new Uint8ClampedArray(buf.subarray(buf.length - w * h)), width: w, height: h };
+}
+
+/** A sealed invoice long enough to print on several pages. */
+function longSealed(lang: string): string {
+  const src = readFileSync(join(__dirname, "print-fixtures", `invoice-${lang}.it`), "utf8");
+  const rows = Array.from({ length: 70 }, (_, i) => `| ${i + 4} | Line ${i + 4} | 1 | 10.00 | 10.00 |`);
+  const long = src.replace(/^\| 3 \|.*$/m, (row) => [row, ...rows].join("\n"));
+  return sealDocument(long, { signer: "Billing", role: "Accounts" }).source;
+}
+
+describe.skipIf(!chrome || !hasPdftoppm)("core 3.10 through real Chrome: seal QR, seal position, font:", () => {
+  let browser: Browser;
+  let dir: string;
+
+  beforeAll(async () => {
+    const puppeteer = (await import("puppeteer-core")).default;
+    browser = (await puppeteer.launch({
+      executablePath: chrome,
+      args: ["--no-sandbox"],
+      protocolTimeout: 120_000,
+    })) as unknown as Browser;
+    dir = mkdtempSync(join(tmpdir(), "it-print-310-"));
+  }, 120_000);
+
+  afterAll(async () => {
+    await browser?.close();
+    if (dir) rmSync(dir, { recursive: true, force: true });
+  });
+
+  async function printPdf(html: string, name: string): Promise<string> {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "load" });
+    const file = join(dir, `${name}.pdf`);
+    writeFileSync(file, await page.pdf({ preferCSSPageSize: true, printBackground: true }));
+    await page.close();
+    return file;
+  }
+
+  for (const lang of ["ar", "en"]) {
+    it(`the QR printed in the PDF scans back to the verify link (${lang})`, async () => {
+      const src = longSealed(lang);
+      const url = lang === "ar" ? "https://example.qa/تحقق/INV-0042" : "https://example.qa/d/INV-0042/verify";
+      const html = renderPrint(parseIntentText(src), {
+        source: src,
+        sealPosition: "end",
+        seal: { verifyUrl: url },
+      });
+      const file = await printPdf(html, `qr-${lang}`);
+      const pages = spawnSync("pdfinfo", [file]).stdout.toString().match(/Pages:\s+(\d+)/)?.[1];
+      spawnSync("pdftoppm", ["-r", "200", "-gray", "-f", pages!, "-l", pages!, file, join(dir, `qr-${lang}`)]);
+      const pgm = readdirSync(dir).find((f) => f.startsWith(`qr-${lang}`) && f.endsWith(".pgm"))!;
+      const { gray, width, height } = readPgm(readFileSync(join(dir, pgm)));
+      // The whole printed page — the decoders must find the code themselves.
+      const z = decodeZXing(gray, width, height, false);
+      expect(z && new TextDecoder().decode(Uint8Array.from(z))).toBe(url);
+      const j = decodeJsQR(gray, width, height);
+      expect(j && new TextDecoder().decode(Uint8Array.from(j))).toBe(url);
+    }, 120_000);
+
+    it(`sealPosition "end" prints the band once, on the last page (${lang})`, async () => {
+      const src = longSealed(lang);
+      const text = (html: string, name: string) =>
+        printPdf(html, name).then((file) =>
+          spawnSync("pdftotext", ["-layout", file, "-"]).stdout.toString().split("\f").filter((p) => p.trim()),
+        );
+      const atEnd = await text(renderPrint(parseIntentText(src), { source: src, sealPosition: "end" }), `end-${lang}`);
+      expect(atEnd.length).toBeGreaterThan(1);
+      expect(atEnd.map((p) => p.includes("sha256"))).toEqual(atEnd.map((_, i) => i === atEnd.length - 1));
+      const onEvery = await text(renderPrint(parseIntentText(src), { source: src }), `page-${lang}`);
+      expect(onEvery.every((p) => p.includes("sha256"))).toBe(true);
+    }, 120_000);
+  }
+
+  it("the author's font: reaches the content, the headings and the running footer", async () => {
+    const src = [
+      "font: | family: Courier New, monospace | size: 13pt | leading: 2 | heading: Georgia, serif",
+      "page: | size: A4 | margin: 12mm",
+      "footer: | center: Page {{page}} of {{pages}}",
+      "title: Report",
+      "text: Body text",
+    ].join("\n");
+    const html = renderPrint(parseIntentText(src));
+    const page = await browser.newPage();
+    await page.emulateMediaType("print");
+    await page.setContent(html, { waitUntil: "load" });
+    const css = await page.evaluate(() => {
+      const p = getComputedStyle(document.querySelector("p") as HTMLElement);
+      const h = getComputedStyle(document.querySelector(".intent-title") as HTMLElement);
+      return { p: p.fontFamily, size: p.fontSize, line: p.lineHeight, h: h.fontFamily };
+    });
+    await page.close();
+    expect(css.p).toMatch(/^"?Courier New"?, monospace$/);
+    expect(css.size).toBe("17.3333px"); // 13pt
+    expect(css.line).toBe("34.6667px"); // leading 2
+    expect(css.h).toMatch(/^Georgia, serif$/);
+    const fonts = spawnSync("pdffonts", [await printPdf(html, "font")]).stdout.toString();
+    expect(fonts).toMatch(/Courier/);
+    expect(fonts).not.toMatch(/Times/);
+  }, 120_000);
 });

@@ -6,7 +6,9 @@ import {
   sealForDocument,
   renderTrustBand,
   TRUST_BAND_CSS,
+  TRUST_BAND_END_CSS,
   trustBandPositionCss,
+  type TrustBandOptions,
   type TrustTier,
 } from "./seal";
 import { documentToSource } from "./source";
@@ -22,7 +24,13 @@ export interface RenderOptions {
    * `true` auto-detects the tier (and colour) from the document's trust lines;
    * pass an object to force a verified tier or set the size (pt). Default off.
    */
-  seal?: boolean | { tier?: TrustTier; size?: number };
+  seal?: boolean | { tier?: TrustTier; size?: number; verifyUrl?: TrustBandOptions["verifyUrl"] };
+  /**
+   * Where `renderPrint` puts the trust band of a signed/sealed document: `"page"`
+   * (default) pins it in the bottom corner of every page; `"end"` prints it once,
+   * in the flow after the last block, so it never sits over a table or totals.
+   */
+  sealPosition?: "page" | "end";
   /**
    * BARE / "as signed" rendering. When true, ALL visual decoration is suppressed —
    * authored colour, size, font family, background, alignment, spacing/indent,
@@ -2009,7 +2017,7 @@ export function renderHTML(
   let bandHtml = "";
   let bandCSS = "";
   if (wantBand) {
-    bandHtml = renderTrustBand(options?.source ?? documentToSource(document));
+    bandHtml = renderTrustBand(options?.source ?? documentToSource(document), bandOptions(options));
     if (bandHtml) {
       bandCSS =
         `.intent-document{position:relative;}` +
@@ -2074,7 +2082,35 @@ function buildDynamicCSS(doc: IntentDocument): string {
   const widthMm = widthMatch ? parseFloat(widthMatch[1]) : Infinity;
   const margins = String(explicitMargin ?? (widthMm <= 120 ? "4mm" : "20mm"));
 
-  return `@page{size:${pageSize};margin:${escapeHtml(margins)};}body.it-print{font-family:${escapeHtml(fontFamily)};font-size:${escapeHtml(fontSize)};line-height:${escapeHtml(leading)};}`;
+  // Inside <style>, HTML escaping is the wrong tool: entities are not decoded there
+  // (a quoted family became `&#39;…&#39;`) and `;` `}` pass through, so an authored
+  // or merged value could close the rule and inject CSS. cssValue strips them.
+  return `@page{size:${pageSize};margin:${escapeHtml(margins)};}body.it-print{font-family:${cssValue(fontFamily)};font-size:${cssValue(fontSize)};line-height:${cssValue(leading)};}`;
+}
+
+/**
+ * The author's `font:` line, as the theme's font variables — what the document says
+ * wins over the theme (content, headings, code and the running header/footer all
+ * read these). `family:` (or its documented spelling `body:`) is the body font;
+ * `heading:` and `mono:` set their own; `size:` and `leading:` the body size/line.
+ */
+function documentFontCSS(doc: IntentDocument): string {
+  const props = doc.blocks.find((b) => b.type === "font")?.properties;
+  if (!props) return "";
+  const value = (key: string) => cssValue(String(props[key] ?? "")).trim();
+  const decls: string[] = [];
+  const body = value("family") || value("body");
+  if (body) decls.push(`--it-font-body:${body}`);
+  if (value("heading")) decls.push(`--it-font-heading:${value("heading")}`);
+  if (value("mono")) decls.push(`--it-font-mono:${value("mono")}`);
+  if (value("size")) decls.push(`--it-font-size:${value("size")}`);
+  if (value("leading")) decls.push(`--it-leading:${value("leading")}`);
+  return decls.length ? `:root{${decls.join(";")};}` : "";
+}
+
+/** The trust-band options carried by `RenderOptions.seal`. */
+function bandOptions(options?: RenderOptions): TrustBandOptions {
+  return typeof options?.seal === "object" ? { verifyUrl: options.seal.verifyUrl } : {};
 }
 
 // Print-optimized HTML renderer
@@ -2210,13 +2246,16 @@ export function renderPrint(
   const wantSeal = options?.seal === false ? false : !!options?.seal || isTrusted;
   let sealHtml = "";
   let sealCSS = "";
+  const sealAtEnd = options?.sealPosition === "end";
   if (wantSeal) {
-    // The unified trust band, pinned in the bottom-RIGHT corner so it repeats on
-    // EVERY printed page and never takes content space (position:fixed). Shared
+    // The unified trust band. By default pinned in the bottom-RIGHT corner so it
+    // repeats on EVERY printed page and never takes content space (position:fixed);
+    // `sealPosition: "end"` prints it once after the last block instead. Shared
     // visual style with every other surface — single source of truth in core.
-    sealHtml = renderTrustBand(options?.source ?? documentToSource(doc));
+    sealHtml = renderTrustBand(options?.source ?? documentToSource(doc), bandOptions(options));
     if (sealHtml) {
-      sealCSS = TRUST_BAND_CSS + trustBandPositionCss("fixed");
+      sealCSS = TRUST_BAND_CSS + (sealAtEnd ? TRUST_BAND_END_CSS : trustBandPositionCss("fixed"));
+      if (sealAtEnd) sealHtml = `<div class="it-trust-band-end">${sealHtml}</div>`;
     }
   }
 
@@ -2230,6 +2269,7 @@ export function renderPrint(
 ${dynamicCSS}
 ${DOCUMENT_CSS}
 ${themeCSS}
+${BARE_RENDER ? "" : documentFontCSS(doc)}
 ${BARE_RENDER ? "" : documentStyleCSS(doc, DOC_STYLE_TARGETS, DOC_STYLE_SCOPE)}
 /* Print: the page box is handled by @page margins, so neutralise the screen
    document container's own max-width/centering/padding. Keep a 1px inline gutter:
@@ -2298,7 +2338,7 @@ body.it-print .it-deadline{border-inline-start:3pt solid #000;padding-inline-sta
 body.it-print .it-deadline-date{font-weight:bold;text-decoration:underline;}
 ${BARE_RENDER ? BARE_RESET_CSS : ""}
 ${fontFaceCSS}
-</style></head><body class="${bodyClass}"><div class="intent-document${BARE_RENDER ? " intent-bare" : ""}">${watermarkHtml}${sealHtml}${html}</div></body></html>`;
+</style></head><body class="${bodyClass}"><div class="intent-document${BARE_RENDER ? " intent-bare" : ""}">${watermarkHtml}${sealAtEnd ? "" : sealHtml}${html}${sealAtEnd ? sealHtml : ""}</div></body></html>`;
   } finally {
     BARE_RENDER = prevBare;
     ALLOW_REMOTE_RESOURCES = prevAllowRemote;

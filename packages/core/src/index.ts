@@ -38,6 +38,8 @@ export {
 } from "./parser";
 export { renderHTML } from "./renderer";
 export { printFontFaceCSS } from "./print-fonts";
+export { encodeQr, qrSvg, qrCapacity } from "./qr";
+export type { QrCode, QrEcc } from "./qr";
 export { validateDocumentSemantic } from "./validate";
 export { checkConformance } from "./conformance";
 export type { ConformanceLevel, ConformanceReport } from "./conformance";
@@ -190,11 +192,13 @@ export {
   sealForDocument,
   renderTrustBand,
   TRUST_BAND_CSS,
+  TRUST_BAND_END_CSS,
   trustBandPositionCss,
   detectTrustState,
   contentHashOf,
   TIER_STYLES,
 } from "./seal";
+export type { TrustBandOptions } from "./seal";
 export {
   isTemplate,
   hasUnresolvedMergeVars,

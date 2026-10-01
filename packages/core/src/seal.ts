@@ -29,6 +29,7 @@ import {
 import { isTemplate } from "./template";
 import { parseIntentText } from "./parser";
 import { findHiddenContent } from "./visibility";
+import { qrSvg } from "./qr";
 
 export type TrustTier =
   | "draft"
@@ -411,11 +412,33 @@ function bandDate(s?: string): string {
  * (the print path pins it `fixed` in the bottom margin so it repeats on every page
  * and never takes content space; the screen page-view places one per sheet).
  */
-export function renderTrustBand(source: string): string {
+export interface TrustBandOptions {
+  /**
+   * A link to verify the document, drawn as a QR code beside the seal. A function
+   * receives the recorded seal hash and date — the link may carry the hash because
+   * it is computed when the band is drawn, never stored in the (hashed) source.
+   */
+  verifyUrl?: string | ((seal: { hash: string; at?: string }) => string);
+}
+
+export function renderTrustBand(source: string, options: TrustBandOptions = {}): string {
   const doc = parseIntentText(source);
   const sigs = doc.metadata?.signatures ?? [];
   const freeze = doc.metadata?.freeze;
   if (sigs.length === 0 && !freeze) return "";
+
+  // The verify QR sits beside the stamp; without one the band's markup is unchanged.
+  const recorded = {
+    hash: String(freeze?.hash || sigs[0]?.hash || ""),
+    at: (freeze?.at ?? sigs[0]?.at) as string | undefined,
+  };
+  const link =
+    typeof options.verifyUrl === "function" ? options.verifyUrl(recorded) : options.verifyUrl;
+  const marks = (sealSvg: string) =>
+    link
+      ? `<span class="it-trust-band__marks"><span class="it-trust-band__seal">${sealSvg}</span>` +
+        `<span class="it-trust-band__qr">${qrSvg(link, { ecc: "M", size: "22mm" })}</span></span>`
+      : `<span class="it-trust-band__seal">${sealSvg}</span>`;
 
   // INTEGRITY GATE — the band MUST reflect reality on every surface (print, PDF,
   // screen). A sealed/signed document whose content no longer matches its hash is
@@ -444,7 +467,7 @@ export function renderTrustBand(source: string): string {
       .join("");
     return (
       `<div class="it-trust-band it-trust-band--broken">` +
-      `<span class="it-trust-band__seal">${svg}</span>` +
+      marks(svg) +
       `<span class="it-trust-band__cap">${cap}</span>` +
       `</div>`
     );
@@ -492,12 +515,7 @@ export function renderTrustBand(source: string): string {
   const cap = capLines.length
     ? `<span class="it-trust-band__cap">${capLines.join("")}</span>`
     : "";
-  return (
-    `<div class="it-trust-band">` +
-    `<span class="it-trust-band__seal">${svg}</span>` +
-    cap +
-    `</div>`
-  );
+  return `<div class="it-trust-band">` + marks(svg) + cap + `</div>`;
 }
 
 /**
@@ -550,7 +568,19 @@ export const TRUST_BAND_CSS =
   `.it-trust-band__line{white-space:nowrap;}` +
   // BROKEN: loud red caption so a tampered document can never present as certified.
   `.it-trust-band--broken .it-trust-band__cap{color:#d93025;opacity:1;}` +
-  `.it-trust-band__line--alert{font-weight:700;letter-spacing:0.05em;}`;
+  `.it-trust-band__line--alert{font-weight:700;letter-spacing:0.05em;}` +
+  // The verify QR beside the stamp (only when a verifyUrl is given).
+  `.it-trust-band__marks{display:inline-flex;align-items:center;gap:10px;}` +
+  `.it-trust-band__qr{display:inline-flex;flex:0 0 auto;}` +
+  `.it-trust-band__qr svg{display:block;}`;
+
+/**
+ * `sealPosition: "end"` — the band printed once, in the flow after the last block,
+ * at the document's end side, never split across a page break.
+ */
+export const TRUST_BAND_END_CSS =
+  `.it-trust-band-end{display:flex;justify-content:flex-end;margin-top:12pt;` +
+  `break-inside:avoid;page-break-inside:avoid;}`;
 
 /**
  * Positioning for the trust band. `mode` is "fixed" (paginated print — pinned in the
