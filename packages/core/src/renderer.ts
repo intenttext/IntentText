@@ -720,14 +720,6 @@ function extractInlineStyles(
  * vocabulary is the same constrained STYLE_PROPERTIES set (not arbitrary CSS).
  */
 
-/**
- * Scope of the `style:` rules in core's renderers. A rule must beat the built-in
- * CSS it restyles — `.intent-table th` on screen, `body.it-print th` on paper —
- * or a house rule silently loses (a coloured frame printed a black header rule).
- * The editor scopes the same rules under its canvas for the same reason.
- */
-const DOC_STYLE_SCOPE = ".intent-document ";
-
 /** Block types a `style:` rule may target → their selectors in core's HTML. */
 export const DOC_STYLE_TARGETS: Record<string, string[]> = {
   title: [".intent-title"],
@@ -1688,9 +1680,9 @@ function renderBlock(block: IntentBlock): string {
         <div class="it-contact-name">${content}</div>
         ${cRole ? `<div class="it-contact-role">${cRole}</div>` : ""}
         ${cOrg ? `<div class="it-contact-org">${cOrg}</div>` : ""}
-        ${cEmail ? `<div class="it-contact-email"><a dir="auto" href="mailto:${escapeHtml(cEmail)}">${escapeHtml(cEmail)}</a></div>` : ""}
-        ${cPhone ? `<div class="it-contact-phone"><a dir="auto" href="tel:${escapeHtml(cPhone)}">${escapeHtml(cPhone)}</a></div>` : ""}
-        ${cUrl2 ? `<div class="it-contact-url"><a dir="auto" href="${escapeHtml(sanitizeUrl(cUrl2))}">${escapeHtml(cUrl2)}</a></div>` : ""}
+        ${cEmail ? `<div class="it-contact-email" dir="auto"><a href="mailto:${escapeHtml(cEmail)}">${escapeHtml(cEmail)}</a></div>` : ""}
+        ${cPhone ? `<div class="it-contact-phone" dir="auto"><a href="tel:${escapeHtml(cPhone)}">${escapeHtml(cPhone)}</a></div>` : ""}
+        ${cUrl2 ? `<div class="it-contact-url"><a href="${escapeHtml(sanitizeUrl(cUrl2))}">${escapeHtml(cUrl2)}</a></div>` : ""}
       </div>`;
     }
 
@@ -2003,7 +1995,7 @@ export function renderHTML(
   const themeCSS = generateThemeCSS(theme, "web");
   // v4.3: scoped `style:` rules — applied after the theme so house styling wins.
   // Bare view drops them entirely (house styling is decoration).
-  const docStyleCSS = BARE_RENDER ? "" : documentStyleCSS(document, DOC_STYLE_TARGETS, DOC_STYLE_SCOPE);
+  const docStyleCSS = BARE_RENDER ? "" : documentStyleCSS(document);
 
   // Unified trust band — the single certification surface (sign:/freeze: never render
   // inline). Shown for a trusted doc, anchored bottom-right of the document; `seal:
@@ -2082,30 +2074,7 @@ function buildDynamicCSS(doc: IntentDocument): string {
   const widthMm = widthMatch ? parseFloat(widthMatch[1]) : Infinity;
   const margins = String(explicitMargin ?? (widthMm <= 120 ? "4mm" : "20mm"));
 
-  // Inside <style>, HTML escaping is the wrong tool: entities are not decoded there
-  // (a quoted family became `&#39;…&#39;`) and `;` `}` pass through, so an authored
-  // or merged value could close the rule and inject CSS. cssValue strips them.
-  return `@page{size:${pageSize};margin:${escapeHtml(margins)};}body.it-print{font-family:${cssValue(fontFamily)};font-size:${cssValue(fontSize)};line-height:${cssValue(leading)};}`;
-}
-
-/**
- * The author's `font:` line, as the theme's font variables — what the document says
- * wins over the theme (content, headings, code and the running header/footer all
- * read these). `family:` (or its documented spelling `body:`) is the body font;
- * `heading:` and `mono:` set their own; `size:` and `leading:` the body size/line.
- */
-function documentFontCSS(doc: IntentDocument): string {
-  const props = doc.blocks.find((b) => b.type === "font")?.properties;
-  if (!props) return "";
-  const value = (key: string) => cssValue(String(props[key] ?? "")).trim();
-  const decls: string[] = [];
-  const body = value("family") || value("body");
-  if (body) decls.push(`--it-font-body:${body}`);
-  if (value("heading")) decls.push(`--it-font-heading:${value("heading")}`);
-  if (value("mono")) decls.push(`--it-font-mono:${value("mono")}`);
-  if (value("size")) decls.push(`--it-font-size:${value("size")}`);
-  if (value("leading")) decls.push(`--it-leading:${value("leading")}`);
-  return decls.length ? `:root{${decls.join(";")};}` : "";
+  return `@page{size:${pageSize};margin:${escapeHtml(margins)};}body.it-print{font-family:${escapeHtml(fontFamily)};font-size:${escapeHtml(fontSize)};line-height:${escapeHtml(leading)};}`;
 }
 
 /** The trust-band options carried by `RenderOptions.seal`. */
@@ -2269,8 +2238,7 @@ export function renderPrint(
 ${dynamicCSS}
 ${DOCUMENT_CSS}
 ${themeCSS}
-${BARE_RENDER ? "" : documentFontCSS(doc)}
-${BARE_RENDER ? "" : documentStyleCSS(doc, DOC_STYLE_TARGETS, DOC_STYLE_SCOPE)}
+${BARE_RENDER ? "" : documentStyleCSS(doc)}
 /* Print: the page box is handled by @page margins, so neutralise the screen
    document container's own max-width/centering/padding. Keep a 1px inline gutter:
    Chrome snaps the printed page area to whole device pixels and can cut the last
@@ -2333,7 +2301,6 @@ body.it-print .it-figure-caption{font-size:0.85em;font-style:italic;text-align:c
 body.it-print .it-signline{display:inline-block;width:45%;margin:2em 2%;vertical-align:top;}
 body.it-print .it-signline-rule{border-bottom:1pt solid #000;margin-bottom:4pt;}
 body.it-print .it-contact{border:none;padding:0;margin:0.3em 0;}
-body.it-print .it-contact a{color:inherit;text-decoration:none;}
 body.it-print .it-deadline{border-inline-start:3pt solid #000;padding-inline-start:8pt;margin:0.5em 0;}
 body.it-print .it-deadline-date{font-weight:bold;text-decoration:underline;}
 ${BARE_RENDER ? BARE_RESET_CSS : ""}

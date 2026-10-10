@@ -296,27 +296,6 @@ function splitPipeMetadata(rest: string): string[] {
   return parts;
 }
 
-/** A letter, digit or `_` in any script — the inside of a word. */
-function isWordChar(ch: string | undefined): boolean {
-  return ch !== undefined && /[\p{L}\p{N}_]/u.test(ch);
-}
-
-/**
- * The closing `_` of an italic span opened at `open`, or -1. Like CommonMark, an
- * underscore opens only at the start of a word and closes only at its end, and a
- * run of underscores — a fill-in blank like `Signature: ______` — is just text.
- */
-function closingUnderscore(text: string, open: number): number {
-  const first = text[open + 1];
-  if (isWordChar(text[open - 1]) || first === undefined || first === "_" || /\s/.test(first)) {
-    return -1;
-  }
-  for (let j = text.indexOf("_", open + 2); j !== -1; j = text.indexOf("_", j + 1)) {
-    if (!/\s/.test(text[j - 1]) && !isWordChar(text[j + 1])) return j;
-  }
-  return -1;
-}
-
 /** A GFM separator cell → its column alignment (`:---:` center, `---:` right, `:---` left). */
 function separatorAlign(cell: string): TableAlign | null {
   const left = cell.startsWith(":");
@@ -541,9 +520,7 @@ function parseInlineNodes(text: string): {
     // Check for bold/italic/strike/highlight with */_/~/^
     const ch = text[i];
     if (ch === "*" || ch === "_" || ch === "~" || ch === "^") {
-      // `_` inside a word is a character, not emphasis (as in CommonMark), so a
-      // snake_case reference, a URL path or an email never turns italic.
-      const end = ch === "_" ? closingUnderscore(text, i) : text.indexOf(ch, i + 1);
+      const end = text.indexOf(ch, i + 1);
       if (end === -1) {
         currentText += ch;
         i++;
@@ -563,12 +540,10 @@ function parseInlineNodes(text: string): {
       continue;
     }
 
-    // Mentions and tags for lightweight writer metadata. Each starts a word: the
-    // `@` of info@example.qa and the `#` of A#B are characters, not marks.
-    const atWordStart = i === 0 || !isWordChar(text[i - 1]);
-    const dateTokenMatch = atWordStart
-      ? text.slice(i).match(/^@(today|tomorrow|\d{4}-\d{2}-\d{2})\b/i)
-      : null;
+    // Mentions and tags for lightweight writer metadata
+    const dateTokenMatch = text
+      .slice(i)
+      .match(/^@(today|tomorrow|\d{4}-\d{2}-\d{2})\b/i);
     if (dateTokenMatch) {
       const token = dateTokenMatch[1];
       const iso = resolveDateToken(token);
@@ -579,20 +554,14 @@ function parseInlineNodes(text: string): {
       }
     }
 
-    // The word after `@`/`#` starts with a letter (GRAMMAR.abnf `word`), so
-    // "Building #12" and "Invoice #42" stay plain text.
-    const mentionMatch = atWordStart
-      ? text.slice(i).match(/^@([A-Za-z][A-Za-z0-9_-]*)/)
-      : null;
+    const mentionMatch = text.slice(i).match(/^@([A-Za-z0-9_-]+)/);
     if (mentionMatch) {
       addNode({ type: "mention", value: mentionMatch[1] });
       i += mentionMatch[0].length;
       continue;
     }
 
-    const tagMatch = atWordStart
-      ? text.slice(i).match(/^#([A-Za-z][A-Za-z0-9_-]*)/)
-      : null;
+    const tagMatch = text.slice(i).match(/^#([A-Za-z0-9_-]+)/);
     if (tagMatch) {
       addNode({ type: "tag", value: tagMatch[1] });
       i += tagMatch[0].length;
