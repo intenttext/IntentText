@@ -237,58 +237,54 @@ describe("print: the running header/footer font is a theme key (#4)", () => {
   });
 });
 
-describe("print: contact data prints as written (#3)", () => {
-  it("an email is not a mention", () => {
-    expect(inlineTypes("Email info@example.qa now")).toEqual([]);
-    expect(inlineTypes("البريد info@example.qa · هاتف")).toEqual([]);
-    expect(inlineTypes("first_last@example.qa")).toEqual([]);
-    // A real mention still is one.
+describe("print: contact data prints as written when the author asks (#3)", () => {
+  // Nothing changes by default (an email is still read for a mention, as in 3.8.0);
+  // the author escapes the marks, or the ERP merges with `literal`, and the paper
+  // prints as written. contactLinks: false prints `contact:` values as text.
+  const escaped = (src: string) =>
+    src
+      .replace("info@example.qa", "info\\@example.qa")
+      .replace("#12", "\\#12")
+      .replace("ref_no_2026", "ref\\_no\\_2026");
+
+  it("by default an email is a mention and #12 a tag, as in 3.8.0", () => {
+    expect(inlineTypes("Email info@example.qa now")).toEqual(["mention:example"]);
+    expect(inlineTypes("Building #12")).toEqual(["tag:12"]);
     expect(inlineTypes("ask @ali please")).toEqual(["mention:ali"]);
-    expect(inlineTypes("@ali please")).toEqual(["mention:ali"]);
   });
 
-  it("a number after # is not a tag, nor is a # inside a word", () => {
-    expect(inlineTypes("Building #12, Corniche Street")).toEqual([]);
-    expect(inlineTypes("Invoice #42")).toEqual([]);
-    expect(inlineTypes("A#B")).toEqual([]);
+  it("escapes print an email, a number and an underscore name as written", () => {
+    expect(inlineTypes("Email info\\@example.qa now")).toEqual([]);
+    expect(inlineTypes("البريد info\\@example.qa · هاتف")).toEqual([]);
+    expect(inlineTypes("Building \\#12, Corniche Street")).toEqual([]);
+    expect(inlineTypes("ref\\_no\\_2026")).toEqual([]);
     expect(inlineTypes("filed under #doha-branch")).toEqual(["tag:doha-branch"]);
   });
 
-  it("an underscore inside a word is not italic", () => {
-    expect(inlineTypes("ref_no_2026")).toEqual([]);
-    expect(inlineTypes("https://example.qa/a_b_c")).toEqual([]);
-    expect(inlineTypes("see _this_ now")).toEqual(["italic:this"]);
-    expect(inlineTypes("_this_.")).toEqual(["italic:this"]);
-  });
-
-  it("a run of underscores is a fill-in blank, printed as written", () => {
-    expect(inlineTypes("Authorised Signature: _________________________")).toEqual([]);
-    const html = renderHTML(parseIntentText("text: Signature: __________ | align: right"));
-    expect(html).toContain("Signature: __________</p>");
-  });
-
-  it("a date token inside an email is not a date", () => {
-    expect(inlineTypes("info@today.example")).toEqual([]);
+  it("a run of escaped underscores is a fill-in blank, printed as written", () => {
+    const html = renderHTML(parseIntentText("text: Signature: \\_\\_\\_\\_\\_\\_ | align: right"));
+    expect(html).toContain("Signature: ______</p>");
   });
 
   for (const { lang, src } of PAPERS) {
-    it(`the letterhead prints with no inline marks (${lang})`, () => {
-      const html = renderPrint(parseIntentText(src));
+    it(`the escaped letterhead prints with no inline marks (${lang})`, () => {
+      const html = renderPrint(parseIntentText(escaped(src)));
       expect(html).not.toContain('<span class="intent-inline-mention">');
       expect(html).not.toContain('<span class="intent-inline-tag">');
       expect(html).not.toMatch(/<em[ >]/);
+      expect(html).toContain("info@example.qa");
     });
 
-    it(`contact: values print as text in the document's direction (${lang})`, () => {
+    it(`the unescaped letterhead renders as it did in 3.8.0 (${lang})`, () => {
       const html = renderPrint(parseIntentText(src));
-      expect(html).toContain("body.it-print .it-contact a{color:inherit;text-decoration:none;}");
-      // The value is isolated, the line follows the document (RTL lines start right).
-      expect(html).toContain(
-        '<div class="it-contact-email"><a dir="auto" href="mailto:info@example.qa">info@example.qa</a></div>',
-      );
-      expect(html).toContain(
-        '<div class="it-contact-phone"><a dir="auto" href="tel:+974 4400 0001">+974 4400 0001</a></div>',
-      );
+      expect(html).toContain("intent-inline-mention");
+    });
+
+    it(`contactLinks: false prints contact: values as text in the document's direction (${lang})`, () => {
+      const html = renderPrint(parseIntentText(src), { contactLinks: false });
+      expect(html).toContain('<div class="it-contact-email"><span dir="auto">info@example.qa</span></div>');
+      expect(html).toContain('<div class="it-contact-phone"><span dir="auto">+974 4400 0001</span></div>');
+      expect(html).not.toContain("mailto:");
     });
   }
 });

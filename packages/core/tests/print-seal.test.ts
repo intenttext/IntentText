@@ -1,5 +1,5 @@
-// core 3.10.0 — the printed seal where the paper wants it, a QR to verify it, and
-// the author's `font:` over the theme. CI-safe proofs; print-chrome.test.ts prints
+// core 3.9.0 — the printed seal where the paper wants it, and a QR to verify it.
+// CI-safe proofs; print-chrome.test.ts prints
 // the same documents through real Chrome. Every QR is read back by two independent
 // decoders (helpers/qr-decode.ts) and must return the exact bytes.
 import { describe, it, expect } from "vitest";
@@ -98,43 +98,5 @@ describe("seal: sealPosition", () => {
       expect(html).toContain(".it-trust-band{position:fixed");
       expect(html).not.toContain('<div class="it-trust-band-end">');
     }
-  });
-});
-
-describe("print: the author's font: wins over the theme", () => {
-  const doc = (font: string) =>
-    renderPrint(parseIntentText(`${font}\ntitle: Report\ntext: Body text`));
-
-  it("family, size and leading become the document's font variables, after the theme", () => {
-    const html = doc("font: | family: Courier New, monospace | size: 13pt | leading: 2");
-    const rule = ":root{--it-font-body:Courier New, monospace;--it-font-size:13pt;--it-leading:2;}";
-    expect(html).toContain(rule);
-    expect(html.indexOf(rule)).toBeGreaterThan(html.indexOf(".intent-document{font-family:var(--it-font-body)"));
-  });
-
-  it("heading and mono set their own families; body: is the documented spelling of family:", () => {
-    const html = doc("font: | body: Georgia | heading: Arial, sans-serif | mono: Menlo");
-    expect(html).toContain(":root{--it-font-body:Georgia;--it-font-heading:Arial, sans-serif;--it-font-mono:Menlo;}");
-  });
-
-  it("no font: line, no override (the theme decides, as before)", () => {
-    // The theme's own :root block is the only one.
-    expect(doc("").match(/:root\{--it-font-body:/g)).toHaveLength(1);
-  });
-
-  it("bare rendering drops it with the rest of the authored styling", () => {
-    const html = renderPrint(parseIntentText("font: | family: Courier New\ntext: x"), { bare: true });
-    expect(html).not.toContain("--it-font-body:Courier New");
-  });
-
-  it("a font: value cannot break out of its declaration (no injected CSS)", () => {
-    const html = doc("font: | family: x;} body{background:url(https://evil.example/a)} | size: 1pt;}*{display:none");
-    // `;` `{` `}` are stripped, so what was meant as two new rules stays inert text
-    // inside one value (a font-family never fetches a url()).
-    expect(html).toContain(
-      ":root{--it-font-body:x bodybackground:url(https://evil.example/a);--it-font-size:1pt*display:none;}",
-    );
-    expect(html).toContain("body.it-print{font-family:x bodybackground:url(https://evil.example/a);");
-    expect(html).not.toMatch(/\}\s*body\{background|\}\s*\*\{display:none/);
   });
 });

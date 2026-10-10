@@ -159,8 +159,17 @@ describe("two-sided rows (end:) + Word-parity spacing", () => {
     const html = renderPrint(parseIntentText("title: عقد\nquote: نص"));
     expect(html).toContain('dir="rtl"');
     expect(html).toContain("border-inline-start");
-    // The one physical alignment is opt-in: a column the author aligned with a GFM
-    // separator (`:---`), which is physical by definition.
+    // No aligned table, so no physical alignment anywhere in the stylesheet.
+    expect(html).not.toMatch(/[{;]text-align:left/);
+    expect(html).not.toMatch(/[{;]border-left:/);
+  });
+
+  it("the one physical alignment is opt-in: a column aligned with a GFM separator", () => {
+    const html = renderPrint(
+      parseIntentText("title: عقد\nheaders: بند | مبلغ\n| :--- | ---: |\nrow: أ | 1"),
+    );
+    // `:---` is physical by definition (as in GFM) — and only a table that asks emits it.
+    expect(html).toContain("td.it-col-left{text-align:left;}");
     expect(html.replace("td.it-col-left{text-align:left;}", "")).not.toMatch(
       /[{;]text-align:left/,
     );

@@ -219,7 +219,7 @@ function longSealed(lang: string): string {
   return sealDocument(long, { signer: "Billing", role: "Accounts" }).source;
 }
 
-describe.skipIf(!chrome || !hasPdftoppm)("core 3.10 through real Chrome: seal QR, seal position, font:", () => {
+describe.skipIf(!chrome || !hasPdftoppm)("core 3.9 through real Chrome: seal QR, seal position", () => {
   let browser: Browser;
   let dir: string;
 
@@ -281,31 +281,4 @@ describe.skipIf(!chrome || !hasPdftoppm)("core 3.10 through real Chrome: seal QR
       expect(onEvery.every((p) => p.includes("sha256"))).toBe(true);
     }, 120_000);
   }
-
-  it("the author's font: reaches the content, the headings and the running footer", async () => {
-    const src = [
-      "font: | family: Courier New, monospace | size: 13pt | leading: 2 | heading: Georgia, serif",
-      "page: | size: A4 | margin: 12mm",
-      "footer: | center: Page {{page}} of {{pages}}",
-      "title: Report",
-      "text: Body text",
-    ].join("\n");
-    const html = renderPrint(parseIntentText(src));
-    const page = await browser.newPage();
-    await page.emulateMediaType("print");
-    await page.setContent(html, { waitUntil: "load" });
-    const css = await page.evaluate(() => {
-      const p = getComputedStyle(document.querySelector("p") as HTMLElement);
-      const h = getComputedStyle(document.querySelector(".intent-title") as HTMLElement);
-      return { p: p.fontFamily, size: p.fontSize, line: p.lineHeight, h: h.fontFamily };
-    });
-    await page.close();
-    expect(css.p).toMatch(/^"?Courier New"?, monospace$/);
-    expect(css.size).toBe("17.3333px"); // 13pt
-    expect(css.line).toBe("34.6667px"); // leading 2
-    expect(css.h).toMatch(/^Georgia, serif$/);
-    const fonts = spawnSync("pdffonts", [await printPdf(html, "font")]).stdout.toString();
-    expect(fonts).toMatch(/Courier/);
-    expect(fonts).not.toMatch(/Times/);
-  }, 120_000);
 });
