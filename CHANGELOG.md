@@ -19,6 +19,9 @@ The format is based on Keep a Changelog.
 - Theme `print` keys `header-family` / `footer-family` (a CSS font stack, or `"body"` for
   the theme's body font): the font of the running header/footer, which otherwise inherits
   the browser's default serif. Absent — identical CSS.
+- Theme `print` keys `table-header-rule-width` / `table-header-rule-color`: the rule under
+  a table's header row, in the print and the web stylesheet (default `1px`, the theme's
+  border colour). Off unless set — absent, identical CSS.
 - The column-alignment CSS (`it-col-*`) is emitted only for a document with an aligned
   table (it was in every document's stylesheet in the unpublished 3.9 work).
 

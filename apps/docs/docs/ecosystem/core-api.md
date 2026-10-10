@@ -222,6 +222,8 @@ interface ThemePrint {
   "footer-color"?: string;
   "header-family"?: string; // running header font: a CSS font stack, or "body"
   "footer-family"?: string; // running footer font: a CSS font stack, or "body"
+  "table-header-rule-width"?: string; // rule under a table's header row (default 1px once enabled)
+  "table-header-rule-color"?: string; // a colour or theme colour name (default: the theme's border colour)
 }
 ```
 
@@ -232,6 +234,14 @@ shows its page numbers in the browser's default serif. Name the font in the them
 (`var(--it-font-body)`); any other value is a CSS font stack, used as written. They are
 emitted inside the same `@page { @top-* … }` / `@bottom-*` rules as the size and colour
 keys. Without them the CSS is exactly what it always was.
+
+**Table header rule.** The print stylesheet draws a 2px black rule under every table's
+header row, and it outranks `style: table-header` / `style: table`, so a frame in a house
+colour still printed a black header rule. `table-header-rule-width` and
+`table-header-rule-color` (either one turns it on) replace it in the print stylesheet
+(`body.it-print .intent-table th`) and the web one (`.intent-document .intent-table th`);
+the defaults are `1px` and the theme's `border` colour, and the colour may name a theme
+colour. Off by default — the CSS is untouched without them.
 
 ## Query
 

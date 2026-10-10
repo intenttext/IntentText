@@ -119,21 +119,58 @@ describe("print: column alignment from the separator row (#2)", () => {
   });
 });
 
-describe("print: style: rules win over the built-in table rules (#7)", () => {
-  // `body.it-print th{border-bottom:2px solid #000}` outranked `style: table-header`
-  // and `style: table`, so a coloured frame always printed a black header rule. Rules
-  // are scoped under the document (as the editor scopes them), above the base CSS.
-  for (const render of [renderHTML, renderPrint]) {
-    it(`scopes style: rules under .intent-document (${render.name})`, () => {
-      const html = render(parseIntentText(PAPERS[0].src));
-      expect(html).toContain(
-        ".intent-document .intent-table-th,.intent-document .intent-table-td{border: 1px solid #b8c2c7;}",
-      );
-      expect(html).toContain(
-        ".intent-document .intent-table-th{color: #0f4c5c; background-color: #e6eef0;}",
-      );
+describe("print: the table-header rule is a theme key (#7)", () => {
+  // `body.it-print th{border-bottom:2px solid #000}` outranks `style: table-header`
+  // and `style: table`, so a coloured frame printed a black header rule. The theme's
+  // print block can now set the rule; absent, the CSS is untouched.
+  const themed = (print: Record<string, string>): IntentTheme => {
+    const base = getBuiltinTheme("corporate")!;
+    return { ...base, print: { ...base.print, ...print } };
+  };
+
+  for (const { lang, src } of PAPERS) {
+    it(`prints the given width and colour under the header (${lang})`, () => {
+      const html = renderPrint(parseIntentText(src), {
+        theme: themed({ "table-header-rule-width": "1px", "table-header-rule-color": "#b8c2c7" }),
+      });
+      expect(html).toContain("body.it-print .intent-table th{border-bottom:1px solid #b8c2c7;}");
+    });
+
+    it(`the web stylesheet gets the same rule (${lang})`, () => {
+      const html = renderHTML(parseIntentText(src), {
+        theme: themed({ "table-header-rule-width": "1px", "table-header-rule-color": "#b8c2c7" }),
+      });
+      expect(html).toContain(".intent-document .intent-table th{border-bottom:1px solid #b8c2c7;}");
+    });
+
+    it(`without the keys the CSS has no such rule (${lang})`, () => {
+      for (const html of [renderPrint(parseIntentText(src)), renderHTML(parseIntentText(src))]) {
+        expect(html).not.toContain(".intent-table th{border-bottom");
+      }
     });
   }
+
+  it("either key alone turns it on; the other defaults (1px, the theme's border colour)", () => {
+    const theme = getBuiltinTheme("corporate")!;
+    expect(generateThemeCSS(themed({ "table-header-rule-width": "0.5pt" }), "print")).toContain(
+      `body.it-print .intent-table th{border-bottom:0.5pt solid ${theme.colors.border};}`,
+    );
+    expect(generateThemeCSS(themed({ "table-header-rule-color": "#0f4c5c" }), "web")).toContain(
+      ".intent-document .intent-table th{border-bottom:1px solid #0f4c5c;}",
+    );
+  });
+
+  it("the colour may name a theme colour", () => {
+    const theme = getBuiltinTheme("corporate")!;
+    expect(generateThemeCSS(themed({ "table-header-rule-color": "heading" }), "print")).toContain(
+      `border-bottom:1px solid ${theme.colors.heading};}`,
+    );
+  });
+
+  it("a value cannot end its declaration", () => {
+    const css = generateThemeCSS(themed({ "table-header-rule-width": "1px;}body{background:red" }), "print");
+    expect(css).not.toContain("}body{background");
+  });
 
   it("a column the separator aligned still beats a document-wide style: rule", () => {
     const html = renderPrint(parseIntentText(PAPERS[1].src));

@@ -60,6 +60,14 @@ export interface ThemePrint {
    */
   "header-family"?: string;
   "footer-family"?: string;
+  /**
+   * The rule under a table's header row — `th{border-bottom}`, which `style:` rules
+   * cannot reach on paper (the print stylesheet outranks them). Either key turns it
+   * on, in the print and the web stylesheet; the width defaults to `1px` and the
+   * colour (a colour or a theme colour name) to the theme's `border` colour.
+   */
+  "table-header-rule-width"?: string;
+  "table-header-rule-color"?: string;
 }
 
 export interface IntentTheme {
@@ -104,12 +112,16 @@ function fontStack(font: string, type: "body" | "heading" | "mono"): string {
   return `${font}, system-ui, sans-serif`;
 }
 
+/** A theme value written into a declaration: anything that could end it is dropped. */
+function declValue(value: string | undefined): string {
+  return (value ?? "").replace(/[;{}<>]/g, "").trim();
+}
+
 /** A running header/footer font: `"body"` → the theme's body font, else the stack as given. */
 function printFamily(value: string | undefined): string {
   if (!value) return "";
   if (value.trim() === "body") return "var(--it-font-body)";
-  // A font stack is a plain list; anything that could end the declaration is dropped.
-  return value.replace(/[;{}<>]/g, "").trim();
+  return declValue(value);
 }
 
 /**
@@ -191,6 +203,16 @@ export function generateThemeCSS(
       if (fFamily) decl += `font-family:${fFamily};`;
       css += `@page{@bottom-left{${decl}}@bottom-center{${decl}}@bottom-right{${decl}}}\n`;
     }
+  }
+
+  // Table header rule (opt-in): beats the base `th` rule of either stylesheet.
+  if (p && (p["table-header-rule-width"] || p["table-header-rule-color"])) {
+    const width = declValue(p["table-header-rule-width"]) || "1px";
+    const color = declValue(resolveColor(p["table-header-rule-color"] || "border", c));
+    css +=
+      mode === "print"
+        ? `body.it-print .intent-table th{border-bottom:${width} solid ${color};}\n`
+        : `.intent-document .intent-table th{border-bottom:${width} solid ${color};}\n`;
   }
 
   return css;

@@ -157,18 +157,28 @@ describe.skipIf(!chrome)("print through real Chrome (fixtures: ar + en invoices)
       180_000,
     );
 
-    it(`draws the header rule from style: rules, not the base black rule (${lang})`, async () => {
-      const page = await browser.newPage();
-      await page.emulateMediaType("print");
-      await page.setContent(renderPrint(parseIntentText(src)), { waitUntil: "load" });
-      // The fixtures declare `style: table | border: 1px solid #b8c2c7`.
-      const rule = await page.evaluate(() => {
-        const th = document.querySelector("th") as HTMLElement;
-        const cs = getComputedStyle(th);
-        return `${cs.borderBottomWidth} ${cs.borderBottomColor}`;
-      });
-      await page.close();
-      expect(rule).toBe("1px rgb(184, 194, 199)");
+    it(`draws the header rule from the theme's table-header-rule keys; without them as 3.8.0 (${lang})`, async () => {
+      const ruleOf = async (html: string) => {
+        const page = await browser.newPage();
+        await page.emulateMediaType("print");
+        await page.setContent(html, { waitUntil: "load" });
+        // The fixtures declare `style: table | border: 1px solid #b8c2c7`.
+        const rule = await page.evaluate(() => {
+          const cs = getComputedStyle(document.querySelector("th") as HTMLElement);
+          return `${cs.borderBottomWidth} ${cs.borderBottomColor}`;
+        });
+        await page.close();
+        return rule;
+      };
+      const base = getBuiltinTheme("corporate")!;
+      const themed = {
+        ...base,
+        print: { ...base.print, "table-header-rule-width": "1px", "table-header-rule-color": "#b8c2c7" },
+      };
+      expect(await ruleOf(renderPrint(parseIntentText(src), { theme: themed }))).toBe("1px rgb(184, 194, 199)");
+      // No keys: the base black 2px rule, exactly as in 3.8.0.
+      expect(await ruleOf(renderPrint(parseIntentText(src)))).toBe("2px rgb(0, 0, 0)");
+      expect(await ruleOf(legacy.renderPrint(legacy.parseIntentText(src)))).toBe("2px rgb(0, 0, 0)");
     }, 60_000);
 
     it(`lines a |---:| money column up on its decimal point (${lang})`, async () => {
