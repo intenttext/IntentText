@@ -299,6 +299,9 @@ importers:
       '@zxing/library':
         specifier: 0.21.3
         version: 0.21.3
+      dotit-core-legacy:
+        specifier: npm:@dotit/core@3.8.0
+        version: '@dotit/core@3.8.0'
       jsqr:
         specifier: 1.4.0
         version: 1.4.0
