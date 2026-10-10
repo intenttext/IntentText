@@ -15,6 +15,8 @@ import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseIntentText, renderPrint, sealDocument } from "../src/index";
+import { getBuiltinTheme } from "../src/theme";
+import * as legacy from "dotit-core-legacy";
 import { decodeJsQR, decodeZXing } from "./helpers/qr-decode";
 
 function findChrome(): string | undefined {
@@ -124,20 +126,35 @@ describe.skipIf(!chrome)("print through real Chrome (fixtures: ar + en invoices)
     );
 
     it.skipIf(!hasPdftoppm)(
-      `prints the running header/footer in the document's font, not the default serif (${lang})`,
+      `prints the running footer in the theme's body font with footer-family: body, and as 3.8.0 without (${lang})`,
       async () => {
-        const page = await browser.newPage();
-        await page.setContent(renderPrint(parseIntentText(src)), { waitUntil: "load" });
-        const file = join(dir, `fonts-${lang}.pdf`);
-        writeFileSync(file, await page.pdf({ preferCSSPageSize: true, printBackground: true }));
-        await page.close();
-        // The content prints in the document's sans font; the margin boxes fell
-        // back to the browser's default serif — Times for the Latin page numbers.
-        // (Geeza Pro alone proves nothing: it is also macOS's sans Arabic fallback.)
-        const fonts = spawnSync("pdffonts", [file]).stdout.toString();
-        expect(fonts).not.toMatch(/Times|Georgia/i);
+        const fontsOf = async (html: string, name: string) => {
+          const page = await browser.newPage();
+          await page.setContent(html, { waitUntil: "load" });
+          const file = join(dir, `${name}-${lang}.pdf`);
+          writeFileSync(file, await page.pdf({ preferCSSPageSize: true, printBackground: true }));
+          await page.close();
+          return spawnSync("pdffonts", [file]).stdout.toString();
+        };
+        // Font names without the random subset tag, sorted.
+        const names = (listing: string) =>
+          listing.split("\n").slice(2).filter(Boolean)
+            .map((l) => l.split(/\s+/)[0].replace(/^[A-Z]{6}\+/, "")).sort();
+        const base = getBuiltinTheme("corporate")!;
+        const themed = { ...base, print: { ...base.print, "header-family": "body", "footer-family": "body" } };
+        // The content prints in the document's sans font; margin boxes inherit from
+        // the page context and fall back to the browser's default serif — Times for
+        // the Latin page numbers — unless the theme names a family.
+        const withKey = await fontsOf(renderPrint(parseIntentText(src), { theme: themed }), "family");
+        expect(withKey).not.toMatch(/Times|Georgia/i);
+        // Without the key: exactly 3.8.0 (same CSS, same fonts).
+        const html = renderPrint(parseIntentText(src));
+        const old = legacy.renderPrint(legacy.parseIntentText(src));
+        const fonts = await fontsOf(html, "plain");
+        expect(names(fonts)).toEqual(names(await fontsOf(old, "legacy")));
+        expect(fonts).toMatch(/Times/i);
       },
-      120_000,
+      180_000,
     );
 
     it(`draws the header rule from style: rules, not the base black rule (${lang})`, async () => {

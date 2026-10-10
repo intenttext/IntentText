@@ -14,7 +14,10 @@ import {
   renderPrint,
   convertIntentTextToMarkdown,
 } from "../src/index";
+import { getBuiltinTheme, generateThemeCSS } from "../src/theme";
+import type { IntentTheme } from "../src/theme";
 import type { IntentBlock } from "../src/types";
+import * as legacy from "dotit-core-legacy";
 
 const fixture = (name: string) =>
   readFileSync(join(__dirname, "print-fixtures", name), "utf8");
@@ -140,21 +143,60 @@ describe("print: style: rules win over the built-in table rules (#7)", () => {
   });
 });
 
-describe("print: the running header/footer print in the document's font (#4)", () => {
+describe("print: the running header/footer font is a theme key (#4)", () => {
   // Margin boxes inherit from the page context, not from body.it-print or
-  // .intent-document, so they printed in the browser's default serif.
+  // .intent-document, so they print in the browser's default serif unless the theme
+  // names a font: `print["header-family"]` / `["footer-family"]` (a stack, or "body").
+  const themed = (print: Record<string, string>): IntentTheme => {
+    const base = getBuiltinTheme("corporate")!;
+    return { ...base, print: { ...base.print, ...print } };
+  };
+
   for (const { lang, src } of PAPERS) {
-    it(`gives the page context the content's font (${lang})`, () => {
-      expect(renderPrint(parseIntentText(src))).toContain("@page{font-family:var(--it-font-body);}");
+    it(`"body" gives the margin boxes the theme's body font (${lang})`, () => {
+      const html = renderPrint(parseIntentText(src), {
+        theme: themed({ "header-family": "body", "footer-family": "body" }),
+      });
+      expect(html).toMatch(/@page\{@top-left\{[^}]*font-family:var\(--it-font-body\);\}@top-center/);
+      expect(html).toMatch(/@page\{@bottom-left\{[^}]*font-family:var\(--it-font-body\);\}@bottom-center/);
+      expect(html).not.toContain("@page{font-family:");
+    });
+
+    it(`a CSS stack is used as written, header and footer apart (${lang})`, () => {
+      const html = renderPrint(parseIntentText(src), {
+        theme: themed({ "footer-family": "'Noto Naskh Arabic', serif" }),
+      });
+      expect(html).toMatch(/@page\{@bottom-left\{[^}]*font-family:'Noto Naskh Arabic', serif;\}/);
+      expect(html).not.toMatch(/@top-left\{[^}]*font-family/);
     });
   }
 
-  it("embedded PDF/A fonts still win over it", () => {
-    const html = renderPrint(parseIntentText(PAPERS[0].src), { embedFonts: true });
-    const theme = html.indexOf("@page{font-family:var(--it-font-body);}");
-    const embedded = html.indexOf("@page{font-family:'IT Serif'");
-    expect(theme).toBeGreaterThan(-1);
-    expect(embedded).toBeGreaterThan(theme);
+  for (const [lang, src] of [
+    ["ar", "page: | size: A4 | margin: 12mm\nfooter: | right: شركة الأفق · INV-0042 | left: صفحة {{page}}\nheader: | center: فاتورة\ntext: مرحبا"],
+    ["en", "page: | size: A4 | margin: 12mm\nfooter: | left: Horizon Trading Co. | right: Page {{page}}\nheader: | center: Invoice\ntext: Hello"],
+  ] as const) {
+    it(`no family key: the CSS is exactly 3.8.0's (${lang})`, () => {
+      const now = renderPrint(parseIntentText(src));
+      expect(now).not.toMatch(/@(top|bottom)-[a-z]+\{[^}]*font-family/);
+      expect(now).not.toContain("@page{font-family:");
+      expect(now.replace("padding:0 1px;}", "padding:0;}")).toBe(
+        legacy.renderPrint(legacy.parseIntentText(src)),
+      );
+    });
+  }
+
+  it("a family alone (no size or colour) still emits the margin-box rule", () => {
+    const theme: IntentTheme = { ...getBuiltinTheme("minimal")!, print: { "footer-family": "body" } };
+    expect(generateThemeCSS(theme, "print")).toContain(
+      "@page{@bottom-left{font-family:var(--it-font-body);}@bottom-center{font-family:var(--it-font-body);}@bottom-right{font-family:var(--it-font-body);}}",
+    );
+    expect(generateThemeCSS(theme, "web")).not.toContain("font-family:var(--it-font-body);}@bottom");
+  });
+
+  it("a family cannot end its declaration", () => {
+    const css = generateThemeCSS(themed({ "footer-family": "x;}body{background:red" }), "print");
+    expect(css).toContain("font-family:xbodybackground:red;");
+    expect(css).not.toContain("}body{background");
   });
 });
 

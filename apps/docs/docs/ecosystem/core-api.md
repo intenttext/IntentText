@@ -220,8 +220,18 @@ interface ThemePrint {
   "footer-font-size"?: string;
   "header-color"?: string;
   "footer-color"?: string;
+  "header-family"?: string; // running header font: a CSS font stack, or "body"
+  "footer-family"?: string; // running footer font: a CSS font stack, or "body"
 }
 ```
+
+**Running header/footer font.** The page margin boxes (`header:` / `footer:`) inherit from
+the page, not from the document, so a paper whose content prints in a sans or Arabic face
+shows its page numbers in the browser's default serif. Name the font in the theme's
+`print` block: `"footer-family": "body"` uses the theme's body font
+(`var(--it-font-body)`); any other value is a CSS font stack, used as written. They are
+emitted inside the same `@page { @top-* … }` / `@bottom-*` rules as the size and colour
+keys. Without them the CSS is exactly what it always was.
 
 ## Query
 

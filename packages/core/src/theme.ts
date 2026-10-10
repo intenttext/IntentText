@@ -53,6 +53,13 @@ export interface ThemePrint {
   "footer-font-size"?: string;
   "header-color"?: string;
   "footer-color"?: string;
+  /**
+   * Font of the running header / footer (the page margin boxes, which inherit from the
+   * page context, not from the document): a CSS font stack, or `"body"` for the
+   * theme's body font. Absent — the browser's default, as before.
+   */
+  "header-family"?: string;
+  "footer-family"?: string;
 }
 
 export interface IntentTheme {
@@ -95,6 +102,14 @@ function resolveColor(value: string, colors: ThemeColors): string {
 function fontStack(font: string, type: "body" | "heading" | "mono"): string {
   if (type === "mono") return `'${font}', monospace`;
   return `${font}, system-ui, sans-serif`;
+}
+
+/** A running header/footer font: `"body"` → the theme's body font, else the stack as given. */
+function printFamily(value: string | undefined): string {
+  if (!value) return "";
+  if (value.trim() === "body") return "var(--it-font-body)";
+  // A font stack is a plain list; anything that could end the declaration is dropped.
+  return value.replace(/[;{}<>]/g, "").trim();
 }
 
 /**
@@ -160,16 +175,20 @@ export function generateThemeCSS(
   if (mode === "print" && p) {
     const hColor = p["header-color"] ? resolveColor(p["header-color"], c) : "";
     const fColor = p["footer-color"] ? resolveColor(p["footer-color"], c) : "";
-    if (p["header-font-size"] || hColor) {
+    const hFamily = printFamily(p["header-family"]);
+    const fFamily = printFamily(p["footer-family"]);
+    if (p["header-font-size"] || hColor || hFamily) {
       let decl = "";
       if (p["header-font-size"]) decl += `font-size:${p["header-font-size"]};`;
       if (hColor) decl += `color:${hColor};`;
+      if (hFamily) decl += `font-family:${hFamily};`;
       css += `@page{@top-left{${decl}}@top-center{${decl}}@top-right{${decl}}}\n`;
     }
-    if (p["footer-font-size"] || fColor) {
+    if (p["footer-font-size"] || fColor || fFamily) {
       let decl = "";
       if (p["footer-font-size"]) decl += `font-size:${p["footer-font-size"]};`;
       if (fColor) decl += `color:${fColor};`;
+      if (fFamily) decl += `font-family:${fFamily};`;
       css += `@page{@bottom-left{${decl}}@bottom-center{${decl}}@bottom-right{${decl}}}\n`;
     }
   }

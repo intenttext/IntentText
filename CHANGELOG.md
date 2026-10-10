@@ -16,6 +16,9 @@ The format is based on Keep a Changelog.
   re-parses them as text. Default off.
 - `RenderOptions.contactLinks` (`renderHTML`, `renderPrint`): `false` prints a `contact:`
   line's email, phone and url as text instead of links. Default on (unchanged markup).
+- Theme `print` keys `header-family` / `footer-family` (a CSS font stack, or `"body"` for
+  the theme's body font): the font of the running header/footer, which otherwise inherits
+  the browser's default serif. Absent — identical CSS.
 - The column-alignment CSS (`it-col-*`) is emitted only for a document with an aligned
   table (it was in every document's stylesheet in the unpublished 3.9 work).
 
