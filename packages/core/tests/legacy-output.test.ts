@@ -12,8 +12,9 @@ import * as legacy from "dotit-core-legacy";
  * source bytes, same HTML, same hash. The ONE allowed difference is the print page
  * gutter (`padding:0 1px`), which fixes the clipped right border for everyone.
  *
- * The corpus is every `.it` the repo ships (examples, demo, fixtures, print
- * fixtures) plus every conformance vector source. `examples/test` and
+ * The corpus is every `.it` the repo ships (examples, demo, fixtures) plus every
+ * conformance vector source. (tests/print-fixtures/ is not in it: those invoices use a
+ * `---:` separator, the one documented change to an existing document.) `examples/test` and
  * `examples/llms` are local, gitignored corpora — included when present.
  */
 const ROOT = resolve(fileURLToPath(new URL("../../..", import.meta.url)));
@@ -30,7 +31,7 @@ function walk(dir: string, out: string[] = []): string[] {
 }
 
 const corpus: { name: string; source: string }[] = [];
-for (const dir of ["examples", "demo", "packages/core/fixtures", "packages/core/tests/print-fixtures"]) {
+for (const dir of ["examples", "demo", "packages/core/fixtures"]) {
   for (const f of walk(join(ROOT, dir))) {
     corpus.push({ name: relative(ROOT, f), source: readFileSync(f, "utf8") });
   }
