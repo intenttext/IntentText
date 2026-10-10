@@ -340,6 +340,22 @@ function splitTableRow(text: string): string[] {
   return cells.filter((c) => c !== "");
 }
 
+/** The marks a backslash can turn into plain text: `\@ \# \* \_ \~ \^ \` \[ \{ \=`. */
+const INLINE_ESCAPABLE = "@#*_~^`[{=";
+
+/** `indexOf` that skips a mark escaped by a preceding backslash. */
+function indexOfUnescaped(text: string, mark: string, from: number): number {
+  for (let j = text.indexOf(mark, from); j !== -1; j = text.indexOf(mark, j + 1)) {
+    if (text[j - 1] !== "\\") return j;
+  }
+  return -1;
+}
+
+/** Drop the backslash of every inline escape inside a span's text. */
+function unescapeInline(text: string): string {
+  return text.replace(/\\([@#*_~^`[{=])/g, "$1");
+}
+
 function parseInlineNodes(text: string): {
   content: string;
   inline: InlineNode[];
@@ -388,6 +404,14 @@ function parseInlineNodes(text: string): {
 
   let i = 0;
   while (i < text.length) {
+    // Inline escape: `\` + one of @ # * _ ~ ^ ` [ { = is that character as text.
+    // (The line already turned `\\` into `\` before we get here.)
+    if (text[i] === "\\" && i + 1 < text.length && INLINE_ESCAPABLE.includes(text[i + 1])) {
+      currentText += text[i + 1];
+      i += 2;
+      continue;
+    }
+
     // Check for link pattern [text](url)
     if (text[i] === "[") {
       // Footnote reference: [^N]
@@ -458,9 +482,9 @@ function parseInlineNodes(text: string): {
 
     // Inline quote ==quoted text==
     if (text.startsWith("==", i)) {
-      const end = text.indexOf("==", i + 2);
+      const end = indexOfUnescaped(text, "==", i + 2);
       if (end > i + 2) {
-        const quoteText = text.slice(i + 2, end);
+        const quoteText = unescapeInline(text.slice(i + 2, end));
         addNode({ type: "inline-quote", value: quoteText });
         i = end + 2;
         continue;
@@ -506,11 +530,11 @@ function parseInlineNodes(text: string): {
       text.startsWith("~~", i)
     ) {
       const delim = text.slice(i, i + 2);
-      const end = text.indexOf(delim, i + 2);
+      const end = indexOfUnescaped(text, delim, i + 2);
       if (end > i + 2) {
         addNode({
           type: delim === "~~" ? "strike" : "bold",
-          value: text.slice(i + 2, end),
+          value: unescapeInline(text.slice(i + 2, end)),
         });
         i = end + 2;
         continue;
@@ -520,13 +544,13 @@ function parseInlineNodes(text: string): {
     // Check for bold/italic/strike/highlight with */_/~/^
     const ch = text[i];
     if (ch === "*" || ch === "_" || ch === "~" || ch === "^") {
-      const end = text.indexOf(ch, i + 1);
+      const end = indexOfUnescaped(text, ch, i + 1);
       if (end === -1) {
         currentText += ch;
         i++;
         continue;
       }
-      const innerText = text.slice(i + 1, end);
+      const innerText = unescapeInline(text.slice(i + 1, end));
       const type =
         ch === "*"
           ? "bold"

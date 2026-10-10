@@ -138,15 +138,31 @@ function applyMergeFilters(value: unknown, filters: string[]): string {
   return v === undefined || v === null ? "" : String(v);
 }
 
+/**
+ * Escape a merged value for inline-parsed source (`MergeOptions.literal`): every mark
+ * the inline grammar reads (`@ # * _ ~ ^ \` [ { =`) gets a backslash, so the sealed
+ * source re-parses the value as plain text. Backslashes and pipes are left to the
+ * serializer, which escapes them when it writes the line.
+ */
+function escapeInlineValue(value: string): string {
+  return value.replace(/[@#*_~^`[{=]/g, "\\$&");
+}
+
 function resolveString(
   str: string,
   data: Record<string, unknown>,
   agentName?: string,
+  inline = false,
 ): { resolved: string; hasUnresolved: boolean } {
   // Fast path: no template markers
   if (!str.includes("{{")) return { resolved: str, hasUnresolved: false };
 
   let hasUnresolved = false;
+  // `literal` merges: a value written into inline-parsed content is escaped there.
+  const fill = (value: unknown, filters: string[]): string => {
+    const text = applyMergeFilters(value, filters);
+    return LITERAL_MODE && inline ? escapeInlineValue(text) : text;
+  };
   const resolved = str.replace(/\{\{([^}]+)\}\}/g, (match, rawExpr) => {
     // `{{ path | filter:arg | filter2 }}` — the path is the first segment, the rest
     // are display filters (currency/number/date/…). Plain `{{path}}` is unchanged.
@@ -165,20 +181,19 @@ function resolveString(
     // System variables
     if (SYSTEM_VARIABLES.has(path)) {
       const sysVal = getSystemVariable(path);
-      if (sysVal !== undefined) return applyMergeFilters(sysVal, filters);
+      if (sysVal !== undefined) return fill(sysVal, filters);
     }
 
     // Agent variable — resolve from metadata
     if (path === "agent") {
-      if (agentName) return applyMergeFilters(agentName, filters);
+      if (agentName) return fill(agentName, filters);
       hasUnresolved = true;
       return match;
     }
 
     // Data lookup (supports dot notation and array indices)
     const value = getByPath(data, path);
-    if (value !== undefined && value !== null)
-      return applyMergeFilters(value, filters);
+    if (value !== undefined && value !== null) return fill(value, filters);
 
     // Unresolved data path. In "blank" mode (production printing) render it empty
     // so an invoice never shows a literal `{{customer.phone}}`; in "keep" mode
@@ -191,6 +206,9 @@ function resolveString(
 
 /** How to render a `{{path}}` that resolves to nothing. Set per mergeData() call. */
 let MISSING_MODE: "keep" | "blank" = "keep";
+
+/** Whether this mergeData() call escapes merged values for inline parsing. */
+let LITERAL_MODE = false;
 
 function resolveBlock(
   block: IntentBlock,
@@ -213,10 +231,13 @@ function resolveBlock(
 
   // Resolve originalContent
   if (newBlock.originalContent) {
+    // The source text of the line: inline-parsed, so `literal` escapes apply — except
+    // in a code block, whose text is never read for marks.
     const { resolved } = resolveString(
       newBlock.originalContent,
       data,
       agentName,
+      newBlock.type !== "code",
     );
     newBlock.originalContent = resolved;
   }
@@ -439,6 +460,13 @@ export interface MergeOptions {
    *    missing optional field never prints `{{customer.phone}}`.
    */
   missing?: "keep" | "blank";
+  /**
+   * Write every merged value into inline-parsed content as plain text: its `@ # * _ ~ ^
+   * \` [ { =` get a backslash, so the sealed source re-parses `info@example.qa` as an
+   * address (not a mention) and `*note*` as text (not bold). Default `false` — values
+   * are written as they are, and may carry marks, exactly as before.
+   */
+  literal?: boolean;
 }
 
 export function mergeData(
@@ -449,6 +477,7 @@ export function mergeData(
   if (!template || !template.blocks) return template;
   if (!data || typeof data !== "object") return template;
   MISSING_MODE = options?.missing ?? "keep";
+  LITERAL_MODE = options?.literal === true;
   const agentName = template.metadata?.agent;
 
   // v2.8.1: expand each: table rows before variable resolution

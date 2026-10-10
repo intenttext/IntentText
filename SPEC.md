@@ -141,6 +141,17 @@ Within content: `*bold*`, `_italic_`, `~strike~`, `` `code` ``, `@mention`,
 `~~strike~~` → strikethrough (a double delimiter binds before the single marks). This is a
 parse/render convenience — it never changes the source bytes, so it cannot affect a seal.
 
+**Inline escapes.** A backslash before one of `` @ # * _ ~ ^ ` [ { = `` is that character as
+plain text — both source characters are consumed and no node is produced: `info\@example.qa`
+is an address, `\*note\*` is the text `*note*`, and an escaped closer does not close a span
+(`*a \* b*` is bold `a * b`). A backslash before any other character is itself and unchanged.
+The line-level escapes run first, so `\\` has already become `\` when inline parsing sees it
+(`\\@x` therefore delivers `\@x` and prints `@x`). The source is kept exactly as written; the
+escape lives only in how the line is read, so it needs no `SEAL_SPEC` change and a document
+without the sequence reads exactly as before. `mergeData(…, { literal: true })` writes every
+merged value into inline content with these escapes, so a sealed merged document re-parses
+`info@example.qa` and `*note*` as plain text.
+
 An **inline styled span** `[text]{ key: value; key: value }` styles part of a line with
 the same keys as block-level style props (see [style-properties](apps/docs/docs/reference/style-properties.md)),
 but **`;`-separated** — `|` is reserved for the line-level property delimiter and cannot

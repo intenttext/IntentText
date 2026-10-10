@@ -66,6 +66,14 @@ export interface RenderOptions {
    * for archival output. Only honoured by `renderPrint`. See `print-fonts.ts`.
    */
   embedFonts?: boolean;
+  /**
+   * `contact:` email, phone and url render as links (`mailto:`, `tel:`, the address):
+   * the default. `false` prints them as text — `<div class="it-contact-email"><span
+   * dir="auto">…</span></div>`, no `<a>`, the value isolated and the line following the
+   * document's direction — for paper, where a link has no use and its inherited style
+   * is noise. Both renderers.
+   */
+  contactLinks?: boolean;
 }
 
 /**
@@ -86,6 +94,9 @@ let BARE_RENDER = false;
 // would undermine tamper-evidence). Set via RenderOptions.allowRemoteResources. Links
 // (`<a href>`) are user-initiated, not auto-loading, so they are NOT gated here. (#44)
 let ALLOW_REMOTE_RESOURCES = false;
+
+/** `RenderOptions.contactLinks` for the render in progress (default: links). */
+let CONTACT_LINKS = true;
 
 // Bare view = a plain typed document: strip every box/border/background/shadow so
 // only the content + emphasis remain — no callout boxes, contact cards, coloured
@@ -1694,9 +1705,9 @@ function renderBlock(block: IntentBlock): string {
         <div class="it-contact-name">${content}</div>
         ${cRole ? `<div class="it-contact-role">${cRole}</div>` : ""}
         ${cOrg ? `<div class="it-contact-org">${cOrg}</div>` : ""}
-        ${cEmail ? `<div class="it-contact-email" dir="auto"><a href="mailto:${escapeHtml(cEmail)}">${escapeHtml(cEmail)}</a></div>` : ""}
-        ${cPhone ? `<div class="it-contact-phone" dir="auto"><a href="tel:${escapeHtml(cPhone)}">${escapeHtml(cPhone)}</a></div>` : ""}
-        ${cUrl2 ? `<div class="it-contact-url"><a href="${escapeHtml(sanitizeUrl(cUrl2))}">${escapeHtml(cUrl2)}</a></div>` : ""}
+        ${cEmail ? (CONTACT_LINKS ? `<div class="it-contact-email" dir="auto"><a href="mailto:${escapeHtml(cEmail)}">${escapeHtml(cEmail)}</a></div>` : `<div class="it-contact-email"><span dir="auto">${escapeHtml(cEmail)}</span></div>`) : ""}
+        ${cPhone ? (CONTACT_LINKS ? `<div class="it-contact-phone" dir="auto"><a href="tel:${escapeHtml(cPhone)}">${escapeHtml(cPhone)}</a></div>` : `<div class="it-contact-phone"><span dir="auto">${escapeHtml(cPhone)}</span></div>`) : ""}
+        ${cUrl2 ? (CONTACT_LINKS ? `<div class="it-contact-url"><a href="${escapeHtml(sanitizeUrl(cUrl2))}">${escapeHtml(cUrl2)}</a></div>` : `<div class="it-contact-url"><span dir="auto">${escapeHtml(cUrl2)}</span></div>`) : ""}
       </div>`;
     }
 
@@ -1981,6 +1992,8 @@ export function renderHTML(
   BARE_RENDER = !!options?.bare;
   const prevAllowRemote = ALLOW_REMOTE_RESOURCES;
   ALLOW_REMOTE_RESOURCES = !!options?.allowRemoteResources;
+  const prevContactLinks = CONTACT_LINKS;
+  CONTACT_LINKS = options?.contactLinks !== false;
   try {
   const bodyHtml = renderBlocks(document.blocks, undefined, buildRouteCtx(document));
 
@@ -2048,6 +2061,7 @@ ${html}${bandHtml}
   } finally {
     BARE_RENDER = prevBare;
     ALLOW_REMOTE_RESOURCES = prevAllowRemote;
+    CONTACT_LINKS = prevContactLinks;
   }
 }
 
@@ -2107,6 +2121,8 @@ export function renderPrint(
   BARE_RENDER = !!options?.bare;
   const prevAllowRemote = ALLOW_REMOTE_RESOURCES;
   ALLOW_REMOTE_RESOURCES = !!options?.allowRemoteResources;
+  const prevContactLinks = CONTACT_LINKS;
+  CONTACT_LINKS = options?.contactLinks !== false;
   try {
   const bodyHtml = renderBlocks(doc.blocks, undefined, buildRouteCtx(doc));
 
@@ -2323,5 +2339,6 @@ ${fontFaceCSS}
   } finally {
     BARE_RENDER = prevBare;
     ALLOW_REMOTE_RESOURCES = prevAllowRemote;
+    CONTACT_LINKS = prevContactLinks;
   }
 }

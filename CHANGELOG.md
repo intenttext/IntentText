@@ -6,6 +6,19 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+
+- **Inline escapes** (core): `\` before one of `@ # * _ ~ ^ \` [ { =` prints that character
+  as plain text (`info\@example.qa`, `\*note\*`). New syntax; a document without such a
+  backslash reads exactly as before.
+- `mergeData(template, data, { literal: true })` / `parseAndMerge(…, { literal: true })`:
+  merged values are written into inline content with those escapes, so the sealed source
+  re-parses them as text. Default off.
+- `RenderOptions.contactLinks` (`renderHTML`, `renderPrint`): `false` prints a `contact:`
+  line's email, phone and url as text instead of links. Default on (unchanged markup).
+- The column-alignment CSS (`it-col-*`) is emitted only for a document with an aligned
+  table (it was in every document's stylesheet in the unpublished 3.9 work).
+
 ## [core 3.9.0] — 2026-10-01 — print fidelity for business papers
 
 `@dotit/core` **3.9.0**. Five print defects measured on business papers

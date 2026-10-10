@@ -160,8 +160,15 @@ literal-run    = 1*CHAR
                ; A maximal run of characters that does NOT begin any inline-node;
                ; where a delimiter could start a node the parser prefers the node
                ; (conformance note 1). Parser-bounded, hence not fully context-free.
-inline-node    = bold / italic / strike / code-span / mention / tag
+inline-node    = inline-escape / bold / italic / strike / code-span / mention / tag
                / link / sidenote / styled-span / footnote-ref
+
+inline-escape  = "\" ( "@" / "#" / "*" / "_" / "~" / "^" / "`" / "[" / "{" / "=" )
+               ; The second character as literal text; both are consumed and the
+               ; node is plain text. Matched first, and an escaped delimiter does not
+               ; close a span. A "\" before anything else is an ordinary character.
+               ; The line-level escapes ("\\" -> "\", "\|" -> "|") run BEFORE this,
+               ; so "\\@" reaches the inline parser as "\@" (SPEC.md §2).
 
 bold           = ( "**" text-1 "**" ) / ( "__" text-1 "__" ) / ( "*" text-1 "*" )
 italic         = "_" text-1 "_"

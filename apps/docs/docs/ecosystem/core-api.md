@@ -104,8 +104,14 @@ const layout = collectPrintLayout(doc);
 ```typescript
 interface RenderOptions {
   theme?: string | IntentTheme; // Theme name or object
+  contactLinks?: boolean; // contact: email/phone/url as links (default true); false prints them as text
 }
 ```
+
+`contactLinks: false` (both `renderHTML` and `renderPrint`) prints a `contact:` line's
+email, phone and url as text — `<div class="it-contact-email"><span dir="auto">…</span></div>`,
+no `<a>`, the value isolated and the line following the document's direction — which is
+what paper wants. Off by default: the markup is exactly what it always was.
 
 ## Theme
 
@@ -356,11 +362,23 @@ const merged = mergeData(template, { number: "INV-2847", amount: "$5,000" });
 `mergeData` resolves `{{vars}}` inside multi-line prose blocks too, so a **fully merged**
 template (no placeholders left) can be sealed.
 
+By default a merged value is written as it is, so a value that contains `@`, `#`, `*`,
+`_` … is read as a mention, tag or emphasis when the sealed source is parsed again
+(`info@example.qa` becomes a mention). Pass `{ literal: true }` and every merged value is
+written into inline content with [inline escapes](../reference/style-properties#inline-formatting),
+so it re-parses as plain text:
+
+```typescript
+const merged = mergeData(template, { email: "info@example.qa" }, { literal: true });
+documentToSource(merged); // …info\\@example.qa — prints as info@example.qa
+```
+
 ### `parseAndMerge(source, data, options?)`
 
 Parse and merge in one call. `options.missing` controls unresolved `{{fields}}`:
 `"keep"` (default — shows the marker, good while authoring) or `"blank"` (renders
 empty — use for finished documents so an invoice never prints `{{customer.phone}}`).
+`options.literal` is described above.
 
 ```typescript
 import { parseAndMerge } from "@dotit/core";
