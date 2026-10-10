@@ -306,7 +306,11 @@ function separatorAlign(cell: string): TableAlign | null {
   return null;
 }
 
-function splitTableRow(text: string): string[] {
+function splitTableRow(
+  text: string,
+  keepEmptyCells = false,
+  outerDelimiters = false,
+): string[] {
   // Split on unescaped '|' and then unescape cell contents.
   const cells: string[] = [];
   let current = "";
@@ -337,7 +341,15 @@ function splitTableRow(text: string): string[] {
   }
 
   cells.push(unescapeIntentText(current.trim()));
-  return cells.filter((c) => c !== "");
+  if (!keepEmptyCells) return cells.filter((c) => c !== "");
+
+  // keepEmptyCells: every inner cell counts, empty or not. The delimiter that opens
+  // a `| … |` row and the single one that closes a row produce no cell; an empty last
+  // cell is therefore written `… | |` (the serializer does).
+  if (text.trim() === "") return [];
+  if (outerDelimiters && cells.length > 1 && cells[0] === "") cells.shift();
+  if (cells.length > 1 && cells[cells.length - 1] === "") cells.pop();
+  return cells;
 }
 
 /** The marks a backslash can turn into plain text: `\@ \# \* \_ \~ \^ \` \[ \{ \=`. */
@@ -1354,6 +1366,7 @@ export function parseIntentText(
   } = {};
 
   const extensions = options?.extensions || [];
+  const keepEmptyCells = options?.keepEmptyCells === true;
   const keywords = new Set(KEYWORDS);
   // v2.8.1: register alias keywords so they are recognised as known
   for (const alias of Object.keys(ALIASES)) {
@@ -1744,7 +1757,7 @@ export function parseIntentText(
       // on a `\|` a converter emitted for a literal pipe inside a cell, shifting every
       // downstream column and leaving a stray backslash. splitTableRow honors the escape
       // (and drops the empty leading/trailing cells from the surrounding `| … |`).
-      const cells = splitTableRow(trimmed);
+      const cells = splitTableRow(trimmed, keepEmptyCells, true);
 
       // Check if it's a separator row (| --- | --- |)
       const isSeparator = cells.every((cell) => /^[-:]+$/.test(cell));
@@ -1785,7 +1798,10 @@ export function parseIntentText(
     if (block.type === "headers") {
       flushPendingTable();
       pendingTable = {
-        headers: splitTableRow(block.originalContent || block.content),
+        headers: splitTableRow(
+          block.originalContent || block.content,
+          keepEmptyCells,
+        ),
         rows: [],
         originalHeaders: block.originalContent || block.content,
         headerLine: i + 1,
@@ -1797,7 +1813,10 @@ export function parseIntentText(
     }
 
     if (block.type === "row") {
-      const rowCells = splitTableRow(block.originalContent || block.content);
+      const rowCells = splitTableRow(
+        block.originalContent || block.content,
+        keepEmptyCells,
+      );
       if (pendingTable) {
         pendingTable.rows.push(rowCells);
         if (block.keywordAlias && !pendingTable.rowKeyword)

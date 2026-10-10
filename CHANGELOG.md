@@ -8,6 +8,13 @@ The format is based on Keep a Changelog.
 
 ### Added
 
+- `ParseOptions.keepEmptyCells` (and `MergeOptions.keepEmptyCells` for `parseAndMerge`):
+  keeps inner empty table cells so a blank value no longer shifts the columns after it;
+  the outer `|` of a `| … |` row and one trailing ` |` on a `row:`/`headers:` line make no
+  cell. Default off (the 3.8 behaviour). `documentToSource` now escapes `|` and `\` in
+  table cells and writes a row that ends on an empty cell as `… | |`; those are the only
+  rows whose serialized text changes (they did not round-trip before). Seals made by
+  3.8.0 and by this version verify under each other.
 - **Inline escapes** (core): `\` before one of `@ # * _ ~ ^ \` [ { =` prints that character
   as plain text (`info\@example.qa`, `\*note\*`). New syntax; a document without such a
   backslash reads exactly as before.

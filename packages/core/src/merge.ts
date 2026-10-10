@@ -467,6 +467,8 @@ export interface MergeOptions {
    * are written as they are, and may carry marks, exactly as before.
    */
   literal?: boolean;
+  /** `parseAndMerge` only: parse the template with `ParseOptions.keepEmptyCells`. */
+  keepEmptyCells?: boolean;
 }
 
 export function mergeData(
@@ -546,6 +548,9 @@ export function parseAndMerge(
   data: Record<string, unknown>,
   options?: MergeOptions,
 ): IntentDocument {
-  const template = parseIntentText(source);
+  const template = parseIntentText(
+    source,
+    options?.keepEmptyCells ? { keepEmptyCells: true } : undefined,
+  );
   return mergeData(template, data, options);
 }

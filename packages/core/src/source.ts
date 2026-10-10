@@ -385,6 +385,18 @@ export function separatorCell(align: TableAlign | null | undefined): string {
   return "---";
 }
 
+/** A cell as written on a `headers:`/`row:` line: `\\` and `|` are escaped. */
+function escapeCell(cell: string): string {
+  return cell.replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
+}
+
+/** The cells of a row joined for a line. An empty last cell needs a closing `|` of its own,
+ *  or the trimmed line would end on the delimiter and lose it when re-parsed. */
+function joinCells(cells: string[]): string {
+  const joined = cells.map(escapeCell).join(" | ");
+  return cells.length > 0 && cells[cells.length - 1] === "" ? `${joined}|` : joined;
+}
+
 function serializeTable(block: IntentBlock): string {
   const lines: string[] = [];
   const table = block.table!;
@@ -394,7 +406,7 @@ function serializeTable(block: IntentBlock): string {
   const rk = table.rowKeyword ?? "row";
 
   if (table.headers && table.headers.length > 0) {
-    lines.push(`${hk}: ${table.headers.join(" | ")}`);
+    lines.push(`${hk}: ${joinCells(table.headers)}`);
     // Column alignment lives in the separator row (GFM): re-emit it as written,
     // or build one when the alignment was set without a source line.
     if (table.align) {
@@ -403,7 +415,7 @@ function serializeTable(block: IntentBlock): string {
   }
 
   for (const row of table.rows) {
-    lines.push(`${rk}: ${row.join(" | ")}`);
+    lines.push(`${rk}: ${joinCells(row)}`);
   }
 
   return lines.join("\n");

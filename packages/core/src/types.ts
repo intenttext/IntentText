@@ -222,6 +222,14 @@ export interface ParseOptions {
   extensions?: IntentExtension[];
   /** v2.8: If true, parse the history section below the boundary and attach to document.history. Default: false. */
   includeHistorySection?: boolean;
+  /**
+   * Keep empty table cells. Default `false` (exact 3.8 behaviour): every empty cell is
+   * dropped, so a row with an empty value shifts the cells after it. When `true`, inner
+   * empty cells are kept; the outer `|` of a `| … |` row and a single trailing ` |` on a
+   * `row:`/`headers:` line produce no cell. Use it when re-parsing a source that was
+   * merged and serialized (an ERP print path); an empty last cell is written `… | |`.
+   */
+  keepEmptyCells?: boolean;
 }
 
 export interface Diagnostic {

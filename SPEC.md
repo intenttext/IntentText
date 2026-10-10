@@ -78,6 +78,18 @@ He said: watch this` is fine) — only the first word+colon of a line is a keywo
 start a line's text with something that LOOKS like a keyword (e.g. `total: 50` as
 prose), write it as explicit text: `text: total: 50`.
 
+**Table cells.** Cells are the ` | `-separated fields of a `headers:`/`row:` line (or of a
+`| … |` row). A literal `|` or `\` inside a cell is written `\|` / `\\`; the serializer
+escapes both, so a cell value always re-parses as itself. By default the parser **drops
+empty cells** (the 3.8 behaviour, kept for every existing document). With
+`ParseOptions.keepEmptyCells: true` (and `MergeOptions.keepEmptyCells` for
+`parseAndMerge`) inner empty cells are kept, so a row with a blank value keeps its other
+values in their columns; the outer `|` of a `| … |` row and a single trailing ` |` on a
+`headers:`/`row:` line (`headers: # | Item | each: items |`) produce no cell. A row whose
+last cell is empty is therefore written with a doubled closing delimiter (`row: 7 | |`).
+Use the option when re-parsing a merged, serialized and sealed source to print it; the
+seal hashes the text, so it is the same with or without the option.
+
 Keywords and property keys are **Unicode words** (`\p{L}` letters, then letters/
 digits/`-`/`_`) — Arabic, Chinese, or any-script domain keywords parse as typed
 `custom` blocks exactly like ASCII ones (`مصروف: كراسي | فئة: أثاث` is a queryable
