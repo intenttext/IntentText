@@ -213,3 +213,26 @@ describe("print: contact data prints as written (#3)", () => {
     });
   }
 });
+
+describe("print: the column-alignment CSS only ships with an aligned table (#2)", () => {
+  const RULE = ".intent-table th.it-col-right,.intent-table td.it-col-right{text-align:right;font-variant-numeric:tabular-nums;}";
+  const plain = "headers: a | b\nrow: 1 | 2\n";
+  const nested = "section: S\nheaders: a | b\n| :--- | ---: |\nrow: 1 | 2\n";
+
+  for (const render of [renderHTML, renderPrint]) {
+    for (const { lang, src } of PAPERS) {
+      it(`${render.name} emits the it-col rules for an aligned table (${lang})`, () => {
+        expect(render(parseIntentText(src))).toContain(RULE);
+      });
+    }
+
+    it(`${render.name} emits no it-col rule for a document with no aligned table`, () => {
+      expect(render(parseIntentText(plain))).not.toContain("it-col-");
+      expect(render(parseIntentText("headers: a | b\n|---|---|\nrow: 1 | 2\n"))).not.toContain("it-col-");
+    });
+
+    it(`${render.name} finds an aligned table nested in a section`, () => {
+      expect(render(parseIntentText(nested))).toContain(".intent-table th.it-col-left");
+    });
+  }
+});

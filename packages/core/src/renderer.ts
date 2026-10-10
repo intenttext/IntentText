@@ -1,7 +1,7 @@
 import { IntentBlock, IntentDocument, InlineNode, PrintLayout, TableAlign } from "./types";
 import { effectiveProperties } from "./defaults";
 import { colorAlpha, colorsMatch, sizeIsInvisible } from "./visibility";
-import { DOCUMENT_CSS } from "./document-css";import { IntentTheme, getBuiltinTheme, generateThemeCSS } from "./theme";
+import { DOCUMENT_CSS, COLUMN_ALIGN_CSS } from "./document-css";import { IntentTheme, getBuiltinTheme, generateThemeCSS } from "./theme";
 import {
   sealForDocument,
   renderTrustBand,
@@ -588,6 +588,20 @@ function splitEnd(
     inner: `<span class="it-split-main">${content}</span><span class="it-split-end" dir="auto">${escapeHtml(String(end))}</span>`,
     splitClass: " it-split",
   };
+}
+
+/** True when a table anywhere in the tree has an aligned column (children included). */
+function hasAlignedTable(blocks: IntentBlock[]): boolean {
+  return blocks.some(
+    (b) =>
+      (b.type === "table" && !!b.table?.align) ||
+      (!!b.children && hasAlignedTable(b.children)),
+  );
+}
+
+/** The column-alignment rules — only when the document has an aligned table. */
+function columnAlignCSS(blocks: IntentBlock[]): string {
+  return hasAlignedTable(blocks) ? COLUMN_ALIGN_CSS : "";
 }
 
 /** ` it-col-<align>` for a column the separator row aligned, else "". */
@@ -2024,7 +2038,7 @@ export function renderHTML(
 
   return `<div class="intent-document${BARE_RENDER ? " intent-bare" : ""}" ${direction}>
 <style>
-${DOCUMENT_CSS}${themeCSS}
+${DOCUMENT_CSS}${columnAlignCSS(document.blocks)}${themeCSS}
 ${docStyleCSS}
 ${BARE_RENDER ? BARE_RESET_CSS : ""}
 ${bandCSS}
@@ -2237,7 +2251,7 @@ export function renderPrint(
   return `<!DOCTYPE html><html ${direction}><head><meta charset="utf-8"><style>
 ${dynamicCSS}
 ${DOCUMENT_CSS}
-${themeCSS}
+${columnAlignCSS(doc.blocks)}${themeCSS}
 ${BARE_RENDER ? "" : documentStyleCSS(doc)}
 /* Print: the page box is handled by @page margins, so neutralise the screen
    document container's own max-width/centering/padding. Keep a 1px inline gutter:

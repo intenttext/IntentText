@@ -80,11 +80,6 @@ export const DOCUMENT_CSS = `
 .intent-table th,.intent-table-th{padding:6px 10px;text-align:start;font-weight:600;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;border-bottom:2px solid #333;}
 .intent-table td,.intent-table-td{padding:6px 10px;text-align:start;border-bottom:1px solid #ddd;vertical-align:top;}
 .intent-row:last-child .intent-table-td,.intent-row:last-child td{border-bottom:none;}
-/* Column alignment from the separator row. Physical, as in GFM, and above the print
-   and style: rules: a right-aligned money column lines up on its decimal point. */
-.intent-table th.it-col-left,.intent-table td.it-col-left{text-align:left;}
-.intent-table th.it-col-center,.intent-table td.it-col-center{text-align:center;}
-.intent-table th.it-col-right,.intent-table td.it-col-right{text-align:right;font-variant-numeric:tabular-nums;}
 /* ── Image ─────────────────────────────────────────────── */
 .intent-image{margin:12px 0;}
 .intent-image-img{max-width:100%;height:auto;border:1px solid #ddd;}
@@ -364,4 +359,15 @@ sup.it-fn-ref a{color:#111;text-decoration:none;border-bottom:1px solid #999;}
 .it-deadline-green{border-color:#4caf50;}
 .it-deadline-amber{border-color:#f57c00;}
 .it-deadline-red{border-color:#c62828;}
+`;
+
+/**
+ * Column alignment from a GFM separator row (`:---` `:---:` `---:`). Physical, as in
+ * GFM, and above the print and `style:` rules: a right-aligned money column lines up
+ * on its decimal point. Emitted by the renderers only for a document with an aligned
+ * table, so every other document's CSS is exactly what it always was.
+ */
+export const COLUMN_ALIGN_CSS = `.intent-table th.it-col-left,.intent-table td.it-col-left{text-align:left;}
+.intent-table th.it-col-center,.intent-table td.it-col-center{text-align:center;}
+.intent-table th.it-col-right,.intent-table td.it-col-right{text-align:right;font-variant-numeric:tabular-nums;}
 `;
