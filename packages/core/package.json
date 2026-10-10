@@ -50,6 +50,7 @@
   "devDependencies": {
     "@intenttext/core": "4.3.0",
     "@zxing/library": "0.21.3",
+    "dotit-core-legacy": "npm:@dotit/core@3.8.0",
     "jsqr": "1.4.0",
     "puppeteer-core": "25.1.0",
     "typescript": "^5.0.0",
