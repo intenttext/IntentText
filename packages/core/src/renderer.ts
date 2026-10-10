@@ -7,6 +7,7 @@ import {
   renderTrustBand,
   TRUST_BAND_CSS,
   TRUST_BAND_END_CSS,
+  TRUST_BAND_QR_CSS,
   trustBandPositionCss,
   type TrustBandOptions,
   type TrustTier,
@@ -2041,6 +2042,7 @@ export function renderHTML(
       bandCSS =
         `.intent-document{position:relative;}` +
         TRUST_BAND_CSS +
+        qrBandCSS(bandHtml) +
         trustBandPositionCss("absolute");
     }
   }
@@ -2103,6 +2105,11 @@ function buildDynamicCSS(doc: IntentDocument): string {
   const margins = String(explicitMargin ?? (widthMm <= 120 ? "4mm" : "20mm"));
 
   return `@page{size:${pageSize};margin:${escapeHtml(margins)};}body.it-print{font-family:${escapeHtml(fontFamily)};font-size:${escapeHtml(fontSize)};line-height:${escapeHtml(leading)};}`;
+}
+
+/** The QR rules of the trust band — only when the band drew a QR. */
+function qrBandCSS(bandHtml: string): string {
+  return bandHtml.includes("it-trust-band__marks") ? TRUST_BAND_QR_CSS : "";
 }
 
 /** The trust-band options carried by `RenderOptions.seal`. */
@@ -2253,7 +2260,10 @@ export function renderPrint(
     // visual style with every other surface — single source of truth in core.
     sealHtml = renderTrustBand(options?.source ?? documentToSource(doc), bandOptions(options));
     if (sealHtml) {
-      sealCSS = TRUST_BAND_CSS + (sealAtEnd ? TRUST_BAND_END_CSS : trustBandPositionCss("fixed"));
+      sealCSS =
+        TRUST_BAND_CSS +
+        qrBandCSS(sealHtml) +
+        (sealAtEnd ? TRUST_BAND_END_CSS : trustBandPositionCss("fixed"));
       if (sealAtEnd) sealHtml = `<div class="it-trust-band-end">${sealHtml}</div>`;
     }
   }
@@ -2264,15 +2274,16 @@ export function renderPrint(
   const fontFaceCSS =
     options?.embedFonts && !BARE_RENDER ? printFontFaceCSS() : "";
 
+  // The print container keeps a 1px inline gutter (`padding:0 1px`): Chrome snaps the
+  // printed page area to whole device pixels and can cut the last pixel at its inline
+  // end — the right border of every full-width table or box.
   return `<!DOCTYPE html><html ${direction}><head><meta charset="utf-8"><style>
 ${dynamicCSS}
 ${DOCUMENT_CSS}
 ${columnAlignCSS(doc.blocks)}${themeCSS}
 ${BARE_RENDER ? "" : documentStyleCSS(doc)}
 /* Print: the page box is handled by @page margins, so neutralise the screen
-   document container's own max-width/centering/padding. Keep a 1px inline gutter:
-   Chrome snaps the printed page area to whole device pixels and can cut the last
-   pixel at its inline end — the right border of every full-width table or box. */
+   document container's own max-width/centering/padding. */
 .intent-document{max-width:none;margin:0;padding:0 1px;}
 ${headerFooterCSS}
 ${backwardCompatCSS}

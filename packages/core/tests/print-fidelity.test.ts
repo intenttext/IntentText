@@ -13,6 +13,7 @@ import {
   renderHTML,
   renderPrint,
   convertIntentTextToMarkdown,
+  sealDocument,
 } from "../src/index";
 import { getBuiltinTheme, generateThemeCSS } from "../src/theme";
 import type { IntentTheme } from "../src/theme";
@@ -277,7 +278,7 @@ describe("print: contact data prints as written when the author asks (#3)", () =
 
     it(`the unescaped letterhead renders as it did in 3.8.0 (${lang})`, () => {
       const html = renderPrint(parseIntentText(src));
-      expect(html).toContain("intent-inline-mention");
+      expect(html).toContain('<span class="intent-inline-mention">');
     });
 
     it(`contactLinks: false prints contact: values as text in the document's direction (${lang})`, () => {
@@ -309,5 +310,31 @@ describe("print: the column-alignment CSS only ships with an aligned table (#2)"
     it(`${render.name} finds an aligned table nested in a section`, () => {
       expect(render(parseIntentText(nested))).toContain(".intent-table th.it-col-left");
     });
+  }
+});
+
+describe("print: the verify-QR band CSS only ships with a QR", () => {
+  for (const [lang, src] of [
+    ["ar", "title: فاتورة\ntext: شركة الأفق للتجارة · INV-0042"],
+    ["en", "title: Invoice\ntext: Horizon Trading Co. · INV-0042"],
+  ] as const) {
+    const sealed = sealDocument(src, { signer: "Billing", role: "Accounts" }).source;
+    for (const render of [renderHTML, renderPrint]) {
+      it(`${render.name}: a sealed document without verifyUrl carries no QR rules (${lang})`, () => {
+        const html = render(parseIntentText(sealed), { source: sealed });
+        expect(html).toContain(".it-trust-band{");
+        expect(html).not.toContain("it-trust-band__qr");
+        expect(html).not.toContain("it-trust-band__marks");
+      });
+
+      it(`${render.name}: with verifyUrl the QR rules are there (${lang})`, () => {
+        const html = render(parseIntentText(sealed), {
+          source: sealed,
+          seal: { verifyUrl: "https://example.qa/d/INV-0042" },
+        });
+        expect(html).toContain(".it-trust-band__qr svg{display:block;}");
+        expect(html).toContain('<span class="it-trust-band__qr">');
+      });
+    }
   }
 });

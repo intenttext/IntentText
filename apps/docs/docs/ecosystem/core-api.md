@@ -504,7 +504,9 @@ const sigHash = computeSignatureHash(source, { signer: "Ahmed", role: "CEO", at 
 broken, …). It **verifies before it draws**: a tampered document renders a red
 **"SEAL BROKEN"** stamp on every surface (screen, print, PDF) — never a clean seal. Pair
 with `TRUST_BAND_CSS` (the stylesheet) and `trustBandPositionCss` (placement). Tiers
-include the new **sealed** (indigo) and **broken** (red).
+include the new **sealed** (indigo) and **broken** (red). `options.verifyUrl` draws a QR
+beside the stamp; its rules live in `TRUST_BAND_QR_CSS`, which the renderers add only when a
+QR is drawn (add it yourself if you place the band).
 
 ```typescript
 import { renderTrustBand, TRUST_BAND_CSS, trustBandPositionCss } from "@dotit/core";

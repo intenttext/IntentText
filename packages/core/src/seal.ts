@@ -568,8 +568,13 @@ export const TRUST_BAND_CSS =
   `.it-trust-band__line{white-space:nowrap;}` +
   // BROKEN: loud red caption so a tampered document can never present as certified.
   `.it-trust-band--broken .it-trust-band__cap{color:#d93025;opacity:1;}` +
-  `.it-trust-band__line--alert{font-weight:700;letter-spacing:0.05em;}` +
-  // The verify QR beside the stamp (only when a verifyUrl is given).
+  `.it-trust-band__line--alert{font-weight:700;letter-spacing:0.05em;}`;
+
+/**
+ * The verify QR beside the stamp. Emitted by the renderers only when a band actually
+ * draws one (a `verifyUrl` was given), so every other document's CSS is unchanged.
+ */
+export const TRUST_BAND_QR_CSS =
   `.it-trust-band__marks{display:inline-flex;align-items:center;gap:10px;}` +
   `.it-trust-band__qr{display:inline-flex;flex:0 0 auto;}` +
   `.it-trust-band__qr svg{display:block;}`;

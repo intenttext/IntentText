@@ -69,7 +69,7 @@ describe("inline escapes: \\ + one of @ # * _ ~ ^ ` [ { = is that character, as 
     const doc = parseIntentText("text: Mail info\\@example.qa and \\*literal\\*");
     for (const html of [renderHTML(doc), renderPrint(doc)]) {
       expect(html).toContain("Mail info@example.qa and *literal*");
-      expect(html).not.toContain("intent-inline-mention");
+      expect(html).not.toContain('<span class="intent-inline-mention">');
       expect(html).not.toMatch(/<strong|<b>/);
     }
   });
@@ -101,8 +101,8 @@ describe("mergeData literal: merged values re-parse as plain text", () => {
       expect(html).toContain("info@example.qa");
       expect(html).toContain("*note*");
       expect(html).toContain("#42 ref_no_2026");
-      expect(html).not.toContain("intent-inline-mention");
-      expect(html).not.toContain("intent-inline-tag");
+      expect(html).not.toContain('<span class="intent-inline-mention">');
+      expect(html).not.toContain('<span class="intent-inline-tag">');
       expect(html).not.toMatch(/<strong|<b>|<em[ >]/);
     });
 
@@ -110,7 +110,7 @@ describe("mergeData literal: merged values re-parse as plain text", () => {
       const merged = parseAndMerge(TEMPLATES[lang], DATA, { literal: true });
       const html = renderPrint(parseIntentText(documentToSource(merged)));
       expect(html).toContain("info@example.qa");
-      expect(html).not.toContain("intent-inline-mention");
+      expect(html).not.toContain('<span class="intent-inline-mention">');
     });
 
     it(`without literal the output is exactly 3.8.0's (${lang})`, () => {
@@ -119,7 +119,7 @@ describe("mergeData literal: merged values re-parse as plain text", () => {
         legacy.mergeData(legacy.parseIntentText(TEMPLATES[lang]), DATA),
       );
       expect(now).toBe(old);
-      expect(renderPrint(parseIntentText(now))).toContain("intent-inline-mention");
+      expect(renderPrint(parseIntentText(now))).toContain('<span class="intent-inline-mention">');
       expect(documentToSource(parseAndMerge(TEMPLATES[lang], DATA))).toBe(now);
     });
   }
