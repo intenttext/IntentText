@@ -64,8 +64,8 @@ verify under each other.
 - **`keep: previous`** on any block: it never sits alone at the top of a page. After a
   table the run is printed in the table's final unbreakable row group with its last two
   rows (Chrome ignores `break-before: avoid` after a long table).
-- **`ParseOptions.keepEmptyCells`** (and the `parseAndMerge` option): an empty table cell
-  keeps its column. `documentToSource` escapes `|` and `\` inside cells and writes an empty
+- **`ParseOptions.keepEmptyCells`** (and the `parseAndMerge` option; pdf `keepEmptyCells`
+  on `renderPDF` / `issuePDF`): an empty table cell keeps its column. `documentToSource` escapes `|` and `\` inside cells and writes an empty
   last cell as `… | |` — the only serialized rows that change (they did not round-trip).
 
 ### Notes

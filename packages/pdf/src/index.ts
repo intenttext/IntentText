@@ -87,6 +87,12 @@ export interface PdfRenderOptions {
    * `"end"` once, after the last block, so it never sits over a table or totals.
    */
   sealPosition?: RenderOptions["sealPosition"];
+  /**
+   * Read table rows keeping their empty cells, so a blank value (a statement line with
+   * no document number) stays in its column — core's `ParseOptions.keepEmptyCells`.
+   * Default off (3.8 reading).
+   */
+  keepEmptyCells?: boolean;
 }
 
 export interface IssueOptions extends PdfRenderOptions {
@@ -209,6 +215,7 @@ export function issueDocument(
   const merged = parseAndMerge(templateSource, data, {
     missing: options.missing ?? "blank",
     literal: options.literal,
+    keepEmptyCells: options.keepEmptyCells,
   });
   const mergedSource = documentToSource(merged);
   const seal = sealDocument(mergedSource, {
@@ -289,7 +296,7 @@ export async function renderPDF(
  * and a valid seal would print as SEAL BROKEN.
  */
 function printHtml(source: string, options: PdfRenderOptions): string {
-  return renderPrint(parseIntentText(source), {
+  return renderPrint(parseIntentText(source, { keepEmptyCells: options.keepEmptyCells }), {
     theme: options.theme ?? "corporate",
     embedFonts: embedFontsFor(options),
     source,

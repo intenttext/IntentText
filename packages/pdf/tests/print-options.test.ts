@@ -111,6 +111,28 @@ describe("IssueOptions.literal", () => {
   });
 });
 
+describe("keepEmptyCells", () => {
+  // A statement line without a document number: an empty cell must keep its column.
+  const LEDGER = (dir: string) => `${dir === "rtl" ? "meta: | dir: rtl\n" : ""}headers: ${dir === "rtl" ? "التاريخ | المستند | البيان | الرصيد" : "Date | Document | Description | Balance"}
+| {{l.date}} | {{l.doc}} | {{l.text}} | {{l.balance}} |`;
+  const cells = (html: string) =>
+    [...html.matchAll(/<tr class="intent-row">([\s\S]*?)<\/tr>/g)].map(([, row]) =>
+      [...row.matchAll(/<td[^>]*>([^<]*)<\/td>/g)].map((m) => m[1]),
+    );
+  for (const dir of ["rtl", "ltr"]) {
+    const data = { l: { date: "2026-09-15", doc: "", text: dir === "rtl" ? "رصيد افتتاحي" : "Opening balance", balance: "1,000.00" } };
+    it(`on: an empty value keeps its column, merged, sealed and printed (${dir})`, () => {
+      const out = issueDocument(LEDGER(dir), data, { signer: "Billing", keepEmptyCells: true });
+      expect(verifyDocument(out.source).intact).toBe(true);
+      expect(cells(out.html)[0]).toEqual(["2026-09-15", "", data.l.text, "1,000.00"]);
+    });
+    it(`off (default): as before, the empty cell is dropped (${dir})`, () => {
+      const out = issueDocument(LEDGER(dir), data, { signer: "Billing" });
+      expect(cells(out.html)[0]).toEqual(["2026-09-15", data.l.text, "1,000.00"]);
+    });
+  }
+});
+
 describe("through real Chrome", () => {
   const chrome = [
     process.env.PUPPETEER_EXECUTABLE_PATH,

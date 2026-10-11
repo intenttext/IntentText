@@ -40,6 +40,8 @@ await mailer.send({ attachments: [{ filename: `${number}.pdf`, content: pdf }] }
   `missing: "keep"` to override.
 - Merged values that contain `*`, `_`, `@`, `#` … print as typed with `literal: true`
   (they are escaped in the sealed source).
+- A blank value keeps its table column with `keepEmptyCells: true` (on `issuePDF` and
+  `renderPDF` — pass it when printing a stored source too).
 
 ### The seal on the paper (3.4)
 
