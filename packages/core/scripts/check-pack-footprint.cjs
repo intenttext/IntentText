@@ -32,10 +32,13 @@ const PKG_DIR = path.resolve(__dirname, "..");
 // can pass is a gate nobody reads, so these are set just above the REAL 3.8.0
 // size. The font payload is deliberate (PDF/A needs embedded glyphs); anything
 // beyond these numbers is not, and should be justified before the limit moves.
+// Nudged at 3.9.0 for the print-fidelity release: the dependency-free QR encoder
+// (qr.{js,d.ts}, the two new entries — 3.9.0 packs 120 files, 460,008 bytes, 1,121,961
+// unpacked) plus the seal placement, qr:, image layout and keep-with-previous code.
 const LIMITS = {
-  packedBytes: 460000,
-  unpackedBytes: 1120000,
-  entryCount: 118,
+  packedBytes: 470000,
+  unpackedBytes: 1140000,
+  entryCount: 120,
 };
 
 const raw = execSync("npm pack --json --dry-run", {

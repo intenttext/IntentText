@@ -6,121 +6,81 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
-### Added
+## [core 3.9.0 / pdf 3.4.0] — 2026-10-11 — print fidelity for business papers
 
-- `ParseOptions.keepEmptyCells` (and `MergeOptions.keepEmptyCells` for `parseAndMerge`):
-  keeps inner empty table cells so a blank value no longer shifts the columns after it;
-  the outer `|` of a `| … |` row and one trailing ` |` on a `row:`/`headers:` line make no
-  cell. Default off (the 3.8 behaviour). `documentToSource` now escapes `|` and `\` in
-  table cells and writes a row that ends on an empty cell as `… | |`; those are the only
-  rows whose serialized text changes (they did not round-trip before). Seals made by
-  3.8.0 and by this version verify under each other.
-- **Inline escapes** (core): `\` before one of `@ # * _ ~ ^ \` [ { =` prints that character
-  as plain text (`info\@example.qa`, `\*note\*`). New syntax; a document without such a
-  backslash reads exactly as before.
-- `mergeData(template, data, { literal: true })` / `parseAndMerge(…, { literal: true })`:
-  merged values are written into inline content with those escapes, so the sealed source
-  re-parses them as text. Default off.
-- `RenderOptions.contactLinks` (`renderHTML`, `renderPrint`): `false` prints a `contact:`
-  line's email, phone and url as text instead of links. Default on (unchanged markup).
-- Theme `print` keys `header-family` / `footer-family` (a CSS font stack, or `"body"` for
-  the theme's body font): the font of the running header/footer, which otherwise inherits
-  the browser's default serif. Absent — identical CSS.
-- Theme `print` keys `table-header-rule-width` / `table-header-rule-color`: the rule under
-  a table's header row, in the print and the web stylesheet (default `1px`, the theme's
-  border colour). Off unless set — absent, identical CSS.
-- `image:` layout (core): `width` / `height` (a number plus `mm|cm|in|pt|px|%`; any other
-  value, e.g. `full`, stays ignored), `align: start|center|end` and `float: start|end`
-  (logical, RTL-aware; the following blocks wrap on the other side, ending at the next
-  `divider:` / `section:` / `title:` / table) — a letterhead with the logo on one side.
-  `style: image | height: 18mm` sizes images document-wide. `width`/`height`/`align` are
-  hash-excluded presentation; `float` is hashed. An image without them renders as before.
-- `keep: previous` (core, `renderHTML` and `renderPrint`): a block (typically a `signline:`)
-  stays on the page of the block before it. After a table the run is rendered as the
-  table's final unbreakable row group with its last two rows (`tbody.it-keep-tail`) — a
-  plain `break-before: avoid` does not stop Chrome orphaning a signature after a long
-  table; after any other block, an `it-keep-group` wrapper. Markup changes only for a
-  document that uses it.
-- `seal:` (extension keyword, `x-doc`, since 3.9): `seal: | align: start|center|end` draws the
-  trust band in place of the first such line of a signed/sealed document, once, instead of
-  the page corner; later `seal:` lines and any `seal:` on an unsigned document draw nothing.
-  Works with `seal.verifyUrl` and `bare`. A document without a `seal:` line is unchanged.
-- `qr:` (extension keyword, `x-doc`, since 3.9): `qr: <payload> | label | size | align | ecc`
-  draws an inline-SVG QR code (UTF-8 payload, ecc L/M/Q/H, default M, size default 22mm).
-  An empty or too-long payload draws nothing and the parser reports `QR_PAYLOAD`. Its CSS
-  is emitted only when a `qr:` block exists. Every QR is proven by two independent decoders.
-- `@dotit/pdf` 3.4.0: `PdfRenderOptions.seal` / `.sealPosition`, `IssueOptions.literal`
-  (forwarded to `parseAndMerge`), and the exact `source` passed to `renderPrint`, so a valid
-  seal no longer prints "SEAL BROKEN" for a document with `| … |` table rows.
-- The column-alignment CSS (`it-col-*`) is emitted only for a document with an aligned
-  table (it was in every document's stylesheet in the unpublished 3.9 work).
+`@dotit/core` **3.9.0**, `@dotit/pdf` **3.4.0**. Ten print-engine requests measured on
+business papers (invoices, vouchers, statements, ledgers), each reproduced first on
+fictional Arabic (RTL) and English documents and proven through real Chrome as well as
+CI-safe tests.
 
-## [core 3.9.0] — 2026-10-01 — print fidelity for business papers
+**Existing documents do not change.** Every new behaviour is new syntax or an explicit
+option whose default reproduces 3.8.0's output byte for byte — proven by a legacy-output
+gate (`tests/legacy-output.test.ts`) that compares the model, `documentToSource`,
+`renderHTML`, `renderPrint` and the hash against `@dotit/core` 3.8.0 over every example,
+demo, fixture and conformance vector. The one exception is the clipped right border
+(below), fixed for everyone. No `SEAL_SPEC` change: documents sealed by 3.8.0 and by 3.9.0
+verify under each other.
 
-`@dotit/core` **3.9.0**. Five print defects measured on business papers
-(invoices, vouchers, statements), each reproduced first on fictional Arabic (RTL)
-and English invoices (`tests/print-fixtures/`), and proven through real Chrome
-(`tests/print-chrome.test.ts`, skips without Chrome/poppler) as well as CI-safe
-tests (`tests/print-fidelity.test.ts`). No format change, no `SEAL_SPEC` change:
-rendering and inline parsing never touch the source bytes, so no seal moves.
-`@dotit/pdf` is not republished — its `^3.8.0` range takes 3.9.0.
+### Fixed (changes existing print output)
 
-**What changes in an existing document:** a running header/footer now prints in
-the document's font; `contact:` email/phone print as text; an email, `#12`,
-`snake_case` and a `______` blank print as written; and every printed page is
-inset by 1px (0.26mm) so its right edge is no longer cut. Everything else renders
-pixel-identical (all 27 examples compared, screen and print).
+- **The right border of a full-width frame was cut off in print**, in Arabic and English
+  alike. Chrome snaps the printed page area to whole device pixels and can drop the last
+  pixel at its inline end; `renderPrint` keeps a 1px inline gutter on the document
+  (`padding:0 1px`), so every table and bordered box prints all four sides.
+- **@dotit/pdf printed a valid seal as "SEAL BROKEN"** when the document had `| … |` table
+  rows: `renderPDF` / `issuePDF` / `createPdfRenderer` re-serialized the source before the
+  trust band verified it. The exact source is now passed through.
 
-### Fixed
+### Added (opt-in; an existing document is unaffected)
 
-- **The right border of a full-width table was cut off in print** (core), in Arabic
-  and English alike — and with it the right edge of any bordered box. Chrome snaps
-  the printed page area to whole device pixels and can drop the last pixel at its
-  inline end; `renderPrint` now keeps a 1px inline gutter on the document, so every
-  frame prints with all four sides.
-- **Column alignment from the separator row** (core). `|---:|` under a table's
-  headers (or under a `headers:` line) was read and thrown away, so every cell
-  printed `start`-aligned and money never lined up. A separator with a colon now
-  aligns its column — `:---` left, `:---:` center, `---:` right, physical as in
-  GFM — header included; a right-aligned column uses tabular figures, so amounts
-  line up on the decimal point. The separator is kept on serialization (through
-  `mergeData` and `each:` expansion too), exported to Markdown, and exposed as
-  `table.align`. A plain `|---|` still carries nothing and is dropped as before.
-- **Contact data printed as formatting** (core). `info@example.qa` printed
-  `@example` as a bold mention, `Building #12` printed `#12` as a tag, and
-  `ref_no_2026` lost its underscores to an italic `no`. `@`/`#` now mark a word
-  only at its start and the word starts with a letter (as `GRAMMAR.abnf` already
-  says); `_` italicizes whole words only, as in CommonMark; and a run of
-  underscores — a fill-in blank like `Signature: ______` — prints as written
-  (it used to print one underscore).
-- **The running header/footer printed in the browser's default serif** (core):
-  page margin boxes inherit from the page context, not from the document, so
-  `footer:`/`header:` zones (and their page numbers) printed in Times/Geeza Pro
-  while the content printed in the theme's font. The print theme now gives the page
-  context the content's font (`@page{font-family:var(--it-font-body)}`); the
-  embedded PDF/A fonts still take precedence when `embedFonts` is on. Every document
-  with a running header or footer prints it in its own font from now on.
-- **A `style:` rule lost to the built-in table rules** (core): a coloured frame
-  always printed a 2px black rule under its header, because `body.it-print th`
-  outranked `style: table-header` and `style: table` (on screen, `.intent-table th`
-  did the same). `renderHTML` and `renderPrint` now scope `style:` rules under
-  `.intent-document`, as the editor scopes them under its canvas, so a house rule
-  means the same thing on canvas, screen and paper (SPEC §2: rules override the
-  theme; per-line props and inline spans still override rules). A column aligned by
-  its separator row still wins over a document-wide `style: table | align:`.
-- **`contact:` printed its email and phone as underlined links** (core): the
-  contact link rule outranked the print rule that renders links as text. In print
-  they are now text (still clickable in a PDF). The values are isolated with
-  `dir="auto"` on the value instead of the whole line, so in an Arabic document
-  the lines align with the document instead of drifting left.
+- **Column alignment** from a GFM separator row under the headers (or a `headers:` line):
+  `:---` left, `:---:` center, `---:` right — physical in both directions, so money lines
+  up on the decimal point (right-aligned columns use tabular figures); `---` keeps the
+  document's start side. Carried through `mergeData`/`each:`, re-emitted on serialization,
+  exported to Markdown, exposed as `table.align`. Changes only a document that already has
+  a separator with a colon.
+- **Inline escapes:** `\` before one of ``@ # * _ ~ ^ ` [ { =`` prints the character as text.
+  `mergeData` / `parseAndMerge` `{ literal: true }` (and pdf `IssueOptions.literal`) writes
+  merged values with those escapes, so an email or a note re-parses as plain text after
+  sealing. `RenderOptions.contactLinks: false` prints a `contact:` line's email, phone and
+  url as text, each value direction-isolated.
+- **`seal:`** (extension keyword, x-doc): on a signed/sealed document the trust band
+  renders in place of the first `seal:` line (`align: start|center|end`) instead of the
+  page corner. `RenderOptions.sealPosition: "end"` prints it once after the last block.
+  `RenderOptions.seal.verifyUrl` draws a verify QR beside the stamp (a function receives
+  the seal hash and date). pdf forwards `seal` and `sealPosition`.
+- **`qr:`** (extension keyword, x-doc): `qr: <payload> | label | size | align | ecc` — an
+  inline-SVG QR code. A dependency-free encoder (`encodeQr`, `qrSvg`, `qrCapacity`; ISO/IEC
+  18004 byte mode, versions 1–40, L/M/Q/H): every code the tests render, including full
+  printed pages, is decoded by two independent decoders (ZXing, jsQR) to the exact bytes.
+  An empty or oversized payload draws nothing and the parser reports `QR_PAYLOAD`.
+- **Theme `print` keys:** `table-header-rule-width` / `table-header-rule-color` — a thin
+  rule under a table's header row in the theme's colour (off unless set);
+  `header-family` / `footer-family` — the running header/footer font (`"body"` = the
+  theme's body font), which otherwise inherits the browser's default serif.
+- **`image:` layout:** `width` / `height` (CSS lengths only), `align: start|center|end`,
+  `float: start|end` (logical; the following blocks wrap beside the logo until the next
+  divider, section, title or table) and the `style: image` target.
+- **`keep: previous`** on any block: it never sits alone at the top of a page. After a
+  table the run is printed in the table's final unbreakable row group with its last two
+  rows (Chrome ignores `break-before: avoid` after a long table).
+- **`ParseOptions.keepEmptyCells`** (and the `parseAndMerge` option): an empty table cell
+  keeps its column. `documentToSource` escapes `|` and `\` inside cells and writes an empty
+  last cell as `… | |` — the only serialized rows that change (they did not round-trip).
+
+### Notes
+
+- Not reproduced: a mixed Arabic/English page counter in a margin box orders correctly for
+  the box's direction on Chrome 154; nothing changed there.
+- The CSS-escaping of `font:` values in `renderPrint` is unchanged from 3.8.0.
 
 ### Repository
 
-- **The core size gate is green again** (CI). It had failed on `main` since 3.7.0,
-  whose embedded PDF/A fonts (~387 KB) landed inside the 950 KB code limit — and a
-  red gate stops CI, so no later step ran. Code and the font data now have separate
-  budgets (950 KB / 400 KB; today 653 KB / 387 KB).
-- `puppeteer-core` is a dev dependency of core, for the real-Chrome print tests only.
+- The core size gate budgets the embedded print fonts apart from code (it had failed on
+  `main` since 3.7.0, stopping CI before every later step).
+- Dev dependencies of core for the tests only: `puppeteer-core` (real-Chrome print tests),
+  `jsqr` and `@zxing/library` (independent QR decoders), and `dotit-core-legacy`
+  (`npm:@dotit/core@3.8.0`, the legacy-output gate's reference).
 
 ## [core 3.8.0 / pdf 3.3.0] — 2026-08-01 — the DOCX writer emits a document
 
