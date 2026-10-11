@@ -268,6 +268,40 @@ describe.skipIf(!chrome || !hasPdftoppm)("core 3.9 through real Chrome: seal QR,
       expect(j && new TextDecoder().decode(Uint8Array.from(j))).toBe(url);
     }, 120_000);
 
+    // A `qr:` block and a `seal:` placement, printed by Chrome and read back from the
+    // rasterized WHOLE page by both decoders — the code that is printed is the code
+    // that was asked for, byte for byte (Arabic UTF-8 included).
+    for (const [name, verifyUrl] of [
+      ["the qr: block", undefined],
+      ["the seal: band QR", lang === "ar" ? "https://example.qa/تحقق/INV-0042" : "https://example.qa/d/INV-0042/verify"],
+    ] as const) {
+      it(`${name} printed in the PDF scans back to its payload, beside a seal: placement (${lang})`, async () => {
+        const payload =
+          lang === "ar" ? "https://example.qa/فاتورة/INV-0042 — شركة الأفق" : "https://example.qa/invoices/INV-0042";
+        const base = readFileSync(join(__dirname, "print-fixtures", `invoice-${lang}.it`), "utf8").trimEnd();
+        const label = lang === "ar" ? "امسح للتحقق" : "Scan to verify";
+        const withQr = verifyUrl ? base : `${base}
+qr: ${payload} | label: ${label} | size: 30mm | align: start | ecc: Q`;
+        const src = sealDocument(`${withQr}
+seal: | align: end
+`, { signer: "Billing", role: "Accounts" }).source;
+        const html = renderPrint(parseIntentText(src), { source: src, ...(verifyUrl ? { seal: { verifyUrl } } : {}) });
+        const file = await printPdf(html, `blocks-${verifyUrl ? "band" : "qr"}-${lang}`);
+        const text = spawnSync("pdftotext", ["-layout", file, "-"]).stdout.toString();
+        expect(text).toContain("sha256"); // the band is on the paper, once
+        expect(text.match(/sha256/g)).toHaveLength(1);
+        const out = join(dir, `blocks-${verifyUrl ? "band" : "qr"}-${lang}`);
+        spawnSync("pdftoppm", ["-r", "200", "-gray", "-f", "1", "-l", "1", file, out]);
+        const pgm = readdirSync(dir).find((f) => f.startsWith(`blocks-${verifyUrl ? "band" : "qr"}-${lang}`) && f.endsWith(".pgm"))!;
+        const { gray, width, height } = readPgm(readFileSync(join(dir, pgm)));
+        const want = verifyUrl ?? payload;
+        const z = decodeZXing(gray, width, height, false);
+        expect(z && new TextDecoder().decode(Uint8Array.from(z))).toBe(want);
+        const j = decodeJsQR(gray, width, height);
+        expect(j && new TextDecoder().decode(Uint8Array.from(j))).toBe(want);
+      }, 120_000);
+    }
+
     it(`sealPosition "end" prints the band once, on the last page (${lang})`, async () => {
       const src = longSealed(lang);
       const text = (html: string, name: string) =>

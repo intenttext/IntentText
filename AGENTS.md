@@ -85,7 +85,7 @@ task: Send invoice | owner: Finance | due: 2026-07-01
 history), `revision:` (a history entry), `---` (divider).
 
 **Extension keywords** (specialized; also valid): `byline:` `epigraph:` `figure:` `caption:`
-`footnote:` `dedication:` `def:` `contact:` `deadline:` `ref:` `signline:`, the agent-flow
+`footnote:` `dedication:` `def:` `contact:` `deadline:` `ref:` `signline:` `seal:` `qr:`, the agent-flow
 set `loop:` `parallel:` `retry:` `wait:` `handoff:` `call:` `checkpoint:` `error:`, and the
 `x-writer:` / `x-doc:` / `x-agent:` namespaces.
 

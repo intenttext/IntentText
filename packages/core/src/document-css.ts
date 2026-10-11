@@ -371,3 +371,15 @@ export const COLUMN_ALIGN_CSS = `.intent-table th.it-col-left,.intent-table td.i
 .intent-table th.it-col-center,.intent-table td.it-col-center{text-align:center;}
 .intent-table th.it-col-right,.intent-table td.it-col-right{text-align:right;font-variant-numeric:tabular-nums;}
 `;
+
+/**
+ * `qr:` blocks — emitted by the renderers only when the document has one, so every
+ * other document's CSS is unchanged. Alignment is logical (it mirrors in RTL).
+ */
+export const QR_BLOCK_CSS = `.it-qr{display:flex;flex-direction:column;margin:12px 0;break-inside:avoid;page-break-inside:avoid;}
+.it-qr svg{display:block;flex:0 0 auto;}
+.it-qr--start{align-items:flex-start;}
+.it-qr--center{align-items:center;}
+.it-qr--end{align-items:flex-end;}
+.it-qr-caption{font-size:0.78rem;color:#555;margin-top:3px;max-width:30em;}
+`;

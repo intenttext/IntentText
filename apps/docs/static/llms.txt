@@ -163,7 +163,7 @@ PRINT (layout) tier (7):
 Beyond the 40 reserved keywords, specialized blocks use an `x-<namespace>:` prefix (the bare
 form is also accepted); they parse, render, and query like any block.
   x-writer:  byline figure caption footnote epigraph dedication      (editorial)
-  x-doc:     def contact deadline ref signline attach                (definitions, parties, cross-refs, attachments)
+  x-doc:     def contact deadline ref signline attach seal qr        (definitions, parties, cross-refs, attachments, seal placement, QR)
   x-agent:   loop parallel retry wait handoff call checkpoint signal import export progress tool prompt memory model error
   x-form:    input output                                            (typed form fields — STABLE namespace)
   x-layout:  font divider                                            (font face; horizontal rule)
@@ -193,7 +193,7 @@ Query a custom keyword by NAME — `keyword=clause` — NOT `type=clause`: every
 is literally `custom` (the word lives in properties.keyword), so `type=custom` matches them ALL and
 `keyword=clause` matches one kind. NO ALIAS COLLISIONS: there are no synonym aliases, so a word is
 custom UNLESS it is one of the 40 canonical (§2), an Arabic localized name (§12), or a namespaced
-extension keyword (§2b: def, contact, deadline, ref, signline, attach, figure, byline, input, …).
+extension keyword (§2b: def, contact, deadline, ref, signline, attach, seal, qr, figure, byline, input, …).
 That means party:, milestone:, rule:, status:, note:, item:, due:, kpi: are all ordinary custom
 blocks — never silently reinterpreted. Everything you invent is yours: unknown keywords NEVER
 error, round-trip byte-for-byte, and seal/verify like any block — mixing reserved + custom in ONE

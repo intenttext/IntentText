@@ -96,6 +96,12 @@ export interface IssueOptions extends PdfRenderOptions {
   role?: string;
   /** How to render unresolved {{fields}}. Default "blank" (finished documents). */
   missing?: "keep" | "blank";
+  /**
+   * Write merged values into the document as plain text: a value carrying `*`, `_`,
+   * `@`, `#` … is escaped so the sealed source re-parses it literally instead of as
+   * inline formatting (`mergeData`'s `literal`). Default off.
+   */
+  literal?: boolean;
 }
 
 export interface IssuedDocument {
@@ -202,6 +208,7 @@ export function issueDocument(
 ): IssuedDocument {
   const merged = parseAndMerge(templateSource, data, {
     missing: options.missing ?? "blank",
+    literal: options.literal,
   });
   const mergedSource = documentToSource(merged);
   const seal = sealDocument(mergedSource, {

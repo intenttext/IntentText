@@ -170,6 +170,8 @@ export type BlockType =
   | "contact"
   | "deadline"
   | "attach"
+  | "seal"
+  | "qr"
   // v2.13 new keywords
   | "assert"
   | "secret"
@@ -272,7 +274,8 @@ export interface Diagnostic {
     | "PROMPT_MISSING_CONTENT"
     | "ASSERT_MISSING_CONDITION"
     | "SECRET_MISSING_NAME"
-    | "DEPRECATED_PROPERTY";
+    | "DEPRECATED_PROPERTY"
+    | "QR_PAYLOAD";
 }
 
 /** Execution status values for agentic workflow blocks. */

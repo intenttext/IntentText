@@ -588,6 +588,16 @@ export const TRUST_BAND_END_CSS =
   `break-inside:avoid;page-break-inside:avoid;}`;
 
 /**
+ * A `seal:` line — the band printed in place of that line, at its `align:` side.
+ * Emitted only when a `seal:` line took the band.
+ */
+export const TRUST_BAND_SLOT_CSS =
+  `.it-seal-slot{display:flex;margin:12pt 0;break-inside:avoid;page-break-inside:avoid;}` +
+  `.it-seal-slot--start{justify-content:flex-start;}` +
+  `.it-seal-slot--center{justify-content:center;}` +
+  `.it-seal-slot--end{justify-content:flex-end;}`;
+
+/**
  * Positioning for the trust band. `mode` is "fixed" (paginated print — pinned in the
  * page's bottom-right so it repeats on every page) or "absolute" (a single scrolling
  * render / one per on-screen sheet). `inset` is the corner offset (CSS length).

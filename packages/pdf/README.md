@@ -38,6 +38,25 @@ await mailer.send({ attachments: [{ filename: `${number}.pdf`, content: pdf }] }
 - **`pdf`** — the bytes you email/archive.
 - Unresolved `{{fields}}` render **blank** (it's a finished document), pass
   `missing: "keep"` to override.
+- Merged values that contain `*`, `_`, `@`, `#` … print as typed with `literal: true`
+  (they are escaped in the sealed source).
+
+### The seal on the paper (3.4)
+
+A signed document prints its trust band in the corner of every page. Options on
+`renderPDF` / `issuePDF`:
+
+```js
+await issuePDF(template, data, {
+  signer: "Billing",
+  seal: { verifyUrl: "https://example.qa/verify" }, // a QR beside the seal; `false` = no band
+  sealPosition: "end",                               // once, after the last block (default "page")
+});
+```
+
+A `seal:` line in the template puts the band exactly there instead, and `qr:` draws a QR
+anywhere (see the core keyword reference). The band is checked against the exact sealed
+bytes, so a valid seal over a document with `| … |` tables never prints "SEAL BROKEN".
 
 ## Without Chrome in this process (Gotenberg & friends)
 

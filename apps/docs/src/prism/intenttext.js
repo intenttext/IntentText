@@ -45,7 +45,7 @@
 
     // Layout — gray
     "layout-keyword": {
-      pattern: /^(page|font|header|footer|watermark|signline|divider)(?=:)/m,
+      pattern: /^(page|font|header|footer|watermark|signline|seal|qr|divider)(?=:)/m,
       alias: "operator",
     },
 

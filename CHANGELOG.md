@@ -41,6 +41,17 @@ The format is based on Keep a Changelog.
   plain `break-before: avoid` does not stop Chrome orphaning a signature after a long
   table; after any other block, an `it-keep-group` wrapper. Markup changes only for a
   document that uses it.
+- `seal:` (extension keyword, `x-doc`, since 3.9): `seal: | align: start|center|end` draws the
+  trust band in place of the first such line of a signed/sealed document, once, instead of
+  the page corner; later `seal:` lines and any `seal:` on an unsigned document draw nothing.
+  Works with `seal.verifyUrl` and `bare`. A document without a `seal:` line is unchanged.
+- `qr:` (extension keyword, `x-doc`, since 3.9): `qr: <payload> | label | size | align | ecc`
+  draws an inline-SVG QR code (UTF-8 payload, ecc L/M/Q/H, default M, size default 22mm).
+  An empty or too-long payload draws nothing and the parser reports `QR_PAYLOAD`. Its CSS
+  is emitted only when a `qr:` block exists. Every QR is proven by two independent decoders.
+- `@dotit/pdf` 3.4.0: `PdfRenderOptions.seal` / `.sealPosition`, `IssueOptions.literal`
+  (forwarded to `parseAndMerge`), and the exact `source` passed to `renderPrint`, so a valid
+  seal no longer prints "SEAL BROKEN" for a document with `| … |` table rows.
 - The column-alignment CSS (`it-col-*`) is emitted only for a document with an aligned
   table (it was in every document's stylesheet in the unpublished 3.9 work).
 

@@ -193,6 +193,7 @@ export {
   renderTrustBand,
   TRUST_BAND_CSS,
   TRUST_BAND_END_CSS,
+  TRUST_BAND_SLOT_CSS,
   TRUST_BAND_QR_CSS,
   trustBandPositionCss,
   detectTrustState,

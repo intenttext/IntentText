@@ -298,6 +298,49 @@ style: metric | color: #333
 
 ---
 
+## `seal:` — place the trust band
+
+`x-doc: seal` (since 3.9). On a signed or sealed document the trust band normally sits in
+the bottom corner of every printed page. A `seal:` line draws it **in the flow, in place
+of that line** — once — and the page-fixed band is not drawn.
+
+```intenttext
+section: Signatures
+signline: | label: For the company | width: 45%
+seal: | align: start
+```
+
+| Property | Values                  | Default | Meaning                                                |
+| -------- | ----------------------- | ------- | ------------------------------------------------------ |
+| `align:` | `start`, `center`, `end` | `end`   | Side of the page (logical — `start` is right in Arabic) |
+
+- Only the **first** `seal:` line draws the band; later ones draw nothing.
+- On an unsigned document a `seal:` line draws nothing (and there is no band anywhere).
+- It works with the verify QR (`seal: { verifyUrl }` in `renderPrint`/`renderHTML`) and with
+  the bare view, and it wins over `sealPosition: "end"`.
+- The line is part of the sealed content; its `align:` is presentation and never breaks a seal.
+
+## `qr:` — a QR code
+
+`x-doc: qr` (since 3.9). The content is the payload, encoded as UTF-8 exactly as written.
+
+```intenttext
+qr: https://example.qa/d/INV-0042 | label: Scan to verify | size: 24mm | align: end | ecc: M
+qr: https://example.qa/تحقق/INV-0042 | label: امسح للتحقق
+```
+
+| Property | Values                    | Default | Meaning                                           |
+| -------- | ------------------------- | ------- | ------------------------------------------------- |
+| `label:` | text                      | none    | Caption under the code                            |
+| `size:`  | CSS length (`mm cm in pt px`) | `22mm` | Side of the square; anything else is `22mm`     |
+| `align:` | `start`, `center`, `end`  | `end`   | Side of the page (logical)                        |
+| `ecc:`   | `L`, `M`, `Q`, `H`        | `M`     | Error-correction level; anything else is `M`      |
+
+The code is an inline SVG — no image request. A payload too long for any code (2953 bytes
+at `L`, 1273 at `H`) or an empty one draws nothing and the parser reports `QR_PAYLOAD`.
+
+---
+
 ## Extension keywords
 
 Typography and decorative layout keywords are available in the `x-layout:` and `x-doc:` namespaces. These are rendered by the renderer but do not affect the core document model.
@@ -307,5 +350,7 @@ Typography and decorative layout keywords are available in the `x-layout:` and `
 | `x-layout: font`    | Typography settings — family, size, line-height                 |
 | `x-layout: divider` | Visual horizontal rule, shown in both web and print             |
 | `x-doc: signline`   | Physical signature line for printed/PDF contracts               |
+| `x-doc: seal`       | Places the trust band in the flow (since 3.9)                   |
+| `x-doc: qr`         | A QR code for a payload (since 3.9)                             |
 
 See the extensions overview in [Keywords →](./index.md#extension-keywords) for full syntax.

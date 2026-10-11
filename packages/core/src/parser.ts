@@ -1,3 +1,4 @@
+import { qrCapacity } from "./qr";
 import {
   IntentBlock,
   BlockType,
@@ -1031,6 +1032,25 @@ function parseLine(
         line: ctx.lineNumber,
         column: 1,
       });
+    }
+
+    // qr: a payload no QR code can hold (or none at all) draws nothing — say so.
+    if (resolvedType === "qr") {
+      const payload = content.trim();
+      const eccRaw = String(properties.ecc ?? "").trim().toUpperCase();
+      const ecc = eccRaw === "L" || eccRaw === "Q" || eccRaw === "H" ? eccRaw : "M";
+      const bytes = new TextEncoder().encode(payload).length;
+      if (!payload || bytes > qrCapacity(40, ecc)) {
+        ctx.diagnostics.push({
+          severity: "warning",
+          code: "QR_PAYLOAD",
+          message: !payload
+            ? "'qr:' has no payload, so no QR code is drawn."
+            : `'qr:' payload is ${bytes} bytes; a level-${ecc} QR code holds at most ${qrCapacity(40, ecc)}, so none is drawn.`,
+          line: ctx.lineNumber,
+          column: 1,
+        });
+      }
     }
 
     // v2.1: coerce numeric properties for any block that uses them

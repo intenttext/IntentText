@@ -78,6 +78,9 @@ Each keyword documents its own properties on its reference page. Here is a cross
 | `now:`     | `revision:`, `amendment:` | New value                     |
 | `label:`   | `signline:`               | Text below the signature line |
 | `width:`   | `signline:`               | Width of the signature line   |
+| `align:`   | `seal:`, `qr:`            | `start`, `center` or `end` (default `end`) |
+| `size:`    | `qr:`                     | Side of the QR code (CSS length, default `22mm`) |
+| `ecc:`     | `qr:`                     | Error correction `L`, `M`, `Q`, `H` (default `M`) |
 
 ### Data properties
 

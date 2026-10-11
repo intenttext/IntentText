@@ -642,6 +642,22 @@ const ALL_KEYWORDS: Keyword[] = [
     link: "/docs/reference/keywords/layout#signline",
   },
   {
+    name: "seal",
+    category: "Layout",
+    since: "v3.9",
+    description: "Place the trust band here instead of the page corner",
+    properties: "align",
+    link: "/docs/reference/keywords/layout#seal-place-the-trust-band",
+  },
+  {
+    name: "qr",
+    category: "Layout",
+    since: "v3.9",
+    description: "A QR code for a payload (UTF-8)",
+    properties: "label, size, align, ecc",
+    link: "/docs/reference/keywords/layout#qr-a-qr-code",
+  },
+  {
     name: "divider",
     category: "Layout",
     since: "v2.12",

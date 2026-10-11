@@ -360,6 +360,41 @@ presence of a `certify:` line is a **claim, not a verdict**: `detectTrustState` 
 paint the certified/root-certified tier ONLY when the caller passes a cryptographically
 verified result (`@dotit/sign`); otherwise the document shows its locally-verifiable tier.
 
+### 4.2 Seal placement (`seal:`, since 3.9)
+
+By default the trust band is pinned to the bottom corner of every printed page (and to the
+bottom of the document on screen). Two ways to put it where a paper wants it:
+
+- `seal:` — an extension keyword (`x-doc: seal`). `seal: | align: start|center|end`
+  (default `end`; logical, so `start` is the right-hand side of an Arabic page). On a
+  document that has `sign:`/`freeze:`, the band is drawn **in place of the first `seal:`
+  line**, once, and the page-fixed band is not drawn. Further `seal:` lines draw nothing; a
+  `seal:` on an unsigned document draws nothing (and no band appears anywhere). It combines
+  with a verify QR (`RenderOptions.seal.verifyUrl`) and with the bare view.
+- `RenderOptions.sealPosition: "end"` — without any `seal:` line, draw the band once after
+  the last block instead of on every page. A `seal:` line wins over it.
+
+A `seal:` line is ordinary content: it is part of the hashed body (adding, removing or
+moving it after sealing breaks the seal), while its `align` is a presentation property and
+is excluded from the hash like every other layout property. A document without a `seal:`
+line renders exactly as before.
+
+### 4.3 QR codes (`qr:`, since 3.9)
+
+`qr: <payload> | label: <caption> | size: <css length> | align: start|center|end | ecc: L|M|Q|H`
+
+- The content is the payload, encoded as UTF-8 exactly as written (inline marks such as `_`
+  or `*` inside a URL stay literal; write a literal `|` as `\|`).
+- `size` is a CSS length in `mm cm in pt px` (default `22mm`; anything else is `22mm`);
+  `align` is logical (default `end`); `ecc` is the error-correction level (default `M`;
+  anything else is `M`).
+- It renders a `<figure class="it-qr">` holding an inline SVG (no image request, nothing
+  remote) and, with `label`, a caption. The smallest code version that holds the payload is
+  used; a payload larger than a version-40 code holds at that level (2953 bytes at `L`,
+  1273 at `H`), or an empty one, draws nothing and the parser reports `QR_PAYLOAD`.
+- `qr:` is content: the payload, `label` and `ecc` are hashed; `size` and `align` are
+  presentation properties and are excluded from the hash.
+
 ## 5. Stability guarantees
 
 - **Explicit syntax is stable.** A document that parsed under v3.x parses the same

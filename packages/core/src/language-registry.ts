@@ -476,6 +476,8 @@ export const EXTENSION_REGISTRY: ExtensionEntry[] = [
   { keyword: "ref", namespace: "doc", xForm: "x-doc: ref", since: "2.11", description: "Cross-document reference with typed relationship" },
   { keyword: "signline", namespace: "doc", xForm: "x-doc: signline", since: "2.11", description: "Physical signature line for print" },
   { keyword: "attach", namespace: "doc", xForm: "x-doc: attach", since: "1.16", description: "Embedded or linked file attachment — key/name/mime/size/sha256/data, or href for external (read by attachments.ts; part of the sealed body)" },
+  { keyword: "seal", namespace: "doc", xForm: "x-doc: seal", since: "3.9", description: "Place the trust band here instead of the page corner — once, at the first seal: line of a signed or sealed document; align: start|center|end" },
+  { keyword: "qr", namespace: "doc", xForm: "x-doc: qr", since: "3.9", description: "A QR code for the payload (UTF-8) — label, size, align, ecc: L|M|Q|H" },
 
   // ── Agent extensions (x-agent) ──────────────────────────────────────────
   { keyword: "loop", namespace: "agent", xForm: "x-agent: loop", since: "2.0", description: "Iterate over a collection" },

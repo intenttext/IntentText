@@ -106,7 +106,7 @@ section: 2b. Extensions — namespaced keywords (x-ns:)
 Beyond the 41, specialized blocks use an `x-<namespace>:` prefix (the bare form is also accepted). They parse, render, and query like any block.
 
 - x-writer: byline figure caption footnote epigraph dedication (editorial)
-- x-doc: def contact deadline ref signline attach (definitions, parties, cross-refs, attachments)
+- x-doc: def contact deadline ref signline attach seal qr (definitions, parties, cross-refs, attachments, seal placement, QR)
 - x-agent: loop parallel retry wait handoff call checkpoint signal import export progress tool prompt memory model error
 - x-form: input output (typed form fields — STABLE namespace)
 - x-layout: font divider

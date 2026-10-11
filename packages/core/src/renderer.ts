@@ -1,18 +1,20 @@
 import { IntentBlock, IntentDocument, InlineNode, PrintLayout, TableAlign } from "./types";
 import { effectiveProperties } from "./defaults";
 import { colorAlpha, colorsMatch, sizeIsInvisible } from "./visibility";
-import { DOCUMENT_CSS, COLUMN_ALIGN_CSS } from "./document-css";import { IntentTheme, getBuiltinTheme, generateThemeCSS } from "./theme";
+import { DOCUMENT_CSS, COLUMN_ALIGN_CSS, QR_BLOCK_CSS } from "./document-css";import { IntentTheme, getBuiltinTheme, generateThemeCSS } from "./theme";
 import {
   sealForDocument,
   renderTrustBand,
   TRUST_BAND_CSS,
   TRUST_BAND_END_CSS,
+  TRUST_BAND_SLOT_CSS,
   TRUST_BAND_QR_CSS,
   trustBandPositionCss,
   type TrustBandOptions,
   type TrustTier,
 } from "./seal";
 import { documentToSource } from "./source";
+import { qrSvg, qrCapacity } from "./qr";
 import { renderableParts } from "./parser";
 import { deriveWorkflowState, WorkflowState } from "./workflow-state";
 import { printFontFaceCSS } from "./print-fonts";
@@ -98,6 +100,44 @@ let ALLOW_REMOTE_RESOURCES = false;
 
 /** `RenderOptions.contactLinks` for the render in progress (default: links). */
 let CONTACT_LINKS = true;
+
+/**
+ * The trust band for the render in progress, when the document places it with a
+ * `seal:` line. The first `seal:` block takes the band (`used`); later ones, and a
+ * document with no band (unsigned), render nothing.
+ */
+let SEAL_SLOT: { html: string; used: boolean } | null = null;
+
+/** True when a block of `type` exists anywhere in the tree (children included). */
+function hasBlockType(blocks: IntentBlock[], type: string): boolean {
+  return blocks.some(
+    (b) => b.type === type || (!!b.children && hasBlockType(b.children, type)),
+  );
+}
+
+/** `start | center | end` (logical, so it mirrors in RTL); anything else is `end`. */
+function logicalAlign(value: unknown): "start" | "center" | "end" {
+  const a = String(value ?? "").trim().toLowerCase();
+  return a === "start" || a === "center" ? a : "end";
+}
+
+/**
+ * `qr:` — the payload (UTF-8, exactly as written) as an inline-SVG QR code with an
+ * optional caption. An empty payload or one no code can hold draws nothing (and the
+ * parser reports it) — never an exception.
+ */
+function renderQrBlock(block: IntentBlock, props: Record<string, unknown>): string {
+  const payload = (block.originalContent ?? block.content).trim();
+  if (!payload) return "";
+  const eccRaw = String(props.ecc ?? "").trim().toUpperCase();
+  const ecc = eccRaw === "L" || eccRaw === "Q" || eccRaw === "H" ? eccRaw : "M";
+  if (new TextEncoder().encode(payload).length > qrCapacity(40, ecc)) return "";
+  const size = String(props.size ?? "").trim();
+  const label = props.label ? String(props.label) : "";
+  return `<figure class="it-qr it-qr--${logicalAlign(props.align)}">${qrSvg(payload, { ecc, size })}${
+    label ? `<figcaption class="it-qr-caption" dir="auto">${escapeHtml(label)}</figcaption>` : ""
+  }</figure>`;
+}
 
 // Bare view = a plain typed document: strip every box/border/background/shadow so
 // only the content + emphasis remain — no callout boxes, contact cards, coloured
@@ -1810,6 +1850,16 @@ function renderBlock(block: IntentBlock): string {
       </div>`;
     }
 
+    case "seal": {
+      // The trust band, in place of the first `seal:` line (see SEAL_SLOT).
+      if (!SEAL_SLOT || SEAL_SLOT.used || !SEAL_SLOT.html) return "";
+      SEAL_SLOT.used = true;
+      return `<div class="it-seal-slot it-seal-slot--${logicalAlign(props.align)}">${SEAL_SLOT.html}</div>`;
+    }
+
+    case "qr":
+      return renderQrBlock(block, props);
+
     case "contact": {
       const cRole = props.role ? escapeHtml(String(props.role)) : "";
       const cEmail = props.email ? String(props.email) : "";
@@ -2143,7 +2193,25 @@ export function renderHTML(
   const prevContactLinks = CONTACT_LINKS;
   CONTACT_LINKS = options?.contactLinks !== false;
   try {
+  // Unified trust band — the single certification surface (sign:/freeze: never render
+  // inline). Shown for a trusted doc, anchored bottom-right of the document; `seal:
+  // false` opts out. Skipped in the bare projection (pure content), where the editor's
+  // page view supplies its own per-sheet band.
+  const isTrusted = document.blocks.some(
+    (b) => b.type === "sign" || b.type === "freeze",
+  );
+  const wantBand =
+    !BARE_RENDER && (options?.seal === false ? false : !!options?.seal || isTrusted);
+  let bandHtml = "";
+  let bandCSS = "";
+  if (wantBand) {
+    bandHtml = renderTrustBand(options?.source ?? documentToSource(document), bandOptions(options));
+  }
+  // A `seal:` line places the band in the flow instead of the page corner.
+  SEAL_SLOT =
+    bandHtml && hasBlockType(document.blocks, "seal") ? { html: bandHtml, used: false } : null;
   const bodyHtml = renderBody(document.blocks, buildRouteCtx(document));
+  const slotted = !!SEAL_SLOT?.used;
 
   // Collect and render footnotes at bottom
   const footnotes = collectFootnotes(document.blocks);
@@ -2172,27 +2240,16 @@ export function renderHTML(
   // Bare view drops them entirely (house styling is decoration).
   const docStyleCSS = BARE_RENDER ? "" : documentStyleCSS(document);
 
-  // Unified trust band — the single certification surface (sign:/freeze: never render
-  // inline). Shown for a trusted doc, anchored bottom-right of the document; `seal:
-  // false` opts out. Skipped in the bare projection (pure content), where the editor's
-  // page view supplies its own per-sheet band.
-  const isTrusted = document.blocks.some(
-    (b) => b.type === "sign" || b.type === "freeze",
-  );
-  const wantBand =
-    !BARE_RENDER && (options?.seal === false ? false : !!options?.seal || isTrusted);
-  let bandHtml = "";
-  let bandCSS = "";
-  if (wantBand) {
-    bandHtml = renderTrustBand(options?.source ?? documentToSource(document), bandOptions(options));
-    if (bandHtml) {
-      bandCSS =
-        `.intent-document{position:relative;}` +
+  if (bandHtml) {
+    bandCSS = slotted
+      ? TRUST_BAND_CSS + qrBandCSS(bandHtml) + TRUST_BAND_SLOT_CSS
+      : `.intent-document{position:relative;}` +
         TRUST_BAND_CSS +
         qrBandCSS(bandHtml) +
         trustBandPositionCss("absolute");
-    }
   }
+  if (slotted) bandHtml = "";
+  if (hasBlockType(document.blocks, "qr")) bandCSS += QR_BLOCK_CSS;
 
   // Wrap in a container
   const direction =
@@ -2208,6 +2265,7 @@ ${bandCSS}
 ${html}${bandHtml}
 </div>`;
   } finally {
+    SEAL_SLOT = null;
     BARE_RENDER = prevBare;
     ALLOW_REMOTE_RESOURCES = prevAllowRemote;
     CONTACT_LINKS = prevContactLinks;
@@ -2278,7 +2336,21 @@ export function renderPrint(
   const prevContactLinks = CONTACT_LINKS;
   CONTACT_LINKS = options?.contactLinks !== false;
   try {
+  // The trust band is drawn before the blocks so a `seal:` line can take it.
+  const isTrusted = doc.blocks.some(
+    (b) => b.type === "sign" || b.type === "freeze",
+  );
+  const wantSeal = options?.seal === false ? false : !!options?.seal || isTrusted;
+  let sealHtml = "";
+  let sealCSS = "";
+  const sealAtEnd = options?.sealPosition === "end";
+  if (wantSeal) {
+    sealHtml = renderTrustBand(options?.source ?? documentToSource(doc), bandOptions(options));
+  }
+  SEAL_SLOT =
+    sealHtml && hasBlockType(doc.blocks, "seal") ? { html: sealHtml, used: false } : null;
   const bodyHtml = renderBody(doc.blocks, buildRouteCtx(doc));
+  const slotted = !!SEAL_SLOT?.used;
 
   // Collect and render footnotes at bottom
   const footnotes = collectFootnotes(doc.blocks);
@@ -2393,20 +2465,16 @@ export function renderPrint(
   // Trust seal — the hash-derived ambient seal stamp, top-right of the first page.
   // AUTO-shown for signed/sealed/certified documents (a printed contract should
   // carry its seal); `seal: false` opts out, `seal: {…}` forces options.
-  const isTrusted = doc.blocks.some(
-    (b) => b.type === "sign" || b.type === "freeze",
-  );
-  const wantSeal = options?.seal === false ? false : !!options?.seal || isTrusted;
-  let sealHtml = "";
-  let sealCSS = "";
-  const sealAtEnd = options?.sealPosition === "end";
-  if (wantSeal) {
+  if (sealHtml) {
     // The unified trust band. By default pinned in the bottom-RIGHT corner so it
     // repeats on EVERY printed page and never takes content space (position:fixed);
-    // `sealPosition: "end"` prints it once after the last block instead. Shared
-    // visual style with every other surface — single source of truth in core.
-    sealHtml = renderTrustBand(options?.source ?? documentToSource(doc), bandOptions(options));
-    if (sealHtml) {
+    // `sealPosition: "end"` prints it once after the last block instead, and a
+    // `seal:` line prints it there (and only there). Shared visual style with every
+    // other surface — single source of truth in core.
+    if (slotted) {
+      sealCSS = TRUST_BAND_CSS + qrBandCSS(sealHtml) + TRUST_BAND_SLOT_CSS;
+      sealHtml = "";
+    } else {
       sealCSS =
         TRUST_BAND_CSS +
         qrBandCSS(sealHtml) +
@@ -2414,6 +2482,7 @@ export function renderPrint(
       if (sealAtEnd) sealHtml = `<div class="it-trust-band-end">${sealHtml}</div>`;
     }
   }
+  if (hasBlockType(doc.blocks, "qr")) sealCSS += QR_BLOCK_CSS;
 
   // PDF/A: embed open fonts and force every print surface onto them, so a
   // Chrome-rendered PDF has NO glyph referencing a non-embedded system font
@@ -2493,8 +2562,9 @@ body.it-print .it-deadline{border-inline-start:3pt solid #000;padding-inline-sta
 body.it-print .it-deadline-date{font-weight:bold;text-decoration:underline;}
 ${BARE_RENDER ? BARE_RESET_CSS : ""}
 ${fontFaceCSS}
-</style></head><body class="${bodyClass}"><div class="intent-document${BARE_RENDER ? " intent-bare" : ""}">${watermarkHtml}${sealAtEnd ? "" : sealHtml}${html}${sealAtEnd ? sealHtml : ""}</div></body></html>`;
+</style></head><body class="${bodyClass}"><div class="intent-document${BARE_RENDER ? " intent-bare" : ""}">${watermarkHtml}${sealAtEnd || slotted ? "" : sealHtml}${html}${sealAtEnd ? sealHtml : ""}</div></body></html>`;
   } finally {
+    SEAL_SLOT = null;
     BARE_RENDER = prevBare;
     ALLOW_REMOTE_RESOURCES = prevAllowRemote;
     CONTACT_LINKS = prevContactLinks;
