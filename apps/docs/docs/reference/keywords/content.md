@@ -254,12 +254,31 @@ image: alt text | src: url | caption: text
 | --------- | ------ | -------- | ----------------- |
 | `src`     | string | yes      | Image URL or path |
 | `caption` | string | no       | Caption rendered below the image |
+| `width`   | length | no       | Image width: a number plus `mm`, `cm`, `in`, `pt`, `px` or `%` (`32mm`, `50%`). Anything else (`full`, `half`, `3em`) is ignored |
+| `height`  | length | no       | Image height, same units as `width` |
+| `align`   | `start` \| `center` \| `end` | no | Places the image on its own line, on that side of the writing direction |
+| `float`   | `start` \| `end` | no | Letterhead layout: the image sits on that side and the blocks after it wrap on the other. The wrap ends at the next `divider:`, `section:`, `title:` or table |
+
+`start`/`end` follow the writing direction, so the same letterhead mirrors in an Arabic
+(RTL) document: `float: end` is the right in English and the left in Arabic. `width`,
+`height` and `align` are presentation (not part of the sealed hash); `float` is hashed.
+Without these properties the markup is unchanged. Document-wide size:
+`style: image | height: 18mm` (see [`style:`](layout#style)).
 
 ### Examples
 
 ```intenttext
 image: Company logo | src: ./images/logo.png | caption: Our logo
 image: Architecture diagram | src: ./diagrams/arch.png
+```
+
+A letterhead — logo on one side, the company lines on the other, a rule below:
+
+```intenttext
+image: Horizon logo | src: ./logo.png | width: 32mm | height: 18mm | float: end
+text: Horizon Trading Co.
+text: 12 Example Street, Doha
+divider:
 ```
 
 ### Notes

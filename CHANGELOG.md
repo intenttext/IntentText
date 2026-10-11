@@ -29,6 +29,18 @@ The format is based on Keep a Changelog.
 - Theme `print` keys `table-header-rule-width` / `table-header-rule-color`: the rule under
   a table's header row, in the print and the web stylesheet (default `1px`, the theme's
   border colour). Off unless set — absent, identical CSS.
+- `image:` layout (core): `width` / `height` (a number plus `mm|cm|in|pt|px|%`; any other
+  value, e.g. `full`, stays ignored), `align: start|center|end` and `float: start|end`
+  (logical, RTL-aware; the following blocks wrap on the other side, ending at the next
+  `divider:` / `section:` / `title:` / table) — a letterhead with the logo on one side.
+  `style: image | height: 18mm` sizes images document-wide. `width`/`height`/`align` are
+  hash-excluded presentation; `float` is hashed. An image without them renders as before.
+- `keep: previous` (core, `renderHTML` and `renderPrint`): a block (typically a `signline:`)
+  stays on the page of the block before it. After a table the run is rendered as the
+  table's final unbreakable row group with its last two rows (`tbody.it-keep-tail`) — a
+  plain `break-before: avoid` does not stop Chrome orphaning a signature after a long
+  table; after any other block, an `it-keep-group` wrapper. Markup changes only for a
+  document that uses it.
 - The column-alignment CSS (`it-col-*`) is emitted only for a document with an aligned
   table (it was in every document's stylesheet in the unpublished 3.9 work).
 

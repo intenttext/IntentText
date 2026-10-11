@@ -177,13 +177,37 @@ reproduced identically by any renderer. It is distinct from `[label](url)` (link
 `style: <target> | key: value | …` declares house styling for a **block type** once,
 document-wide: `style: section | color: #0a7 | weight: 600`. Targets are a fixed set
 (`title summary section sub text quote callout info table table-header metric contact
-divider`; unknown targets ignored); values are the same constrained style-key vocabulary
+divider image`; unknown targets ignored; for `image` the vocabulary also takes a `width`/`height`
+CSS length); values are the same constrained style-key vocabulary
 (never arbitrary CSS). Rules render as CSS scoped to the target's element classes —
 emitted **after** the theme stylesheet (rules override theme; per-line props and inline
 spans override rules). `style:` blocks are document-level metadata: invisible in the
 rendered body, byte-preserved on round-trip, values sanitized for the stylesheet context.
 `collectDocumentStyles()` / `documentStyleCSS()` are the single implementation; the
 editor applies the same rules to its canvas via a selector map.
+
+### Image layout (`image:`)
+
+`image:` takes presentation properties, all optional, all ignored when absent or invalid
+(output is then identical to a document without them):
+
+- `width`, `height` — a CSS length only: a number plus `mm`, `cm`, `in`, `pt`, `px` or `%`.
+  Any other value (`full`, `half`, `3em`, …) is ignored.
+- `align: start|center|end` — the image on its own line, on that side of the writing direction.
+- `float: start|end` — the image floats to that side (logical, RTL-aware) and the blocks
+  after it wrap on the other; the wrap ends at the next `divider:`, `section:`, `title:` or
+  table (or the end of the document).
+
+`width`, `height` and `align` are presentation properties and excluded from the content
+hash (§4.1); `float` is **not** excluded (it is hashed).
+
+### Keep with previous (`keep: previous`)
+
+Any block may carry `keep: previous`. In print it stays on the same page as the block
+before it: a run of consecutive such blocks after a table is rendered inside that table as
+a final unbreakable row group (with the table's last two data rows); after any other block
+the block and the run are wrapped in an unbreakable box. A document that does not use it
+renders as before. `keep` is not a presentation property: it is hashed.
 
 ## 3. Keyword tiers
 

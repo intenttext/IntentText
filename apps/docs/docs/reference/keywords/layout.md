@@ -220,6 +220,25 @@ class** the renderer emits page-break rules for (`before:` → `page-break-befor
 `.it-<value>`; `keep:` → `break-inside: avoid` on `.it-<value>`). These are for advanced
 print tuning; most documents only ever need a bare `break:`.
 
+### Keeping a block with the one before it (`keep: previous`)
+
+Any block can carry `keep: previous` (a property, not a keyword) to stay on the same page
+as the block before it — typically the signature lines under a ledger:
+
+```intenttext
+headers: # | Item | Amount
+row: 1 | Entry 1 | 10.00
+signline: Prepared by | role: Accountant | keep: previous
+signline: Approved by | role: Manager | keep: previous
+```
+
+A run of consecutive `keep: previous` blocks is printed with the table's last two rows (it
+is rendered as the table's final, unbreakable row group), so the signatures are never alone
+on a page. After any other block, that block and the run are wrapped in an unbreakable box.
+It applies in `renderHTML` and `renderPrint`; documents that do not use it are unchanged.
+The block before the run must be a table or a single block (not a list or a section heading).
+`keep` is hashed like any other content property.
+
 ### `break:` vs `x-layout: divider`
 
 |                | `break:`                       | `x-layout: divider`         |
@@ -253,7 +272,9 @@ style: target | key: value | key: value
 
 The **target** (the content before the first `|`) is a block type:
 `title`, `summary`, `section`, `sub`, `text`, `quote`, `callout`, `info`, `table`,
-`table-header`, `metric`, `contact`, `divider`. Unknown targets are ignored.
+`table-header`, `metric`, `contact`, `divider`, `image`. Unknown targets are ignored.
+`style: image | height: 18mm | width: 30mm` sizes every image (a length in
+`mm`/`cm`/`in`/`pt`/`px`/`%`; an image's own `width`/`height` wins).
 
 The values are the standard [style properties](../style-properties) — `color`, `size`,
 `family`, `weight`, `bg`, `align`, `indent`, `opacity`, `italic`, `border`,

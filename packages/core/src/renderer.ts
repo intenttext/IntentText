@@ -761,6 +761,7 @@ export const DOC_STYLE_TARGETS: Record<string, string[]> = {
   metric: [".it-metric-row"],
   contact: [".it-contact"],
   divider: [".intent-divider"],
+  image: [".intent-image-img"],
 };
 
 export interface DocumentStyleRule {
@@ -768,6 +769,15 @@ export interface DocumentStyleRule {
   target: string;
   /** Sanitized CSS declarations, e.g. `color: #0a7; font-weight: 600`. */
   declarations: string;
+}
+
+/** `width`/`height` for the `image` style target only (other targets' vocabulary is unchanged). */
+function imageSizeDeclarations(props: Record<string, string | number>): string {
+  const w = imageLength(props.width);
+  const h = imageLength(props.height);
+  return [w && `width: ${w}`, h && `height: ${h}`, (w || h) && "box-sizing: border-box"]
+    .filter(Boolean)
+    .join("; ");
 }
 
 /** Collect the document's `style:` rules (sanitized, unknown targets dropped). */
@@ -782,7 +792,13 @@ export function collectDocumentStyles(doc: IntentDocument): DocumentStyleRule[] 
             b.properties || {},
             "stylesheet",
           );
-          if (declarations) rules.push({ target, declarations });
+          const merged =
+            target === "image"
+              ? [declarations, imageSizeDeclarations(b.properties || {})]
+                  .filter(Boolean)
+                  .join("; ")
+              : declarations;
+          if (merged) rules.push({ target, declarations: merged });
         }
       }
       if (b.children) walk(b.children);
@@ -812,6 +828,118 @@ export function documentStyleCSS(
     })
     .filter(Boolean)
     .join("\n");
+}
+
+/* ── Image layout (`image:` width / height / align / float) ───────────────────
+ *
+ * Opt-in presentation: an image without these props renders exactly as before.
+ * `width`/`height` accept a CSS length only (number + mm|cm|in|pt|px|%) — anything
+ * else (the long-standing `width: full`/`half`) is ignored. `align`/`float` are
+ * logical (start/end follow the writing direction, so an Arabic letterhead mirrors).
+ * Everything is inline, so there is no stylesheet to emit and nothing for legacy
+ * documents to inherit. Values pass through cssLength — no CSS injection.
+ */
+const IMAGE_LENGTH_RE = /^[0-9]+(?:\.[0-9]+)?(?:mm|cm|in|pt|px|%)$/i;
+
+/** A length for an image dimension, or "" when the value is not one. */
+function imageLength(value: unknown): string {
+  const v = String(value ?? "").trim();
+  return IMAGE_LENGTH_RE.test(v) ? cssLength(v, "") : "";
+}
+
+/** True once a floated image is open; the next divider/section/title/table clears it. */
+let FLOAT_OPEN = false;
+
+function imageLayout(props: Record<string, string | number>): {
+  figure: string;
+  img: string;
+  float: boolean;
+} {
+  if (BARE_RENDER) return { figure: "", img: "", float: false };
+  const w = imageLength(props.width);
+  const h = imageLength(props.height);
+  const img = [w && `width:${w}`, h && `height:${h}`, (w || h) && "box-sizing:border-box"]
+    .filter(Boolean)
+    .join(";");
+  const side = (v: unknown) => {
+    const t = String(v ?? "").trim().toLowerCase();
+    return t === "start" || t === "end" ? t : "";
+  };
+  const floatSide = side(props.float);
+  let figure = "";
+  if (floatSide) {
+    figure = `float:inline-${floatSide};margin-block:0 0.5em;margin-inline:${floatSide === "start" ? "0 1em" : "1em 0"}`;
+  } else {
+    const a = String(props.align ?? "").trim().toLowerCase();
+    const margin =
+      a === "center" ? "auto" : a === "start" ? "0 auto" : a === "end" ? "auto 0" : "";
+    if (margin) figure = `width:fit-content;margin-inline:${margin}`;
+  }
+  return {
+    figure: figure ? ` style="${figure}"` : "",
+    img: img ? ` style="${img}"` : "",
+    float: !!floatSide,
+  };
+}
+
+const FLOAT_CLEAR_HTML = `<div class="it-float-clear" style="clear:both"></div>`;
+
+/** Blocks that end a floated image's wrap. */
+function endsFloat(block: IntentBlock): boolean {
+  return (
+    block.type === "divider" ||
+    block.type === "section" ||
+    block.type === "title" ||
+    block.type === "table"
+  );
+}
+
+/* ── `keep: previous` ─────────────────────────────────────────────────────────
+ * A block (typically a `signline:`) carrying `keep: previous` is kept on the same
+ * page as the block before it. Chrome's `break-before: avoid` does not stop a
+ * signature being orphaned after a long table, so the run is rendered INSIDE the
+ * preceding table as its final row group (with the table's last two data rows),
+ * or — for any other block — in a break-inside:avoid wrapper. Only when used.
+ */
+function keepsWithPrevious(block: IntentBlock): boolean {
+  return String(block.properties?.keep ?? "").trim().toLowerCase() === "previous";
+}
+
+const KEEP_AVOID = "break-inside:avoid;page-break-inside:avoid";
+
+/** The table markup; `keepRun` (rendered `keep: previous` blocks) goes in a final
+ *  row group with the last two data rows so the run can never be orphaned. */
+function renderTableHtml(block: IntentBlock, keepRun = ""): string {
+  const headers = block.table?.headers;
+  const rows = block.table?.rows || [];
+  const align = block.table?.align;
+
+  const thead = headers
+    ? `<thead><tr>${headers
+        .map(
+          (h, c) =>
+            `<th class="intent-table-th${colAlignClass(align, c)}" scope="col" dir="auto">${escapeHtml(h)}</th>`,
+        )
+        .join("")}</tr></thead>`
+    : "";
+
+  if (!keepRun) {
+    const tbody = `<tbody>${renderTableRows(rows, align)}</tbody>`;
+    return `<table class="intent-table">${thead}${tbody}</table>`;
+  }
+
+  // Split so the tail starts on a row that is not a `^` continuation (a rowspan
+  // must not straddle the two row groups).
+  let split = Math.max(0, rows.length - 2);
+  while (split > 0 && rows[split].includes("^")) split--;
+  const cols = Math.max(headers?.length ?? 0, ...rows.map((r) => r.length), 1);
+  const head = split > 0 ? `<tbody>${renderTableRows(rows.slice(0, split), align)}</tbody>` : "";
+  const tail =
+    `<tbody class="it-keep-tail" style="${KEEP_AVOID}">` +
+    renderTableRows(rows.slice(split), align) +
+    `<tr class="it-keep-row"><td colspan="${cols}" class="it-keep-cell" style="border-left:hidden;border-right:hidden;border-bottom:hidden;padding:0">${keepRun}</td></tr>` +
+    `</tbody>`;
+  return `<table class="intent-table">${thead}${head}${tail}</table>`;
 }
 
 // Helper function to render a single block
@@ -941,8 +1069,10 @@ function renderBlock(block: IntentBlock): string {
         resourceUrl(rawImgSrc) || String(props.src ?? props.at ?? content),
       );
       const imgAlt = content;
-      return `<figure class="intent-image">
-        <img class="intent-image-img" src="${imgSrc}" alt="${imgAlt}" />
+      const layout = imageLayout(props);
+      if (layout.float) FLOAT_OPEN = true;
+      return `<figure class="intent-image"${layout.figure}>
+        <img class="intent-image-img" src="${imgSrc}" alt="${imgAlt}"${layout.img} />
         ${props.caption ? `<figcaption class="intent-image-caption">${escapeHtml(String(props.caption))}</figcaption>` : ""}
       </figure>`;
     }
@@ -1016,24 +1146,8 @@ function renderBlock(block: IntentBlock): string {
     case "code":
       return `<pre class="intent-code"><code>${escapeHtml(block.content)}</code></pre>`;
 
-    case "table": {
-      const headers = block.table?.headers;
-      const rows = block.table?.rows || [];
-      const align = block.table?.align;
-
-      const thead = headers
-        ? `<thead><tr>${headers
-            .map(
-              (h, c) =>
-                `<th class="intent-table-th${colAlignClass(align, c)}" scope="col" dir="auto">${escapeHtml(h)}</th>`,
-            )
-            .join("")}</tr></thead>`
-        : "";
-
-      const tbody = `<tbody>${renderTableRows(rows, align)}</tbody>`;
-
-      return `<table class="intent-table">${thead}${tbody}</table>`;
-    }
+    case "table":
+      return renderTableHtml(block);
 
     case "list-item": {
       const listItemProps = block.properties || {};
@@ -1906,6 +2020,27 @@ function renderBlocks(
       continue;
     }
 
+    // Letterhead float: the next divider / section / title / table ends the wrap.
+    if (FLOAT_OPEN && endsFloat(block)) {
+      html += FLOAT_CLEAR_HTML;
+      FLOAT_OPEN = false;
+    }
+
+    // `keep: previous`: the run of following blocks stays with this one.
+    let runEnd = i + 1;
+    if (block.type !== "section" && block.type !== "sub") {
+      while (runEnd < parts.length && keepsWithPrevious(parts[runEnd])) runEnd++;
+    }
+    if (runEnd > i + 1) {
+      const run = parts.slice(i + 1, runEnd).map((b) => renderBlock(b)).join("");
+      html +=
+        block.type === "table"
+          ? renderTableHtml(block, run)
+          : `<div class="it-keep-group" style="${KEEP_AVOID}">${renderBlock(block)}${run}</div>`;
+      i = runEnd;
+      continue;
+    }
+
     // Render the block itself
     html += renderBlock(block);
 
@@ -1924,6 +2059,18 @@ function renderBlocks(
   }
 
   return html;
+}
+
+/** renderBlocks for a whole document: resets and closes the letterhead float. */
+function renderBody(
+  blocks: IntentBlock[],
+  routeCtx?: { panel: string; injected: { v: boolean } },
+): string {
+  FLOAT_OPEN = false;
+  const html = renderBlocks(blocks, undefined, routeCtx);
+  const out = FLOAT_OPEN ? html + FLOAT_CLEAR_HTML : html;
+  FLOAT_OPEN = false;
+  return out;
 }
 
 /** Build the approval-route panel context for a document, or undefined when it
@@ -1996,7 +2143,7 @@ export function renderHTML(
   const prevContactLinks = CONTACT_LINKS;
   CONTACT_LINKS = options?.contactLinks !== false;
   try {
-  const bodyHtml = renderBlocks(document.blocks, undefined, buildRouteCtx(document));
+  const bodyHtml = renderBody(document.blocks, buildRouteCtx(document));
 
   // Collect and render footnotes at bottom
   const footnotes = collectFootnotes(document.blocks);
@@ -2131,7 +2278,7 @@ export function renderPrint(
   const prevContactLinks = CONTACT_LINKS;
   CONTACT_LINKS = options?.contactLinks !== false;
   try {
-  const bodyHtml = renderBlocks(doc.blocks, undefined, buildRouteCtx(doc));
+  const bodyHtml = renderBody(doc.blocks, buildRouteCtx(doc));
 
   // Collect and render footnotes at bottom
   const footnotes = collectFootnotes(doc.blocks);
