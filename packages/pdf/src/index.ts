@@ -37,8 +37,20 @@ export type { PdfAOptions, PdfAConformance };
 interface ChromePage {
   setContent(html: string, opts?: Record<string, unknown>): Promise<void>;
   pdf(opts?: Record<string, unknown>): Promise<Buffer | Uint8Array>;
-  evaluate<T>(fn: () => T | Promise<T>): Promise<T>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  evaluate<T>(fn: (...args: any[]) => T | Promise<T>, ...args: unknown[]): Promise<T>;
   close(): Promise<void>;
+  // Page-image (PNG) path: a second page shows the PDF in Chromium's own viewer.
+  setViewport(vp: Record<string, unknown>): Promise<void>;
+  setRequestInterception(on: boolean): Promise<void>;
+  on(event: "request", handler: (req: ChromeRequest) => void): unknown;
+  goto(url: string, opts?: Record<string, unknown>): Promise<unknown>;
+  screenshot(opts?: Record<string, unknown>): Promise<string | Buffer | Uint8Array>;
+}
+interface ChromeRequest {
+  url(): string;
+  respond(r: { status: number; contentType: string; body: Buffer }): Promise<void>;
+  continue(): Promise<void>;
 }
 interface ChromeBrowser {
   newPage(): Promise<ChromePage>;
@@ -93,6 +105,25 @@ export interface PdfRenderOptions {
    * Default off (3.8 reading).
    */
   keepEmptyCells?: boolean;
+  /**
+   * Cancel the render. On abort the call rejects with an `AbortError`
+   * (`DOMException`, name "AbortError"), the page(s) it opened are closed, and a
+   * one-shot function (`htmlToPDF`, `renderPNG`, ...) also closes the browser it
+   * launched. An already-aborted signal rejects before any browser is launched.
+   */
+  signal?: AbortSignal;
+}
+
+/** Options of the page image: `htmlToPNG` / `renderPNG` (3.5). */
+export interface PngRenderOptions extends PdfRenderOptions {
+  /** 1-based page of the printed document to draw. Default 1. A page past the end throws. */
+  page?: number;
+  /** Device scale factor (pixels per CSS px). Default 2: an A4 page is about 1587x2245 px. */
+  scale?: number;
+  /** Output width in pixels; sets `scale = width / page CSS width`. Wins over `scale`. */
+  width?: number;
+  /** Give up waiting for Chromium's PDF viewer to draw the page, in ms. Default 30000. */
+  timeout?: number;
 }
 
 export interface IssueOptions extends PdfRenderOptions {
@@ -119,6 +150,64 @@ export interface IssuedDocument {
   at: string;
   /** Print-ready HTML of the sealed document (feed to Chrome/Gotenberg for a PDF). */
   html: string;
+}
+
+/* ── AbortSignal ──────────────────────────────────────────────────────────── */
+
+function abortError(signal?: AbortSignal): Error {
+  const reason = (signal as { reason?: unknown } | undefined)?.reason;
+  if (reason instanceof Error && reason.name === "AbortError") return reason;
+  const DE = (globalThis as { DOMException?: new (m: string, n: string) => Error }).DOMException;
+  if (DE) return new DE("The operation was aborted", "AbortError");
+  const e = new Error("The operation was aborted");
+  e.name = "AbortError";
+  return e;
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) throw abortError(signal);
+}
+
+/**
+ * Race `work` against the signal. On abort `cleanup` runs (closing the page / browser, which
+ * also unblocks `work`) and the result rejects with an AbortError at once.
+ */
+async function abortable<T>(
+  signal: AbortSignal | undefined,
+  cleanup: () => Promise<unknown>,
+  work: () => Promise<T>,
+): Promise<T> {
+  if (!signal) return work();
+  throwIfAborted(signal);
+  let onAbort: () => void = () => undefined;
+  const aborted = new Promise<never>((_, reject) => {
+    onAbort = () => {
+      cleanup().catch(() => undefined);
+      reject(abortError(signal));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+  const running = work();
+  running.catch(() => undefined); // an abort-induced failure of `work` is not unhandled
+  try {
+    return await Promise.race([running, aborted]);
+  } finally {
+    signal.removeEventListener("abort", onAbort);
+  }
+}
+
+/** Launch a browser for one call, run `work`, and always close it, also on abort. */
+async function withBrowser<T>(
+  options: PdfRenderOptions,
+  work: (browser: ChromeBrowser) => Promise<T>,
+): Promise<T> {
+  throwIfAborted(options.signal);
+  const browser = await launchBrowser(options);
+  try {
+    return await abortable(options.signal, () => browser.close(), () => work(browser));
+  } finally {
+    await browser.close().catch(() => undefined);
+  }
 }
 
 /* ── Chrome resolution ────────────────────────────────────────────────────── */
@@ -231,36 +320,238 @@ export function issueDocument(
 
 /* ── PDF rendering ────────────────────────────────────────────────────────── */
 
-async function pageToPdf(
-  browser: ChromeBrowser,
-  html: string,
-  opts: PdfRenderOptions,
-): Promise<Buffer> {
+/**
+ * Open a page on the print HTML and wait until it is ready to print: network idle, and every
+ * @font-face (incl. the embedded PDF/A fonts) parsed, so Chrome renders (and embeds) the
+ * real glyphs rather than painting a fallback face first (#27/#28). Shared by the PDF and
+ * the page image, so both come from the same setup.
+ */
+async function openPrintPage(browser: ChromeBrowser, html: string): Promise<ChromePage> {
   const page = await browser.newPage();
   try {
     await page.setContent(html, { waitUntil: "networkidle0" });
-    // Guarantee every @font-face (incl. the embedded PDF/A fonts) is parsed and
-    // ready before printing, so Chrome renders — and embeds — the real glyphs
-    // rather than painting a fallback face first (#27/#28).
     await page.evaluate(() => {
       const d = (globalThis as { document?: { fonts?: { ready?: Promise<unknown> } } })
         .document;
       return d?.fonts?.ready ?? Promise.resolve();
     });
-    const bytes = await page.pdf({
-      printBackground: true,
-      preferCSSPageSize: true,
-      // Accessibility: emit a TAGGED PDF (Chrome's generateTaggedPDF) so the
-      // structure tree comes from our semantic HTML (headings, lists, tables with
-      // <th scope>, lang/dir, alt text) — the basis for PDF/UA / Section 508.
-      // Callers can override via opts.pdf.
-      tagged: true,
-      ...(opts.pdf ?? {}),
-    });
-    return Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
-  } finally {
-    await page.close();
+    return page;
+  } catch (e) {
+    await page.close().catch(() => undefined);
+    throw e;
   }
+}
+
+async function printToBytes(
+  page: ChromePage,
+  opts: PdfRenderOptions,
+  extra: Record<string, unknown> = {},
+): Promise<Buffer> {
+  const bytes = await page.pdf({
+    printBackground: true,
+    preferCSSPageSize: true,
+    // Accessibility: emit a TAGGED PDF (Chrome's generateTaggedPDF) so the
+    // structure tree comes from our semantic HTML (headings, lists, tables with
+    // <th scope>, lang/dir, alt text) - the basis for PDF/UA / Section 508.
+    // Callers can override via opts.pdf.
+    tagged: true,
+    ...(opts.pdf ?? {}),
+    ...extra,
+  });
+  return Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
+}
+
+async function pageToPdf(
+  browser: ChromeBrowser,
+  html: string,
+  opts: PdfRenderOptions,
+): Promise<Buffer> {
+  throwIfAborted(opts.signal);
+  let page: ChromePage | undefined;
+  try {
+    return await abortable(
+      opts.signal,
+      async () => {
+        await page?.close();
+      },
+      async () => {
+        page = await openPrintPage(browser, html);
+        return printToBytes(page, opts);
+      },
+    );
+  } finally {
+    await page?.close().catch(() => undefined);
+  }
+}
+
+/* ── Page image (PNG) ─────────────────────────────────────────────────────── */
+
+const VIEWER_URL = "https://print.invalid/page.pdf#toolbar=0&navpanes=0&zoom=100";
+const VIEWER_MARGIN = 120;
+const VIEWER_ERROR =
+  "@dotit/pdf: Chromium's PDF viewer did not render the page " +
+  "(is this a headless-shell build without the PDF viewer?)";
+
+interface Box {
+  l: number;
+  t: number;
+  w: number;
+  h: number;
+}
+
+/** Runs IN the viewer tab: decode a screenshot and find the (brighter-than-background) sheet. */
+function findSheet(b64: string): Promise<Box | null> {
+  return (async () => {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const g = globalThis as any;
+    const img = new g.Image();
+    img.src = "data:image/png;base64," + b64;
+    await img.decode();
+    const c = g.document.createElement("canvas");
+    c.width = img.width;
+    c.height = img.height;
+    const ctx = c.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+    const d: Uint8ClampedArray = ctx.getImageData(0, 0, c.width, c.height).data;
+    const W: number = c.width;
+    const H: number = c.height;
+    // The viewer's background is dark grey; its drop shadow is DARKER still, so "brighter than
+    // the background" (not "different from") isolates the sheet.
+    const lum = (i: number) => d[i] + d[i + 1] + d[i + 2];
+    const bg = lum(0);
+    const bright = (x: number, y: number) => lum((y * W + x) * 4) - bg > 60;
+    let l = W;
+    let r = -1;
+    let t = H;
+    let b = -1;
+    for (const f of [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]) {
+      const y = Math.floor(H * f);
+      const x = Math.floor(W * f);
+      for (let i = 0; i < W; i++) if (bright(i, y)) { if (i < l) l = i; break; }
+      for (let i = W - 1; i >= 0; i--) if (bright(i, y)) { if (i > r) r = i; break; }
+      for (let j = 0; j < H; j++) if (bright(x, j)) { if (j < t) t = j; break; }
+      for (let j = H - 1; j >= 0; j--) if (bright(x, j)) { if (j > b) b = j; break; }
+    }
+    if (r < l || b < t || r - l < 100 || b - t < 100) return null;
+    return { l, t, w: r - l + 1, h: b - t + 1 };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+  })();
+}
+
+/** Runs IN the viewer tab: crop a PNG (base64) to the given device-pixel box; returns base64. */
+async function cropPng(b64: string, x: number, y: number, w: number, h: number): Promise<string> {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const g = globalThis as any;
+  const img = new g.Image();
+  img.src = "data:image/png;base64," + b64;
+  await img.decode();
+  const c = g.document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  c.getContext("2d").drawImage(img, x, y, w, h, 0, 0, w, h);
+  return c.toDataURL("image/png").split(",")[1];
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+}
+
+const sleep = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
+
+/** Show one-page PDF bytes in Chromium's viewer and screenshot the sheet. */
+async function pdfBytesToPng(
+  browser: ChromeBrowser,
+  pdf: Buffer,
+  cssW: number,
+  cssH: number,
+  scale: number,
+  timeout: number,
+  signal?: AbortSignal,
+): Promise<Buffer> {
+  const view = await browser.newPage();
+  try {
+    return await abortable(
+      signal,
+      () => view.close(),
+      async () => {
+        await view.setViewport({
+          width: Math.ceil(cssW) + VIEWER_MARGIN,
+          height: Math.ceil(cssH) + VIEWER_MARGIN,
+          deviceScaleFactor: scale,
+        });
+        await view.setRequestInterception(true);
+        view.on("request", (r) => {
+          if (r.url().startsWith("https://print.invalid/")) {
+            void r.respond({ status: 200, contentType: "application/pdf", body: pdf });
+          } else void r.continue();
+        });
+        await view.goto(VIEWER_URL, { waitUntil: "load" });
+        // Deterministic wait: the sheet must be found AND two consecutive frames identical.
+        const deadline = Date.now() + timeout;
+        let prev: string | null = null;
+        for (;;) {
+          await sleep(150);
+          const shot = (await view.screenshot({ encoding: "base64" })) as string;
+          const box = await view.evaluate(findSheet, shot);
+          if (box && prev === shot) {
+            const dW = Math.round(cssW * scale);
+            const dH = Math.round(cssH * scale);
+            const left = Math.round(box.l + (box.w - dW) / 2);
+            const top = Math.round(box.t + (box.h - dH) / 2);
+            // Crop the already-stable frame in the viewer tab (lossless canvas copy, encoded by
+            // Chrome): exact device pixels, unlike a fractional-CSS-px screenshot clip.
+            const b64 = await view.evaluate(cropPng, shot, left, top, dW, dH);
+            return Buffer.from(b64, "base64");
+          }
+          prev = box ? shot : null;
+          if (Date.now() > deadline) throw new Error(VIEWER_ERROR);
+        }
+      },
+    );
+  } finally {
+    await view.close().catch(() => undefined);
+  }
+}
+
+async function pageToPng(
+  browser: ChromeBrowser,
+  html: string,
+  opts: PngRenderOptions,
+): Promise<Buffer> {
+  throwIfAborted(opts.signal);
+  const n = opts.page ?? 1;
+  if (!Number.isInteger(n) || n < 1) {
+    throw new Error(`@dotit/pdf: page must be a positive integer (got ${String(opts.page)})`);
+  }
+  let page: ChromePage | undefined;
+  let pdf: Buffer;
+  try {
+    pdf = await abortable(
+      opts.signal,
+      async () => {
+        await page?.close();
+      },
+      async () => {
+        page = await openPrintPage(browser, html);
+        try {
+          // The requested page ALONE, through the same print call as the PDF: running
+          // header/footer counters ("Page 2 of 4") stay those of the whole document.
+          return await printToBytes(page, opts, { pageRanges: String(n) });
+        } catch (e) {
+          if (n === 1) throw e;
+          throw new Error(
+            `@dotit/pdf: page ${n} is beyond the end of the document (${(e as Error).message})`,
+          );
+        }
+      },
+    );
+  } finally {
+    await page?.close().catch(() => undefined);
+  }
+  const { PDFDocument } = await import("pdf-lib");
+  const size = (await PDFDocument.load(pdf)).getPage(0).getSize();
+  const cssW = (size.width * 96) / 72;
+  const cssH = (size.height * 96) / 72;
+  const scale = opts.width ? opts.width / cssW : (opts.scale ?? 2);
+  if (!(scale > 0)) throw new Error("@dotit/pdf: scale / width must be positive");
+  return pdfBytesToPng(browser, pdf, cssW, cssH, scale, opts.timeout ?? 30000, opts.signal);
 }
 
 /** Render an HTML document (e.g. from issueDocument().html) to PDF bytes. */
@@ -268,17 +559,33 @@ export async function htmlToPDF(
   html: string,
   options: PdfRenderOptions = {},
 ): Promise<Buffer> {
-  const browser = await launchBrowser(options);
-  let bytes: Buffer;
-  try {
-    bytes = await pageToPdf(browser, html, options);
-  } finally {
-    await browser.close();
-  }
+  let bytes = await withBrowser(options, (browser) => pageToPdf(browser, html, options));
   if (options.pdfA) {
     bytes = Buffer.from(await toPdfA(bytes, options.pdfA));
   }
   return bytes;
+}
+
+/**
+ * Render print HTML to a PNG of one page, drawn by the SAME Chrome that prints the PDF, so
+ * it is the paper as it prints (`@page` size and margins, print media, running header/footer,
+ * Arabic fonts), not a screen screenshot. Needs Chromium's built-in PDF viewer (full
+ * Chromium/Chrome in `--headless=new`, not chrome-headless-shell).
+ */
+export async function htmlToPNG(
+  html: string,
+  options: PngRenderOptions = {},
+): Promise<Buffer> {
+  return withBrowser(options, (browser) => pageToPng(browser, html, options));
+}
+
+/** Render a finished `.it` source to a PNG of one page (see `htmlToPNG`). */
+export async function renderPNG(
+  source: string,
+  options: PngRenderOptions = {},
+): Promise<Buffer> {
+  throwIfAborted(options.signal);
+  return htmlToPNG(printHtml(source, options), options);
 }
 
 /** Render an `.it` source (already merged/finished) to PDF bytes. */
@@ -319,6 +626,7 @@ export async function issuePDF(
   data: Record<string, unknown>,
   options: IssueOptions,
 ): Promise<IssuedDocument & { pdf: Buffer }> {
+  throwIfAborted(options.signal);
   const issued = issueDocument(templateSource, data, options);
   const pdf = await htmlToPDF(issued.html, options);
   return { ...issued, pdf };
@@ -360,6 +668,7 @@ export async function renderSignedPDF(
   source: string,
   options: PdfRenderOptions & { signer: PdfSigner; requireSeal?: boolean },
 ): Promise<Uint8Array> {
+  throwIfAborted(options.signal);
   // Never let the PAdES signature vouch for TAMPERED content (finding #57). If the .it
   // carries a native seal, it MUST verify intact before we sign the rendered PDF —
   // otherwise a modified document would become a "legally-recognized signed PDF".
@@ -377,6 +686,7 @@ export async function renderSignedPDF(
     );
   }
   const pdf = await renderPDF(source, options);
+  throwIfAborted(options.signal);
   let pades: typeof import("@dotit/pades");
   try {
     pades = await importPades();
@@ -406,6 +716,8 @@ export async function createPdfRenderer(options: PdfRenderOptions = {}): Promise
     data: Record<string, unknown>,
     opts: IssueOptions,
   ): Promise<IssuedDocument & { pdf: Buffer }>;
+  renderPNG(source: string, opts?: PngRenderOptions): Promise<Buffer>;
+  htmlToPNG(html: string, opts?: PngRenderOptions): Promise<Buffer>;
   close(): Promise<void>;
 }> {
   const browser = await launchBrowser(options);
@@ -422,6 +734,14 @@ export async function createPdfRenderer(options: PdfRenderOptions = {}): Promise
       const issued = issueDocument(templateSource, data, merged);
       const pdf = await pageToPdf(browser, issued.html, merged);
       return { ...issued, pdf };
+    },
+    async renderPNG(source, opts = {}) {
+      const merged = { ...options, ...opts };
+      throwIfAborted(merged.signal);
+      return pageToPng(browser, printHtml(source, merged), merged);
+    },
+    async htmlToPNG(html, opts = {}) {
+      return pageToPng(browser, html, { ...options, ...opts });
     },
     async close() {
       await browser.close();

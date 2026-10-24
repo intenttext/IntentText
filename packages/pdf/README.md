@@ -88,6 +88,35 @@ for (const s of statements) {
 await r.close();
 ```
 
+## Page image (3.5)
+
+One print engine for the PDF and a picture of it: the PNG is the page as it prints (page
+size and margins, print media, running header/footer, Arabic fonts), drawn by the same Chrome.
+
+```js
+import { renderPNG, htmlToPNG, createPdfRenderer } from "@dotit/pdf";
+
+const png = await renderPNG(itSource, { page: 1, scale: 2 });     // Buffer; A4 = 1587x2245
+const thumb = await renderPNG(itSource, { width: 600 });            // width in pixels
+const r = await createPdfRenderer();                                // same browser, no 2nd launch
+const img = await r.htmlToPNG(printHtml, { signal: AbortSignal.timeout(20000) });
+```
+
+Options (on top of the PDF options): `page` (1-based, default 1; a page past the end throws),
+`scale` (device scale factor, default 2), `width` (pixels; wins over `scale`), `timeout`
+(ms to wait for the viewer, default 30000), `signal`.
+
+`signal?: AbortSignal` works on every entry point, PDF and PNG: it rejects with an
+`AbortError`, closes the pages, and closes the browser a one-shot call launched.
+
+Requirement: the image is drawn by Chromium's built-in PDF viewer, so use full Chromium/Chrome
+in `--headless=new` (puppeteer's default), not chrome-headless-shell. Smoke check for your
+server image:
+
+```sh
+node -e 'require("@dotit/pdf").htmlToPNG("<h1>ok</h1>",{launchArgs:["--no-sandbox"]}).then(b=>console.log("PNG bytes",b.length),e=>{console.error(e.message);process.exit(1)})'
+```
+
 ## Chrome resolution
 
 1. `puppeteer` if installed (its bundled Chromium).

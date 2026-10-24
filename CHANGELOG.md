@@ -6,6 +6,24 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [pdf 3.5.0] — 2026-10-24 — page image (PNG) and AbortSignal
+
+`@dotit/pdf` **3.5.0** (no change to core; needs `@dotit/core` ^3.9.0, no new dependency).
+
+- **`htmlToPNG(html, options)` / `renderPNG(source, options)`**, and the same two methods on
+  `createPdfRenderer()` (they use its already-launched browser, no second launch). The image is
+  the page as it prints in the PDF (`@page` size and margins, print media, running
+  header/footer, Arabic fonts), drawn by the same Chrome: the requested page is printed alone
+  with the same `page.pdf()` call (`pageRanges`, so "Page 2 of 4" stays right), then shown in
+  Chromium's built-in PDF viewer and captured. Options: `page` (1-based, default 1; past the
+  end throws), `scale` (default 2, an A4 page is 1587x2245 px), `width` (pixels, wins over
+  `scale`), `timeout` (default 30000 ms).
+- **`signal?: AbortSignal`** on every entry point (`htmlToPDF`, `renderPDF`, `issuePDF`,
+  `renderSignedPDF`, the renderer methods, the PNG functions): rejects with an `AbortError`,
+  closes the pages, and closes the browser a one-shot call launched. An already-aborted signal
+  rejects before any browser is launched.
+- Needs full Chromium/Chrome in `--headless=new` (the PDF viewer), not chrome-headless-shell.
+
 ## [core 3.9.0 / pdf 3.4.0] — 2026-10-11 — print fidelity for business papers
 
 `@dotit/core` **3.9.0**, `@dotit/pdf` **3.4.0**. Ten print-engine requests measured on
