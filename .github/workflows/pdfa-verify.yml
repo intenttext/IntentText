@@ -15,7 +15,7 @@ jobs:
   verapdf:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Version comes from package.json "packageManager" — don't double-spec.
       - uses: pnpm/action-setup@v4
