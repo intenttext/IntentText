@@ -25,7 +25,7 @@ jobs:
         # No `version:` here — it conflicts with the root package.json
         # `packageManager: pnpm@9.0.0` ("Multiple versions of pnpm specified").
         # action-setup@v4 reads the pinned version from packageManager.
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node
         uses: actions/setup-node@v4
